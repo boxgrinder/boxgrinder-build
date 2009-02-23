@@ -97,7 +97,7 @@ module JBossCloud
 
         if ( !File.exists?( vmware_personal_vmx_file ) || File.new( "#{@appliance_xml_file}.vmx-input" ).mtime > File.new( vmware_personal_vmx_file ).mtime  )
           puts "Creating VMware personal disk..."
-          execute_command( "#{Dir.pwd}/lib/python-virtinst/virt-convert -o vmx -D vmdk #{@appliance_xml_file}.vmx-input #{vmware_personal_output_folder}/" )
+           execute_command( "qemu-img convert #{File.dirname( @appliance_xml_file )}/#{@config.name}-sda.raw -O vmdk #{vmware_personal_output_folder}/#{@config.name}-sda.vmdk" )
         end
 
         vmx_data = File.open( "#{JBossCloud::Config.get.dir_src}/base.vmx" ).read
