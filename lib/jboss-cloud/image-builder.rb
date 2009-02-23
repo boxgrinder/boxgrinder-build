@@ -31,10 +31,11 @@ module JBossCloud
     end
 
     DEFAULT_PROJECT_CONFIG = {
-      :build_dir         =>'build',
+      :build_dir         => 'build',
       #:topdir            =>'build/topdir',
       :sources_cache_dir =>'sources-cache',
-      :rpms_cache_dir    =>'rpms-cache',
+      :rpms_cache_dir    => 'rpms-cache',
+      :dir_specs         => 'specs'
     }
 
     def initialize(project_config)
@@ -62,8 +63,9 @@ module JBossCloud
       dir_top           = project_config[:topdir]            || "#{dir_build}/topdir"
       dir_src_cache     = project_config[:sources_cache_dir] || DEFAULT_PROJECT_CONFIG[:sources_cache_dir]
       dir_rpms_cache    = project_config[:rpms_cache_dir]    || DEFAULT_PROJECT_CONFIG[:rpms_cache_dir]
+      dir_specs         = project_config[:dir_specs]         || DEFAULT_PROJECT_CONFIG[:dir_specs]
      
-      Config.new.init(name, version, release, arch, build_arch, dir_rpms_cache, dir_src_cache, dir_root, dir_top, dir_build)
+      Config.new.init(name, version, release, arch, build_arch, dir_rpms_cache, dir_src_cache, dir_root, dir_top, dir_build, dir_specs)
     end
     
     def define_rules
@@ -81,7 +83,7 @@ module JBossCloud
 
       puts "Building architecture:\t#{Config.get.build_arch}\n\r"
 
-      Dir[ 'specs/extras/*.spec' ].each do |spec_file|
+      Dir[ "#{Config.get.dir_specs}/extras/*.spec" ].each do |spec_file|
         JBossCloud::RPM.new( spec_file )
       end
 
