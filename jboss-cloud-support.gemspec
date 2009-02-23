@@ -3,7 +3,7 @@ PKG_FILES= [
     'init.rb',
   ] + Dir[ 'lib/**/*.rb' ] + Dir[ '*.gemspec' ]
 
-spec = Gem::Specification.new do |s|
+Gem::Specification.new do |s|
   s.platform = Gem::Platform::RUBY
   s.summary = "JBoss-Cloud Build Support gem"
   s.name = 'jboss-cloud-buildsupport'
