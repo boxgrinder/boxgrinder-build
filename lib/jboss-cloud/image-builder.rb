@@ -35,7 +35,8 @@ module JBossCloud
       #:topdir            =>'build/topdir',
       :sources_cache_dir =>'sources-cache',
       :rpms_cache_dir    => 'rpms-cache',
-      :dir_specs         => 'specs'
+      :dir_specs         => 'specs',
+      :dir_appliances    => 'appliances'
     }
 
     def initialize(project_config)
@@ -64,8 +65,9 @@ module JBossCloud
       dir_src_cache     = project_config[:sources_cache_dir] || DEFAULT_PROJECT_CONFIG[:sources_cache_dir]
       dir_rpms_cache    = project_config[:rpms_cache_dir]    || DEFAULT_PROJECT_CONFIG[:rpms_cache_dir]
       dir_specs         = project_config[:dir_specs]         || DEFAULT_PROJECT_CONFIG[:dir_specs]
+      dir_appliances    = project_config[:dir_appliances]    || DEFAULT_PROJECT_CONFIG[:dir_appliances]
      
-      Config.new.init(name, version, release, arch, build_arch, dir_rpms_cache, dir_src_cache, dir_root, dir_top, dir_build, dir_specs)
+      Config.new.init( name, version, release, arch, build_arch, dir_rpms_cache, dir_src_cache, dir_root, dir_top, dir_build, dir_specs, dir_appliances )
     end
     
     def define_rules
@@ -87,11 +89,11 @@ module JBossCloud
         JBossCloud::RPM.new( spec_file )
       end
 
-      Dir[ "appliances/*/*.appl" ].each do |appliance_def|
+      Dir[ "#{Config.get.dir_appliances}/*/*.appl" ].each do |appliance_def|
         JBossCloud::Appliance.new( build_config( File.basename( appliance_def, '.appl' ) ), appliance_def )
       end
 
-      Dir[ "appliances/*.mappl" ].each do |multi_appliance_def|
+      Dir[ "#{Config.get.dir_appliances}/*.mappl" ].each do |multi_appliance_def|
         JBossCloud::MultiAppliance.new( build_config( File.basename( multi_appliance_def, '.mappl' ) ), multi_appliance_def )
       end
     end

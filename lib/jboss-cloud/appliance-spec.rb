@@ -17,7 +17,7 @@ module JBossCloud
 
       appliance_build_dir    = "#{Config.get.dir_build}/appliances/#{@config.arch}/#{@config.name}"
 
-      definition = YAML.load_file( "appliances/#{@config.name}/#{@config.name}.appl" )
+      definition = YAML.load_file( "#{Config.get.dir_appliances}/#{@config.name}/#{@config.name}.appl" )
       definition['name']    = @config.name
       definition['version'] = Config.get.version
       definition['release'] = Config.get.release
