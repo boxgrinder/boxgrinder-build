@@ -139,7 +139,7 @@ module JBossCloud
         File.new( vmware_enterprise_vmx_file , "w+" ).puts( vmx_data )
 
         # create new VMDK descriptor file
-        File.new( vmware_enterprise_vmdk_file, "w+" ).puts( change_vmdk_values( File.open( "src/base.vmdk" ).read ) )
+        File.new( vmware_enterprise_vmdk_file, "w+" ).puts( change_vmdk_values( File.open( "#{JBossCloud::Config.get.dir_src}/base.vmdk" ).read ) )
 
       end
 
