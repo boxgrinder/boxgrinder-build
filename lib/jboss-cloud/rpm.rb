@@ -78,8 +78,8 @@ module JBossCloud
       #  nothing
       # else
        
-      file source_file=>[ "src/#{source_basename}" ] do
-        FileUtils.cp( "#{JBossCloud::Config.get.dir_root}/src/#{source}", "#{@topdir}/SOURCES/#{source_basename}" )
+      file source_file=>[ "#{JBossCloud::Config.get.dir_src}/#{source_basename}" ] do
+        FileUtils.cp( "#{JBossCloud::Config.get.dir_src}/#{source}", "#{@topdir}/SOURCES/#{source_basename}" )
       end
     
     end

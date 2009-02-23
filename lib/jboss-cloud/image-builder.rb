@@ -33,10 +33,11 @@ module JBossCloud
     DEFAULT_PROJECT_CONFIG = {
       :build_dir         => 'build',
       #:topdir            =>'build/topdir',
-      :sources_cache_dir =>'sources-cache',
+      :sources_cache_dir => 'sources-cache',
       :rpms_cache_dir    => 'rpms-cache',
       :dir_specs         => 'specs',
-      :dir_appliances    => 'appliances'
+      :dir_appliances    => 'appliances',
+      :dir_src           => 'src'
     }
 
     def initialize(project_config)
@@ -66,8 +67,9 @@ module JBossCloud
       dir_rpms_cache    = project_config[:rpms_cache_dir]    || DEFAULT_PROJECT_CONFIG[:rpms_cache_dir]
       dir_specs         = project_config[:dir_specs]         || DEFAULT_PROJECT_CONFIG[:dir_specs]
       dir_appliances    = project_config[:dir_appliances]    || DEFAULT_PROJECT_CONFIG[:dir_appliances]
+      dir_src           = project_config[:dir_src]           || DEFAULT_PROJECT_CONFIG[:dir_src]
      
-      Config.new.init( name, version, release, arch, build_arch, dir_rpms_cache, dir_src_cache, dir_root, dir_top, dir_build, dir_specs, dir_appliances )
+      Config.new.init( name, version, release, arch, build_arch, dir_rpms_cache, dir_src_cache, dir_root, dir_top, dir_build, dir_specs, dir_appliances, dir_src )
     end
     
     def define_rules

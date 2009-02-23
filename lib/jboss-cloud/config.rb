@@ -36,7 +36,7 @@ module JBossCloud
     def initialize
     end
 
-    def init( name, version, release, arch, build_arch, dir_rpms_cache, dir_src_cache, dir_root, dir_top, dir_build, dir_specs, dir_appliances )
+    def init( name, version, release, arch, build_arch, dir_rpms_cache, dir_src_cache, dir_root, dir_top, dir_build, dir_specs, dir_appliances, dir_src )
       @name             = name
       @version          = version
       @release          = release
@@ -48,6 +48,7 @@ module JBossCloud
       @dir_build        = dir_build
       @dir_specs        = dir_specs
       @dir_appliances   = dir_appliances
+      @dir_src          = dir_src
       @build_arch       = build_arch
 
       @@config = self
@@ -65,6 +66,7 @@ module JBossCloud
     attr_reader :dir_build
     attr_reader :dir_specs
     attr_reader :dir_appliances
+    attr_reader :dir_src
 
     def version_with_release
       @version + (@release.empty? ? "" : "-" + @release)
