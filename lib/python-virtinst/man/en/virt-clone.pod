@@ -1,0 +1,163 @@
+=pod
+
+=head1 NAME
+
+virt-clone - clone existing virtual machine images
+
+=head1 SYNOPSIS
+
+B<virt-clone> [OPTION]...
+
+=head1 DESCRIPTION
+
+B<virt-clone> is a command line tool for cloning existing virtual machine
+images using the C<libvirt> hypervisor management library. It will copy
+the disk images of any existing virtual machine, and define a new guest
+with an identical virtual hardware configuration. Elements which require
+uniqueness will be updated to avoid a clash between old and new guests.
+
+Given suitable command line arguments, C<virt-clone> is capable of running
+completely unattended, with the guest 'kickstarting' itself too. This allows
+for easy automation of guest installs. A companion tool C<virt-clone(1)> is
+provided for cloning pre-existing guests if their installation cannot be easily
+automated from pristine media.
+
+=head1 OPTIONS
+
+Any of the options can be omitted, in which case C<virt-clone> will run
+interactively prompting for input as required.
+
+=over 4
+
+=item -h, --help
+
+Show the help message and exit
+
+=item -o ORIGINAL_GUEST, --original=ORIGINAL_GUEST
+
+Name or uuid for the original guest to be cloned. This guest must be shut
+off since it is not possible to safely clone active guests at this time.
+
+=item -n NAME, --name=NAME
+
+Name of the new guest virtual machine instance. This must be unique amongst
+all guests known to the hypervisor on this machine, including those not
+currently active. To re-define an existing guest, use the C<virsh(1)> tool
+to shut it down & delete it prior to running C<virt-clone>. This parameter
+will be prompted for if omitted on the command line.
+
+=item -u UUID, --uuid=UUID 
+
+UUID for the guest; if none is given a random UUID will be generated. If you 
+specify UUID, you should use a 32-digit hexadecimal number. UUID are intended
+to be unique across the entire data center, and indeed world. Bear this in
+mind if manually specifying a UUID
+
+=item -f DISKFILE, --file=DISKFILE
+
+Path to the file, disk partition, or logical volume to use as the backing store
+for the new guest's virtual disk. If the original guest has multiple disks,
+this parameter must be repeated multiple times, once per disk in the original
+virtual machine.
+
+=item -m MAC, --mac=MAC
+
+Fixed MAC address for the guest; If this parameter is omitted, or the value
+C<RANDOM> is specified a suitable address will be randomly generated. For
+Xen virtual machines it is required that the first 3 pairs in the MAC address
+be the sequence '00:16:3e', while for QEMU or KVM virtual machines it must
+be '54:52:00'.
+
+=item --connect=CONNECT     Connect to hypervisor with URI
+
+Connect to a non-default hypervisor. The default connection is chosen based
+on the following rules:
+
+=over 4
+
+=item xen
+
+If running on a host with the Xen kernel (checks against /proc/xen)
+
+=item qemu:///system
+
+If running on a bare metal kernel as root
+
+=item qemu:///session
+
+If running on a bare metal kernel as non-root
+
+=back
+
+It is only necessary to provide the C<--connect> argument if this default
+prioritization is incorrect, eg if wanting to use QEMU while on a Xen kernel.
+
+=item --preserve-data
+
+Preserve a new file to use as the disk image for the new guest.
+
+=item -d, --debug
+
+Print debugging information to the terminal when running the install process.
+The debugging information is also stored in C<$HOME/.virtinst/virt-clone.log>
+even if this parameter is omitted.
+
+=item --force
+
+Prevent interactive prompts. If the intended prompt was a yes/no prompt, always
+say yes. For any other prompts, the application will exit.
+
+=back
+
+=head1 EXAMPLES
+
+Clone the guest called C<demo> which has a single disk to copy
+
+  # virt-clone \
+       --original demo \
+       --name newdemo \
+       --file /var/lib/xen/images/newdemo.img
+
+Clone a QEMU guest with multiple disks
+
+  # virt-clone \
+       --connect qemu:///system \
+       --original demo \
+       --name newdemo \
+       --file /var/lib/xen/images/newdemo.img \
+       --file /var/lib/xen/images/newdata.img
+
+Clone a guest to a physical device which is at least as big as the
+original guests disks. If the destination device is bigger, the
+new guest can do a filesystem resize when it boots.
+
+  # virt-clone \
+       --connect qemu:///system \
+       --name demo \
+       --file /dev/HostVG/DemoVM \
+       --mac 54:52:00:34:11:54
+
+=head1 AUTHOR
+
+Written by Kazuki Mizushima, and a team of many other contributors. See the AUTHORS 
+file in the source distribution for the complete list of credits.
+
+=head1 BUGS
+
+Report bugs to the mailing list C<http://www.redhat.com/mailman/listinfo/et-mgmt-tools>
+or directly to BugZilla C<http://bugzilla.redhat.com/bugzilla/> against the
+C<Fedora> product, and the C<python-virtinst> component.
+
+=head1 COPYRIGHT
+
+Copyright (C) Fujitsu Limited 2007, and various contributors. 
+This is free software. You may redistribute copies of it under the terms of the GNU General 
+Public License C<http://www.gnu.org/licenses/gpl.html>. There is NO WARRANTY, to the extent 
+permitted by law.
+
+=head1 SEE ALSO
+
+C<virsh(1)>, C<virt-install(1)>, C<virt-manager(1)>, the project website C<http://virt-manager.org>
+
+=cut
+

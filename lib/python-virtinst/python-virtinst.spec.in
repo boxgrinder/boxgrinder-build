@@ -1,0 +1,133 @@
+# -*- rpm-spec -*-
+
+%{!?python_sitelib: %define python_sitelib %(python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
+
+# This macro is used for the continuous automated builds. It just
+# allows an extra fragment based on the timestamp to be appended
+# to the release. This distinguishes automated builds, from formal
+# Fedora RPM builds
+%define _extra_release %{?dist:%{dist}}%{!?dist:%{?extra_release:%{extra_release}}}
+
+%define appname virtinst
+
+%if 0%{?fedora} >= 9
+%define with_egg 1
+%else
+%define with_egg 0
+%endif
+
+
+Summary: Python modules and utilities for installing virtual machines
+Name: python-%{appname}
+Version: ::VERSION::
+Release: 1%{_extra_release}
+Source0: http://virt-manager.org/download/sources/%{appname}/%{appname}-%{version}.tar.gz
+License: GPLv2+
+Group: Development/Libraries
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+BuildArch: noarch
+Url: http://virt-manager.org
+Provides: virt-install
+Provides: virt-clone
+Provides: virt-image
+Provides: virt-pack
+Provides: virt-convert
+Requires: libvirt-python >= 0.2.0
+Requires: urlgrabber
+Requires: libxml2-python
+Requires: python-urlgrabber
+BuildRequires: gettext
+BuildRequires: python
+
+%description
+virtinst is a module that helps build and install libvirt based virtual
+machines. Currently supports KVM, QEmu and Xen virtual machines. Package
+includes several command line utilities, including virt-install (build
+and install new VMs) and virt-clone (clone an existing virtual machine).
+
+%prep
+%setup -q -n %{appname}-%{version}
+
+%build
+python setup.py build
+
+%install
+rm -rf $RPM_BUILD_ROOT
+python setup.py install -O1 --root=$RPM_BUILD_ROOT
+%find_lang %{appname} || echo 0
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%files -f %{appname}.lang
+%defattr(-,root,root)
+%doc README COPYING AUTHORS ChangeLog NEWS doc/image.rng doc/example1.xml
+%dir %{python_sitelib}/%{appname}
+%dir %{python_sitelib}/virtconv
+%{python_sitelib}/%{appname}/*
+%{python_sitelib}/virtconv/*
+%if %{with_egg}
+%{python_sitelib}/%{appname}-*.egg-info
+%endif
+%{_mandir}/man1/*
+%{_mandir}/man5/*
+%{_bindir}/virt-install
+%{_bindir}/virt-clone
+%{_bindir}/virt-image
+%{_bindir}/virt-convert
+
+%changelog
+* Wed Sep 10 2008 Cole Robinson <crobinso@redhat.com> - 0.400.0-1
+- Add virt-convert tool
+- Add virt-pack tool
+- virt-install --disk option for using/provisioning libvirt storage
+- virt-install remote installation support
+- virt-install --sound option to add soundcard emulation
+
+* Mon Mar 10 2008 Daniel P. Berrange <berrange@redhat.com> - 0.300.3-1
+- Use capabilities XML when installing guests
+- Accept RFC compliant NFS uris
+- Add --force and --noreboot command line flags
+- Use .treeinfo config files for Red Hat distro variants
+
+* Thu Jan 10 2008 Daniel P. Berrange <berrange@redhat.com> - 0.300.2-1
+- Escape paths in XML
+- Add --cpuset to pin vCPUs at install time
+- Automatically set windows guests to localtime
+- Improved input validation
+- Fix virt-image bugs
+
+* Tue Sep 25 2007 Daniel P. Berrange <berrange@redhat.com> - 0.300.1-1
+- Fixed default architecture on 32-bit
+- Fixed QEMU guest installs from remote architectures
+- Added support for PXE installs of fullyvirtualized guests
+- Fixed Fedora distro detection
+
+* Wed Aug 29 2007 Daniel P. Berrange <berrange@redhat.com> - 0.300.0-1
+- Updated to 0.300.0
+- Added virt-image tool
+- Switched to calling virsh console and virt-viewer
+- Improved user input validation
+
+* Tue Jul 18 2007 Daniel P. Berrange <berrange@redhat.com> - 0.200.0-1
+- Updated to 0.200.0
+- Added virt-clone tool
+- Added manual pages
+
+* Tue Jun 05 2007 Daniel P. Berrange <berrange@redhat.com> - 0.103.0-1
+- Updated to 0.103.0 release
+- Fixed module import when using --accelerate
+- Fixed detection of RHEL5 client distro
+- Fixed default 'network's selection & default URI choice to
+  not be Xen specific
+- Fixed features XML when using initrd for fullvirt
+
+* Tue Mar 20 2007 Daniel P. Berrange <berrange@redhat.com> - 0.102.0-1
+- Updated to 0.102.0 release
+
+* Tue Feb 20 2007 Daniel P. Berrange <berrange@redhat.com> - 0.101.0-1
+- Introduce QEMU support & refactored kerne/initrd fetching
+
+* Mon Jan 29 2007 Daniel P. Berrange <berrange@redhat.com> - 0.100.0-1
+- Initial generic spec file
+

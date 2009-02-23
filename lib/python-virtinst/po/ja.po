@@ -1,0 +1,1665 @@
+# Japanese translation of PACKAGE.
+# Copyright (C) 2007 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Hyu_gabaru Ryu_ichi <hyu_gabaru@yahoo.co.jp>, 2007.
+#
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: ja\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2008-09-10 14:00-0400\n"
+"PO-Revision-Date: 2007-10-08 12:29+0900\n"
+"Last-Translator: hyu_gabaru <hyu_gabaru@yahoo.co.jp>\n"
+"Language-Team: Japanese <gnome-translation@gnome.gr.jp>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: virt-clone:45
+msgid "What is the name for the cloned virtual machine?"
+msgstr "クローニングした仮想マシンの名前は何ですか?"
+
+#: virt-clone:50 virt-clone:60 virt-clone:89 virtinst/cli.py:175
+msgid "ERROR: "
+msgstr "エラー:"
+
+#: virt-clone:55
+msgid "What is the name or uuid of the original virtual machine?"
+msgstr "オリジナルの仮想マシンの名前または uuid は何ですか?"
+
+#: virt-clone:83
+#, fuzzy
+msgid "What would you like to use as the cloned disk (file path)?"
+msgstr "ディスク(パス)として何を使用したいですか?"
+
+#: virt-clone:94
+#, python-format
+msgid "This will overwrite the existing path '%s'!\n"
+msgstr ""
+
+#: virt-clone:96
+#, fuzzy
+msgid "Do you really want to use this disk (yes or no)?"
+msgstr "そのディスクを本当に使いたいのですか (yes または no)? "
+
+#: virt-clone:102 virt-install:202
+#, fuzzy, python-format
+msgid "Disk %s is already in use by another guest!\n"
+msgstr "ディスク %s は既に他のゲストで使用されています!"
+
+#: virt-clone:103 virt-install:203
+#, fuzzy
+msgid "Do you really want to use the disk (yes or no)? "
+msgstr "そのディスクを本当に使いたいのですか (yes または no)? "
+
+#: virt-clone:132
+msgid "Name or uuid for the original guest; The status must be shut off"
+msgstr "オリジナルゲストの名前か uuid: 状態は停止でなければなりません"
+
+#: virt-clone:136
+msgid "Name for the new guest"
+msgstr "新しいゲストの名前"
+
+#: virt-clone:141
+msgid "New UUID for the clone guest; Default is a randomly generated UUID"
+msgstr "クローンゲストの新しい uuid: 省略値はランダムに生成された UUID です"
+
+#: virt-clone:146
+msgid ""
+"New fixed MAC address for the clone guest. Default is a randomly generated "
+"MAC"
+msgstr "クローンゲスト用の固定 MAC アドレス。省略値はランダムに生成されます"
+
+#: virt-clone:151
+msgid "New file to use as the disk image for the new guest"
+msgstr "ディスクイメージとして使用される、新ゲスト用の新ファイル"
+
+#: virt-clone:155 virt-image:128 virt-install:317
+msgid "Connect to hypervisor with URI"
+msgstr "URI でハイパーバイザーに接続"
+
+#: virt-clone:161
+msgid ""
+"Force to copy devices (eg, if 'hdc' is a readonly cdrom device, --force-"
+"copy=hdc)"
+msgstr ""
+"装置のコピーを強制する (例えば 'hdc' が読込みのみの cdrom 装置なら、--force-"
+"copy=hdc)"
+
+#: virt-clone:166
+msgid "Do not use a sparse file for the clone's disk image"
+msgstr "クローニングのディスクイメージに疎らなファイルを使用しないでください"
+
+#: virt-clone:171
+msgid "Preserve a new file to use as the disk image for the new guest"
+msgstr "新ファイルを新ゲスト用のディスクイメージとして使用するよう保存する"
+
+#: virt-clone:175 virt-image:137 virt-install:447 virt-pack:109
+msgid "Print debugging information"
+msgstr "デバッグ情報を印刷"
+
+#: virt-clone:177 virt-image:143
+msgid ""
+"Do not prompt for input. Answers yes where applicable, terminates for all "
+"other prompts"
+msgstr ""
+
+#: virt-clone:194
+msgid "Must be root to clone Xen guests"
+msgstr "Xen ゲストをクローニングするには root でなければなりません"
+
+#: virt-clone:229 virt-image:242 virt-install:697
+#, fuzzy
+msgid "Installation aborted at user request"
+msgstr "NFS インストールは root のみサポートしています"
+
+#: virt-image:67
+#, python-format
+msgid ""
+"Warning: more networks were provided [%i] then nics required [%i]. All "
+"extras are ignored"
+msgstr ""
+
+#: virt-image:71
+#, python-format
+msgid "The image requires %i network interface"
+msgstr ""
+
+#: virt-image:90 virt-install:323
+msgid "Name of the guest instance"
+msgstr "ゲストの実体の名前"
+
+#: virt-image:92 virt-install:325
+msgid "Memory to allocate for guest instance in megabytes"
+msgstr "ゲストの実体のために割り当てる、メガバイトでのメモリー"
+
+#: virt-image:95
+msgid ""
+"UUID for the guest; if none is given a random UUID will be generated. If you "
+"specify UUID, you should use a 32-digit hexadecimal number."
+msgstr ""
+"ゲスト用の UUID; 与えられなかったらランダムな UUID が生成されます。UUID を指"
+"定するのならば、32桁の十六進数を使うべきです。"
+
+#: virt-image:97 virt-install:334
+msgid "Number of vcpus to configure for your guest"
+msgstr "ゲスト用に設定する vcpu の数"
+
+#: virt-image:99 virt-install:336
+msgid "Check that vcpus do not exceed physical CPUs and warn if they do."
+msgstr "vcpu が物理 CPU を越えないことをチェックし、越えたら警告します。"
+
+#: virt-image:104 virt-install:423
+msgid ""
+"Fixed MAC address for the guest; if none or RANDOM is given a random address "
+"will be used"
+msgstr ""
+"ゲスト用の固定 MAC アドレス; 何も指定しないか、 RANDOM が指定された場合、ラン"
+"ダムなアドレスが使われます"
+
+#: virt-image:107 virt-install:415
+msgid ""
+"Bridge to connect guest NIC to; if none given, will try to determine the "
+"default"
+msgstr ""
+"ゲストの NIC が接続されるブリッジ; 指定しなければデフォルトを決定しようとしま"
+"す"
+
+#: virt-image:110 virt-install:419
+msgid ""
+"Connect the guest to a virtual network, forwarding to the physical network "
+"with NAT"
+msgstr ""
+"物理ネットワークに NAT でフォワーディングすることでゲストを仮想ネットワークに"
+"接続します"
+
+#: virt-image:114 virt-install:429
+msgid "Use VNC for graphics support"
+msgstr "グラフィックサポートのために VNC を使用します"
+
+#: virt-image:116 virt-install:431
+msgid "Port to use for VNC"
+msgstr "VNC で使用するためのポート"
+
+#: virt-image:118 virt-install:433
+msgid "Use SDL for graphics support"
+msgstr "グラフィックサポートのために SDL を使用します"
+
+#: virt-image:120 virt-install:435
+msgid "Don't set up a graphical console for the guest."
+msgstr "ゲスト用にグラフィックコンソールを設定しないでください。"
+
+#: virt-image:124 virt-install:442
+msgid "set up keymap for a graphical console"
+msgstr "グラフィックコンソールのためのキーマップを設定します"
+
+#: virt-image:132 virt-install:356
+msgid ""
+"Disables APIC for fully virtualized guest (overrides value in os-type/os-"
+"variant db)"
+msgstr ""
+"完全仮想化ゲストの APIC を無効にします (os-タイプ/os-種別の db の値を上書きし"
+"ます)"
+
+#: virt-image:133 virt-install:360
+msgid ""
+"Disables ACPI for fully virtualized guest (overrides value in os-type/os-"
+"variant db)"
+msgstr ""
+"完全仮想化ゲストの ACPI を無効にします (os-タイプ/os-種別の db の値を上書きし"
+"ます)"
+
+#: virt-image:139
+msgid "Print the libvirt XML, but do not start the domain"
+msgstr ""
+
+#: virt-image:141
+msgid "The zero-based index of the boot record to use"
+msgstr ""
+
+#: virt-image:146
+msgid "Overwrite, or destroy, an existing image with the same name"
+msgstr ""
+
+#: virt-image:151 virt-pack:113
+msgid "You need to provide an image XML descriptor"
+msgstr ""
+
+#: virt-image:168
+msgid "Cannot parse"
+msgstr ""
+
+#: virt-image:172
+msgid "Cannot parse capabilities"
+msgstr ""
+
+#: virt-image:177
+#, python-format
+msgid "The index for --boot must be between 0 and %d"
+msgstr ""
+
+#: virt-image:220
+#, fuzzy, python-format
+msgid ""
+"\n"
+"\n"
+"Creating guest %s..."
+msgstr "ストレージファイルを作成中..."
+
+#: virt-image:224
+#, fuzzy
+msgid "Guest creation failed"
+msgstr "ゲストのインストールに失敗しました"
+
+#: virt-image:230
+#, fuzzy, python-format
+msgid ""
+"Domain creation may not have been\n"
+"successful.  If it was, you can restart your domain\n"
+"by running 'virsh start %s'; otherwise, please\n"
+"restart your installation."
+msgstr ""
+"ドメインのインストールが成功しなかったようです。\n"
+"成功したのならば、'virsh start %s' を実行すること\n"
+"でドメインを再起動することができます; そうでなければ\n"
+"インストールを再開してください。"
+
+#: virt-install:73
+#, python-format
+msgid "Couldn't create default storage pool '%s': %s"
+msgstr ""
+
+#: virt-install:96
+msgid "--disk path must start with path=, pool=, or vol=."
+msgstr ""
+
+#: virt-install:122 virt-install:134
+#, fuzzy, python-format
+msgid "Unknown '%s' value '%s'"
+msgstr "不明なインストーラータイプ '%s'"
+
+#: virt-install:127
+#, python-format
+msgid "Improper value for 'size': %s"
+msgstr ""
+
+#: virt-install:136
+#, fuzzy, python-format
+msgid "Unknown --disk option '%s'."
+msgstr "不明なインストーラータイプ '%s'"
+
+#: virt-install:145
+#, fuzzy
+msgid "Size must be specified with all 'pool='"
+msgstr "インストールの元となる場所を指定しなければなりません"
+
+#: virt-install:158
+msgid "Storage volume must be specified as pool=poolname/volname"
+msgstr ""
+
+#: virt-install:198
+#, python-format
+msgid "Error with storage parameters: %s"
+msgstr ""
+
+#: virt-install:210
+#, fuzzy
+msgid " Do you really want to use the disk (yes or no)?"
+msgstr "そのディスクを本当に使いたいのですか (yes または no)? "
+
+#: virt-install:218
+#, fuzzy
+msgid "Cannot use --file, --size, or --disk with --nodisks"
+msgstr "--file は --nodisks と一緒には使えません"
+
+#: virt-install:221
+msgid ""
+"Cannot mix --file, --nonsparse, or --file-size with --disk options. Please "
+"see the manual for --disk syntax."
+msgstr ""
+
+#: virt-install:224
+msgid "A disk must be specified (use --nodisks to override)"
+msgstr ""
+
+#: virt-install:232
+msgid "Need to pass size for each disk"
+msgstr "個々のディスクの大きさを渡す必要があります"
+
+#: virt-install:259
+msgid "Only one of --pxe, --location and --cdrom can be used"
+msgstr ""
+
+#: virt-install:263
+#, fuzzy
+msgid "Network PXE boot is not supported for paravirtualized guests"
+msgstr "NFS インストールは root のみサポートしています"
+
+#: virt-install:266
+msgid "Paravirtualized guests cannot install off cdrom media."
+msgstr ""
+
+#: virt-install:268
+#, fuzzy
+msgid "location must be specified for paravirtualized guests."
+msgstr "インストールの元となる場所を指定しなければなりません"
+
+#: virt-install:271
+msgid "--location can not be specified for remote connections."
+msgstr ""
+
+#: virt-install:280
+msgid "One of --pxe, --location, or cdrom media must be specified."
+msgstr ""
+
+#: virt-install:297
+#, python-format
+msgid "Error creating cdrom disk: %s"
+msgstr ""
+
+#: virt-install:303 virt-install:308 virtinst/cli.py:354 virtinst/cli.py:359
+#, python-format
+msgid "%s option requires an argument"
+msgstr "%s オプションには実引数が必要です"
+
+#: virt-install:320
+msgid "General Options"
+msgstr ""
+
+#: virt-install:329
+msgid "The CPU architecture to simulate"
+msgstr "シミュレートする CPU アーキテクチャー"
+
+#: virt-install:332
+#, fuzzy
+msgid "UUID for the guest."
+msgstr "新しいゲストの名前"
+
+#: virt-install:340
+msgid "Set which physical CPUs Domain can use."
+msgstr ""
+
+#: virt-install:343
+msgid "Full Virtualization specific options."
+msgstr ""
+
+#: virt-install:345
+msgid "Use sound device emulation"
+msgstr ""
+
+#: virt-install:348
+msgid ""
+"The OS type for fully virtualized guests, e.g. 'linux', 'unix', 'windows'"
+msgstr ""
+"例えば 'linux'、'unix'、'windows' のような、完全仮想化ゲストの OS タイプ"
+
+#: virt-install:352
+#, fuzzy
+msgid ""
+"The OS variant for fully virtualized guests, e.g. 'fedora6', 'rhel5', "
+"'solaris10', 'win2k'"
+msgstr ""
+"例えば 'fedora6'、'rhel5'、'solaris10'、'win2k'、'vista' のような、完全仮想化"
+"ゲストの OS 種別"
+
+#: virt-install:363
+msgid "Virtualization Type Options"
+msgstr ""
+
+#: virt-install:365
+msgid "This guest should be a fully virtualized guest"
+msgstr "このゲストは完全仮想化ゲストでなければなりません"
+
+#: virt-install:367
+msgid "This guest should be a paravirtualized guest"
+msgstr "このゲストは準仮想化ゲストでなければなりません"
+
+#: virt-install:370
+#, fuzzy
+msgid "Use kernel acceleration capabilities (kvm, kqemu, ...)"
+msgstr "カーネル加速化機能を使用します"
+
+#: virt-install:374
+msgid "Installation Method Options"
+msgstr ""
+
+#: virt-install:377
+#, fuzzy
+msgid "CD-ROM installation media"
+msgstr "ゲストのインストールに失敗しました"
+
+#: virt-install:380
+#, fuzzy
+msgid ""
+"Installation source (eg, nfs:host:/path, http://host/path, ftp://host/path)"
+msgstr ""
+"準仮想化ゲストのインストールソース (例えば nfs:ホスト:/パス、http://ホスト/パ"
+"ス、ftp://ホスト/パス)"
+
+#: virt-install:383
+msgid "Boot from the network using the PXE protocol"
+msgstr ""
+
+#: virt-install:385
+msgid "Treat the CDROM media is a LiveCD"
+msgstr ""
+
+#: virt-install:388
+#, fuzzy
+msgid "Additional arguments to pass to the kernel booted from --location"
+msgstr "準仮想化ゲストのインストーラーに渡す追加の実引数"
+
+#: virt-install:392
+msgid "Storage Configuration"
+msgstr ""
+
+#: virt-install:395
+msgid "Specify storage to use as a disk with various options."
+msgstr ""
+
+#: virt-install:399
+msgid "File to use as the disk image"
+msgstr "ディスクイメージとして使用するファイル"
+
+#: virt-install:402
+msgid "Size of the disk image (if it doesn't exist) in gigabytes"
+msgstr "(存在しなければ)ギガバイトでディスクイメージの大きさ"
+
+#: virt-install:406
+msgid ""
+"Don't use sparse files for disks.  Note that this will be significantly "
+"slower for guest creation"
+msgstr ""
+"ディスク用に疎らなファイルを使用しないでください。これはゲストの作成には著し"
+"く遅いことに注意して下さい"
+
+#: virt-install:409
+msgid "Don't set up any disks for the guest."
+msgstr "ゲスト用にディスクを設定しないでください。"
+
+#: virt-install:412
+msgid "Networking Configuration"
+msgstr ""
+
+#: virt-install:427
+msgid "Graphics Configuration"
+msgstr ""
+
+#: virt-install:438
+msgid "Don't automatically try to connect to the guest console"
+msgstr "ゲストコンソールに自動的に接続しようとしないでください"
+
+#: virt-install:445
+msgid "Miscellaneous Options"
+msgstr ""
+
+#: virt-install:449
+msgid "Disables the automatic rebooting when the installation is complete."
+msgstr ""
+
+#: virt-install:452
+msgid ""
+"Total time to wait for VM to shutdown if console not present. Time less than "
+"0 waits indefinitely."
+msgstr ""
+
+#: virt-install:456
+msgid "Forces 'yes' for any applicable prompts, terminates for all others"
+msgstr ""
+
+#: virt-install:460
+msgid ""
+"Request user input for ambiguous situations. Default is false, so will "
+"terminate if a prompt would typically be fired. "
+msgstr ""
+
+#: virt-install:480
+#, fuzzy
+msgid ""
+"Unable to connect to graphical console: virt-viewer not installed. Please "
+"install the 'virt-viewer' package."
+msgstr ""
+"グラフィカルコンソールに接続できません; vncviewer がインストールされていませ"
+"ん。%(serv)s:%(port)d に接続してください"
+
+#: virt-install:512
+msgid "Can't do both --hvm and --paravirt"
+msgstr "--hvm と --paravirt の両方はできません"
+
+#: virt-install:523 virt-install:528
+msgid "default"
+msgstr ""
+
+#: virt-install:527
+#, python-format
+msgid "Unsupported virtualization type '%s' "
+msgstr ""
+
+#: virt-install:530
+#, python-format
+msgid "for arch '%s'"
+msgstr ""
+
+#: virt-install:626
+msgid ""
+"\n"
+"\n"
+"Starting install..."
+msgstr ""
+"\n"
+"\n"
+"インストールを開始しています..."
+
+#: virt-install:642
+msgid "Guest installation failed"
+msgstr "ゲストのインストールに失敗しました"
+
+#: virt-install:649
+#, python-format
+msgid " %d minutes"
+msgstr ""
+
+#: virt-install:647
+msgid "Domain installation still in progress. Waiting"
+msgstr ""
+
+#: virt-install:654
+msgid "Domain has shutdown. Continuing."
+msgstr ""
+
+#: virt-install:660
+msgid "Installation has exceeded specified timelimit. Aborting."
+msgstr ""
+
+#: virt-install:664
+#, fuzzy
+msgid ""
+"Domain installation still in progress. You can reconnect to \n"
+"the console to complete the installation process."
+msgstr ""
+"ドメインのインストールは続いています。インストール処理を完結\n"
+"させるためにコンソールに再接続することができます。"
+
+#: virt-install:672
+#, python-format
+msgid ""
+"Domain installation does not appear to have been\n"
+" successful.  If it was, you can restart your domain\n"
+" by running 'virsh start %s'; otherwise, please\n"
+" restart your installation."
+msgstr ""
+"ドメインのインストールが成功したとは見えません。\n"
+"成功したのならば、'virsh start %s' を実行すること\n"
+"でドメインを再起動することができます; そうでなければ\n"
+"インストールを再開してください。"
+
+#: virt-install:676
+#, fuzzy, python-format
+msgid ""
+"Guest installation complete... you can restart your domain\n"
+"by running 'virsh start %s'"
+msgstr "ゲストのインストールが完了しました... ゲストを再起動しています。"
+
+#: virt-install:679
+msgid "Guest installation complete... restarting guest."
+msgstr "ゲストのインストールが完了しました... ゲストを再起動しています。"
+
+#: virt-install:688
+#, python-format
+msgid ""
+"Domain installation may not have been\n"
+" successful.  If it was, you can restart your domain\n"
+" by running 'virsh start %s'; otherwise, please\n"
+" restart your installation."
+msgstr ""
+"ドメインのインストールが成功しなかったようです。\n"
+"成功したのならば、'virsh start %s' を実行すること\n"
+"でドメインを再起動することができます; そうでなければ\n"
+"インストールを再開してください。"
+
+#: virt-pack:58
+msgid "The image name and version must be present"
+msgstr ""
+
+#: virt-pack:73
+#, fuzzy, python-format
+msgid "Scratch disk %s does not have a size attribute"
+msgstr "ライブ CD イメージ '%s' がありません"
+
+#: virt-pack:76
+#, fuzzy, python-format
+msgid "Disk file %s could not be found"
+msgstr "ドメイン %s が見つかりません"
+
+#: virt-pack:93
+#, python-format
+msgid "Writing %s"
+msgstr ""
+
+#: virt-pack:107
+msgid "Directory in which packaged file will be put"
+msgstr ""
+
+#: virt-pack:123
+msgid "The image descriptor must contain name and version"
+msgstr ""
+
+#: virt-pack:132
+#, fuzzy, python-format
+msgid "Validation failed: %s"
+msgstr "ゲストのインストールに失敗しました"
+
+#: virt-pack:138
+#, fuzzy, python-format
+msgid "Packaging failed: %s"
+msgstr "URL %s のオープンに失敗しました。"
+
+#: virtinst/CapabilitiesParser.py:168
+msgid "No domains available for this guest."
+msgstr ""
+
+#: virtinst/cli.py:112
+#, fuzzy
+msgid "Exiting at user request."
+msgstr "NFS インストールは root のみサポートしています"
+
+#: virtinst/cli.py:118
+#, fuzzy
+msgid "Must be root to create Xen guests"
+msgstr "Xen ゲストをクローニングするには root でなければなりません"
+
+#: virtinst/cli.py:120
+msgid "Could not find usable default libvirt connection."
+msgstr ""
+
+#: virtinst/cli.py:142
+#, python-format
+msgid "Force flag is set but input was required. Prompt was: %s"
+msgstr ""
+
+#: virtinst/cli.py:145
+#, python-format
+msgid "Prompting disabled, but input was requested. Prompt was: %s"
+msgstr ""
+
+#: virtinst/cli.py:165
+#, python-format
+msgid ""
+"Prompting disabled, but yes/no was requested. Try --force to force 'yes' for "
+"such prompts. Prompt was: %s"
+msgstr ""
+
+#: virtinst/cli.py:185
+#, fuzzy
+msgid "A name is required for the virtual machine."
+msgstr "クローニングした仮想マシンの名前は何ですか?"
+
+#: virtinst/cli.py:193
+#, fuzzy
+msgid "Memory amount is required for the virtual machine."
+msgstr "クローニングした仮想マシンの名前は何ですか?"
+
+#: virtinst/cli.py:195
+#, fuzzy, python-format
+msgid "Installs currently require %d megs of RAM."
+msgstr "エラー: インストールには現在 %d メガの RAM が必要です。"
+
+#: virtinst/cli.py:215
+#, fuzzy, python-format
+msgid ""
+"You have asked for more virtual CPUs (%d) than there are physical CPUs (%d) "
+"on the host. This will work, but performance will be poor. Are you sure? "
+"(yes or no)"
+msgstr ""
+"仮想 CPU (%(vcpu)d) 個という、ホスト上の物理 CPU (%(phys)d) よりも多くを要求"
+"しました。動作はしますが、性能が悪いです。いいですか? (yes または no)"
+
+#: virtinst/cli.py:270
+msgid "Unknown network type "
+msgstr "不明なネットワークタイプ"
+
+#: virtinst/cli.py:288
+msgid "Cannot mix both --bridge and --network arguments"
+msgstr "--bridge と --network 引数の両方を混ぜることはできません"
+
+#: virtinst/cli.py:297
+msgid "Need to pass equal numbers of networks & mac addresses"
+msgstr "ネットワークと mac アドレスとは同じ数だけ渡す必要があります"
+
+#: virtinst/cli.py:319
+msgid "Can't specify more than one of VNC, SDL, or --nographics"
+msgstr ""
+
+#: virtinst/CloneManager.py:74
+msgid "Name or UUID of guest to clone is required"
+msgstr "クローニングするゲストの名前か、 UUID が必要です"
+
+#: virtinst/CloneManager.py:83
+msgid "A valid name or UUID of guest to clone is required"
+msgstr "クローニングするゲストの正しい名前か、UUID が必要です"
+
+#: virtinst/CloneManager.py:93
+#, python-format
+msgid "Invalid name for new guest: %s"
+msgstr "不当な新ゲストの名前: %s"
+
+#: virtinst/CloneManager.py:101
+#, python-format
+msgid "Invalid uuid for new guest: %s"
+msgstr "不当な新ゲストの uuid: %s"
+
+#: virtinst/CloneManager.py:109
+msgid "New file to use for disk image is required"
+msgstr "ディスクイメージとして使用する新しいファイルが必要です"
+
+#: virtinst/CloneManager.py:187
+#, python-format
+msgid "Domain %s is not found"
+msgstr "ドメイン %s が見つかりません"
+
+#: virtinst/CloneManager.py:204
+msgid "Domain status must be SHUTOFF"
+msgstr "ドメインの状態は停止でなければなりません"
+
+#: virtinst/CloneManager.py:211
+#, python-format
+msgid "Domain %s already exists"
+msgstr "ドメイン %s は既に存在します"
+
+#: virtinst/CloneManager.py:220 virtinst/Guest.py:871
+msgid "The UUID you entered is already in use by another guest!"
+msgstr "入力した UUID は既に他のゲストで使用中です!"
+
+#: virtinst/CloneManager.py:264
+#, python-format
+msgid "Missing new file to use disk image for %s"
+msgstr "%s 用のディスクイメージを使用する新ファイルがありません"
+
+#: virtinst/CloneManager.py:547
+#, python-format
+msgid "Cloning from %(src)s to %(dst)s"
+msgstr "%(src)s から %(dst)s にクローニング中"
+
+#: virtinst/CloneManager.py:549
+msgid "Cloning domain..."
+msgstr "ドメインをクローニング中..."
+
+#: virtinst/DistroManager.py:93
+#, fuzzy, python-format
+msgid "Could not find an installable distribution at '%s'"
+msgstr "インストール場所にインストールできる配布物が見つかりませんでした"
+
+#: virtinst/DistroManager.py:104 virtinst/DistroManager.py:122
+msgid "Invalid install location: "
+msgstr "不当なインストール場所: "
+
+#: virtinst/DistroManager.py:162
+msgid "Invalid NFS format: No path specified."
+msgstr ""
+
+#: virtinst/DistroManager.py:177
+#, fuzzy, python-format
+msgid "Checking installer location failed: %s"
+msgstr "ゲストのインストールに失敗しました"
+
+#: virtinst/DistroManager.py:180
+#, fuzzy
+msgid ""
+"Install media location must be an NFS, HTTP or FTP network install source, "
+"or an existing local file/device"
+msgstr ""
+"インストール場所は NFS か、HTTP、FTP のネットワークインストールソースか、ロー"
+"カルファイル/装置でなければなりません"
+
+#: virtinst/DistroManager.py:185
+msgid "NFS installations are only supported as root"
+msgstr "NFS インストールは root のみサポートしています"
+
+#: virtinst/FullVirtGuest.py:206
+#, fuzzy
+msgid "OS type must be a string."
+msgstr "キーマップは文字列でなければなりません"
+
+#: virtinst/FullVirtGuest.py:213
+#, fuzzy, python-format
+msgid "OS type '%s' does not exist in our dictionary"
+msgstr "OS タイプ %s は辞書にありません"
+
+#: virtinst/FullVirtGuest.py:221
+#, fuzzy
+msgid "OS variant must be a string."
+msgstr "キーマップは文字列でなければなりません"
+
+#: virtinst/FullVirtGuest.py:227
+#, fuzzy, python-format
+msgid ""
+"OS variant '%(var)s; does not exist in our dictionary for OS type '%(ty)s'"
+msgstr "OS 種別 %(var)s が辞書の OS タイプ %(type)s にありません"
+
+#: virtinst/FullVirtGuest.py:238
+#, fuzzy, python-format
+msgid "Unknown OS variant '%s'"
+msgstr "不明なインストーラータイプ '%s'"
+
+#: virtinst/FullVirtGuest.py:323
+msgid "Unable to start domain for guest, aborting installation!"
+msgstr "ゲスト用のドメインを開始できません、インストールを終了します!"
+
+#: virtinst/FullVirtGuest.py:364
+#, fuzzy, python-format
+msgid "Invalid dictionary entry for device '%s %s'"
+msgstr "不当な新ゲストの名前: %s"
+
+#: virtinst/Guest.py:54
+msgid "MAC address must be of the format AA:BB:CC:DD:EE:FF"
+msgstr "MAC アドレスは AA:BB:CC:DD:EE:FF 形式でなければなりません"
+
+#: virtinst/Guest.py:62
+msgid "A network name was not provided"
+msgstr "ネットワーク名が指定されていません"
+
+#: virtinst/Guest.py:68
+#, python-format
+msgid "Unknown network type %s"
+msgstr "不明なネットワークタイプ %s"
+
+#: virtinst/Guest.py:105
+#, fuzzy
+msgid ""
+"The MAC address you entered is already in use by another active virtual "
+"machine."
+msgstr "入力された MAC アドレスは既に他の非起動の仮想マシンで使用されています!"
+
+#: virtinst/Guest.py:108
+#, fuzzy
+msgid ""
+"The MAC address you entered conflicts with a device on the physical host."
+msgstr "入力した MAC アドレスは物理 NIC と衝突します。"
+
+#: virtinst/Guest.py:110
+#, fuzzy
+msgid ""
+"The MAC address you entered is already in use by another inactive virtual "
+"machine."
+msgstr "入力された MAC アドレスは既に他の非起動の仮想マシンで使用されています!"
+
+#: virtinst/Guest.py:181
+#, fuzzy, python-format
+msgid "'model' must be a string,  was '%s'."
+msgstr "メモリー値は 0 を越える整数でなければなりません"
+
+#: virtinst/Guest.py:184
+#, python-format
+msgid "Unsupported sound model '%s'"
+msgstr ""
+
+#: virtinst/Guest.py:204
+msgid "Unknown graphics type"
+msgstr "不明なグラフィックのタイプ"
+
+#: virtinst/Guest.py:221
+msgid "Keymap must be a string"
+msgstr "キーマップは文字列でなければなりません"
+
+#: virtinst/Guest.py:223
+msgid "Keymap must be less than 16 characters"
+msgstr "キーマップは 16 文字未満でなければなりません"
+
+#: virtinst/Guest.py:225
+msgid "Keymap can only contain alphanumeric, '_', or '-' characters"
+msgstr "キーマップには英数字と'_'、'-' だけが使えます"
+
+#: virtinst/Guest.py:236
+msgid ""
+"VNC port must be a number between 5900 and 65535, or -1 for auto allocation"
+msgstr ""
+
+#: virtinst/Guest.py:333
+msgid "Guest.cdrom must be a boolean type"
+msgstr ""
+
+#: virtinst/Guest.py:350 virtinst/Guest.py:355 virtinst/Guest.py:359
+msgid "Must pass both a kernel and initrd"
+msgstr "kernel と initrd の両方を渡さなければなりません"
+
+#: virtinst/Guest.py:362
+msgid "Kernel and initrd must be specified by a list, dict, or tuple."
+msgstr ""
+
+#: virtinst/Guest.py:399
+msgid "Unable to connect to hypervisor, aborting installation!"
+msgstr "ハイパーバイザーに接続できませんでした、インストールを終了します!"
+
+#: virtinst/Guest.py:424
+#, fuzzy
+msgid ""
+"System name must be a string greater than 0 and no more than 50 characters"
+msgstr "システム名は 0 を越え、50 を越えない文字数でなければなりません"
+
+#: virtinst/Guest.py:426
+msgid "System name must not be only numeric characters"
+msgstr "システム名は数字だけではいけません"
+
+#: virtinst/Guest.py:428
+#, fuzzy
+msgid ""
+"System name can only contain: alphanumeric '_', '.', ':', '+', or '-' "
+"characters"
+msgstr "システム名に含めていい文字は、英数字と、'_'、'.'、'-' だけです"
+
+#: virtinst/Guest.py:439
+msgid "Memory value must be an integer greater than 0"
+msgstr "メモリー値は 0 を越える整数でなければなりません"
+
+#: virtinst/Guest.py:450
+msgid "Max Memory value must be an integer greater than 0"
+msgstr "最大メモリー値は 0 を越える整数でなければなりません"
+
+#: virtinst/Guest.py:461 virtinst/Storage.py:315
+#, fuzzy
+msgid "UUID must be a string."
+msgstr "キーマップは文字列でなければなりません"
+
+#: virtinst/Guest.py:467 virtinst/Storage.py:321
+msgid ""
+"UUID must be a 32-digit hexadecimal number. It may take the form XXXXXXXX-"
+"XXXX-XXXX-XXXX-XXXXXXXXXXXX or may omit hyphens altogether."
+msgstr ""
+"UUID は 32 文字の十六進数でなければなりません。XXXXXXXX-XXXX-XXXX-XXXX-"
+"XXXXXXXXXXXX 形式か、全てのハイフンがない形です。"
+
+#: virtinst/Guest.py:482
+#, fuzzy
+msgid "Number of vcpus must be a postive integer."
+msgstr "vcpu の数は 1-%d の範囲です"
+
+#: virtinst/Guest.py:485
+#, fuzzy, python-format
+msgid "Number of vcpus must be no greater than %d for this vm type."
+msgstr "vcpu の数は 1-%d の範囲です"
+
+#: virtinst/Guest.py:494
+#, fuzzy
+msgid "cpuset must be string"
+msgstr "キーマップは文字列でなければなりません"
+
+#: virtinst/Guest.py:496
+#, fuzzy
+msgid "cpuset can only contain numeric, ',', or '-' characters"
+msgstr "キーマップには英数字と'_'、'-' だけが使えます"
+
+#: virtinst/Guest.py:503
+msgid "cpuset contains invalid format."
+msgstr ""
+
+#: virtinst/Guest.py:505 virtinst/Guest.py:508
+msgid "cpuset's pCPU numbers must be less than pCPUs."
+msgstr ""
+
+#: virtinst/Guest.py:549
+msgid "Must specify whether graphics are enabled"
+msgstr "グラフィックを有効にするかどうかを指定しなければなりません"
+
+#: virtinst/Guest.py:568
+msgid "Graphics enabled must be True or False"
+msgstr ""
+"グラフィックを有効にするかどうかは 'True' か 'False' でなければなりません"
+
+#: virtinst/Guest.py:611
+#, fuzzy
+msgid "You must specify a valid ISO or CD-ROM location for the installation"
+msgstr "インストール用の ISO か CD-ROM の場所を指定しなければなりません"
+
+#: virtinst/Guest.py:614
+msgid "The specified media path does not exist."
+msgstr "指定された媒体のパスは存在しません。"
+
+#: virtinst/Guest.py:757
+#, python-format
+msgid "Could not remove old vm '%s': %s"
+msgstr ""
+
+#: virtinst/Guest.py:759
+#, python-format
+msgid "Domain named %s already exists!"
+msgstr "ドメイン名 %s は既に存在します!"
+
+#: virtinst/Guest.py:766
+msgid "Creating domain..."
+msgstr "ドメインを作成中..."
+
+#: virtinst/Guest.py:769
+msgid "Unable to create domain for the guest, aborting installation!"
+msgstr "ゲスト用のドメインを作成できません、インストールを終了します!"
+
+#: virtinst/Guest.py:789
+msgid ""
+"It appears that your installation has crashed.  You should be able to find "
+"more information in the logs"
+msgstr "インストールは失敗しました。ログに詳細な情報を見つけることができます"
+
+#: virtinst/Guest.py:835
+msgid ""
+"Domain has not existed.  You should be able to find more information in the "
+"logs"
+msgstr "ドメインは存在しません。ログに詳細な情報を見つけることができます"
+
+#: virtinst/Guest.py:837
+msgid ""
+"Domain has not run yet.  You should be able to find more information in the "
+"logs"
+msgstr ""
+"ドメインはまだ実行していません。ログに詳細な情報を見つけることができます"
+
+#: virtinst/Guest.py:852
+msgid "Domain has already been started!"
+msgstr "ドメインは既に開始しています!"
+
+#: virtinst/Guest.py:879
+msgid "Name and memory must be specified for all guests!"
+msgstr "全てのゲストに対して名前とメモリーを指定しなければなりません!"
+
+#: virtinst/ImageFetcher.py:74
+msgid "Verifying install location..."
+msgstr "インストール場所を検証中..."
+
+#: virtinst/ImageFetcher.py:78
+#, fuzzy, python-format
+msgid "Opening URL %s failed: %s"
+msgstr "URL %s のオープンに失敗しました。"
+
+#: virtinst/ImageFetcher.py:94
+#, python-format
+msgid "Retrieving file %s..."
+msgstr "ファイル %s を読出中..."
+
+#: virtinst/ImageFetcher.py:96
+#, python-format
+msgid "Couldn't acquire file %s: %s"
+msgstr ""
+
+#: virtinst/ImageFetcher.py:157 virtinst/ImageFetcher.py:159
+msgid "Invalid file location given: "
+msgstr "不当なファイルの場所が指定されました: "
+
+#: virtinst/ImageFetcher.py:194
+#, python-format
+msgid "Mounting location %s failed"
+msgstr "場所 %s のマウントに失敗しました"
+
+#: virtinst/ImageManager.py:43
+#, fuzzy
+msgid "Could not find suitable boot descriptor for this host"
+msgstr "インストール場所にインストールできる配布物が見つかりませんでした"
+
+#: virtinst/ImageManager.py:49
+msgid "Unsupported virtualization type"
+msgstr ""
+
+#: virtinst/ImageManager.py:96
+#, fuzzy, python-format
+msgid "System disk %s does not exist"
+msgstr "ライブ CD イメージ '%s' がありません"
+
+#: virtinst/ImageParser.py:78
+msgid "Expected exactly one 'domain' element"
+msgstr ""
+
+#: virtinst/ImageParser.py:83
+#, fuzzy, python-format
+msgid "Disk entry for '%s' not found"
+msgstr "ドメイン %s が見つかりません"
+
+#: virtinst/ImageParser.py:110
+#, fuzzy, python-format
+msgid "Memory must be an integer, but is '%s'"
+msgstr "メモリー値は 0 を越える整数でなければなりません"
+
+#: virtinst/ImageParser.py:219
+#, python-format
+msgid "The format for disk %s must be one of %s"
+msgstr ""
+
+#: virtinst/ImageParser.py:258
+msgid "Root element is not 'image'"
+msgstr ""
+
+#: virtinst/LiveCDInstaller.py:50
+#, fuzzy
+msgid "Connection does not support HVM virtualisation, cannot boot live CD"
+msgstr "HVM 仮想化はサポートされていません; ライブ CD から起動できません"
+
+#: virtinst/LiveCDInstaller.py:59
+#, fuzzy
+msgid "CDROM media must be specified for the live CD installer."
+msgstr "起動する CD を指定しなければなりません"
+
+#: virtinst/OSDistro.py:141
+#, fuzzy, python-format
+msgid "Could not find a kernel path for virt type '%s'"
+msgstr "インストール場所にインストールできる配布物が見つかりませんでした"
+
+#: virtinst/OSDistro.py:156
+#, fuzzy
+msgid "Could not find a boot iso path for this tree."
+msgstr "インストール場所にインストールできる配布物が見つかりませんでした"
+
+#: virtinst/OSDistro.py:360
+msgid "Unable to determine kernel RPM path"
+msgstr "カーネル RPM のパスを決定できません"
+
+#: virtinst/OSDistro.py:362
+msgid "Unable to determine install-initrd RPM path"
+msgstr "インストール-initrd RPM のパスを決定できません"
+
+#: virtinst/OSDistro.py:373
+msgid "Building initrd"
+msgstr "initrd を構築中"
+
+#: virtinst/ParaVirtGuest.py:43
+msgid "A location must be specified to install from"
+msgstr "インストールの元となる場所を指定しなければなりません"
+
+#: virtinst/Storage.py:87
+#, fuzzy, python-format
+msgid "Unknown storage object type: %s"
+msgstr "不明なネットワークタイプ %s"
+
+#: virtinst/Storage.py:116
+msgid "'conn' must be a libvirt connection object."
+msgstr ""
+
+#: virtinst/Storage.py:118
+msgid "Passed connection is not libvirt storage capable"
+msgstr ""
+
+#: virtinst/Storage.py:129
+#, fuzzy
+msgid "Storage object name must be a string "
+msgstr "システム名は文字列でなければなりません"
+
+#: virtinst/Storage.py:132
+msgid "Storage object name can not be only "
+msgstr ""
+
+#: virtinst/Storage.py:135
+msgid "Storage object name can only contain "
+msgstr ""
+
+#: virtinst/Storage.py:150
+msgid "Permissions must be passed as a dict object"
+msgstr ""
+
+#: virtinst/Storage.py:153
+msgid "Permissions must contain 'mode', 'owner', 'group' and 'label' keys."
+msgstr ""
+
+#: virtinst/Storage.py:160
+#, python-format
+msgid "'%s' is not an absolute path."
+msgstr ""
+
+#: virtinst/Storage.py:219
+msgid "Filesystem Directory"
+msgstr ""
+
+#: virtinst/Storage.py:220
+msgid "Pre-Formatted Block Device"
+msgstr ""
+
+#: virtinst/Storage.py:221
+msgid "Network Exported Directory"
+msgstr ""
+
+#: virtinst/Storage.py:222
+msgid "LVM Volume Group"
+msgstr ""
+
+#: virtinst/Storage.py:223
+msgid "Physical Disk Device"
+msgstr ""
+
+#: virtinst/Storage.py:224
+msgid "iSCSI Target"
+msgstr ""
+
+#: virtinst/Storage.py:234 virtinst/Storage.py:271
+#, fuzzy, python-format
+msgid "Unknown storage pool type: %s"
+msgstr "不明なネットワークタイプ %s"
+
+#: virtinst/Storage.py:307
+#, fuzzy
+msgid "Host name must be a string"
+msgstr "システム名は文字列でなければなりません"
+
+#: virtinst/Storage.py:337
+#, fuzzy, python-format
+msgid "Name '%s' already in use by another pool."
+msgstr "ディスク %s は既に他のゲストで使用されています!"
+
+#: virtinst/Storage.py:375
+#, python-format
+msgid "Could not define storage pool: %s"
+msgstr ""
+
+#: virtinst/Storage.py:385
+#, python-format
+msgid "Could not build storage pool: %s"
+msgstr ""
+
+#: virtinst/Storage.py:394
+#, python-format
+msgid "Could not start storage pool: %s"
+msgstr ""
+
+#: virtinst/Storage.py:471
+#, fuzzy, python-format
+msgid "Unknown Filesystem format: %s"
+msgstr "不明なネットワークタイプ %s"
+
+#: virtinst/Storage.py:486
+msgid "Device path is required"
+msgstr ""
+
+#: virtinst/Storage.py:523
+#, fuzzy, python-format
+msgid "Unknown Network Filesystem format: %s"
+msgstr "不明なネットワークタイプ %s"
+
+#: virtinst/Storage.py:537 virtinst/Storage.py:663
+#, fuzzy
+msgid "Hostname is required"
+msgstr "%s にネットワーク名は不要です"
+
+#: virtinst/Storage.py:539 virtinst/Storage.py:613 virtinst/Storage.py:665
+msgid "Host path is required"
+msgstr ""
+
+#: virtinst/Storage.py:600
+#, fuzzy, python-format
+msgid "Unknown Disk format: %s"
+msgstr "不明なネットワークタイプ %s"
+
+#: virtinst/Storage.py:625
+msgid "Must explicitly specify disk format if formatting disk device."
+msgstr ""
+
+#: virtinst/Storage.py:681
+msgid "One of pool or pool_name must be specified."
+msgstr ""
+
+#: virtinst/Storage.py:684 virtinst/Storage.py:754
+#, fuzzy
+msgid "'conn' must be specified with 'pool_name'"
+msgstr "インストールの元となる場所を指定しなければなりません"
+
+#: virtinst/Storage.py:740
+msgid "Default volume target path range exceeded."
+msgstr ""
+
+#: virtinst/Storage.py:750
+msgid "Must specify pool_object or pool_name"
+msgstr ""
+
+#: virtinst/Storage.py:756
+msgid "Connection does not support storage management."
+msgstr ""
+
+#: virtinst/Storage.py:761
+#, python-format
+msgid "Couldn't find storage pool '%s': %s"
+msgstr ""
+
+#: virtinst/Storage.py:765
+msgid "pool_object must be a virStoragePool"
+msgstr ""
+
+#: virtinst/Storage.py:780
+msgid "Capacity must be a positive number"
+msgstr ""
+
+#: virtinst/Storage.py:801
+msgid "Allocation must be a non-negative number"
+msgstr ""
+
+#: virtinst/Storage.py:821
+msgid "'pool' must be a virStoragePool instance."
+msgstr ""
+
+#: virtinst/Storage.py:823
+#, python-format
+msgid "pool '%s' must be active."
+msgstr ""
+
+#: virtinst/Storage.py:832
+#, python-format
+msgid "'%s' is not a valid format."
+msgstr ""
+
+#: virtinst/Storage.py:842
+#, fuzzy, python-format
+msgid "Name '%s' already in use by another volume."
+msgstr "ディスク %s は既に他のゲストで使用されています!"
+
+#: virtinst/Storage.py:912
+#, python-format
+msgid ""
+"There is not enough free space on the storage pool to create the volume. (%d "
+"M requested allocation > %d M available)"
+msgstr ""
+
+#: virtinst/Storage.py:918
+#, python-format
+msgid ""
+"The requested volume capacity will exceed the available pool space when the "
+"volume is fully allocated. (%d M requested capacity > %d M available)"
+msgstr ""
+
+#: virtinst/util.py:45
+#, python-format
+msgid "Invalid line length while parsing %s."
+msgstr "%s を構文解析中に不当な行の長さ。"
+
+#: virtinst/util.py:46
+#, python-format
+msgid "Defaulting bridge to xenbr%d"
+msgstr "省略されたブリッジを xenbr%d で補います"
+
+#: virtinst/util.py:402 virtinst/VirtualDevice.py:59
+msgid "'conn' must be a virConnect instance."
+msgstr ""
+
+#: virtinst/VirtualDevice.py:44
+msgid "'conn' must be a virConnect instance"
+msgstr ""
+
+#: virtinst/VirtualDevice.py:68
+#, fuzzy, python-format
+msgid "'%s' must be True or False"
+msgstr ""
+"グラフィックを有効にするかどうかは 'True' か 'False' でなければなりません"
+
+#: virtinst/VirtualDevice.py:72
+#, fuzzy, python-format
+msgid "'%s' must be a string, not '%s'."
+msgstr "キーマップは文字列でなければなりません"
+
+#: virtinst/VirtualDisk.py:160
+#, fuzzy
+msgid "'size' must be a number greater than 0."
+msgstr "メモリー値は 0 を越える整数でなければなりません"
+
+#: virtinst/VirtualDisk.py:170
+#, fuzzy, python-format
+msgid "Unknown storage type '%s'"
+msgstr "不明なインストーラータイプ '%s'"
+
+#: virtinst/VirtualDisk.py:179
+#, fuzzy, python-format
+msgid "Unknown device type '%s'"
+msgstr "不明なインストーラータイプ '%s'"
+
+#: virtinst/VirtualDisk.py:209
+msgid "vol_object must be a virStorageVol instance"
+msgstr ""
+
+#: virtinst/VirtualDisk.py:217
+msgid "vol_install must be a StorageVolume  instance."
+msgstr ""
+
+#: virtinst/VirtualDisk.py:258
+#, fuzzy
+msgid "Unknown storage volume type."
+msgstr "不明なインストーラータイプ '%s'"
+
+#: virtinst/VirtualDisk.py:273
+#, python-format
+msgid "Passed type '%s' does not match detected storage type '%s'"
+msgstr ""
+
+#: virtinst/VirtualDisk.py:283
+msgid "volName must be a tuple of the form ('poolname', 'volname')"
+msgstr ""
+
+#: virtinst/VirtualDisk.py:286
+msgid "'volName' requires a passed connection."
+msgstr ""
+
+#: virtinst/VirtualDisk.py:288
+msgid "Connection does not support storage lookup."
+msgstr ""
+
+#: virtinst/VirtualDisk.py:294
+#, python-format
+msgid "Couldn't lookup volume object: %s"
+msgstr ""
+
+#: virtinst/VirtualDisk.py:315
+msgid "Connection doesn't support remote storage."
+msgstr ""
+
+#: virtinst/VirtualDisk.py:334
+#, fuzzy, python-format
+msgid "Size must be specified for non existent path '%s'"
+msgstr "存在しないディスク用に大きさを指定しなければなりません"
+
+#: virtinst/VirtualDisk.py:354
+#, python-format
+msgid "'%s' is not managed on remote host: %s"
+msgstr ""
+
+#: virtinst/VirtualDisk.py:364
+msgid "Must specify libvirt managed storage if on a remote connection"
+msgstr ""
+
+#: virtinst/VirtualDisk.py:371
+#, python-format
+msgid "Device type '%s' requires a path"
+msgstr ""
+
+#: virtinst/VirtualDisk.py:402
+#, fuzzy
+msgid "The path must be a file or a device, not a directory"
+msgstr ""
+"ディスクバスはディレクトリーではなく、ファイルか装置でなければなりません"
+
+#: virtinst/VirtualDisk.py:410
+#, fuzzy, python-format
+msgid "Cannot create storage for %s device."
+msgstr "ストレージファイルを作成中..."
+
+#: virtinst/VirtualDisk.py:416
+#, fuzzy
+msgid "Local block device path must exist."
+msgstr "指定されたブロック装置はありません。"
+
+#: virtinst/VirtualDisk.py:421
+#, python-format
+msgid "No write access to directory '%s'"
+msgstr ""
+
+#: virtinst/VirtualDisk.py:424
+#, fuzzy, python-format
+msgid "size is required for non-existent disk '%s'"
+msgstr "存在しないディスク用に大きさを指定しなければなりません"
+
+#: virtinst/VirtualDisk.py:459
+msgid "Creating storage file..."
+msgstr "ストレージファイルを作成中..."
+
+#: virtinst/VirtualDisk.py:476
+#, python-format
+msgid "Error creating diskimage %s: %s"
+msgstr ""
+
+#: virtinst/VirtualDisk.py:498
+msgid "'disknode' or self.target must be set!"
+msgstr ""
+
+#: virtinst/VirtualDisk.py:558
+msgid ""
+"The filesystem will not have enough free space to fully allocate the sparse "
+"file when the guest is running."
+msgstr ""
+
+#: virtinst/VirtualDisk.py:563
+msgid "There is not enough free space to create the disk."
+msgstr ""
+
+#: virtinst/VirtualDisk.py:567
+#, python-format
+msgid " %d M requested > %d M available"
+msgstr ""
+
+#: virtinst/VirtualDisk.py:670
+msgid "Cannot determine device bus/type."
+msgstr ""
+
+#: virtinst/VirtualDisk.py:677
+msgid "IDE CDROM must use 'hdc', but target in use."
+msgstr ""
+
+#: virtinst/VirtualDisk.py:693
+#, python-format
+msgid "No more space for disks of type '%s'"
+msgstr ""
+
+#~ msgid ""
+#~ "Would you like a fully virtualized guest (yes or no)?  This will allow "
+#~ "you to run unmodified operating systems."
+#~ msgstr ""
+#~ "完全仮想化のゲストがいいですか (yes または no)? これは修正不要のオペレー"
+#~ "ティングシステムの実行を可能にします。"
+
+#, fuzzy
+#~ msgid "What would you like to use as the disk (file path)?"
+#~ msgstr "ディスク(パス)として何を使用したいですか?"
+
+#~ msgid ""
+#~ "Please enter the path to the file you would like to use for storage. It "
+#~ "will have size %sGB."
+#~ msgstr ""
+#~ "ストレージとして使用したいファイルのパスを入力してください。大きさは %sGB "
+#~ "になります。"
+
+#~ msgid "How large would you like the disk (%s) to be (in gigabytes)?"
+#~ msgstr "どの位の大きさのディスク (%s) にしたいですか(ギガバイト単位で)?"
+
+#~ msgid "What is the install location?"
+#~ msgstr "インストール場所は何ですか?"
+
+#~ msgid "What is the virtual CD image, CD device or install location?"
+#~ msgstr "仮想 CD イメージか、CD ドライブ、インストール場所は何ですか?"
+
+#~ msgid "File to use a virtual CD-ROM device for fully virtualized guests"
+#~ msgstr "完全仮想化ゲストで仮想 CD-ROM 装置として使用するファイル"
+
+#~ msgid "What is the name of your virtual machine?"
+#~ msgstr "仮想マシンの名前は何ですか?"
+
+#~ msgid "How much RAM should be allocated (in megabytes)?"
+#~ msgstr "どれだけの RAM を割り当てますか (メガバイト単位で)?"
+
+#~ msgid "How many VCPUs should be attached?"
+#~ msgstr "VCPU を何個接続しますか?"
+
+#~ msgid "Can't do both VNC graphics and nographics"
+#~ msgstr "VNC graphics と nographics の両方はできません"
+
+#~ msgid "Can't do both VNC graphics and SDL"
+#~ msgstr "VNC graphics と SDL の両方はできません"
+
+#~ msgid "Can't do both SDL and nographics"
+#~ msgstr "SDL と nographics の両方はできません"
+
+#~ msgid "Would you like to enable graphics support? (yes or no)"
+#~ msgstr "グラフィックサポートを有効にしたいですか? (yes または no)"
+
+#, fuzzy
+#~ msgid "The specified path's root directory must exist."
+#~ msgstr "指定された媒体のパスは存在しません。"
+
+#, fuzzy
+#~ msgid "The %s path must exist."
+#~ msgstr "指定された媒体のパスは存在しません。"
+
+#, fuzzy
+#~ msgid "The specified path is a block device, not a regular file."
+#~ msgstr "指定されたパスはブロック装置ではありません。"
+
+#~ msgid "The specified path is not a block device."
+#~ msgstr "指定されたパスはブロック装置ではありません。"
+
+#~ msgid "Bridge name is not required for %s"
+#~ msgstr "%s にはブリッジ名は不要です"
+
+#~ msgid ""
+#~ "The MAC address you entered is already in use by another virtual machine!"
+#~ msgstr "入力された MAC アドレスは既に他の仮想マシンで使用されています!"
+
+#, fuzzy
+#~ msgid ""
+#~ "Invalid value for vnc port, port number must be in between 5900 and 65535"
+#~ msgstr ""
+#~ "vnc ポートとしては不当な値、ポート番号は 5900 以上でなければなりません"
+
+#~ msgid "LiveCD image '%s' does not exist"
+#~ msgstr "ライブ CD イメージ '%s' がありません"
+
+#~ msgid "Can't use more than 16 disks on a PV guest"
+#~ msgstr "PV ゲストでは 16 を越えるディスクは使えません"
+
+#~ msgid "A new disk image file for the cloned guest is required"
+#~ msgstr "クローニングしたゲスト用に新しいディスクイメージファイルが必要です"
+
+#, fuzzy
+#~ msgid "Do you really want to use the file (yes or no)? "
+#~ msgstr "そのディスクを本当に使いたいのですか (yes または no)? "
+
+#~ msgid ""
+#~ "Can't do --hvm on this system: HVM guest is not supported by your CPU or "
+#~ "enabled in your BIOS"
+#~ msgstr ""
+#~ "このシステムでは --hvm はできません: HVM ゲストは CPU でサポートされていな"
+#~ "いか、 BIOS で有効にされていません"
+
+#~ msgid "What would you like to use as the disk (path)?"
+#~ msgstr "ディスク(パス)として何を使用したいですか?"
+
+#~ msgid "The MAC address you entered is already in use by another guest!"
+#~ msgstr "入力した MAC アドレスは既に他のゲストで使用中です!"
+
+#~ msgid ""
+#~ "The MAC address you entered is already in use by another inactive guest!"
+#~ msgstr "入力した MAC アドレスは既に他の非起動ゲストで使用中です!"
+
+#, fuzzy
+#~ msgid "Invalid URL location given: %s %s"
+#~ msgstr "不当な URL の場所が指定されました: "
+
+#~ msgid "Could not create %d directory: "
+#~ msgstr "%d ディレクトリーを作成できませんでした:"
+
+#~ msgid "A yes or no response is required"
+#~ msgstr "yes か no の応答が必要です"
+
+#~ msgid "Specify the installation method to use e.g. 'distro', ..."
+#~ msgstr "例えば 'distor'、... のようなインストール方法を指定します"
+
+#~ msgid "Unable to connect to graphical console; vnc port number not found."
+#~ msgstr ""
+#~ "グラフィカルコンソールに接続できません; vnc ポート番号が見つかりません。"
+
+#~ msgid "Can't use more than 4 disks on an HVM guest"
+#~ msgstr "HVM ゲストでは 4 を越えるディスクを使用できません"
+
+#~ msgid "The disk path must be an absolute path location, beginning with '/'"
+#~ msgstr "ディスクパスは '/' で始まる絶対パスでなければなりません"
+
+#~ msgid "The size of the disk image must be greater than 0"
+#~ msgstr "ディスクイメージの大きさは 0 よりも大きくなければなりません"
+
+#~ msgid "Couldn't determine max vcpus. Using 32."
+#~ msgstr "最大 vcpu 数を決定できません。32 を使います。"

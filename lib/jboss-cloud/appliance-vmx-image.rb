@@ -100,7 +100,7 @@ module JBossCloud
           execute_command( "#{Dir.pwd}/lib/python-virtinst/virt-convert -o vmx -D vmdk #{@appliance_xml_file}.vmx-input #{vmware_personal_output_folder}/" )
         end
 
-        vmx_data = File.open( "src/base.vmx" ).read
+        vmx_data = File.open( "#{JBossCloud::Config.get.dir_src}/base.vmx" ).read
         vmx_data = change_common_vmx_values( vmx_data )
 
         # disk filename must match
@@ -125,7 +125,7 @@ module JBossCloud
           FileUtils.cp( base_raw_file , vmware_enterprise_output_folder )
         end
 
-        vmx_data = File.open( "src/base.vmx" ).read
+        vmx_data = File.open( "#{JBossCloud::Config.get.dir_src}/base.vmx" ).read
         vmx_data = change_common_vmx_values( vmx_data )
         
         # replace IDE disk with SCSI, it's recommended for workstation and required for ESX

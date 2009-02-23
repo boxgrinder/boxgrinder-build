@@ -1,0 +1,23 @@
+<capabilities>
+  <host>
+    <cpu>
+      <arch>i686</arch>
+      <features>
+        <pae/>
+        <nonpae/>
+      </features>
+    </cpu>
+  </host>
+
+  <guest>
+    <os_type>linux</os_type>
+    <arch name="i686">
+      <wordsize>32</wordsize>
+      <domain type="test"/>
+    </arch>
+    <features>
+      <pae/>
+      <nonpae/>
+    </features>
+  </guest>
+</capabilities>

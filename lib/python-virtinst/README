@@ -1,0 +1,36 @@
+virtinst is a module to help in starting installations of Fedora/Red
+Hat Enterprise Linux related distributions inside of virtual
+machines.  It supports both paravirt guests (for which only FC and
+RHEL guests are currently supported) as well as fully virtualized
+guests.  It uses libvirt (http://www.libvirt.org) for starting
+things.
+
+Also contained is a simple script virt-install which uses
+virtinst in a command line mode.
+
+This library currently requires
+
+    libvirt >= 0.2.1
+    python >= 2.4 / 2.5
+    virt-viewer >= 0.0.1
+
+
+With the exception of the tests/coverage.py file, all code is
+made available under the following terms:
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free  Software Foundation; either version 2 of the License, or
+  (at your option)  any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+  MA 02110-1301 USA.
+
+For full details, see the COPYING file.

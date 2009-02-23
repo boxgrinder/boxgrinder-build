@@ -1,0 +1,11 @@
+include README AUTHORS NEWS ChangeLog COPYING INSTALL HACKING
+include python-virtinst.spec
+include setup.py
+recursive-include virtinst *.py
+recursive-include virtconv *.py
+recursive-include tests *.py *.xml *.vmx *.virt-image
+include virt-install virt-clone virt-image virt-convert
+include autobuild.sh
+include doc/*
+recursive-include man *.1 *.5 *.pod
+recursive-include po *.po *.pot
