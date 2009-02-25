@@ -5,21 +5,37 @@ require 'wizard/wizard'
 module JBossCloudWizard
   class App
 
-    def initialize(name, version, release, arguments, stdin)
-      @name      = name
-      @version   = version
-      @release   = release
-      @arguments = arguments
-      @stdin     = stdin
+    DEFAULT_CONFIG = {
+      :dir_appliances     => 'appliances'
+    }
 
-      @options   = OpenStruct.new
-      @options.verbose  = false
-      @options.name     = @name
-      @options.version  = @version
-      @options.release  = @release
+    def initialize( config )
+      @arguments = ARGV
+      @stdin     = STDIN
+
+      @options                  = OpenStruct.new
+      @options.verbose          = false
+      @options.name             = config[:name]
+      @options.version          = config[:version]
+      @options.release          = config[:release]
+      @options.dir_appliances   = config[:dir_appliances] || DEFAULT_CONFIG[:dir_appliances]
+
+      validate
       #todo initialize all paths
     end
-    
+
+    def validate
+      if @options.name == nil or @options.version == nil
+        puts "You should specify at least name and version for your project, aborting."
+        abort
+      end
+
+      if !File.exists?(@options.dir_appliances) && !File.directory?(@options.dir_appliances)
+        puts "Appliance directory #{@options.dir_appliances} doesn't exists, aborting."
+        abort
+      end
+    end
+
     def run
       if !parsed_options?
         puts "Invalid options"
@@ -32,7 +48,7 @@ module JBossCloudWizard
     protected
 
     def output_version
-      puts "Appliance builder wizard for #{@name}, version #{@release.nil? ? @version : @version + "-" + @release}"
+      puts "Appliance builder wizard for #{@options.name}, version #{@options.release.nil? ? @options.version : @options.version + "-" + @options.release}"
     end
 
     # Performs post-parse processing on options

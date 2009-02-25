@@ -14,11 +14,10 @@ module JBossCloudWizard
     AVAILABLE_ARCHES = [ "i386", "x86_64" ]
 
     def initialize(options)
-      @options = options
-      @appliances = Array.new
-      @configs = Hash.new
-
-      @config_dir = "/home/#{ENV['USER']}/.jboss-cloud/configs"
+      @options     = options
+      @appliances  = Array.new
+      @configs     = Hash.new
+      @config_dir  = "/home/#{ENV['USER']}/.jboss-cloud/configs"
 
       if !File.exists?(@config_dir) && !File.directory?(@config_dir)
         puts "Config dir doesn't exists. Creating new." if @options.verbose
@@ -31,7 +30,7 @@ module JBossCloudWizard
 
       puts "\nReading available appliances..." if @options.verbose
 
-      Dir[ "appliances/*/*.appl" ].each do |appliance_def|
+      Dir[ "#{@options.dir_appliances}/*/*.appl" ].each do |appliance_def|
         @appliances.push( File.basename( appliance_def, '.appl' ))
       end
 
@@ -223,12 +222,17 @@ module JBossCloudWizard
       #system("clear")
       @config = nil
 
+      read_available_appliances
+
+      if @appliances.size == 0
+        puts "\n    No appliance definitions found, aborting.\r\n\r\n"
+        abort
+      end
+
       read_configs
       manage_configs unless @configs.size == 0
 
       if (@config == nil)
-        read_available_appliances
-
         @config = StepAppliance.new(@appliances, AVAILABLE_ARCHES).start
         @config = StepDisk.new(@config).start
         @config = StepMemory.new(@config).start
