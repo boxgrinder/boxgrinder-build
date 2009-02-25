@@ -1,17 +1,22 @@
 require 'optparse' 
 require 'ostruct'
-require 'jboss-cloud/wizard/wizard'
+require 'wizard/wizard'
 
 module JBossCloudWizard
   class App
-    VERSION = '1.0.0.Beta2'
 
-    def initialize(arguments, stdin)
+    def initialize(name, version, release, arguments, stdin)
+      @name      = name
+      @version   = version
+      @release   = release
       @arguments = arguments
-      @stdin = stdin
+      @stdin     = stdin
 
-      @options = OpenStruct.new
-      @options.verbose = false
+      @options   = OpenStruct.new
+      @options.verbose  = false
+      @options.name     = @name
+      @options.version  = @version
+      @options.release  = @release
       #todo initialize all paths
     end
     
@@ -27,7 +32,7 @@ module JBossCloudWizard
     protected
 
     def output_version
-      puts "JBoss Cloud appliance builder wizard, version #{VERSION}"
+      puts "Appliance builder wizard for #{@name}, version #{@release.nil? ? @version : @version + "-" + @release}"
     end
 
     # Performs post-parse processing on options

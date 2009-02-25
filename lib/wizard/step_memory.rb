@@ -1,4 +1,4 @@
-require 'jboss-cloud/wizard/step'
+require 'wizard/step'
 
 module JBossCloudWizard
   class StepMemory < Step

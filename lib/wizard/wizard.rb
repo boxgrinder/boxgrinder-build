@@ -1,9 +1,9 @@
 require 'jboss-cloud/exec'
 require 'jboss-cloud/config'
-require 'jboss-cloud/wizard/step_appliance'
-require 'jboss-cloud/wizard/step_disk'
-require 'jboss-cloud/wizard/step_memory'
-require 'jboss-cloud/wizard/step_output_format'
+require 'wizard/step_appliance'
+require 'wizard/step_disk'
+require 'wizard/step_memory'
+require 'wizard/step_output_format'
 require 'yaml'
 require 'fileutils'
 
@@ -169,9 +169,8 @@ module JBossCloudWizard
       return false
     end
 
-
     def init
-      puts "\n###\r\n### Welcome to JBoss Cloud appliance builder wizard\r\n###"
+      puts "\n###\r\n### Welcome to appliance builder wizard for #{@options.name}\r\n###"
       self
     end
 

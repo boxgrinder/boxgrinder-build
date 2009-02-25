@@ -5,3 +5,4 @@ build
 rpms-cache
 sources-cache
 extra-rpms
+wizard
