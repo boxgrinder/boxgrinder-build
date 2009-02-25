@@ -63,8 +63,8 @@ module JBossCloud
 
       definition['exclude_clause'] = "--excludepkgs=#{all_excludes.join(',')}" unless ( all_excludes.nil? or all_excludes.empty? )
 
-      file "#{appliance_build_dir}/base-pkgs.ks" => [ "kickstarts/base-pkgs.ks" ] do
-        FileUtils.cp( "kickstarts/base-pkgs.ks", "#{appliance_build_dir}/base-pkgs.ks" )
+      file "#{appliance_build_dir}/base-pkgs.ks" => [ Config.get.base_pkgs ] do
+        FileUtils.cp( Config.get.base_pkgs, "#{appliance_build_dir}/base-pkgs.ks" )
       end
 
       file config_file => [ "appliance:#{@simple_name}:config" ] do

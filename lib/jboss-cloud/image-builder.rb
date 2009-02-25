@@ -37,7 +37,8 @@ module JBossCloud
       :rpms_cache_dir    => 'rpms-cache',
       :dir_specs         => 'specs',
       :dir_appliances    => 'appliances',
-      :dir_src           => 'src'
+      :dir_src           => 'src',
+      :base_pkgs         => 'kickstarts/base-pkgs.ks'
     }
 
     def initialize(project_config)
@@ -68,8 +69,9 @@ module JBossCloud
       dir_specs         = project_config[:dir_specs]         || DEFAULT_PROJECT_CONFIG[:dir_specs]
       dir_appliances    = project_config[:dir_appliances]    || DEFAULT_PROJECT_CONFIG[:dir_appliances]
       dir_src           = project_config[:dir_src]           || DEFAULT_PROJECT_CONFIG[:dir_src]
-     
-      Config.new.init( name, version, release, arch, build_arch, dir_rpms_cache, dir_src_cache, dir_root, dir_top, dir_build, dir_specs, dir_appliances, dir_src )
+      base_pkgs         = project_config[:base_pkgs]         || DEFAULT_PROJECT_CONFIG[:base_pkgs]
+
+      Config.new.init( name, version, release, arch, build_arch, dir_rpms_cache, dir_src_cache, dir_root, dir_top, dir_build, dir_specs, dir_appliances, dir_src, File.exists?( base_pkgs ) ? base_pkgs : "#{File.dirname( __FILE__ )}/../../kickstarts/base-pkgs.ks" )
     end
     
     def define_rules
