@@ -34,6 +34,11 @@ module JBossCloudWizard
         puts "Appliance directory #{@options.dir_appliances} doesn't exists, aborting."
         abort
       end
+      
+      if Dir[ "#{@options.dir_appliances}/*/*.appl" ].size == 0 or Dir[ "#{@options.dir_appliances}*.mappl" ].size == 0
+        puts "There are no appliances in '#{@options.dir_appliances}' directory, please check one more time path, aborting."
+        abort
+      end
     end
 
     def run
