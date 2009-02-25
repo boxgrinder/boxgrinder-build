@@ -17,7 +17,7 @@ module JBossCloudWizard
       @options     = options
       @appliances  = Array.new
       @configs     = Hash.new
-      @config_dir  = "/home/#{ENV['USER']}/.jboss-cloud/configs"
+      @config_dir  = ENV['JBOSS_CLOUD_CONFIG_DIR'] || "/home/#{ENV['USER']}/.jboss-cloud/configs"
 
       if !File.exists?(@config_dir) && !File.directory?(@config_dir)
         puts "Config dir doesn't exists. Creating new." if @options.verbose
@@ -283,8 +283,6 @@ module JBossCloudWizard
       command += "rake appliance:#{@config.name}" if @config.output_format.to_i == 1
       command += "rake appliance:#{@config.name}:vmware:enterprise" if @config.output_format.to_i == 2
       command += "rake appliance:#{@config.name}:vmware:personal" if @config.output_format.to_i == 3
-
-      puts command
 
       unless execute("#{command}", @options.verbose)
         puts "Build failed"
