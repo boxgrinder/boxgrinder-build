@@ -17,7 +17,7 @@ module JBossCloudWizard
       @options     = options
       @appliances  = Array.new
       @configs     = Hash.new
-      @config_dir  = ENV['JBOSS_CLOUD_CONFIG_DIR'] || "/home/#{ENV['USER']}/.jboss-cloud/configs"
+      @config_dir  = ENV['JBOSS_CLOUD_CONFIG_DIR'] || "#{ENV['HOME']}/.jboss-cloud/configs"
 
       if !File.exists?(@config_dir) && !File.directory?(@config_dir)
         puts "Config dir doesn't exists. Creating new." if @options.verbose
