@@ -94,18 +94,18 @@ module JBossCloud
       end
 
       Dir[ "#{Config.get.dir_appliances}/*/*.appl" ].each do |appliance_def|
-        JBossCloud::Appliance.new( build_config( File.basename( appliance_def, '.appl' ) ), appliance_def )
+        JBossCloud::Appliance.new( build_config( appliance_def ), appliance_def )
       end
 
       Dir[ "#{Config.get.dir_appliances}/*.mappl" ].each do |multi_appliance_def|
-        JBossCloud::MultiAppliance.new( build_config( File.basename( multi_appliance_def, '.mappl' ) ), multi_appliance_def )
+        #JBossCloud::MultiAppliance.new( build_config( File.basename( multi_appliance_def, '.mappl' ) ), multi_appliance_def )
       end
     end
 
-    def build_config(name)
+    def build_config(appliance_def)
       config = ApplianceConfig.new
 
-      config.name           = name
+      config.name           = File.basename( appliance_def, '.appl' )
       config.arch           = ENV['ARCH'].nil? ? Config.get.build_arch : ENV['ARCH']
       config.disk_size      = ENV['DISK_SIZE'].nil? ? 2048 : ENV['DISK_SIZE'].to_i
       config.mem_size       = ENV['MEM_SIZE'].nil? ? 1024 : ENV['MEM_SIZE'].to_i
@@ -113,8 +113,27 @@ module JBossCloud
       config.os_name        = ENV['OS_NAME'].nil? ? "fedora" : ENV['OS_NAME']
       config.os_version     = ENV['OS_VERSION'].nil? ? "10" : ENV['OS_VERSION']
       config.vcpu           = ENV['VCPU'].nil? ? 1 : ENV['VCPU'].to_i
+      config.appliances     = get_appliances( config.name )
 
       config
     end
+
+    def get_appliances( appliance_name )
+      appliances = Array.new
+
+      appliance_def = "#{Config.get.dir_appliances}/#{appliance_name}/#{appliance_name}.appl"
+
+      unless  File.exists?( appliance_def )
+        puts "Appliance configuration file for #{appliance_name} doesn't exists, please check your config files, aborting."
+        abort
+      end
+
+      appliances_read = YAML.load_file( appliance_def )['appliances']  
+      appliances_read.each { |appl| appliances +=  get_appliances( appl ) } unless appliances_read.nil? or appliances_read.empty?
+      appliances.push( appliance_name )
+
+      appliances
+    end
+
   end
 end
