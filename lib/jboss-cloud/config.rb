@@ -14,11 +14,12 @@ module JBossCloud
     attr_accessor :network_name
     attr_accessor :output_format
     attr_accessor :appliances
+    attr_accessor :summary
 
     # used to checking if configuration diffiers from previous in appliance-kickstart
     def hash
       # without output_format!
-      "#{@name}-#{@arch}-#{@os_name}-#{@os_version}-#{@vcpu}-#{@mem_size}-#{@disk_size}-#{@network_name}-#{@appliances.join("-")}".hash
+      "#{@name}-#{@arch}-#{@os_name}-#{@os_version}-#{@vcpu}-#{@mem_size}-#{@disk_size}-#{@network_name}-#{@appliances.join("-")}-#{@summary}".hash
     end
 
     def eql?(other)

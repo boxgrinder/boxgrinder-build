@@ -105,6 +105,8 @@ module JBossCloud
     def build_config(appliance_def)
       config = ApplianceConfig.new
 
+      yaml_file = YAML.load_file( appliance_def )
+
       config.name           = File.basename( appliance_def, '.appl' )
       config.arch           = ENV['ARCH'].nil? ? Config.get.build_arch : ENV['ARCH']
       config.disk_size      = ENV['DISK_SIZE'].nil? ? 2048 : ENV['DISK_SIZE'].to_i
@@ -114,6 +116,12 @@ module JBossCloud
       config.os_version     = ENV['OS_VERSION'].nil? ? "10" : ENV['OS_VERSION']
       config.vcpu           = ENV['VCPU'].nil? ? 1 : ENV['VCPU'].to_i
       config.appliances     = get_appliances( config.name )
+      config.summary        = yaml_file['summary']
+
+      if config.summary.nil? or config.summary.length == 0
+        puts "Summary for #{config.name} appliance should be specified, aborting."
+        abort
+      end
 
       config
     end
@@ -128,7 +136,7 @@ module JBossCloud
         abort
       end
 
-      appliances_read = YAML.load_file( appliance_def )['appliances']  
+      appliances_read = YAML.load_file( appliance_def )['appliances']
       appliances_read.each { |appl| appliances +=  get_appliances( appl ) } unless appliances_read.nil? or appliances_read.empty?
       appliances.push( appliance_name )
 

@@ -3,7 +3,6 @@ require 'yaml'
 require 'erb'
 
 module JBossCloud
-
   class ApplianceSpec < Rake::TaskLib
 
     def initialize( config )

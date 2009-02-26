@@ -27,6 +27,23 @@ module JBossCloud
         FileUtils.rm_rf stage_directory
         FileUtils.mkdir_p stage_directory
         FileUtils.cp_r( "#{@appliance_dir}/", stage_directory  )
+
+        defs = { }
+
+        defs['appliance_name']        = @config.name
+        defs['appliance_summary']     = @config.summary
+        defs['appliance_version']     = Config.get.version_with_release
+
+        def defs.method_missing(sym,*args)
+          self[ sym.to_s ]
+        end
+
+        puppet_file = "#{stage_directory}/#{@config.name}/#{@config.name}.pp"
+
+        erb = ERB.new( File.read( puppet_file ) )
+
+        File.open( puppet_file, 'w' ) {|f| f.write( erb.result( defs.send( :binding ) ) ) }
+
         Dir.chdir( "#{@appliance_build_dir}/sources" ) do
           command = "tar zcvf #{Config.get.dir_root}/#{@topdir}/SOURCES/#{@simple_name}-#{@version}.tar.gz #{@simple_name}-#{@version}/"
           execute_command( command )

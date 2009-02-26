@@ -19,7 +19,7 @@ Requires: 	ace-console
 Requires: 	ace-ssh
 Requires: 	dkms-open-vm-tools
 <% for package in packages %>
-Requires: <%= package %>
+Requires:       <%= package %>
 <% end %>
 # The following are required to run within EC2
 Requires: 	curl
