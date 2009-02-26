@@ -6,13 +6,8 @@ module JBossCloud
 
   class ApplianceKickstart < Rake::TaskLib
 
-    def initialize( config, appliance_names=[] )
-      @config            = config
-      @build_dir         = Config.get.dir_build
-      @topdir            = Config.get.dir_top
-      @simple_name       = config.name
-      @super_simple_name = File.basename( @simple_name, '-appliance' )
-      @appliance_names   = appliance_names
+    def initialize( config )
+      @config = config
       define
     end
 
@@ -22,31 +17,31 @@ module JBossCloud
 
     def define
 
-      appliance_build_dir    = "#{@build_dir}/appliances/#{@config.arch}/#{@simple_name}"
-      kickstart_file         = "#{appliance_build_dir}/#{@simple_name}.ks"
-      config_file            = "#{appliance_build_dir}/#{@simple_name}.cfg"
+      appliance_build_dir    = "#{Config.get.dir_build}/appliances/#{@config.arch}/#{@config.name}"
+      kickstart_file         = "#{appliance_build_dir}/#{@config.name}.ks"
+      config_file            = "#{appliance_build_dir}/#{@config.name}.cfg"
 
       definition = { }
-      #definition['local_repository_url'] = "file://#{@topdir}/RPMS/noarch"
+      #definition['local_repository_url'] = "file://#{Config.get.dir_top}/RPMS/noarch"
       definition['disk_size']            = @config.disk_size
       definition['appl_name']            = @config.name
       definition['arch']                 = @config.arch
       definition['post_script']          = ''
       definition['exclude_clause']       = ''
-      definition['appliance_names']      = @appliance_names.empty? ? @config.name : @appliance_names
+      definition['appliance_names']      = @config.appliances
       
       def definition.method_missing(sym,*args)
         self[ sym.to_s ]
       end
 
       definition['repos'] = [
-        "repo --name=jboss-cloud --cost=10 --baseurl=file://#{Config.get.dir_root}/#{@topdir}/RPMS/noarch",
-        "repo --name=jboss-cloud-#{@config.arch} --cost=10 --baseurl=file://#{Config.get.dir_root}/#{@topdir}/RPMS/#{@config.arch}",
+        "repo --name=jboss-cloud --cost=10 --baseurl=file://#{Config.get.dir_root}/#{Config.get.dir_top}/RPMS/noarch",
+        "repo --name=jboss-cloud-#{@config.arch} --cost=10 --baseurl=file://#{Config.get.dir_root}/#{Config.get.dir_top}/RPMS/#{@config.arch}",
       ]
 
       definition['repos'] << "repo --name=extra-rpms --cost=1 --baseurl=file://#{Dir.pwd}/extra-rpms/noarch" if ( File.exist?( "extra-rpms" ) )
 
-      for appliance_name in @appliance_names
+      for appliance_name in @config.appliances
         if ( File.exist?( "appliances/#{appliance_name}/#{appliance_name}.post" ) )
           definition['post_script'] += "\n## #{appliance_name}.post\n"
           definition['post_script'] += File.read( "appliances/#{appliance_name}/#{appliance_name}.post" )
@@ -67,11 +62,11 @@ module JBossCloud
         FileUtils.cp( Config.get.base_pkgs, "#{appliance_build_dir}/base-pkgs.ks" )
       end
 
-      file config_file => [ "appliance:#{@simple_name}:config" ] do
+      file config_file => [ "appliance:#{@config.name}:config" ] do
         File.open( config_file, "w") {|f| f.write( @config.to_yaml ) }
       end
 
-      file "appliance:#{@simple_name}:config" do
+      file "appliance:#{@config.name}:config" do
         if File.exists?( config_file )
           unless @config.eql?( YAML.load_file( config_file ) )
             FileUtils.rm_rf appliance_build_dir
@@ -87,8 +82,8 @@ module JBossCloud
         File.open( kickstart_file, 'w' ) {|f| f.write( ERB.new( File.read( template ) ).result( definition.send( :binding ) ) ) }
       end      
 
-      desc "Build kickstart for #{@super_simple_name} appliance"
-      task "appliance:#{@simple_name}:kickstart" => [ kickstart_file ]
+      desc "Build kickstart for #{File.basename( @config.name, '-appliance' )} appliance"
+      task "appliance:#{@config.name}:kickstart" => [ kickstart_file ]
 
     end
 
