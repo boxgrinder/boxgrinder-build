@@ -7,8 +7,7 @@ module JBossCloud
   class ApplianceSpec < Rake::TaskLib
 
     def initialize( config )
-      @config             = config
-      @super_simple_name  = File.basename( @config.name, "-appliance" )
+      @config = config
 
       define
     end
@@ -22,6 +21,7 @@ module JBossCloud
       definition['version']  = Config.get.version
       definition['release']  = Config.get.release
       definition['packages'] = Array.new if definition['packages'] == nil
+      definition['packages'] += @config.appliances.select {|v| !v.eql?(@config.name)}
 
       def definition.method_missing(sym,*args)
         self[ sym.to_s ]
@@ -41,7 +41,7 @@ module JBossCloud
         end
       end
  
-      desc "Build RPM spec for #{@super_simple_name} appliance"
+      desc "Build RPM spec for #{File.basename( @config.name, "-appliance" )} appliance"
       task "appliance:#{@config.name}:spec" => [ "#{appliance_build_dir}/#{@config.name}.spec" ]
     end
 
