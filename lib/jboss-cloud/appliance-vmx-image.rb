@@ -55,6 +55,8 @@ module JBossCloud
       vmx_data.gsub!( /#VERSION#/ , JBossCloud::Config.get.version_with_release )
       # change name
       vmx_data.gsub!( /#NAME#/ , @config.name )
+      # and summary
+      vmx_data.gsub!( /#SUMMARY#/ , @config.summary )
       # replace guestOS informations to: linux or otherlinux-64, this seems to be the savests values
       vmx_data.gsub!( /#GUESTOS#/ , "#{@config.arch == "x86_64" ? "otherlinux-64" : "linux"}" )
       # memory size
@@ -117,12 +119,9 @@ module JBossCloud
         base_raw_file = File.dirname( @appliance_xml_file ) + "/#{@config.name}-sda.raw"
         vmware_raw_file = vmware_enterprise_output_folder + "/#{@config.name}-sda.raw"
 
-        # copy RAW disk to VMware enterprise destination folder
-        # todo: consider moving this file
-
+        # Hard link RAW disk to VMware enterprise destination folder
         if ( !File.exists?( vmware_raw_file ) || File.new( base_raw_file ).mtime > File.new( vmware_raw_file ).mtime )
-          puts "Creating VMware enterprise disk..."
-          FileUtils.cp( base_raw_file , vmware_enterprise_output_folder )
+          FileUtils.ln( base_raw_file , vmware_raw_file )
         end
 
         vmx_data = File.open( "#{JBossCloud::Config.get.dir_src}/base.vmx" ).read
