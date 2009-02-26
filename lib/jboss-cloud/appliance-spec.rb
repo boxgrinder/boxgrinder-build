@@ -17,10 +17,12 @@ module JBossCloud
 
       appliance_build_dir    = "#{Config.get.dir_build}/appliances/#{@config.arch}/#{@config.name}"
 
-      definition = YAML.load_file( "#{Config.get.dir_appliances}/#{@config.name}/#{@config.name}.appl" )
-      definition['name']    = @config.name
-      definition['version'] = Config.get.version
-      definition['release'] = Config.get.release
+      definition             = YAML.load_file( "#{Config.get.dir_appliances}/#{@config.name}/#{@config.name}.appl" )
+      definition['name']     = @config.name
+      definition['version']  = Config.get.version
+      definition['release']  = Config.get.release
+      definition['packages'] = Array.new if definition['packages'] == nil
+
       def definition.method_missing(sym,*args)
         self[ sym.to_s ]
       end
@@ -40,7 +42,7 @@ module JBossCloud
       end
  
       desc "Build RPM spec for #{@super_simple_name} appliance"
-      task "appliance:#{@config.name}:spec" => [ "#{appliance_build_dir}#{@config.name}.spec" ]
+      task "appliance:#{@config.name}:spec" => [ "#{appliance_build_dir}/#{@config.name}.spec" ]
     end
 
   end
