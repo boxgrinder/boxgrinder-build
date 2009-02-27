@@ -1,9 +1,9 @@
 require 'jboss-cloud/exec'
 require 'jboss-cloud/config'
-require 'wizard/step_appliance'
-require 'wizard/step_disk'
-require 'wizard/step_memory'
-require 'wizard/step_output_format'
+require 'jboss-cloud-wizard/step_appliance'
+require 'jboss-cloud-wizard/step_disk'
+require 'jboss-cloud-wizard/step_memory'
+require 'jboss-cloud-wizard/step_output_format'
 require 'yaml'
 require 'fileutils'
 

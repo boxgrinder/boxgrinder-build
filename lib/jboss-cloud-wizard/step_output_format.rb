@@ -1,4 +1,4 @@
-require 'wizard/step'
+require 'jboss-cloud-wizard/step'
 
 module JBossCloudWizard
   class StepOutputFormat < Step

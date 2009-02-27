@@ -1,6 +1,6 @@
 require 'optparse' 
 require 'ostruct'
-require 'wizard/wizard'
+require 'jboss-cloud-wizard/wizard'
 
 module JBossCloudWizard
   class App
