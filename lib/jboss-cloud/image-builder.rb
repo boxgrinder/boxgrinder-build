@@ -96,10 +96,6 @@ module JBossCloud
       Dir[ "#{Config.get.dir_appliances}/*/*.appl" ].each do |appliance_def|
         JBossCloud::Appliance.new( build_config( appliance_def ), appliance_def )
       end
-
-      Dir[ "#{Config.get.dir_appliances}/*.mappl" ].each do |multi_appliance_def|
-        #JBossCloud::MultiAppliance.new( build_config( File.basename( multi_appliance_def, '.mappl' ) ), multi_appliance_def )
-      end
     end
 
     def build_config(appliance_def)
