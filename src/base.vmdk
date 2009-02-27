@@ -1,0 +1,19 @@
+# Disk DescriptorFile
+version=1
+CID=af54a9d2
+parentCID=ffffffff
+createType="vmfs"
+
+# Extent description
+RW #TOTAL_SECTORS# VMFS "#NAME#-sda.raw"
+
+# The Disk Data Base
+#DDB
+
+ddb.toolsVersion = "0"
+ddb.adapterType = "lsilogic"
+ddb.geometry.sectors = "#SECTORS#"
+ddb.geometry.heads = "#HEADS#"
+ddb.geometry.cylinders = "#CYLINDERS#"
+ddb.encoding = "UTF-8"
+ddb.virtualHWVersion = "4"
