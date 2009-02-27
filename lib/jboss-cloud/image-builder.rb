@@ -5,7 +5,6 @@ require 'jboss-cloud/topdir'
 require 'jboss-cloud/repodata'
 require 'jboss-cloud/rpm'
 require 'jboss-cloud/appliance'
-require 'jboss-cloud/multi-appliance'
 require 'jboss-cloud/config'
 require 'ostruct'
 
