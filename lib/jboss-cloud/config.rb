@@ -50,6 +50,7 @@ module JBossCloud
       @dir_specs        = dir_specs
       @dir_appliances   = dir_appliances
       @dir_src          = dir_src
+      @dir_base         = "#{File.dirname( __FILE__ )}/../.."
       @build_arch       = build_arch
       @base_pkgs        = base_pkgs
 
@@ -69,6 +70,7 @@ module JBossCloud
     attr_reader :dir_specs
     attr_reader :dir_appliances
     attr_reader :dir_src
+    attr_reader :dir_base
     attr_reader :base_pkgs
 
     def version_with_release
