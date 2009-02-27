@@ -1,11 +1,11 @@
 # Disk DescriptorFile
 version=1
-CID=af54a9d2
+CID=fffffffe
 parentCID=ffffffff
-createType="vmfs"
+createType="#TYPE#"
 
 # Extent description
-RW #TOTAL_SECTORS# VMFS "#NAME#-sda.raw"
+RW #TOTAL_SECTORS# #EXTENT_TYPE# "#NAME#-sda.raw" #NUMBER#
 
 # The Disk Data Base
 #DDB
@@ -16,4 +16,4 @@ ddb.geometry.sectors = "#SECTORS#"
 ddb.geometry.heads = "#HEADS#"
 ddb.geometry.cylinders = "#CYLINDERS#"
 ddb.encoding = "UTF-8"
-ddb.virtualHWVersion = "4"
+ddb.virtualHWVersion = "#HW_VERSION#"
