@@ -49,8 +49,9 @@ module JBossCloud
       return [ c, h, s, total_sectors ]
     end
 
-    def change_vmdk_values( vmdk_data, type )
-      
+    def change_vmdk_values( type )
+      vmdk_data = File.open( @base_vmdk_file ).read
+
       c, h, s, total_sectors = generate_scsi_chs( @config.disk_size )
 
       is_enterprise = type.eql?("vmfs")
@@ -65,10 +66,12 @@ module JBossCloud
       vmdk_data.gsub!( /#SECTORS#/ , s.to_s )
       vmdk_data.gsub!( /#TOTAL_SECTORS#/ , total_sectors.to_s )
       
-      return vmdk_data
+      vmdk_data
     end
 
-    def change_common_vmx_values( vmx_data )
+    def change_common_vmx_values
+      vmx_data = File.open( @base_vmx_file ).read
+
       # replace version with current jboss cloud version
       vmx_data.gsub!( /#VERSION#/ , JBossCloud::Config.get.version_with_release )
       # change name
@@ -84,7 +87,14 @@ module JBossCloud
       # network name
       vmx_data += "\nethernet0.networkName = \"#{@config.network_name}\""
 
-      return vmx_data
+      vmx_data
+    end
+
+    def create_hardlink_to_disk_image( vmware_raw_file )
+      base_raw_file = File.dirname( @appliance_xml_file ) + "/#{@config.name}-sda.raw"
+
+      # Hard link RAW disk to VMware destination folder
+      FileUtils.ln( base_raw_file , vmware_raw_file ) if ( !File.exists?( vmware_raw_file ) || File.new( base_raw_file ).mtime > File.new( vmware_raw_file ).mtime )
     end
 
     def define_precursors
@@ -97,7 +107,6 @@ module JBossCloud
       vmware_enterprise_vmx_file           = vmware_enterprise_output_folder + "/" + File.basename( @appliance_xml_file, ".xml" ) + '.vmx'
       vmware_enterprise_vmdk_file          = vmware_enterprise_output_folder + "/" + File.basename( @appliance_xml_file, ".xml" ) + '.vmdk'
       vmware_enterprise_raw_file           = vmware_enterprise_output_folder + "/#{@config.name}-sda.raw"
-      base_raw_file                        = File.dirname( @appliance_xml_file ) + "/#{@config.name}-sda.raw"
 
       file "#{@appliance_xml_file}.vmx-input" => [ @appliance_xml_file ] do
         doc = REXML::Document.new( File.read( @appliance_xml_file ) )
@@ -119,43 +128,28 @@ module JBossCloud
       task "appliance:#{@config.name}:vmware:personal" => [ "#{@appliance_xml_file}.vmx-input" ] do
         FileUtils.mkdir_p vmware_personal_output_folder
 
-        if ( !File.exists?( vmware_personal_vmx_file ) || File.new( "#{@appliance_xml_file}.vmx-input" ).mtime > File.new( vmware_personal_vmx_file ).mtime  )
-          #execute_command( "qemu-img convert #{File.dirname( @appliance_xml_file )}/#{@config.name}-sda.raw -O vmdk #{vmware_personal_output_folder}/#{@config.name}-sda.vmdk" )
-        end
+        # link disk image
+        create_hardlink_to_disk_image( vmware_personal_raw_file )
 
-        # Hard link RAW disk to VMware personal destination folder
-        if ( !File.exists?( vmware_personal_raw_file ) || File.new( base_raw_file ).mtime > File.new( vmware_personal_raw_file ).mtime )
-          FileUtils.ln( base_raw_file , vmware_personal_raw_file )
-        end
+        # create .vmx file
+        File.new( vmware_personal_vmx_file , "w" ).puts( change_common_vmx_values )
 
-        vmx_data = File.open( @base_vmx_file ).read
-        vmx_data = change_common_vmx_values( vmx_data )
-
-        # write changes to file
-        File.new( vmware_personal_vmx_file , "w" ).puts( vmx_data )
-
-        # create new VMDK descriptor file
-        File.new( vmware_personal_vmdk_file, "w" ).puts( change_vmdk_values( File.open( @base_vmdk_file ).read, "monolithicFlat" ) )
+        # create disk descriptor file
+        File.new( vmware_personal_vmdk_file, "w" ).puts( change_vmdk_values( "monolithicFlat" ) )
       end
 
       desc "Build #{super_simple_name} appliance for VMware enterprise environments (ESX/ESXi)"
       task "appliance:#{@config.name}:vmware:enterprise" => [ @appliance_xml_file ] do
         FileUtils.mkdir_p vmware_enterprise_output_folder
 
-        # Hard link RAW disk to VMware enterprise destination folder
-        if ( !File.exists?( vmware_enterprise_raw_file ) || File.new( base_raw_file ).mtime > File.new( vmware_enterprise_raw_file ).mtime )
-          FileUtils.ln( base_raw_file , vmware_enterprise_raw_file )
-        end
+        # link disk image
+        create_hardlink_to_disk_image( vmware_enterprise_raw_file )
 
-        vmx_data = File.open( @base_vmx_file ).read
-        vmx_data = change_common_vmx_values( vmx_data )
+        # create .vmx file
+        File.new( vmware_enterprise_vmx_file , "w" ).puts( change_common_vmx_values )
 
-        # write changes to file
-        File.new( vmware_enterprise_vmx_file , "w" ).puts( vmx_data )
-
-        # create new VMDK descriptor file
-        File.new( vmware_enterprise_vmdk_file, "w" ).puts( change_vmdk_values( File.open( @base_vmdk_file ).read, "vmfs" ) )
-
+        # create disk descriptor file
+        File.new( vmware_enterprise_vmdk_file, "w" ).puts( change_vmdk_values( "vmfs" ) )
       end
 
       #desc "Build #{super_simple_name} appliance for VMware"
