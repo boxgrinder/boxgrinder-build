@@ -11,6 +11,18 @@ module JBossCloud
       appliance_build_dir     = "#{Config.get.dir_build}/appliances/#{@config.arch}/#{@config.name}"
       @appliance_xml_file     = "#{appliance_build_dir}/#{@config.name}.xml"
 
+      if File.exists?( "#{JBossCloud::Config.get.dir_src}/base.vmdk" )
+        @base_vmdk_file = "#{JBossCloud::Config.get.dir_src}/base.vmdk"
+      else
+        @base_vmdk_file = "#{JBossCloud::Config.get.dir_base}/src/base.vmdk"
+      end
+
+      if File.exists?( "#{JBossCloud::Config.get.dir_src}/base.vmx" )
+        @base_vmx_file = "#{JBossCloud::Config.get.dir_src}/base.vmx"
+      else
+        @base_vmx_file = "#{JBossCloud::Config.get.dir_base}/src/base.vmx"
+      end
+
       define
     end
 
@@ -37,11 +49,17 @@ module JBossCloud
       return [ c, h, s, total_sectors ]
     end
 
-    def change_vmdk_values( vmdk_data )
+    def change_vmdk_values( vmdk_data, type )
       
       c, h, s, total_sectors = generate_scsi_chs( @config.disk_size )
 
+      is_enterprise = type.eql?("vmfs")
+
       vmdk_data.gsub!( /#NAME#/ , @config.name )
+      vmdk_data.gsub!( /#TYPE#/ , type )
+      vmdk_data.gsub!( /#EXTENT_TYPE#/ , is_enterprise ? "VMFS" : "FLAT" )
+      vmdk_data.gsub!( /#NUMBER#/ , is_enterprise ? "" : "0" )
+      vmdk_data.gsub!( /#HW_VERSION#/ , is_enterprise ? "4" : "3" )
       vmdk_data.gsub!( /#CYLINDERS#/ , c.to_s )
       vmdk_data.gsub!( /#HEADS#/ , h.to_s )
       vmdk_data.gsub!( /#SECTORS#/ , s.to_s )
@@ -70,12 +88,16 @@ module JBossCloud
     end
 
     def define_precursors
-      super_simple_name = File.basename( @config.name, '-appliance' )
-      vmware_personal_output_folder = File.dirname( @appliance_xml_file ) + "/vmware/personal"
-      vmware_personal_vmx_file = vmware_personal_output_folder + "/" + File.basename( @appliance_xml_file, ".xml" ) + '.vmx'
-      vmware_enterprise_output_folder = File.dirname( @appliance_xml_file ) + "/vmware/enterprise"
-      vmware_enterprise_vmx_file = vmware_enterprise_output_folder + "/" + File.basename( @appliance_xml_file, ".xml" ) + '.vmx'
-      vmware_enterprise_vmdk_file = vmware_enterprise_output_folder + "/" + File.basename( @appliance_xml_file, ".xml" ) + '.vmdk'
+      super_simple_name                    = File.basename( @config.name, '-appliance' )
+      vmware_personal_output_folder        = File.dirname( @appliance_xml_file ) + "/vmware/personal"
+      vmware_personal_vmx_file             = vmware_personal_output_folder + "/" + File.basename( @appliance_xml_file, ".xml" ) + '.vmx'
+      vmware_personal_vmdk_file            = vmware_personal_output_folder + "/" + File.basename( @appliance_xml_file, ".xml" ) + '.vmdk'
+      vmware_personal_raw_file             = vmware_personal_output_folder + "/#{@config.name}-sda.raw"
+      vmware_enterprise_output_folder      = File.dirname( @appliance_xml_file ) + "/vmware/enterprise"
+      vmware_enterprise_vmx_file           = vmware_enterprise_output_folder + "/" + File.basename( @appliance_xml_file, ".xml" ) + '.vmx'
+      vmware_enterprise_vmdk_file          = vmware_enterprise_output_folder + "/" + File.basename( @appliance_xml_file, ".xml" ) + '.vmdk'
+      vmware_enterprise_raw_file           = vmware_enterprise_output_folder + "/#{@config.name}-sda.raw"
+      base_raw_file                        = File.dirname( @appliance_xml_file ) + "/#{@config.name}-sda.raw"
 
       file "#{@appliance_xml_file}.vmx-input" => [ @appliance_xml_file ] do
         doc = REXML::Document.new( File.read( @appliance_xml_file ) )
@@ -98,47 +120,41 @@ module JBossCloud
         FileUtils.mkdir_p vmware_personal_output_folder
 
         if ( !File.exists?( vmware_personal_vmx_file ) || File.new( "#{@appliance_xml_file}.vmx-input" ).mtime > File.new( vmware_personal_vmx_file ).mtime  )
-          puts "Creating VMware personal disk..."
-           execute_command( "qemu-img convert #{File.dirname( @appliance_xml_file )}/#{@config.name}-sda.raw -O vmdk #{vmware_personal_output_folder}/#{@config.name}-sda.vmdk" )
+          #execute_command( "qemu-img convert #{File.dirname( @appliance_xml_file )}/#{@config.name}-sda.raw -O vmdk #{vmware_personal_output_folder}/#{@config.name}-sda.vmdk" )
         end
 
-        vmx_data = File.open( "#{JBossCloud::Config.get.dir_src}/base.vmx" ).read
+        # Hard link RAW disk to VMware personal destination folder
+        if ( !File.exists?( vmware_personal_raw_file ) || File.new( base_raw_file ).mtime > File.new( vmware_personal_raw_file ).mtime )
+          FileUtils.ln( base_raw_file , vmware_personal_raw_file )
+        end
+
+        vmx_data = File.open( @base_vmx_file ).read
         vmx_data = change_common_vmx_values( vmx_data )
 
-        # disk filename must match
-        vmx_data.gsub!(/#{@config.name}.vmdk/, "#{@config.name}-sda.vmdk")
-
         # write changes to file
-        File.new( vmware_personal_vmx_file , "w+" ).puts( vmx_data )
+        File.new( vmware_personal_vmx_file , "w" ).puts( vmx_data )
+
+        # create new VMDK descriptor file
+        File.new( vmware_personal_vmdk_file, "w" ).puts( change_vmdk_values( File.open( @base_vmdk_file ).read, "monolithicFlat" ) )
       end
 
       desc "Build #{super_simple_name} appliance for VMware enterprise environments (ESX/ESXi)"
       task "appliance:#{@config.name}:vmware:enterprise" => [ @appliance_xml_file ] do
         FileUtils.mkdir_p vmware_enterprise_output_folder
 
-        base_raw_file = File.dirname( @appliance_xml_file ) + "/#{@config.name}-sda.raw"
-        vmware_raw_file = vmware_enterprise_output_folder + "/#{@config.name}-sda.raw"
-
         # Hard link RAW disk to VMware enterprise destination folder
-        if ( !File.exists?( vmware_raw_file ) || File.new( base_raw_file ).mtime > File.new( vmware_raw_file ).mtime )
-          FileUtils.ln( base_raw_file , vmware_raw_file )
+        if ( !File.exists?( vmware_enterprise_raw_file ) || File.new( base_raw_file ).mtime > File.new( vmware_enterprise_raw_file ).mtime )
+          FileUtils.ln( base_raw_file , vmware_enterprise_raw_file )
         end
 
-        vmx_data = File.open( "#{JBossCloud::Config.get.dir_src}/base.vmx" ).read
+        vmx_data = File.open( @base_vmx_file ).read
         vmx_data = change_common_vmx_values( vmx_data )
-        
-        # replace IDE disk with SCSI, it's recommended for workstation and required for ESX
-        vmx_data.gsub!( /ide0:0/ , "scsi0:0" )
-
-        # yes, we want a SCSI controller because we have SCSI disks!
-        vmx_data += "\nscsi0.present = \"true\""
-        vmx_data += "\nscsi0.virtualDev = \"lsilogic\""
 
         # write changes to file
-        File.new( vmware_enterprise_vmx_file , "w+" ).puts( vmx_data )
+        File.new( vmware_enterprise_vmx_file , "w" ).puts( vmx_data )
 
         # create new VMDK descriptor file
-        File.new( vmware_enterprise_vmdk_file, "w+" ).puts( change_vmdk_values( File.open( "#{JBossCloud::Config.get.dir_src}/base.vmdk" ).read ) )
+        File.new( vmware_enterprise_vmdk_file, "w" ).puts( change_vmdk_values( File.open( @base_vmdk_file ).read, "vmfs" ) )
 
       end
 
