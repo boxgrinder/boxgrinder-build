@@ -1,0 +1,4 @@
+
+packages:
+  - httpd
+  - mod_cluster

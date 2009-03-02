@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby 
+
+require 'test/unit/ui/console/testrunner'
+require 'test/unit'
+
+$: << File.dirname("../lib/jboss-cloud")
+
+# tests to run
+require 'jboss-cloud/validator/appliance-validator-test'
+
+

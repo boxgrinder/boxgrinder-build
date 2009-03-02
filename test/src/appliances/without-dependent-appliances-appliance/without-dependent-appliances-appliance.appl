@@ -1,0 +1,5 @@
+
+summary: JBoss-Cloud back-end appliance
+
+appliances:
+  - doesnt-exists-appliance
