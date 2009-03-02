@@ -98,9 +98,6 @@ module JBossCloudWizard
           display_config(@configs[config])
 
           pause
-        when "e"
-          edit_config(config)
-          stop = true
         when "d"
           delete_config(config)
           stop = true
@@ -111,13 +108,6 @@ module JBossCloudWizard
 
       end
       
-    end
-
-    def edit_config(config)
-      puts "NotImplemented"
-
-      #start
-      abort
     end
 
     def delete_config(config)
@@ -154,7 +144,7 @@ module JBossCloudWizard
     def ask_config_manage(config)
       puts "\n    You have selected config '#{config}'\r\n\r\n"
 
-      print "### What do you want to do? ([v]iew, [e]dit, [d]elete, [u]se) [u] "
+      print "### What do you want to do? ([v]iew, [d]elete, [u]se) [u] "
       answer = gets.chomp
 
       answer = "u" if answer.length == 0
@@ -164,7 +154,7 @@ module JBossCloudWizard
     end
 
     def valid_config_manage_answer?(answer)
-      return true if answer.downcase == "e" or answer.downcase == "d" or answer.downcase == "u" or answer.downcase == "v"
+      return true if answer.downcase == "d" or answer.downcase == "u" or answer.downcase == "v"
       return false
     end
 
