@@ -6,6 +6,7 @@ require 'jboss-cloud/repodata'
 require 'jboss-cloud/rpm'
 require 'jboss-cloud/appliance'
 require 'jboss-cloud/config'
+require 'jboss-cloud/validator/appliance-validator'
 require 'ostruct'
 
 module JBossCloud
@@ -93,6 +94,9 @@ module JBossCloud
       end
 
       Dir[ "#{Config.get.dir_appliances}/*/*.appl" ].each do |appliance_def|
+        # if something goes wrong it raises ValidationError
+        ApplianceValidator.new( appliance_def ).validate
+        
         JBossCloud::Appliance.new( build_config( appliance_def ), appliance_def )
       end
     end
