@@ -6,9 +6,8 @@ require 'yaml'
 module JBossCloud
   class ApplianceImage < Rake::TaskLib
 
-    def initialize( config, appliance_names=[] )
+    def initialize( config )
       @config           = config
-      @appliance_names  = appliance_names
       @build_dir        = Config.get.dir_build
       @rpms_cache_dir   = Config.get.dir_rpms_cache
       @version          = Config.get.version
@@ -30,7 +29,7 @@ module JBossCloud
       tmp_dir = "#{Dir.pwd}/#{@build_dir}/tmp"
       directory tmp_dir
       
-      for appliance_name in @appliance_names
+      for appliance_name in @config.appliances
         task "appliance:#{@config.name}:rpms" => [ "rpm:#{appliance_name}" ]  
       end
 
