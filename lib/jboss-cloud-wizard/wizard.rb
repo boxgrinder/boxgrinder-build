@@ -17,11 +17,12 @@ module JBossCloudWizard
       @options     = options
       @appliances  = Array.new
       @configs     = Hash.new
-      @config_dir  = ENV['JBOSS_CLOUD_CONFIG_DIR'] || "#{ENV['HOME']}/.jboss-cloud/configs"
+      @dir_config  = ENV['JBOSS_CLOUD_CONFIG_DIR'] || "#{ENV['HOME']}/.jboss-cloud/configs"
+      @dir_logs    = ENV['JBOSS_CLOUD_LOGS_DIR']   || "#{ENV['HOME']}/.jboss-cloud/logs"
 
-      if !File.exists?(@config_dir) && !File.directory?(@config_dir)
+      if !File.exists?(@dir_config) && !File.directory?(@dir_config)
         puts "Config dir doesn't exists. Creating new." if @options.verbose
-        FileUtils.mkdir_p @config_dir
+        FileUtils.mkdir_p @dir_config
       end     
     end
 
@@ -43,7 +44,7 @@ module JBossCloudWizard
 
       puts "\nReading saved configurations..." if @options.verbose
 
-      Dir[ "#{@config_dir}/*.cfg" ].each do |config_def|
+      Dir[ "#{@dir_config}/*.cfg" ].each do |config_def|
         config_name = File.basename( config_def, '.cfg' )
 
         @configs.store( config_name, YAML.load_file( config_def ))
@@ -112,7 +113,7 @@ module JBossCloudWizard
 
     def delete_config(config)
 
-      config_file = "#{@config_dir}/#{config}.cfg"
+      config_file = "#{@dir_config}/#{config}.cfg"
 
       unless File.exists?(config_file)
         puts "    Config file doesn't exists!"
@@ -182,7 +183,7 @@ module JBossCloudWizard
 
       name = ask_for_configuration_name
 
-      filename = "#{@config_dir}/#{name}.cfg"
+      filename = "#{@dir_config}/#{name}.cfg"
 
       if (File.exists?(filename))
         print "\n### Configuration #{name} already exists. Overwrite? [Y/n] "
@@ -265,8 +266,12 @@ module JBossCloudWizard
     end
 
     def build
+
+      build_time = Time.now.strftime("%Y-%m-%d_%H-%M-%S")
+      log_file_name = "#{@dir_logs}/wizard_#{build_time}"
+
       puts "\n    Building #{@appliance}... (this may take a while)"
-      puts "\n    Wizard runs in quiet mode, messages are not shown. Add '-V' for verbose.\r\n\r\n" unless @options.verbose
+      #puts "\n    Wizard runs in quiet mode, messages are not shown. Please check '#{log_file_name}' for logs.\r\n\r\n" unless @options.verbose
 
       command = "DISK_SIZE=\"#{@config.disk_size.to_i * 1024}\" NETWORK_NAME=\"#{@config.network_name}\" ARCH=\"#{@config.arch}\" OS_NAME=\"#{@config.os_name}\" OS_VERSION=\"#{@config.os_version}\" VCPU=\"#{@config.vcpu}\" MEM_SIZE=\"#{@config.mem_size}\" "
 
@@ -274,12 +279,12 @@ module JBossCloudWizard
       command += "rake appliance:#{@config.name}:vmware:enterprise" if @config.output_format.to_i == 2
       command += "rake appliance:#{@config.name}:vmware:personal" if @config.output_format.to_i == 3
 
-      unless execute("#{command}", @options.verbose)
-        puts "Build failed"
+      unless execute( "#{command}", @options.verbose, log_file_name )
+        puts "\n    Build failed. Check log file: '#{log_file_name}'"
         exit(1)
       end
 
-      puts "Build was successful. Check #{Dir.pwd}/build/appliances/ folder for output files."
+      puts "\n    Build was successful. Check '#{Dir.pwd}/build/appliances/#{@config.arch}/#{@config.name}/' folder for output files."
     end
 
   end

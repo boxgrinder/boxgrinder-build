@@ -54,7 +54,6 @@ module JBossCloud
 
         appliances += appls if v
         valid = false unless v
-        
       end unless appliances_read.nil? or appliances_read.empty?
 
       appliances.push( appliance_name )
