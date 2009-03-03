@@ -7,11 +7,15 @@ require 'jboss-cloud/rpm'
 require 'jboss-cloud/appliance'
 require 'jboss-cloud/config'
 require 'jboss-cloud/validator/appliance-validator'
+require 'jboss-cloud/validator/parameter-validator'
 require 'ostruct'
 
 module JBossCloud
   class ImageBuilder
     def self.setup(project_config)
+      # validate entered parameters
+      ParameterValidator.new.validate
+      
       builder = JBossCloud::ImageBuilder.new( project_config )
       JBossCloud::ImageBuilder.builder = builder
       builder.define_rules
@@ -42,26 +46,12 @@ module JBossCloud
     }
 
     def initialize(project_config)
-      valid_archs = [ "i386", "x86_64" ]
-
-      dir_root    = `pwd`.strip
-      name        = project_config[:name]
-      version     = project_config[:version]
-      release     = project_config[:release]
-      arch        = (-1.size) == 8 ? "x86_64" : "i386"
-
-      if (!ENV['ARCH'].nil? and !valid_archs.include?( ENV['ARCH']))
-        puts "'#{ENV['ARCH']}' is not a valid build architecture. Available architectures: #{valid_archs.join(", ")}, aborting."
-        abort
-      end
-
-      build_arch = ENV['ARCH'].nil? ? arch : ENV['ARCH']
-
-      if (!ENV['DISK_SIZE'].nil? && (ENV['DISK_SIZE'].to_i == 0 || ENV['DISK_SIZE'].to_i % 1024 > 0))
-        puts "'#{ENV['DISK_SIZE']}' is not a valid disk size. Please enter valid size in MB, aborting."
-        abort
-      end
-
+      dir_root          = `pwd`.strip
+      arch              = (-1.size) == 8 ? "x86_64" : "i386"
+      build_arch        = ENV['ARCH'].nil? ? arch : ENV['ARCH']
+      name              = project_config[:name]
+      version           = project_config[:version]
+      release           = project_config[:release]
       dir_build         = project_config[:build_dir]         || DEFAULT_PROJECT_CONFIG[:build_dir]
       dir_top           = project_config[:topdir]            || "#{dir_build}/topdir"
       dir_src_cache     = project_config[:sources_cache_dir] || DEFAULT_PROJECT_CONFIG[:sources_cache_dir]
