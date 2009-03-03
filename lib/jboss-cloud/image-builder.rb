@@ -102,6 +102,22 @@ module JBossCloud
     end
 
     def build_config(appliance_def)
+
+      os_name = ENV['OS_NAME'].nil? ? "fedora" : ENV['OS_NAME']
+      os_version = ENV['OS_VERSION'].nil? ? "10" : ENV['OS_VERSION']
+
+      unless ApplianceConfig.supported_os.include?( os_name.to_s ) and ApplianceConfig.supported_os[os_name.to_s].include?( "#{os_version}" )
+
+        supported = ""
+
+        ApplianceConfig.supported_os.keys.each do |key|
+          supported += "#{key} (#{ApplianceConfig.supported_os[key].join(", ")})"
+        end
+
+        puts "Not supported OS name and/or version selected. Supported are: #{supported}, aborting."
+        abort
+      end
+
       config = ApplianceConfig.new
 
       yaml_file = YAML.load_file( appliance_def )
@@ -116,12 +132,7 @@ module JBossCloud
       config.vcpu           = ENV['VCPU'].nil? ? 1 : ENV['VCPU'].to_i
       config.appliances     = get_appliances( config.name )
       config.summary        = yaml_file['summary']
-
-      if config.summary.nil? or config.summary.length == 0
-        puts "Summary for #{config.name} appliance should be specified, aborting."
-        abort
-      end
-
+      
       config
     end
 

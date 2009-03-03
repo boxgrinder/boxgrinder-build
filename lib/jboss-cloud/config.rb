@@ -1,5 +1,8 @@
 module JBossCloud
   class ApplianceConfig
+
+    SUPPORTED_OS = { "fedora" => [ "10", "rawhide" ] }
+    
     def initialize
       @appliances = Array.new
     end
@@ -15,6 +18,10 @@ module JBossCloud
     attr_accessor :output_format
     attr_accessor :appliances
     attr_accessor :summary
+
+    def self.supported_os
+      SUPPORTED_OS
+    end
 
     # used to checking if configuration diffiers from previous in appliance-kickstart
     def hash
