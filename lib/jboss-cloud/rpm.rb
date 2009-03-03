@@ -30,7 +30,7 @@ module JBossCloud
 
       arch = is_noarch ? "noarch" : Config.get.build_arch
 
-      rpm_file = "#{@topdir}/RPMS/#{arch}/#{simple_name}-#{version}-#{release}.#{arch}.rpm"
+      rpm_file = "#{@topdir}/#{Config.get.os_name}/#{Config.get.os_version}/RPMS/#{arch}/#{simple_name}-#{version}-#{release}.#{arch}.rpm"
       JBossCloud::RPM.provides[simple_name] = "#{simple_name}-#{version}-#{release}"
       JBossCloud::RPM.provides_rpm_path[simple_name] = rpm_file
 
@@ -39,7 +39,7 @@ module JBossCloud
 
       file rpm_file => [ 'rpm:topdir', @spec_file ] do
         Dir.chdir( File.dirname( @spec_file ) ) do
-          exit_status = execute_command "rpmbuild --define '_topdir #{Config.get.dir_root}/#{@topdir}' --target #{arch} -ba #{simple_name}.spec"
+          exit_status = execute_command "rpmbuild --define '_topdir #{Config.get.dir_root}/#{@topdir}/#{Config.get.os_name}/#{Config.get.os_version}' --target #{arch} -ba #{simple_name}.spec"
           unless exit_status
             puts "\nBuilding #{simple_name} failed! Hint: consult above messages.\n\r"
             abort
@@ -70,7 +70,7 @@ module JBossCloud
 
     def handle_local_source(rpm_file, source)
       source_basename = File.basename( source )
-      source_file     = "#{@topdir}/SOURCES/#{source_basename}"
+      source_file     = "#{@topdir}/#{Config.get.os_name}/#{Config.get.os_version}/SOURCES/#{source_basename}"
 
       file rpm_file => [ source_file ]
  
@@ -79,7 +79,7 @@ module JBossCloud
       # else
        
       file source_file=>[ "#{JBossCloud::Config.get.dir_src}/#{source_basename}" ] do
-        FileUtils.cp( "#{JBossCloud::Config.get.dir_src}/#{source}", "#{@topdir}/SOURCES/#{source_basename}" )
+        FileUtils.cp( "#{JBossCloud::Config.get.dir_src}/#{source}", "#{@topdir}/#{Config.get.os_name}/#{Config.get.os_version}/SOURCES/#{source_basename}" )
       end
     
     end
@@ -87,7 +87,7 @@ module JBossCloud
     def handle_remote_source(rpm_file, source)
       source_basename = File.basename( source )
 
-      source_file       = "#{@topdir}/SOURCES/#{source_basename}"
+      source_file       = "#{@topdir}/#{Config.get.os_name}/#{Config.get.os_version}/SOURCES/#{source_basename}"
       source_cache_file = "#{JBossCloud::Config.get.dir_src_cache}/#{source_basename}"
 
       file rpm_file => [ source_file ]
