@@ -40,7 +40,7 @@ module JBossCloud
         end
       end    
 
-      JBossCloud::Repodata.new( @arches )
+      JBossCloud::Repodata.new
     end
   end
 end
