@@ -1,8 +1,5 @@
 module JBossCloud
   class ApplianceConfig
-
-    SUPPORTED_OS = { "fedora" => [ "10", "rawhide" ] }
-    
     def initialize
       @appliances = Array.new
     end
@@ -19,14 +16,14 @@ module JBossCloud
     attr_accessor :appliances
     attr_accessor :summary
 
-    def self.supported_os
-      SUPPORTED_OS
-    end
-
     # used to checking if configuration diffiers from previous in appliance-kickstart
     def hash
       # without output_format!
       "#{@name}-#{@arch}-#{@os_name}-#{@os_version}-#{@vcpu}-#{@mem_size}-#{@disk_size}-#{@network_name}-#{@appliances.join("-")}-#{@summary}".hash
+    end
+
+    def appliance_path
+      "#{@arch}/#{@os_name}/#{@os_version}/"
     end
 
     def eql?(other)
@@ -35,10 +32,21 @@ module JBossCloud
 
   end
   class Config
+    SUPPORTED_OSES = { "fedora" => [ "10", "rawhide" ] }
+    SUPPORTED_ARCHES = [ "i386", "x86_64" ]
+
     @@config = nil
 
     def Config.get
       @@config
+    end
+
+    def Config.supported_arches
+      SUPPORTED_ARCHES
+    end
+
+    def Config.supported_oses
+      SUPPORTED_OSES
     end
 
     def initialize

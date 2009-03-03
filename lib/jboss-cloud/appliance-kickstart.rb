@@ -17,7 +17,7 @@ module JBossCloud
 
     def define
 
-      appliance_build_dir    = "#{Config.get.dir_build}/appliances/#{@config.arch}/#{@config.name}"
+      appliance_build_dir    = "#{Config.get.dir_build}/#{@config.appliance_path}"
       kickstart_file         = "#{appliance_build_dir}/#{@config.name}.ks"
       config_file            = "#{appliance_build_dir}/#{@config.name}.cfg"
 
@@ -34,6 +34,7 @@ module JBossCloud
         self[ sym.to_s ]
       end
 
+      # TODO change this to support multiple OSes
       definition['repos'] = [
         "repo --name=jboss-cloud --cost=10 --baseurl=file://#{Config.get.dir_root}/#{Config.get.dir_top}/RPMS/noarch",
         "repo --name=jboss-cloud-#{@config.arch} --cost=10 --baseurl=file://#{Config.get.dir_root}/#{Config.get.dir_top}/RPMS/#{@config.arch}",

@@ -85,7 +85,7 @@ module JBossCloud
 
       puts "\n\rCurrent architecture:\t#{Config.get.arch}"
 
-      JBossCloud::Topdir.new( [ 'noarch', 'i386', 'x86_64' ] )
+      JBossCloud::Topdir.new
 
       puts "Building architecture:\t#{Config.get.build_arch}\n\r"
 
@@ -106,12 +106,12 @@ module JBossCloud
       os_name = ENV['OS_NAME'].nil? ? "fedora" : ENV['OS_NAME']
       os_version = ENV['OS_VERSION'].nil? ? "10" : ENV['OS_VERSION']
 
-      unless ApplianceConfig.supported_os.include?( os_name.to_s ) and ApplianceConfig.supported_os[os_name.to_s].include?( "#{os_version}" )
+      unless Config.supported_oses.include?( os_name.to_s ) and Config.supported_oses[os_name.to_s].include?( "#{os_version}" )
 
         supported = ""
 
-        ApplianceConfig.supported_os.keys.each do |key|
-          supported += "#{key} (#{ApplianceConfig.supported_os[key].join(", ")})"
+        Config.supported_oses.keys.each do |key|
+          supported += "#{key} (#{Config.supported_oses[key].join(", ")})"
         end
 
         puts "Not supported OS name and/or version selected. Supported are: #{supported}, aborting."
