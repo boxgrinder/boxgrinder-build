@@ -13,7 +13,7 @@ module JBossCloud
 
     def define
 
-      appliance_build_dir    = "#{Config.get.dir_build}/appliances/#{@config.arch}/#{@config.name}"
+      appliance_build_dir    = "#{Config.get.dir_build}/appliances/#{@config.appliance_path}"
 
       definition             = YAML.load_file( "#{Config.get.dir_appliances}/#{@config.name}/#{@config.name}.appl" )
       definition['name']     = @config.name

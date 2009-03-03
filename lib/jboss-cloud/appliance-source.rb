@@ -13,7 +13,7 @@ module JBossCloud
       @appliance_dir         = appliance_dir
       @simple_name           = @config.name
       @super_simple_name     = File.basename( @simple_name, '-appliance' )
-      @appliance_build_dir   = "#{@build_dir}/appliances/#{@config.arch}/#{@simple_name}"
+      @appliance_build_dir   = "#{Config.get.dir_build}/appliances/#{@config.appliance_path}"
       define
     end
 
@@ -45,7 +45,7 @@ module JBossCloud
         File.open( puppet_file, 'w' ) {|f| f.write( erb.result( defs.send( :binding ) ) ) }
 
         Dir.chdir( "#{@appliance_build_dir}/sources" ) do
-          command = "tar zcvf #{Config.get.dir_root}/#{@topdir}/SOURCES/#{@simple_name}-#{@version}.tar.gz #{@simple_name}-#{@version}/"
+          command = "tar zcvf #{Config.get.dir_root}/#{@topdir}/#{@config.os_name}/#{@config.os_version}/SOURCES/#{@simple_name}-#{@version}.tar.gz #{@simple_name}-#{@version}/"
           execute_command( command )
         end
       end
