@@ -22,6 +22,7 @@ module JBossCloud
         end
       end
 
+      # TODO this isn't used, is it required?
       desc "Build repository data"
       task 'rpm:repodata' => [ 'rpm:topdir' ] do
         for os in @oses.keys
