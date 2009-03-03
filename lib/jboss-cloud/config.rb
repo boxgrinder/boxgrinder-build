@@ -23,7 +23,7 @@ module JBossCloud
     end
 
     def appliance_path
-      "#{@arch}/#{@os_name}/#{@os_version}/"
+      "#{@arch}/#{@os_name}/#{@os_version}"
     end
 
     def eql?(other)

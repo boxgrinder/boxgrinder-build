@@ -17,7 +17,7 @@ module JBossCloud
 
     def define
 
-      appliance_build_dir    = "#{Config.get.dir_build}/#{@config.appliance_path}"
+      appliance_build_dir    = "#{Config.get.dir_build}/appliances/#{@config.appliance_path}"
       kickstart_file         = "#{appliance_build_dir}/#{@config.name}.ks"
       config_file            = "#{appliance_build_dir}/#{@config.name}.cfg"
 
@@ -34,10 +34,9 @@ module JBossCloud
         self[ sym.to_s ]
       end
 
-      # TODO change this to support multiple OSes
       definition['repos'] = [
-        "repo --name=jboss-cloud --cost=10 --baseurl=file://#{Config.get.dir_root}/#{Config.get.dir_top}/RPMS/noarch",
-        "repo --name=jboss-cloud-#{@config.arch} --cost=10 --baseurl=file://#{Config.get.dir_root}/#{Config.get.dir_top}/RPMS/#{@config.arch}",
+        "repo --name=jboss-cloud --cost=10 --baseurl=file://#{Config.get.dir_root}/#{Config.get.dir_top}/#{@config.os_name}/#{@config.os_version}/RPMS/noarch",
+        "repo --name=jboss-cloud-#{@config.arch} --cost=10 --baseurl=file://#{Config.get.dir_root}/#{Config.get.dir_top}/#{@config.os_name}/#{@config.os_version}/RPMS/#{@config.arch}",
       ]
 
       definition['repos'] << "repo --name=extra-rpms --cost=1 --baseurl=file://#{Dir.pwd}/extra-rpms/noarch" if ( File.exist?( "extra-rpms" ) )
