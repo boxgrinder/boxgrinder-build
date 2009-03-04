@@ -22,12 +22,13 @@ part / --size <%= disk_size %> --fstype ext3 --ondisk sda
 #
 # Include the repositories
  
+<% for local_repo in local_repos %>
+  <%= local_repo %>
+<% end %>
+  repo --cost=20 --name=thincrust   --baseurl=http://www.thincrust.net/repo/noarch/
 <% for repo in repos %>
   <%= repo %>
 <% end %>
-repo --cost=20 --name=thincrust   --baseurl=http://www.thincrust.net/repo/noarch/
-repo --cost=40 --name=f10         --mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=fedora-10&arch=<%= arch %>             <%= exclude_clause %>
-repo --cost=40 --name=f10-updates --mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=updates-released-f10&arch=<%= arch %>  <%= exclude_clause %>
 
 #
 # Add all the packages after the base packages

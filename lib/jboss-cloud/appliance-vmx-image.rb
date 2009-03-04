@@ -8,7 +8,7 @@ module JBossCloud
     def initialize( config )
 
       @config                 = config
-      appliance_build_dir     = "#{Config.get.dir_build}/appliances/#{@config.arch}/#{@config.name}"
+      appliance_build_dir     = "#{Config.get.dir_build}/#{@config.appliance_path}"
       @appliance_xml_file     = "#{appliance_build_dir}/#{@config.name}.xml"
 
       if File.exists?( "#{JBossCloud::Config.get.dir_src}/base.vmdk" )

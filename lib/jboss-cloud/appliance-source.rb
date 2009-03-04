@@ -13,7 +13,7 @@ module JBossCloud
       @appliance_dir         = appliance_dir
       @simple_name           = @config.name
       @super_simple_name     = File.basename( @simple_name, '-appliance' )
-      @appliance_build_dir   = "#{Config.get.dir_build}/appliances/#{@config.appliance_path}"
+      @appliance_build_dir   = "#{Config.get.dir_build}/#{@config.appliance_path}"
       define
     end
 
