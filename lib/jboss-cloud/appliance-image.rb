@@ -32,7 +32,7 @@ module JBossCloud
       file xml_file => [ kickstart_file, "appliance:#{@config.name}:rpms", tmp_dir ] do
         Rake::Task[ 'rpm:repodata:force' ].invoke
 
-        command = "sudo PYTHONUNBUFFERED=1 appliance-creator -d -v -t #{tmp_dir} --cache=#{Config.get.dir_rpms_cache}/#{@config.main_path} --config #{kickstart_file} -o #{appliance_build_dir} --name #{@config.name} --vmem #{@config.mem_size} --vcpu #{@config.vcpu}"
+        command = "sudo PYTHONUNBUFFERED=1 appliance-creator -d -v -t #{tmp_dir} --cache=#{Config.get.dir_rpms_cache}/#{@config.main_path} --config #{kickstart_file} -o #{Config.get.dir_build}/appliances/#{@config.main_path} --name #{@config.name} --vmem #{@config.mem_size} --vcpu #{@config.vcpu}"
         execute_command( command )
       end
 

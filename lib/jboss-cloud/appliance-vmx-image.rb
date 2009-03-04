@@ -125,7 +125,7 @@ module JBossCloud
       end
 
       desc "Build #{super_simple_name} appliance for VMware personal environments (Server/Workstation/Fusion)"
-      task "appliance:#{@config.name}:vmware:personal" => [ "#{@appliance_xml_file}.vmx-input" ] do
+      task "appliance:#{@config.name}:vmware:personal" => [ @appliance_xml_file ] do
         FileUtils.mkdir_p vmware_personal_output_folder
 
         # link disk image

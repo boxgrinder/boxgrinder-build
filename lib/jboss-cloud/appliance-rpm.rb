@@ -21,7 +21,7 @@ module JBossCloud
       desc "Build #{simple_name} RPM."
       task "rpm:#{simple_name}"=>[ rpm_file ]
 
-      file rpm_file => [ spec_file, "#{@topdir}/SOURCES/#{simple_name}-#{@version}.tar.gz", 'rpm:topdir' ] do
+      file rpm_file => [ spec_file, "#{@topdir}/#{@config.os_path}/SOURCES/#{simple_name}-#{@version}.tar.gz", 'rpm:topdir' ] do
         Dir.chdir( File.dirname( spec_file ) ) do
           exit_status = execute_command "rpmbuild --define '_topdir #{Config.get.dir_root}/#{@topdir}/#{Config.get.os_name}/#{Config.get.os_version}' --target noarch -ba #{simple_name}.spec"
           unless exit_status
