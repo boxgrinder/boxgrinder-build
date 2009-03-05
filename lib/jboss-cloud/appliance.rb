@@ -26,7 +26,7 @@ module JBossCloud
       JBossCloud::ApplianceSource.new( @config, @appliance_config )
       JBossCloud::ApplianceSpec.new( @config, @appliance_config )
       JBossCloud::ApplianceRPM.new( @config, @appliance_config )
-      JBossCloud::ApplianceKickstart.new( @appliance_config )
+      JBossCloud::ApplianceKickstart.new( @config, @appliance_config )
       JBossCloud::ApplianceImage.new( @appliance_config )
     end
   end
