@@ -1,5 +1,4 @@
 require 'test/unit'
-
 require 'jboss-cloud/validator/appliance-validator'
 
 class ApplianceValidatorTest < Test::Unit::TestCase
