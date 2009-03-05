@@ -1,9 +1,25 @@
 module JBossCloud
   
-  SUPPORTED_OSES = { "fedora" => [ "10", "rawhide" ] }
+  # here are global variables
   SUPPORTED_ARCHES = [ "i386", "x86_64" ]
-  STABLE_RELEASES = { "fedora" => "10", "rhel" => "5" }
-  DEFAULTS = { "os_name" => "fedora", "os_version" => STABLE_RELEASES['fedora'], "disk_size" => 2, "mem_size" => 1024, "network_name" => "NAT", "vcpu" => 1, "arch" => (-1.size) == 8 ? "x86_64" : "i386" } 
+  SUPPORTED_OSES = {
+    "fedora" => [ "10", "rawhide" ]
+  }
+  
+  STABLE_RELEASES = {
+    "fedora" => "10",
+    "rhel" => "5"
+  }
+  
+  APPLIANCE_DEFAULTS = {
+    "os_name" => "fedora",
+    "os_version" => STABLE_RELEASES['fedora'],
+    "disk_size" => 2,
+    "mem_size" => 1024,
+    "network_name" => "NAT",
+    "vcpu" => 1,
+    "arch" => (-1.size) == 8 ? "x86_64" : "i386"
+  } 
   
   # you can use #ARCH# valriable to specify build arch
   REPOS = {
@@ -87,9 +103,9 @@ module JBossCloud
       @dir_base         = "#{File.dirname( __FILE__ )}/../.."
       
       # TODO that doesn't look good (code duplication - ApplianceConfigHelper)
-      @build_arch       = ENV['JBOSS_CLOUD_ARCH'].nil? ? DEFAULTS['arch'] : ENV['JBOSS_CLOUD_ARCH']
-      @os_name          = ENV['JBOSS_CLOUD_OS_NAME'].nil? ? DEFAULTS['os_name'] : ENV['JBOSS_CLOUD_OS_NAME']
-      @os_version       = ENV['JBOSS_CLOUD_OS_VERSION'].nil? ? DEFAULTS['os_version'] : ENV['JBOSS_CLOUD_OS_VERSION']
+      @build_arch       = ENV['JBOSS_CLOUD_ARCH'].nil? ? APPLIANCE_DEFAULTS['arch'] : ENV['JBOSS_CLOUD_ARCH']
+      @os_name          = ENV['JBOSS_CLOUD_OS_NAME'].nil? ? APPLIANCE_DEFAULTS['os_name'] : ENV['JBOSS_CLOUD_OS_NAME']
+      @os_version       = ENV['JBOSS_CLOUD_OS_VERSION'].nil? ? APPLIANCE_DEFAULTS['os_version'] : ENV['JBOSS_CLOUD_OS_VERSION']
       
       @@config = self
     end
