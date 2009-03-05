@@ -1,13 +1,41 @@
+# JBoss, Home of Professional Open Source
+# Copyright 2009, Red Hat Middleware LLC, and individual contributors
+# by the @authors tag. See the copyright.txt in the distribution for a
+# full listing of individual contributors.
+#
+# This is free software; you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation; either version 2.1 of
+# the License, or (at your option) any later version.
+#
+# This software is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this software; if not, write to the Free
+# Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+# 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+
+require 'jboss-cloud/defaults'
+
 module JBossCloud
   class ApplianceConfig
-    def initialize
+    def initialize( name, arch, os_name, os_version )
+      @name = name
+      @arch = arch
+      @os_name = os_name
+      @os_version = os_version
+      
       @appliances = Array.new
     end
     
-    attr_accessor :name
-    attr_accessor :arch
-    attr_accessor :os_name
-    attr_accessor :os_version
+    attr_reader :name
+    attr_reader :arch
+    attr_reader :os_name
+    attr_reader :os_version
+    
     attr_accessor :vcpu
     attr_accessor :mem_size
     attr_accessor :disk_size
@@ -83,15 +111,15 @@ module JBossCloud
     attr_reader :os_version
     
     def os_path
-      "#{@os_name}/#{@os_version}/"
+      "#{@os_name}/#{@os_version}"
     end
     
     def build_path
-      "#{@arch}/#{@os_name}/#{@os_version}/"
+      "#{@arch}/#{os_path}"
     end
     
     def version_with_release
-      @version + (@release.empty? ? "" : "-" + @release)
+      @version + ((@release.nil? or @release.empty?) ? "" : "-" + @release)
     end
   end
 end

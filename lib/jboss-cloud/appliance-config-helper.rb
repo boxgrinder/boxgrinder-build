@@ -7,15 +7,16 @@ module JBossCloud
     def config( appliance_def, global_config )
       @global_config = global_config
       
-      cfg = ApplianceConfig.new
-      
       # read from global config, we need it for exporting to yaml file and later to compare latest and new build 
       # don't use 'arch' property from global_config - this is current arch, not what we're going to build for
-      cfg.arch           = @global_config.build_arch
-      cfg.os_name        = @global_config.os_name
-      cfg.os_version     = @global_config.os_version
+      arch           = @global_config.build_arch
+      os_name        = @global_config.os_name
+      os_version     = @global_config.os_version
       
-      cfg.name           = File.basename( appliance_def, '.appl' )
+      name           = File.basename( appliance_def, '.appl' )
+      
+      cfg = ApplianceConfig.new( name, arch, os_name, os_version )
+      
       cfg.disk_size      = ENV['JBOSS_CLOUD_DISK_SIZE'].nil? ? APPLIANCE_DEFAULTS['disk_size'] : ENV['JBOSS_CLOUD_DISK_SIZE'].to_i
       cfg.mem_size       = ENV['JBOSS_CLOUD_MEM_SIZE'].nil? ? APPLIANCE_DEFAULTS['mem_size'] : ENV['JBOSS_CLOUD_MEM_SIZE'].to_i
       cfg.network_name   = ENV['JBOSS_CLOUD_NETWORK_NAME'].nil? ? APPLIANCE_DEFAULTS['network_name'] : ENV['JBOSS_CLOUD_NETWORK_NAME']
