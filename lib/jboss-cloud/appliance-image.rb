@@ -37,7 +37,7 @@ module JBossCloud
         execute_command( command )
       end
       
-      ApplianceVMXImage.new( @appliance_config )
+      ApplianceVMXImage.new( @config, @appliance_config )
       
     end
   end
