@@ -13,21 +13,8 @@ require 'jboss-cloud/defaults'
 require 'ostruct'
 
 module JBossCloud
-  class ImageBuilder
-    DEFAULT_PROJECT_CONFIG = {
-      :dir_build         => 'build',
-      #:topdir            => "#{self.} build/topdir",
-      :dir_sources_cache => 'sources-cache',
-      :dir_rpms_cache    => 'rpms-cache',
-      :dir_specs         => 'specs',
-      :dir_appliances    => 'appliances',
-      :dir_src           => 'src'
-    }
-    
-    def initialize( project_config )
-      # validates parameters, throws ValidationError if something is wrong
-      ApplianceConfigParameterValidator.new.validate
-      
+  class ImageBuilder   
+    def initialize( project_config )     
       dir_root          = `pwd`.strip
       name              = project_config[:name]
       version           = project_config[:version]
@@ -42,34 +29,42 @@ module JBossCloud
       dir_appliances    = project_config[:dir_appliances]    || DEFAULT_PROJECT_CONFIG[:dir_appliances]
       dir_src           = project_config[:dir_src]           || DEFAULT_PROJECT_CONFIG[:dir_src]
       
-      Config.new.init( name, version, release, dir_rpms_cache, dir_src_cache, dir_root, dir_top, dir_build, dir_specs, dir_appliances, dir_src )
+      # validates parameters and config files, throws ValidationError if something is wrong
+      validate( dir_appliances )
+      
+      @config = Config.new( name, version, release, dir_rpms_cache, dir_src_cache, dir_root, dir_top, dir_build, dir_specs, dir_appliances, dir_src )
       
       define_rules
     end
     
+    def validate( dir_appliances )
+      ApplianceConfigParameterValidator.new.validate
+      
+      Dir[ "#{dir_appliances}/*/*.appl" ].each do |appliance_def|
+        ApplianceValidator.new( dir_appliances, appliance_def ).validate
+      end
+    end
+    
     def define_rules
       
-      if Config.get.arch == "i386" and Config.get.build_arch == "x86_64"
+      if @config.arch == "i386" and @config.build_arch == "x86_64"
         puts "Building x86_64 images from i386 system isn't possible, aborting."
         abort
       end
       
       JBossCloud::Topdir.new
       
-      directory Config.get.dir_build
+      directory @config.dir_build
       
-      puts "\n\rCurrent architecture:\t#{Config.get.arch}"
-      puts "Building architecture:\t#{Config.get.build_arch}\n\r"
+      puts "\n\rCurrent architecture:\t#{@config.arch}"
+      puts "Building architecture:\t#{@config.build_arch}\n\r"
       
-      Dir[ "#{Config.get.dir_specs}/extras/*.spec" ].each do |spec_file|
+      Dir[ "#{@config.dir_specs}/extras/*.spec" ].each do |spec_file|
         JBossCloud::RPM.new( spec_file )
       end
       
-      Dir[ "#{Config.get.dir_appliances}/*/*.appl" ].each do |appliance_def|
-        # if something goes wrong it raises ValidationError
-        ApplianceValidator.new( appliance_def ).validate
-        
-        JBossCloud::Appliance.new( ApplianceConfigHelper.new.config( appliance_def ), appliance_def )
+      Dir[ "#{@config.dir_appliances}/*/*.appl" ].each do |appliance_def|        
+        JBossCloud::Appliance.new( ApplianceConfigHelper.new.config( appliance_def, @config ), appliance_def )
       end
     end
   end

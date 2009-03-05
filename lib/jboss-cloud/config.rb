@@ -42,15 +42,15 @@ module JBossCloud
   class Config
     @@config = nil
     
+    # TODO get rid of it! This wasn't a good idea
     def Config.get
       @@config
     end
     
-    def init( name, version, release, dir_rpms_cache, dir_src_cache, dir_root, dir_top, dir_build, dir_specs, dir_appliances, dir_src )
+    def initialize( name, version, release, dir_rpms_cache, dir_src_cache, dir_root, dir_top, dir_build, dir_specs, dir_appliances, dir_src )
       @name             = name
       @version          = version
       @release          = release
-      @arch             = (-1.size) == 8 ? "x86_64" : "i386"
       @dir_rpms_cache   = dir_rpms_cache
       @dir_src_cache    = dir_src_cache
       @dir_root         = dir_root
@@ -59,9 +59,10 @@ module JBossCloud
       @dir_specs        = dir_specs
       @dir_appliances   = dir_appliances
       @dir_src          = dir_src
-      @dir_base         = "#{File.dirname( __FILE__ )}/../.."
       
-      # TODO that doesn't look good (code duplication - ApplianceConfigHelper), but that's save, beacause we have validated parameters earlier
+      # TODO better way to get this directory
+      @dir_base         = "#{File.dirname( __FILE__ )}/../.."
+      @arch             = (-1.size) == 8 ? "x86_64" : "i386"     
       @build_arch       = ENV['JBOSS_CLOUD_ARCH'].nil? ? APPLIANCE_DEFAULTS['arch'] : ENV['JBOSS_CLOUD_ARCH']
       @os_name          = ENV['JBOSS_CLOUD_OS_NAME'].nil? ? APPLIANCE_DEFAULTS['os_name'] : ENV['JBOSS_CLOUD_OS_NAME']
       @os_version       = ENV['JBOSS_CLOUD_OS_VERSION'].nil? ? APPLIANCE_DEFAULTS['os_version'] : ENV['JBOSS_CLOUD_OS_VERSION']

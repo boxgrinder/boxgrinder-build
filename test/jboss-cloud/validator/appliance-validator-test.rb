@@ -4,7 +4,7 @@ require 'jboss-cloud/validator/appliance-validator'
 
 class ApplianceValidatorTest < Test::Unit::TestCase
   def setup
-    JBossCloud::Config.new.init( "JBoss-Cloud", "1", "1", "i386", "i386", "/tmp/dir_rpms_cache", "/tmp/dir_src_cache", "/tmp/dir_root", "/tmp/dir_top", "/tmp/dir_build", "/tmp/dir_specs", "src/appliances", "/tmp/dir_src",  "../../kickstarts/base-pkgs.ks" )
+    JBossCloud::Config.new( "JBoss-Cloud", "1", "1", "i386", "i386", "/tmp/dir_rpms_cache", "/tmp/dir_src_cache", "/tmp/dir_root", "/tmp/dir_top", "/tmp/dir_build", "/tmp/dir_specs", "src/appliances", "/tmp/dir_src",  "../../kickstarts/base-pkgs.ks" )
   end
 
   # def teardown

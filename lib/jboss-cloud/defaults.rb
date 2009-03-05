@@ -38,4 +38,14 @@ module JBossCloud
       }
     }
   }
+  
+  DEFAULT_PROJECT_CONFIG = {
+    :dir_build         => 'build',
+    #:topdir            => "#{self.} build/topdir",
+    :dir_sources_cache => 'sources-cache',
+    :dir_rpms_cache    => 'rpms-cache',
+    :dir_specs         => 'specs',
+    :dir_appliances    => 'appliances',
+    :dir_src           => 'src'
+  }
 end
