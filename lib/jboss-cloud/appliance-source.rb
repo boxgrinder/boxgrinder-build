@@ -1,4 +1,4 @@
-require 'r@configake/tasklib'
+require 'rake/tasklib'
 
 module JBossCloud
   class ApplianceSource < Rake::TaskLib
