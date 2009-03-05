@@ -3,8 +3,9 @@ require 'rake/tasklib'
 module JBossCloud
   class Repodata < Rake::TaskLib
 
-    def initialize
-      @topdir = Config.get.dir_top
+    def initialize( config )
+      @config = config
+      @topdir = @config.dir_top
       @arches = SUPPORTED_ARCHES + [ "noarch" ]
       @oses   = SUPPORTED_OSES
       define

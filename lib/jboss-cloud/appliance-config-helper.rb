@@ -5,14 +5,15 @@ module JBossCloud
   class ApplianceConfigHelper
     
     def config( appliance_def, global_config )
+      @global_config = global_config
       
       cfg = ApplianceConfig.new
       
       # read from global config, we need it for exporting to yaml file and later to compare latest and new build 
       # don't use 'arch' property from global_config - this is current arch, not what we're going to build for
-      cfg.arch           = global_config.build_arch
-      cfg.os_name        = global_config.os_name
-      cfg.os_version     = global_config.os_version
+      cfg.arch           = @global_config.build_arch
+      cfg.os_name        = @global_config.os_name
+      cfg.os_version     = @global_config.os_version
       
       cfg.name           = File.basename( appliance_def, '.appl' )
       cfg.disk_size      = ENV['JBOSS_CLOUD_DISK_SIZE'].nil? ? APPLIANCE_DEFAULTS['disk_size'] : ENV['JBOSS_CLOUD_DISK_SIZE'].to_i
@@ -33,7 +34,7 @@ module JBossCloud
     def get_appliances( appliance_name )
       appliances = Array.new
       
-      appliance_def = "#{Config.get.dir_appliances}/#{appliance_name}/#{appliance_name}.appl"
+      appliance_def = "#{@global_config.dir_appliances}/#{appliance_name}/#{appliance_name}.appl"
       
       unless  File.exists?( appliance_def )
         raise ValidationError, "Appliance configuration file for #{appliance_name} doesn't exists, please check your config files"

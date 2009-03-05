@@ -11,8 +11,9 @@ module JBossCloud
       @provides_rpm_path ||= {}
     end
 
-    def initialize(spec_file)
-      @topdir = Config.get.dir_top
+    def initialize( config, spec_file )
+      @config = config
+      @topdir = @config.dir_top
       @spec_file = spec_file
       define
     end
@@ -28,9 +29,9 @@ module JBossCloud
         is_noarch = `rpm --specfile #{simple_name}.spec -q --qf '%{arch}\\n' 2> /dev/null`.split("\n").first == "noarch"
       end
 
-      arch = is_noarch ? "noarch" : Config.get.build_arch
+      arch = is_noarch ? "noarch" : @config.build_arch
 
-      rpm_file = "#{@topdir}/#{Config.get.os_name}/#{Config.get.os_version}/RPMS/#{arch}/#{simple_name}-#{version}-#{release}.#{arch}.rpm"
+      rpm_file = "#{@topdir}/#{@config.os_path}/RPMS/#{arch}/#{simple_name}-#{version}-#{release}.#{arch}.rpm"
       JBossCloud::RPM.provides[simple_name] = "#{simple_name}-#{version}-#{release}"
       JBossCloud::RPM.provides_rpm_path[simple_name] = rpm_file
 
@@ -39,7 +40,7 @@ module JBossCloud
 
       file rpm_file => [ 'rpm:topdir', @spec_file ] do
         Dir.chdir( File.dirname( @spec_file ) ) do
-          exit_status = execute_command "rpmbuild --define '_topdir #{Config.get.dir_root}/#{@topdir}/#{Config.get.os_name}/#{Config.get.os_version}' --target #{arch} -ba #{simple_name}.spec"
+          exit_status = execute_command "rpmbuild --define '_topdir #{@config.dir_root}/#{@topdir}/#{@config.os_path}' --target #{arch} -ba #{simple_name}.spec"
           unless exit_status
             puts "\nBuilding #{simple_name} failed! Hint: consult above messages.\n\r"
             abort
@@ -70,7 +71,7 @@ module JBossCloud
 
     def handle_local_source(rpm_file, source)
       source_basename = File.basename( source )
-      source_file     = "#{@topdir}/#{Config.get.os_name}/#{Config.get.os_version}/SOURCES/#{source_basename}"
+      source_file     = "#{@topdir}/#{@config.os_path}/SOURCES/#{source_basename}"
 
       file rpm_file => [ source_file ]
  
@@ -78,8 +79,8 @@ module JBossCloud
       #  nothing
       # else
        
-      file source_file=>[ "#{JBossCloud::Config.get.dir_src}/#{source_basename}" ] do
-        FileUtils.cp( "#{JBossCloud::Config.get.dir_src}/#{source}", "#{@topdir}/#{Config.get.os_name}/#{Config.get.os_version}/SOURCES/#{source_basename}" )
+      file source_file=>[ "#{@config.dir_src}/#{source_basename}" ] do
+        FileUtils.cp( "#{@config.dir_src}/#{source}", "#{@topdir}/#{@config.os_path}/SOURCES/#{source_basename}" )
       end
     
     end
@@ -87,14 +88,14 @@ module JBossCloud
     def handle_remote_source(rpm_file, source)
       source_basename = File.basename( source )
 
-      source_file       = "#{@topdir}/#{Config.get.os_name}/#{Config.get.os_version}/SOURCES/#{source_basename}"
-      source_cache_file = "#{JBossCloud::Config.get.dir_src_cache}/#{source_basename}"
+      source_file       = "#{@topdir}/#{@config.os_path}/SOURCES/#{source_basename}"
+      source_cache_file = "#{@config.dir_src_cache}/#{source_basename}"
 
       file rpm_file => [ source_file ]
 
       file source_file => [ 'rpm:topdir' ] do
         if ( ! File.exist?( source_cache_file ) )
-          FileUtils.mkdir_p( JBossCloud::Config.get.dir_src_cache )
+          FileUtils.mkdir_p( @config.dir_src_cache )
           execute_command( "wget #{source} -O #{source_cache_file} --progress=bar:mega" )
         end
         FileUtils.cp( source_cache_file, source_file )

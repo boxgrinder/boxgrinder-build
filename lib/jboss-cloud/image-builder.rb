@@ -52,7 +52,7 @@ module JBossCloud
         abort
       end
       
-      JBossCloud::Topdir.new
+      JBossCloud::Topdir.new( @config )
       
       directory @config.dir_build
       
@@ -60,7 +60,7 @@ module JBossCloud
       puts "Building architecture:\t#{@config.build_arch}\n\r"
       
       Dir[ "#{@config.dir_specs}/extras/*.spec" ].each do |spec_file|
-        JBossCloud::RPM.new( spec_file )
+        JBossCloud::RPM.new( @config, spec_file )
       end
       
       Dir[ "#{@config.dir_appliances}/*/*.appl" ].each do |appliance_def|        

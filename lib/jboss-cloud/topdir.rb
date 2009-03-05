@@ -3,8 +3,10 @@ require 'rake/tasklib'
 module JBossCloud
   class Topdir < Rake::TaskLib
 
-    def initialize
-      @topdir = Config.get.dir_top
+    def initialize( config )
+      @config = config
+      
+      @topdir = @config.dir_top
       @arches = SUPPORTED_ARCHES + [ "noarch" ]
       @oses   = SUPPORTED_OSES
 
@@ -40,7 +42,7 @@ module JBossCloud
         end
       end    
 
-      JBossCloud::Repodata.new
+      JBossCloud::Repodata.new( @config )
     end
   end
 end

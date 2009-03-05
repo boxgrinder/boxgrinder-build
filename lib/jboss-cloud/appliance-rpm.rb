@@ -9,7 +9,7 @@ module JBossCloud
     end
     
     def define
-      appliance_build_dir   = "#{Config.get.dir_build}/#{@appliance_config.appliance_path}"
+      appliance_build_dir   = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
       spec_file             = "#{appliance_build_dir}/#{@appliance_config.name}.spec"
       simple_name           = File.basename( spec_file, ".spec" )
       rpm_file              = "#{@config.dir_top}/#{@appliance_config.os_path}/RPMS/noarch/#{simple_name}-#{@config.version_with_release}.noarch.rpm"
@@ -21,7 +21,7 @@ module JBossCloud
       
       file rpm_file => [ spec_file, "#{@config.dir_top}/#{@appliance_config.os_path}/SOURCES/#{simple_name}-#{@config.version}.tar.gz", 'rpm:topdir' ] do
         Dir.chdir( File.dirname( spec_file ) ) do
-          exit_status = execute_command "rpmbuild --define '_topdir #{Config.get.dir_root}/#{@config.dir_top}/#{Config.get.os_name}/#{Config.get.os_version}' --target noarch -ba #{simple_name}.spec"
+          exit_status = execute_command "rpmbuild --define '_topdir #{@config.dir_root}/#{@config.dir_top}/#{@config.os_name}/#{@config.os_version}' --target noarch -ba #{simple_name}.spec"
           unless exit_status
             puts "\nBuilding #{simple_name} failed! Hint: consult above messages.\n\r"
             abort

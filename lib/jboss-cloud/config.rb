@@ -43,14 +43,7 @@ module JBossCloud
     end
     
   end
-  class Config
-    @@config = nil
-    
-    # TODO get rid of it! This wasn't a good idea
-    def Config.get
-      @@config
-    end
-    
+  class Config   
     def initialize( name, version, release, dir_rpms_cache, dir_src_cache, dir_root, dir_top, dir_build, dir_specs, dir_appliances, dir_src )
       @name             = name
       @version          = version
@@ -70,8 +63,6 @@ module JBossCloud
       @build_arch       = ENV['JBOSS_CLOUD_ARCH'].nil? ? APPLIANCE_DEFAULTS['arch'] : ENV['JBOSS_CLOUD_ARCH']
       @os_name          = ENV['JBOSS_CLOUD_OS_NAME'].nil? ? APPLIANCE_DEFAULTS['os_name'] : ENV['JBOSS_CLOUD_OS_NAME']
       @os_version       = ENV['JBOSS_CLOUD_OS_VERSION'].nil? ? APPLIANCE_DEFAULTS['os_version'] : ENV['JBOSS_CLOUD_OS_VERSION']
-      
-      @@config = self
     end
     
     attr_reader :name
@@ -90,6 +81,10 @@ module JBossCloud
     attr_reader :dir_base
     attr_reader :os_name
     attr_reader :os_version
+    
+    def os_path
+      "#{@os_name}/#{@os_version}/"
+    end
     
     def build_path
       "#{@arch}/#{@os_name}/#{@os_version}/"
