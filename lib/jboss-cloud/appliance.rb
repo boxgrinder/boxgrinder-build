@@ -7,26 +7,27 @@ require 'jboss-cloud/appliance-kickstart.rb'
 require 'jboss-cloud/appliance-image.rb'
 
 module JBossCloud
-
+  
   class Appliance < Rake::TaskLib
-
-    def initialize( config, appliance_def )
-      @appliance_def    = appliance_def
-      @config           = config
-
+    
+    def initialize( config, appliance_config, appliance_def )
+      @config            = config
+      @appliance_def     = appliance_def
+      @appliance_config  = appliance_config
+      
       define
     end
-
+    
     def define
       define_precursors
     end
-
+    
     def define_precursors
-      JBossCloud::ApplianceSource.new( @config, File.dirname( @appliance_def ) )
-      JBossCloud::ApplianceSpec.new( @config )
-      JBossCloud::ApplianceRPM.new( @config )
-      JBossCloud::ApplianceKickstart.new( @config )
-      JBossCloud::ApplianceImage.new( @config )
+      JBossCloud::ApplianceSource.new( @config, @appliance_config )
+      JBossCloud::ApplianceSpec.new( @appliance_config )
+      JBossCloud::ApplianceRPM.new( @appliance_config )
+      JBossCloud::ApplianceKickstart.new( @appliance_config )
+      JBossCloud::ApplianceImage.new( @appliance_config )
     end
   end
 end

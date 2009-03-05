@@ -22,6 +22,10 @@ module JBossCloud
       "#{@name}-#{@arch}-#{@os_name}-#{@os_version}-#{@vcpu}-#{@mem_size}-#{@disk_size}-#{@network_name}-#{@appliances.join("-")}-#{@summary}".hash
     end
     
+    def simple_name
+      File.basename( @name, '-appliance' )
+    end
+    
     def os_path
       "#{@os_name}/#{@os_version}"
     end
@@ -86,8 +90,6 @@ module JBossCloud
     attr_reader :dir_base
     attr_reader :os_name
     attr_reader :os_version
-    
-    attr_accessor :appliance_config
     
     def build_path
       "#{@arch}/#{@os_name}/#{@os_version}/"

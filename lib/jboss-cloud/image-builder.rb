@@ -64,7 +64,7 @@ module JBossCloud
       end
       
       Dir[ "#{@config.dir_appliances}/*/*.appl" ].each do |appliance_def|        
-        JBossCloud::Appliance.new( ApplianceConfigHelper.new.config( appliance_def, @config ), appliance_def )
+        JBossCloud::Appliance.new( @config, ApplianceConfigHelper.new.config( appliance_def, @config ), appliance_def )
       end
     end
   end
