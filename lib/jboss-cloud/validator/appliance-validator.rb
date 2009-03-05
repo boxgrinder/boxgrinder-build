@@ -5,6 +5,8 @@ require 'yaml'
 module JBossCloud
   class ApplianceValidator
     def initialize( dir_appliances, appliance_def )
+      raise ValidationError, "Appliance directory doesn't exists" if dir_appliances.nil? or ( !File.exists?(File.dirname( dir_appliances )) && !File.directory?(File.dirname( dir_appliances )) )
+      
       @dir_appliances = dir_appliances
       
       #check if appliance_def is nil
