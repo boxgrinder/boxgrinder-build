@@ -9,6 +9,7 @@ require 'jboss-cloud/config'
 require 'jboss-cloud/validator/appliance-validator'
 require 'jboss-cloud/validator/appliance-config-parameter-validator'
 require 'jboss-cloud/appliance-config-helper'
+require 'jboss-cloud/defaults'
 require 'ostruct'
 
 module JBossCloud

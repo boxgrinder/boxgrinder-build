@@ -1,45 +1,4 @@
 module JBossCloud
-  
-  # here are global variables
-  SUPPORTED_ARCHES = [ "i386", "x86_64" ]
-  SUPPORTED_OSES = {
-    "fedora" => [ "10", "rawhide" ]
-  }
-  
-  STABLE_RELEASES = {
-    "fedora" => "10",
-    "rhel" => "5"
-  }
-  
-  APPLIANCE_DEFAULTS = {
-    "os_name" => "fedora",
-    "os_version" => STABLE_RELEASES['fedora'],
-    "disk_size" => 2,
-    "mem_size" => 1024,
-    "network_name" => "NAT",
-    "vcpu" => 1,
-    "arch" => (-1.size) == 8 ? "x86_64" : "i386"
-  } 
-  
-  # you can use #ARCH# valriable to specify build arch
-  REPOS = {
-      "fedora" => { 
-        "10" => { 
-          "base" => {
-            "mirrorlist" => "http://mirrors.fedoraproject.org/mirrorlist?repo=fedora-10&arch=#ARCH#"
-        },
-          "updates" => {
-            "mirrorlist" => "http://mirrors.fedoraproject.org/mirrorlist?repo=updates-released-f10&arch=#ARCH#"
-        }
-      },
-        "rawhide" => {
-          "base" => {
-            "mirrorlist" => "http://mirrors.fedoraproject.org/mirrorlist?repo=rawhide&arch=#ARCH#"
-        }
-      }
-    }
-  }
-  
   class ApplianceConfig
     def initialize
       @appliances = Array.new
@@ -102,7 +61,7 @@ module JBossCloud
       @dir_src          = dir_src
       @dir_base         = "#{File.dirname( __FILE__ )}/../.."
       
-      # TODO that doesn't look good (code duplication - ApplianceConfigHelper)
+      # TODO that doesn't look good (code duplication - ApplianceConfigHelper), but that's save, beacause we have validated parameters earlier
       @build_arch       = ENV['JBOSS_CLOUD_ARCH'].nil? ? APPLIANCE_DEFAULTS['arch'] : ENV['JBOSS_CLOUD_ARCH']
       @os_name          = ENV['JBOSS_CLOUD_OS_NAME'].nil? ? APPLIANCE_DEFAULTS['os_name'] : ENV['JBOSS_CLOUD_OS_NAME']
       @os_version       = ENV['JBOSS_CLOUD_OS_VERSION'].nil? ? APPLIANCE_DEFAULTS['os_version'] : ENV['JBOSS_CLOUD_OS_VERSION']
