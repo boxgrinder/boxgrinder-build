@@ -5,8 +5,8 @@ module JBossCloud
 
     def initialize
       @topdir = Config.get.dir_top
-      @arches = Config.supported_arches + [ "noarch" ]
-      @oses   = Config.supported_oses
+      @arches = SUPPORTED_ARCHES + [ "noarch" ]
+      @oses   = SUPPORTED_OSES
 
       define
     end

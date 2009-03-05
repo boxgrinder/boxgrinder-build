@@ -104,7 +104,7 @@ module JBossCloud
     end
     
     def valid_repos
-      os_repos = Config.repos[@config.os_name][@config.os_version]
+      os_repos = REPOS[@config.os_name][@config.os_version]
       
       repos = Array.new
       
@@ -137,7 +137,7 @@ module JBossCloud
       defs['arch']               = @config.arch
       defs['os_name']            = @config.os_name
       defs['os_version']         = @config.os_version
-      defs['os_version_stable']  = Config.stable_releases[@config.os_name]
+      defs['os_version_stable']  = STABLE_RELEASES[@config.os_name]
       
       def defs.method_missing(sym,*args)
         self[ sym.to_s ]

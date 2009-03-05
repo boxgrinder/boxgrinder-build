@@ -9,13 +9,13 @@ module JBossCloud
       cfg = ApplianceConfig.new
 
       cfg.name           = File.basename( appliance_def, '.appl' )
-      cfg.arch           = ENV['JBOSS_CLOUD_ARCH'].nil? ? Config.defaults['arch'] : ENV['JBOSS_CLOUD_ARCH']
-      cfg.os_name        = ENV['JBOSS_CLOUD_OS_NAME'].nil? ? Config.defaults['os_name'] : ENV['JBOSS_CLOUD_OS_NAME']
-      cfg.os_version     = ENV['JBOSS_CLOUD_OS_VERSION'].nil? ? Config.defaults['os_version'] : ENV['JBOSS_CLOUD_OS_VERSION']
-      cfg.disk_size      = ENV['JBOSS_CLOUD_DISK_SIZE'].nil? ? Config.defaults['disk_size'] : ENV['JBOSS_CLOUD_DISK_SIZE'].to_i
-      cfg.mem_size       = ENV['JBOSS_CLOUD_MEM_SIZE'].nil? ? Config.defaults['mem_size'] : ENV['JBOSS_CLOUD_MEM_SIZE'].to_i
-      cfg.network_name   = ENV['JBOSS_CLOUD_NETWORK_NAME'].nil? ? Config.defaults['network_name'] : ENV['JBOSS_CLOUD_NETWORK_NAME']
-      cfg.vcpu           = ENV['JBOSS_CLOUD_VCPU'].nil? ? Config.defaults['vcpu'] : ENV['JBOSS_CLOUD_VCPU'].to_i
+      cfg.arch           = ENV['JBOSS_CLOUD_ARCH'].nil? ? DEFAULTS['arch'] : ENV['JBOSS_CLOUD_ARCH']
+      cfg.os_name        = ENV['JBOSS_CLOUD_OS_NAME'].nil? ? DEFAULTS['os_name'] : ENV['JBOSS_CLOUD_OS_NAME']
+      cfg.os_version     = ENV['JBOSS_CLOUD_OS_VERSION'].nil? ? DEFAULTS['os_version'] : ENV['JBOSS_CLOUD_OS_VERSION']
+      cfg.disk_size      = ENV['JBOSS_CLOUD_DISK_SIZE'].nil? ? DEFAULTS['disk_size'] : ENV['JBOSS_CLOUD_DISK_SIZE'].to_i
+      cfg.mem_size       = ENV['JBOSS_CLOUD_MEM_SIZE'].nil? ? DEFAULTS['mem_size'] : ENV['JBOSS_CLOUD_MEM_SIZE'].to_i
+      cfg.network_name   = ENV['JBOSS_CLOUD_NETWORK_NAME'].nil? ? DEFAULTS['network_name'] : ENV['JBOSS_CLOUD_NETWORK_NAME']
+      cfg.vcpu           = ENV['JBOSS_CLOUD_VCPU'].nil? ? DEFAULTS['vcpu'] : ENV['JBOSS_CLOUD_VCPU'].to_i
       cfg.appliances     = get_appliances( cfg.name )
 
       # TODO make it better!
