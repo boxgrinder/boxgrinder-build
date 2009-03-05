@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby 
+
 # JBoss, Home of Professional Open Source
 # Copyright 2009, Red Hat Middleware LLC, and individual contributors
 # by the @authors tag. See the copyright.txt in the distribution for a
@@ -18,8 +20,7 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-#!/usr/bin/env ruby 
-
+require 'rubygems'
 require 'test/unit/ui/console/testrunner'
 require 'test/unit'
 
@@ -29,7 +30,8 @@ Dir.chdir( File.dirname( __FILE__ ) )
 
 # tests to run
 require 'jboss-cloud/validator/appliance_validator_test'
-require 'jboss-cloud/validator/appliance_validator_jboss-cloud_test'
 
 require 'jboss-cloud/config_test'
 require 'jboss-cloud/appliance_config_test'
+
+require 'jboss-cloud/appliance_vmware_image_test'
