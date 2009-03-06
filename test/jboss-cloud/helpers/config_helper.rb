@@ -1,5 +1,3 @@
-#!/usr/bin/env ruby 
-
 # JBoss, Home of Professional Open Source
 # Copyright 2009, Red Hat Middleware LLC, and individual contributors
 # by the @authors tag. See the copyright.txt in the distribution for a
@@ -20,18 +18,22 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require 'rubygems'
-require 'test/unit/ui/console/testrunner'
-require 'test/unit'
-
-$: << File.dirname("#{File.dirname( __FILE__ )}/../lib/jboss-cloud")
-
-Dir.chdir( File.dirname( __FILE__ ) )
-
-# tests to run
-require 'jboss-cloud/validator/appliance_validator_test'
-
-require 'jboss-cloud/config_test'
-require 'jboss-cloud/appliance_config_test'
-
-require 'jboss-cloud/appliance_vmware_image_test'
+class ConfigHelper
+  def self.generate_config( dir_src = "../../../src", dir_appliances = "../../../appliances" )
+    JBossCloud::Config.new("JBoss-Cloud", "1.0.0", nil, "/tmp/dir_rpms_cache", "/tmp/dir_src_cache" , "/tmp/dir_root" , "topdir" , "/tmp/dir_build" , "/tmp/dir_specs" , dir_appliances , dir_src )
+  end
+  
+  def self.generate_appliance_config
+    appliance_config = JBossCloud::ApplianceConfig.new("valid-appliance", "i386", "fedora", "10")
+    
+    appliance_config.disk_size = 2
+    appliance_config.summary = "this is a summary"
+    appliance_config.network_name = "NAT"
+    appliance_config.vcpu = "1"
+    appliance_config.mem_size = "1024"
+    appliance_config.appliances = [ appliance_config.name ]
+    
+    appliance_config
+  end
+  
+end

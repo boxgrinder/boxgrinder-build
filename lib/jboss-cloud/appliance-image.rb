@@ -37,10 +37,9 @@ module JBossCloud
       appliance_build_dir     = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
       kickstart_file          = "#{appliance_build_dir}/#{@appliance_config.name}.ks"
       xml_file                = "#{appliance_build_dir}/#{@appliance_config.name}.xml"
-      super_simple_name       = File.basename( @appliance_config.name, '-appliance' )
       tmp_dir                 = "#{@config.dir_root}/#{@config.dir_build}/tmp"
       
-      desc "Build #{super_simple_name} appliance."
+      desc "Build #{@appliance_config.simple_name} appliance."
       task "appliance:#{@appliance_config.name}" => [ xml_file ]
       
       directory tmp_dir

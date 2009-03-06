@@ -51,8 +51,9 @@ module JBossCloud
       define_precursors
     end
     
-    # returns value of cylinders, heads and sector for selected disk size (in MB)
+    # returns value of cylinders, heads and sector for selected disk size (in GB)
     def generate_scsi_chs(disk_size)
+      disk_size =  disk_size * 1024
       
       gb_sectors = 2097152
       

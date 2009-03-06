@@ -273,7 +273,7 @@ module JBossCloudWizard
       puts "\n    Building #{@appliance}... (this may take a while)"
       #puts "\n    Wizard runs in quiet mode, messages are not shown. Please check '#{log_file_name}' for logs.\r\n\r\n" unless @options.verbose
 
-      command = "DISK_SIZE=\"#{@config.disk_size.to_i * 1024}\" NETWORK_NAME=\"#{@config.network_name}\" ARCH=\"#{@config.arch}\" OS_NAME=\"#{@config.os_name}\" OS_VERSION=\"#{@config.os_version}\" VCPU=\"#{@config.vcpu}\" MEM_SIZE=\"#{@config.mem_size}\" "
+      command = "DISK_SIZE=\"#{@config.disk_size}\" NETWORK_NAME=\"#{@config.network_name}\" ARCH=\"#{@config.arch}\" OS_NAME=\"#{@config.os_name}\" OS_VERSION=\"#{@config.os_version}\" VCPU=\"#{@config.vcpu}\" MEM_SIZE=\"#{@config.mem_size}\" "
 
       command += "rake appliance:#{@config.name}" if @config.output_format.to_i == 1
       command += "rake appliance:#{@config.name}:vmware:enterprise" if @config.output_format.to_i == 2

@@ -1,3 +1,23 @@
+# JBoss, Home of Professional Open Source
+# Copyright 2009, Red Hat Middleware LLC, and individual contributors
+# by the @authors tag. See the copyright.txt in the distribution for a
+# full listing of individual contributors.
+#
+# This is free software; you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation; either version 2.1 of
+# the License, or (at your option) any later version.
+#
+# This software is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this software; if not, write to the Free
+# Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+# 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+
 require "fileutils"
 require 'jboss-cloud/config'
 require 'rake/tasklib'
@@ -14,16 +34,7 @@ module JBossCloud
       define
     end
     
-    def configure
-      
-    end
-    
-    def define
-      
-      appliance_build_dir    = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
-      kickstart_file         = "#{appliance_build_dir}/#{@appliance_config.name}.ks"
-      config_file            = "#{appliance_build_dir}/#{@appliance_config.name}.cfg"
-      
+    def build_definition
       definition = { }
       #definition['local_repository_url'] = "file://#{@config.dir_top}/RPMS/noarch"
       # 
@@ -42,32 +53,38 @@ module JBossCloud
       
       definition['local_repos'] = [
         "repo --name=jboss-cloud --cost=10 --baseurl=file://#{@config.dir_root}/#{@config.dir_top}/#{@appliance_config.os_path}/RPMS/noarch",
-        "repo --name=jboss-cloud-#{@appliance_config.arch} --cost=10 --baseurl=file://#{@config.dir_root}/#{@config.dir_top}/#{@appliance_config.os_path}/RPMS/#{@appliance_config.arch}",
+        "repo --name=jboss-cloud-#{@appliance_config.arch} --cost=10 --baseurl=file://#{@config.dir_root}/#{@config.dir_top}/#{@appliance_config.os_path}/RPMS/#{@appliance_config.arch}"
       ]
       
       definition['local_repos'] << "repo --name=extra-rpms --cost=1 --baseurl=file://#{Dir.pwd}/extra-rpms/noarch" if ( File.exist?( "extra-rpms" ) )
       
       for repo in valid_repos
-        #puts repo
         definition['repos'] << "repo --name=#{repo[0]} --cost=40 --#{repo[1]}=#{repo[2]}"   
       end
       
       for appliance_name in @appliance_config.appliances
-        if ( File.exist?( "appliances/#{appliance_name}/#{appliance_name}.post" ) )
+        if ( File.exist?( "#{@config.dir_appliances}/#{appliance_name}/#{appliance_name}.post" ) )
           definition['post_script'] += "\n## #{appliance_name}.post\n"
-          definition['post_script'] += File.read( "appliances/#{appliance_name}/#{appliance_name}.post" )
+          definition['post_script'] += File.read( "#{@config.dir_appliances}/#{appliance_name}/#{appliance_name}.post" )
         end
         
         all_excludes = []
         
-        if ( File.exist?( "appliances/#{appliance_name}/#{appliance_name}.appl" ) )
-          repo_lines, repo_excludes = read_repositories( "appliances/#{appliance_name}/#{appliance_name}.appl" )
-          definition['repos'] += repo_lines
-          all_excludes += repo_excludes
-        end
+        repo_lines, repo_excludes = read_repositories( "#{@config.dir_appliances}/#{appliance_name}/#{appliance_name}.appl" )
+        definition['repos'] += repo_lines
+        all_excludes += repo_excludes        
       end
       
       definition['exclude_clause'] = "--excludepkgs=#{all_excludes.join(',')}" unless ( all_excludes.nil? or all_excludes.empty? )
+      
+      definition
+    end
+    
+    def define
+      
+      appliance_build_dir    = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
+      kickstart_file         = "#{appliance_build_dir}/#{@appliance_config.name}.ks"
+      config_file            = "#{appliance_build_dir}/#{@appliance_config.name}.cfg"
       
       file "#{appliance_build_dir}/base-pkgs.ks" do
         base_pkgs = "kickstarts/#{@appliance_config.os_name}/#{@appliance_config.os_version}/base-pkgs.ks"
@@ -96,7 +113,7 @@ module JBossCloud
       file kickstart_file => [ config_file, "#{appliance_build_dir}/base-pkgs.ks" ] do
         template = File.dirname( __FILE__ ) + "/appliance.ks.erb"
         
-        File.open( kickstart_file, 'w' ) {|f| f.write( ERB.new( File.read( template ) ).result( definition.send( :binding ) ) ) }
+        File.open( kickstart_file, 'w' ) {|f| f.write( ERB.new( File.read( template ) ).result( build_definition.send( :binding ) ) ) }
       end      
       
       desc "Build kickstart for #{File.basename( @appliance_config.name, '-appliance' )} appliance"
