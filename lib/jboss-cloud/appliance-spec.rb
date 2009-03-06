@@ -42,7 +42,7 @@ module JBossCloud
         end
       end
  
-      desc "Build RPM spec for #{File.basename( @appliance_config.name, "-appliance" )} appliance"
+      desc "Build RPM spec for #{@appliance_config.simple_name} appliance"
       task "appliance:#{@appliance_config.name}:spec" => [ spec_file ]
     end
 

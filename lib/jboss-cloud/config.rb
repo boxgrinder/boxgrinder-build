@@ -79,6 +79,7 @@ module JBossCloud
       @release          = release
       
       @dir              = dir
+      # TODO better way to get this directory
       @dir.base         = "#{File.dirname( __FILE__ )}/../.."
       @files            = OpenStruct.new
       
@@ -92,9 +93,10 @@ module JBossCloud
       @dir_src          = @dir.src
       @dir_kickstarts   = @dir.kickstarts
       
-      # TODO better way to get this directory
-      @dir_base         = "#{File.dirname( __FILE__ )}/../.."
-      @arch             = (-1.size) == 8 ? "x86_64" : "i386"     
+      @dir_base         = @dir.base
+      @arch             = (-1.size) == 8 ? "x86_64" : "i386"
+      
+      # it's save, we have validated it before
       @build_arch       = ENV['JBOSS_CLOUD_ARCH'].nil? ? @arch : ENV['JBOSS_CLOUD_ARCH']
       @os_name          = ENV['JBOSS_CLOUD_OS_NAME'].nil? ? APPLIANCE_DEFAULTS['os_name'] : ENV['JBOSS_CLOUD_OS_NAME']
       @os_version       = ENV['JBOSS_CLOUD_OS_VERSION'].nil? ? APPLIANCE_DEFAULTS['os_version'] : ENV['JBOSS_CLOUD_OS_VERSION']
