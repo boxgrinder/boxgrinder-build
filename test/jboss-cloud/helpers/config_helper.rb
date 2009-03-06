@@ -18,13 +18,26 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
+require 'ostruct'
+
 class ConfigHelper
-  def self.generate_config( dir_src = "../../../src", dir_appliances = "../../../appliances" )
-    JBossCloud::Config.new("JBoss-Cloud", "1.0.0", nil, "/tmp/dir_rpms_cache", "/tmp/dir_src_cache" , "/tmp/dir_root" , "topdir" , "/tmp/dir_build" , "/tmp/dir_specs" , dir_appliances , dir_src )
+  def self.generate_config( params = OpenStruct.new )
+
+    dir = OpenStruct.new
+    
+    dir.rpms_cache   = params.dir_rpms_cache || "/tmp/dir_rpms_cache"
+    dir.root         = params.dir_root       || "/tmp/dir_root"
+    dir.top          = params.dir_top        || "topdir"
+    dir.build        = params.dir_build      || "/tmp/dir_build"
+    dir.specs        = params.dir_specs      || "/tmp/dir_specs"
+    dir.appliances   = params.dir_appliances || "../../../appliances"
+    dir.src          = params.dir_src        || "../../../src"
+    
+    JBossCloud::Config.new( params.name || "JBoss-Cloud", params.version || "1.0.0", params.release, dir )
   end
   
-  def self.generate_appliance_config
-    appliance_config = JBossCloud::ApplianceConfig.new("valid-appliance", "i386", "fedora", "10")
+  def self.generate_appliance_config( os_version = "10" )
+    appliance_config = JBossCloud::ApplianceConfig.new("valid-appliance", "i386", "fedora", os_version)
     
     appliance_config.disk_size = 2
     appliance_config.summary = "this is a summary"

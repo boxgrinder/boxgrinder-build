@@ -46,6 +46,7 @@ module JBossCloud
     :dir_rpms_cache    => 'rpms-cache',
     :dir_specs         => 'specs',
     :dir_appliances    => 'appliances',
-    :dir_src           => 'src'
+    :dir_src           => 'src',
+    :dir_kickstarts    => 'kickstarts'
   }
 end

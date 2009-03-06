@@ -1,6 +1,11 @@
 
 summary: Apache httpd and JBoss mod_cluster
 
+repos:
+  postgresql:
+    baseurl: http://yum.pgsqlrpms.org/8.3/<%= os_name %>/<%= os_name %>-<%= os_version_stable %>-<%= arch %>/
+    filter: postgresql*
+
 packages:
   - httpd
   - mod_cluster

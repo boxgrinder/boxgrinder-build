@@ -19,7 +19,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require "test/unit"
-
+require "jboss-cloud/helpers/config_helper"
 require 'jboss-cloud/config'
 
 class ConfigTest < Test::Unit::TestCase
@@ -28,18 +28,19 @@ class ConfigTest < Test::Unit::TestCase
     @current_arch = (-1.size) == 8 ? "x86_64" : "i386"
   end
   
-  def self.generate_valid_config( release = nil )
+  def self.generate_valid_config( params )
     JBossCloud::Config.new("JBoss-Cloud", "1.0.0", release, "/tmp/dir_rpms_cache", "/tmp/dir_src_cache" , "/tmp/dir_root" , "/tmp/dir_top" , "/tmp/dir_build" , "/tmp/dir_specs" , "/tmp/dir_appliances" , "/tmp/dir_src" )
   end
   
   def test_initialize_config
     assert_nothing_raised do
-      ConfigTest.generate_valid_config
+      ConfigHelper.generate_config
     end
   end
   
   def test_defaults
-    config = ConfigTest.generate_valid_config
+    
+    config = ConfigHelper.generate_config
     
     assert_equal( config.os_name, "fedora" )
     assert_equal( config.os_version, "10" )
@@ -48,25 +49,29 @@ class ConfigTest < Test::Unit::TestCase
   end  
   
   def test_os_path
-    config = ConfigTest.generate_valid_config
+    config = ConfigHelper.generate_config
     
     assert_equal( config.os_path, "fedora/10" )
   end  
   
   def test_build_path
-    config = ConfigTest.generate_valid_config
+    config = ConfigHelper.generate_config
     
     assert_equal( config.build_path, "#{@current_arch}/fedora/10" )
   end  
   
   def test_version_with_relesase_with_release
-    config = ConfigTest.generate_valid_config( "1" )
+    
+    params = OpenStruct.new
+    params.release = "1"
+    
+    config = ConfigHelper.generate_config( params )
     
     assert_equal( config.version_with_release, "1.0.0-1" )
   end  
   
   def test_version_with_relesase_without_release
-    config = ConfigTest.generate_valid_config
+    config = ConfigHelper.generate_config
     
     assert_equal( config.version_with_release, "1.0.0" )
   end  

@@ -19,6 +19,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'jboss-cloud/defaults'
+require 'ostruct'
 
 module JBossCloud
   class ApplianceConfig
@@ -72,18 +73,24 @@ module JBossCloud
     
   end
   class Config   
-    def initialize( name, version, release, dir_rpms_cache, dir_src_cache, dir_root, dir_top, dir_build, dir_specs, dir_appliances, dir_src )
+    def initialize( name, version, release, dir )
       @name             = name
       @version          = version
       @release          = release
-      @dir_rpms_cache   = dir_rpms_cache
-      @dir_src_cache    = dir_src_cache
-      @dir_root         = dir_root
-      @dir_top          = dir_top
-      @dir_build        = dir_build
-      @dir_specs        = dir_specs
-      @dir_appliances   = dir_appliances
-      @dir_src          = dir_src
+      
+      @dir              = dir
+      @dir.base         = "#{File.dirname( __FILE__ )}/../.."
+      @files            = OpenStruct.new
+      
+      @dir_rpms_cache   = @dir.rpms_cache
+      @dir_src_cache    = @dir.src_cache
+      @dir_root         = @dir.root
+      @dir_top          = @dir.top
+      @dir_build        = @dir.build
+      @dir_specs        = @dir.specs
+      @dir_appliances   = @dir.appliances
+      @dir_src          = @dir.src
+      @dir_kickstarts   = @dir.kickstarts
       
       # TODO better way to get this directory
       @dir_base         = "#{File.dirname( __FILE__ )}/../.."
@@ -109,6 +116,10 @@ module JBossCloud
     attr_reader :dir_base
     attr_reader :os_name
     attr_reader :os_version
+    attr_reader :dir_kickstarts
+    
+    attr_reader :dir
+    attr_reader :files
     
     def os_path
       "#{@os_name}/#{@os_version}"

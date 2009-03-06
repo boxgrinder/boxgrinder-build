@@ -31,7 +31,21 @@ module JBossCloud
     def initialize( config, appliance_config )
       @config           = config
       @appliance_config = appliance_config
+      
+      base_pkgs_suffix = "#{@appliance_config.os_name}/#{@appliance_config.os_version}/base-pkgs.ks"
+      
+      if File.exists?( "#{@config.dir_kickstarts}/#{base_pkgs_suffix}" )
+        @base_pkgs = base_pkgs
+      else
+        @base_pkgs = "#{@config.dir_base}/kickstarts/#{base_pkgs_suffix}"
+      end
+      
+      validate
       define
+    end
+    
+    def validate
+      raise ValidationError, "base-pkgs.ks file doesn't exists for your system (#{@appliance_config.os_name} #{@appliance_config.os_version})" unless File.exists?( @base_pkgs )
     end
     
     def build_definition
@@ -87,13 +101,7 @@ module JBossCloud
       config_file            = "#{appliance_build_dir}/#{@appliance_config.name}.cfg"
       
       file "#{appliance_build_dir}/base-pkgs.ks" do
-        base_pkgs = "kickstarts/#{@appliance_config.os_name}/#{@appliance_config.os_version}/base-pkgs.ks"
-        
-        unless File.exists?( base_pkgs )
-          base_pkgs = "#{File.dirname( __FILE__ )}/../../#{base_pkgs}" 
-        end
-        
-        FileUtils.cp( base_pkgs, "#{appliance_build_dir}/base-pkgs.ks" )
+        FileUtils.cp( @base_pkgs, "#{appliance_build_dir}/base-pkgs.ks" )
       end
       
       file config_file => [ "appliance:#{@appliance_config.name}:config" ] do
