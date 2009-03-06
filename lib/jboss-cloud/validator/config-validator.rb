@@ -27,6 +27,8 @@ module JBossCloud
       @config = config
       
       validate_base_pkgs
+      validate_vmware_files
+      validate_appliance_dir
     end
     
     def validate_base_pkgs
@@ -40,5 +42,32 @@ module JBossCloud
       
       raise ValidationError, "base-pkgs.ks file doesn't exists for your OS (#{@config.os_name} #{@config.os_version})" unless File.exists?( @config.files.base_pkgs )
     end
+    
+    def validate_appliance_dir
+      raise ValidationError, "Appliances directory '#{@config.dir.appliances}' doesn't exists, please create one or adjust your" if !File.exists?(File.dirname( @config.dir.appliances )) && !File.directory?(File.dirname( @config.dir.appliances ))
+      raise ValidationError, "There are no appliances to build in appliances directory '#{@config.dir.appliances}'" if Dir[ "#{@config.dir.appliances}/*/*.appl" ].size == 0
+    end
+    
+    
+    
+    def validate_vmware_files
+      if File.exists?( "#{@config.dir.src}/base.vmdk" )
+        @config.files.base_vmdk = "#{@config.dir.src}/base.vmdk"
+      else
+        @config.files.base_vmdk = "#{@config.dir.base}/src/base.vmdk"
+      end
+      
+      raise ValidationError, "base.vmdk file doesn't exists, please check you configuration)" unless File.exists?( @config.files.base_vmdk )      
+      
+      if File.exists?( "#{@config.dir.src}/base.vmx" )
+        @config.files.base_vmx = "#{@config.dir.src}/base.vmx"
+      else
+        @config.files.base_vmx = "#{@config.dir.base}/src/base.vmx"
+      end
+      
+      raise ValidationError, "base.vmx file doesn't exists, please check you configuration)" unless File.exists?( @config.files.base_vmx )
+    end
+    
+    
   end
 end

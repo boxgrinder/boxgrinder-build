@@ -95,7 +95,7 @@ module JBossCloud
       # TODO better way to get this directory
       @dir_base         = "#{File.dirname( __FILE__ )}/../.."
       @arch             = (-1.size) == 8 ? "x86_64" : "i386"     
-      @build_arch       = ENV['JBOSS_CLOUD_ARCH'].nil? ? APPLIANCE_DEFAULTS['arch'] : ENV['JBOSS_CLOUD_ARCH']
+      @build_arch       = ENV['JBOSS_CLOUD_ARCH'].nil? ? @arch : ENV['JBOSS_CLOUD_ARCH']
       @os_name          = ENV['JBOSS_CLOUD_OS_NAME'].nil? ? APPLIANCE_DEFAULTS['os_name'] : ENV['JBOSS_CLOUD_OS_NAME']
       @os_version       = ENV['JBOSS_CLOUD_OS_VERSION'].nil? ? APPLIANCE_DEFAULTS['os_version'] : ENV['JBOSS_CLOUD_OS_VERSION']
     end

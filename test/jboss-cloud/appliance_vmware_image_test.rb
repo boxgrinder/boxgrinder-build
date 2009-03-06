@@ -23,6 +23,7 @@ require 'test/unit'
 require 'jboss-cloud/config'
 require 'jboss-cloud/appliance-vmx-image'
 require "jboss-cloud/helpers/config_helper"
+require 'ostruct'
 
 class ApplianceVMwareImageTest < Test::Unit::TestCase
   def setup
@@ -61,7 +62,12 @@ class ApplianceVMwareImageTest < Test::Unit::TestCase
   end
   
   def test_change_vmdk_data_vmfs
-    vmx_image = JBossCloud::ApplianceVMXImage.new( ConfigHelper.generate_config, ConfigHelper.generate_appliance_config )
+    
+    params = OpenStruct.new
+    params.base_vmdk = "../src/base.vmdk"
+    params.base_vmx  = "../src/base.vmx"
+    
+    vmx_image = JBossCloud::ApplianceVMXImage.new( ConfigHelper.generate_config( params ), ConfigHelper.generate_appliance_config )
     
     vmdk_image = vmx_image.change_vmdk_values("vmfs")
     
@@ -80,7 +86,11 @@ class ApplianceVMwareImageTest < Test::Unit::TestCase
   end
   
   def test_change_vmdk_data_flat
-    vmx_image = JBossCloud::ApplianceVMXImage.new( ConfigHelper.generate_config, ConfigHelper.generate_appliance_config )
+    params = OpenStruct.new
+    params.base_vmdk = "../src/base.vmdk"
+    params.base_vmx  = "../src/base.vmx"
+    
+    vmx_image = JBossCloud::ApplianceVMXImage.new( ConfigHelper.generate_config( params ), ConfigHelper.generate_appliance_config )
     
     vmdk_image = vmx_image.change_vmdk_values("monolithicFlat")
     
@@ -99,7 +109,11 @@ class ApplianceVMwareImageTest < Test::Unit::TestCase
   end
   
   def test_change_vmx_data
-    vmx_image = JBossCloud::ApplianceVMXImage.new( ConfigHelper.generate_config, ConfigHelper.generate_appliance_config )
+    params = OpenStruct.new
+    params.base_vmdk = "../src/base.vmdk"
+    params.base_vmx  = "../src/base.vmx"
+    
+    vmx_image = JBossCloud::ApplianceVMXImage.new( ConfigHelper.generate_config( params ), ConfigHelper.generate_appliance_config )
     
     vmx_file = vmx_image.change_common_vmx_values
     

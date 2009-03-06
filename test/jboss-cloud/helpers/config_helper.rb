@@ -22,7 +22,7 @@ require 'ostruct'
 
 class ConfigHelper
   def self.generate_config( params = OpenStruct.new )
-
+    
     dir = OpenStruct.new
     
     dir.rpms_cache   = params.dir_rpms_cache || "/tmp/dir_rpms_cache"
@@ -33,7 +33,13 @@ class ConfigHelper
     dir.appliances   = params.dir_appliances || "../../../appliances"
     dir.src          = params.dir_src        || "../../../src"
     
-    JBossCloud::Config.new( params.name || "JBoss-Cloud", params.version || "1.0.0", params.release, dir )
+    config = JBossCloud::Config.new( params.name || "JBoss-Cloud", params.version || "1.0.0", params.release, dir )
+    
+    # files
+    config.files.base_vmdk  = params.base_vmdk      || "../../../src/base.vmdk"
+    config.files.base_vmx   = params.base_vmx       || "../../../src/base.vmx"
+    
+    config
   end
   
   def self.generate_appliance_config( os_version = "10" )

@@ -32,18 +32,6 @@ module JBossCloud
       appliance_build_dir     = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
       @appliance_xml_file     = "#{appliance_build_dir}/#{@appliance_config.name}.xml"
       
-      if File.exists?( "#{@config.dir_src}/base.vmdk" )
-        @base_vmdk_file = "#{@config.dir_src}/base.vmdk"
-      else
-        @base_vmdk_file = "#{@config.dir_base}/src/base.vmdk"
-      end
-      
-      if File.exists?( "#{@config.dir_src}/base.vmx" )
-        @base_vmx_file = "#{@config.dir_src}/base.vmx"
-      else
-        @base_vmx_file = "#{@config.dir_base}/src/base.vmx"
-      end
-      
       define
     end
     
@@ -72,7 +60,7 @@ module JBossCloud
     end
     
     def change_vmdk_values( type )
-      vmdk_data = File.open( @base_vmdk_file ).read
+      vmdk_data = File.open( @config.files.base_vmdk ).read
       
       c, h, s, total_sectors = generate_scsi_chs( @appliance_config.disk_size )
       
@@ -92,7 +80,7 @@ module JBossCloud
     end
     
     def change_common_vmx_values
-      vmx_data = File.open( @base_vmx_file ).read
+      vmx_data = File.open( @config.files.base_vmx ).read
       
       # replace version with current jboss cloud version
       vmx_data.gsub!( /#VERSION#/ , @config.version_with_release )
@@ -122,30 +110,13 @@ module JBossCloud
     def define_precursors
       super_simple_name                    = File.basename( @appliance_config.name, '-appliance' )
       vmware_personal_output_folder        = File.dirname( @appliance_xml_file ) + "/vmware/personal"
-      vmware_personal_vmx_file             = vmware_personal_output_folder + "/" + File.basename( @appliance_xml_file, ".xml" ) + '.vmx'
-      vmware_personal_vmdk_file            = vmware_personal_output_folder + "/" + File.basename( @appliance_xml_file, ".xml" ) + '.vmdk'
+      vmware_personal_vmx_file             = vmware_personal_output_folder + "/" + @appliance_config.name + '.vmx'
+      vmware_personal_vmdk_file            = vmware_personal_output_folder + "/" + @appliance_config.name + '.vmdk'
       vmware_personal_raw_file             = vmware_personal_output_folder + "/#{@appliance_config.name}-sda.raw"
       vmware_enterprise_output_folder      = File.dirname( @appliance_xml_file ) + "/vmware/enterprise"
-      vmware_enterprise_vmx_file           = vmware_enterprise_output_folder + "/" + File.basename( @appliance_xml_file, ".xml" ) + '.vmx'
-      vmware_enterprise_vmdk_file          = vmware_enterprise_output_folder + "/" + File.basename( @appliance_xml_file, ".xml" ) + '.vmdk'
+      vmware_enterprise_vmx_file           = vmware_enterprise_output_folder + "/" + @appliance_config.name + '.vmx'
+      vmware_enterprise_vmdk_file          = vmware_enterprise_output_folder + "/" + @appliance_config.name + '.vmdk'
       vmware_enterprise_raw_file           = vmware_enterprise_output_folder + "/#{@appliance_config.name}-sda.raw"
-      
-      # TODO is it neccessary? 
-      file "#{@appliance_xml_file}.vmx-input" => [ @appliance_xml_file ] do
-        doc = REXML::Document.new( File.read( @appliance_xml_file ) )
-        name_elem = doc.root.elements['name']
-        name_elem.attributes[ 'version' ] = "#{@config.get.version_with_release}"
-        description_elem = doc.root.elements['description']
-        if ( description_elem.nil? )
-          description_elem = REXML::Element.new( "description" )
-          description_elem.text = "#{@appliance_config.name} Appliance\n Version: #{@config.get.version_with_release}"
-          doc.root.insert_after( name_elem, description_elem )
-        end
-        # update xml the file according to selected build architecture
-        arch_elem = doc.elements["//arch"]
-        arch_elem.text = @appliance_config.arch
-        File.open( "#{@appliance_xml_file}.vmx-input", 'w' ) {|f| f.write( doc ) }
-      end
       
       desc "Build #{super_simple_name} appliance for VMware personal environments (Server/Workstation/Fusion)"
       task "appliance:#{@appliance_config.name}:vmware:personal" => [ @appliance_xml_file ] do
