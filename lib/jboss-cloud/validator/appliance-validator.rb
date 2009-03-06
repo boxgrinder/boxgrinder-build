@@ -1,3 +1,23 @@
+# JBoss, Home of Professional Open Source
+# Copyright 2009, Red Hat Middleware LLC, and individual contributors
+# by the @authors tag. See the copyright.txt in the distribution for a
+# full listing of individual contributors.
+#
+# This is free software; you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation; either version 2.1 of
+# the License, or (at your option) any later version.
+#
+# This software is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this software; if not, write to the Free
+# Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+# 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+
 require 'jboss-cloud/config'
 require 'jboss-cloud/validator/errors'
 require 'yaml'
@@ -29,6 +49,9 @@ module JBossCloud
       raise ValidationError, "Could not find all dependent appliances for multiappliance '#{@appliance_name}'" unless valid
       # check appliance count
       raise ValidationError, "Invalid appliance count for appliance '#{@appliance_name}'" unless appliances.size >= 1
+      # check if puppet configuration file exists
+      puppet_file = "#{File.dirname( @appliance_def )}/#{@appliance_name}.pp"      
+      raise ValidationError, "Puppet configuration file '#{puppet_file}' doesn't exists for appliance '#{@appliance_name}'" unless File.exists?( puppet_file )
     end
     
     protected
@@ -36,7 +59,6 @@ module JBossCloud
     def get_config
       validate( build_config )
     end
-    
     
     def get_appliances( appliance_name )
       appliances = Array.new
