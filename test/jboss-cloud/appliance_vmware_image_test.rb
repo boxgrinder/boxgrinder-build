@@ -26,6 +26,7 @@ require 'jboss-cloud/appliance-vmx-image'
 class ApplianceVMwareImageTest < Test::Unit::TestCase
   def setup
     @src_dir = "../../../src"
+    @current_arch = (-1.size) == 8 ? "x86_64" : "i386"
   end
   
   def self.generate_config( dir_src = @src_dir )
@@ -36,6 +37,10 @@ class ApplianceVMwareImageTest < Test::Unit::TestCase
     appliance_config = JBossCloud::ApplianceConfig.new("really-good-appliance", "i386", "fedora", "10")
     
     appliance_config.disk_size = 2048
+    appliance_config.summary = "this is a summary"
+    appliance_config.network_name = "NAT"
+    appliance_config.vcpu = "1"
+    appliance_config.mem_size = "1024"
     
     appliance_config
   end
@@ -107,5 +112,25 @@ class ApplianceVMwareImageTest < Test::Unit::TestCase
     
     assert_equal(vmdk_image.match(/^ddb.virtualHWVersion = "(.*)"\s?$/)[1], "3")
   end
+  
+  def test_change_vmx_data
+    vmx_image = JBossCloud::ApplianceVMXImage.new( ApplianceVMwareImageTest.generate_config, ApplianceVMwareImageTest.generate_appliance_config )
+    
+    vmx_file = vmx_image.change_common_vmx_values
+    
+    guestOS = @current_arch == "x86_64" ? "otherlinux-64" : "linux" 
+    
+    assert_equal(vmx_file.match(/^guestOS = "(.*)"\s?$/)[1], guestOS)
+    assert_equal(vmx_file.match(/^displayName = "(.*)"\s?$/)[1], "really-good-appliance")
+    assert_equal(vmx_file.match(/^annotation = "(.*)"\s?$/)[1], "this is a summary | Version: 1.0.0")
+    assert_equal(vmx_file.match(/^guestinfo.vmware.product.long = "(.*)"\s?$/)[1], "really-good-appliance")
+    assert_equal(vmx_file.match(/^guestinfo.vmware.product.url = "(.*)"\s?$/)[1], "http://oddthesis.org")
+    assert_equal(vmx_file.match(/^numvcpus = "(.*)"\s?$/)[1], "1")
+    assert_equal(vmx_file.match(/^memsize = "(.*)"\s?$/)[1], "1024")
+    assert_equal(vmx_file.match(/^log.fileName = "(.*)"\s?$/)[1], "really-good-appliance.log")
+    assert_equal(vmx_file.match(/^scsi0:0.fileName = "(.*)"\s?$/)[1], "really-good-appliance.vmdk")
+    assert_equal(vmx_file.match(/^ethernet0.networkName = "(.*)"\s?$/)[1], "NAT")   
+  end
+  
   
 end

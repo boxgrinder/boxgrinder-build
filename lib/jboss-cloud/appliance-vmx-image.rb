@@ -106,7 +106,7 @@ module JBossCloud
       # memory size
       vmx_data.gsub!( /#VCPU#/ , @appliance_config.vcpu.to_s )
       # network name
-      vmx_data += "\nethernet0.networkName = \"#{@appliance_config.network_name}\""
+      vmx_data.gsub!( /#NETWORK_NAME#/ , @appliance_config.network_name )
       
       vmx_data
     end
@@ -129,6 +129,7 @@ module JBossCloud
       vmware_enterprise_vmdk_file          = vmware_enterprise_output_folder + "/" + File.basename( @appliance_xml_file, ".xml" ) + '.vmdk'
       vmware_enterprise_raw_file           = vmware_enterprise_output_folder + "/#{@appliance_config.name}-sda.raw"
       
+      # TODO is it neccessary? 
       file "#{@appliance_xml_file}.vmx-input" => [ @appliance_xml_file ] do
         doc = REXML::Document.new( File.read( @appliance_xml_file ) )
         name_elem = doc.root.elements['name']

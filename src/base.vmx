@@ -3,11 +3,11 @@
 
 config.version = "8"
 virtualHW.version = "4"
-guestOS = #GUESTOS#
+guestOS = "#GUESTOS#"
 displayName = "#NAME#"
 annotation = "#SUMMARY# | Version: #VERSION#"
 guestinfo.vmware.product.long = "#NAME#"
-guestinfo.vmware.product.url = "http://oddthesis.org/"
+guestinfo.vmware.product.url = "http://oddthesis.org"
 guestinfo.vmware.product.class = "virtual machine"
 numvcpus = "#VCPU#"
 memsize = "#MEM_SIZE#"
@@ -40,6 +40,7 @@ scsi0.virtualDev = "lsilogic"
 
 ethernet0.present = "TRUE"
 #ethernet0.connectionType = "nat"
+ethernet0.networkName = "#NETWORK_NAME#"
 ethernet0.addressType = "generated"
 ethernet0.generatedAddressOffset = "0"
 ethernet0.autoDetect = "TRUE"
