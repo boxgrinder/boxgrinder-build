@@ -3,7 +3,7 @@ gcc
 make
 dkms
 
-oddthesis-repo
+jboss-cloud-release
 
 #for vmware guesting
 dkms-open-vm-tools

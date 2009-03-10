@@ -53,7 +53,7 @@ module JBossCloud
       
       file rpm_file=> [ 'rpm:dkms-open-vm-tools' ]
       file rpm_file=> [ 'rpm:vm2-support' ]
-      file rpm_file=> [ 'rpm:oddthesis-repo' ]
+      file rpm_file=> [ 'rpm:jboss-cloud-release' ]
       
     end
     

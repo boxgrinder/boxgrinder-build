@@ -1,0 +1,23 @@
+[oddthesis-$basearch]
+name=Odd Thesis $basearch
+failovermethod=priority
+baseurl=http://repo.oddthesis.org/packages/#OS_NAME#/#OS_VERSION#/$basearch/
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-oddthesis
+
+[oddthesis-noarch]
+name=Odd Thesis noarch
+failovermethod=priority
+baseurl=http://repo.oddthesis.org/packages/#OS_NAME#/#OS_VERSION#/noarch/
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-oddthesis
+
+[oddthesis-source]
+name=Odd Thesis Source
+failovermethod=priority
+baseurl=http://repo.oddthesis.org/packages/SRPMS/
+enabled=0
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-oddthesis

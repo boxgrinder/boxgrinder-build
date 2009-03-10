@@ -25,6 +25,7 @@ require 'jboss-cloud/repodata'
 require 'jboss-cloud/rpm'
 require 'jboss-cloud/appliance'
 require 'jboss-cloud/config'
+require 'jboss-cloud/jboss-cloud-release'
 require 'jboss-cloud/validator/appliance-validator'
 require 'jboss-cloud/validator/config-validator'
 require 'jboss-cloud/validator/appliance-config-parameter-validator'
@@ -79,11 +80,16 @@ module JBossCloud
       end
       
       JBossCloud::Topdir.new( @config )
+      JBossCloud::JBossCloudRelease.new( @config )
       
       directory @config.dir_build
       
       puts "\n\rCurrent architecture:\t#{@config.arch}"
       puts "Building architecture:\t#{@config.build_arch}\n\r"
+      
+      Dir[ "#{@config.dir.base}/src/spec/*.spec" ].each do |spec_file|
+        JBossCloud::RPM.new( @config, spec_file )
+      end
       
       Dir[ "#{@config.dir_specs}/extras/*.spec" ].each do |spec_file|
         JBossCloud::RPM.new( @config, spec_file )
