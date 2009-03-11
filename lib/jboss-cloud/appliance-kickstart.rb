@@ -108,7 +108,12 @@ module JBossCloud
       file kickstart_file => [ config_file, "#{appliance_build_dir}/base-pkgs.ks" ] do
         template = File.dirname( __FILE__ ) + "/appliance.ks.erb"
         
-        File.open( kickstart_file, 'w' ) {|f| f.write( ERB.new( File.read( template ) ).result( build_definition.send( :binding ) ) ) }
+        kickstart = ERB.new( File.read( template ) ).result( build_definition.send( :binding ) )
+        
+        kickstart.gsub!( /#JBOSS_XMX#/ , (@appliance_config.mem_size / 4 * 3).to_s )
+        kickstart.gsub!( /#JBOSS_XMS#/ , (@appliance_config.mem_size / 4 * 3 / 4).to_s)
+        
+        File.open( kickstart_file, 'w' ) {|f| f.write( kickstart ) }
       end      
       
       desc "Build kickstart for #{File.basename( @appliance_config.name, '-appliance' )} appliance"
