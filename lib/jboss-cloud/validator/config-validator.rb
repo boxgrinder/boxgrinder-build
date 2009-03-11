@@ -35,7 +35,7 @@ module JBossCloud
       base_pkgs_suffix = "#{@config.os_name}/#{@config.os_version}/base-pkgs.ks"
       
       if File.exists?( "#{@config.dir.kickstarts}/#{base_pkgs_suffix}" )
-        @config.files.base_pkgs = base_pkgs
+        @config.files.base_pkgs = "#{@config.dir.kickstarts}/#{base_pkgs_suffix}"
       else
         @config.files.base_pkgs = "#{@config.dir.base}/kickstarts/#{base_pkgs_suffix}"
       end
