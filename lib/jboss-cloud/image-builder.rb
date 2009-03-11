@@ -87,7 +87,7 @@ module JBossCloud
       puts "\n\rCurrent architecture:\t#{@config.arch}"
       puts "Building architecture:\t#{@config.build_arch}\n\r"
       
-      Dir[ "#{@config.dir.base}/src/spec/*.spec" ].each do |spec_file|
+      Dir[ "#{@config.dir.base}/specs/*.spec" ].each do |spec_file|
         JBossCloud::RPM.new( @config, spec_file )
       end
       

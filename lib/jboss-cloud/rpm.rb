@@ -67,7 +67,7 @@ module JBossCloud
           end
         end
       end
-            
+      
       task 'rpm:all' => [ rpm_file ]
       
       build_source_dependencies( rpm_file, version, release )
@@ -99,10 +99,10 @@ module JBossCloud
       #  nothing
       # else
       
-      file source_file=>[ "#{@config.dir_src}/#{source_basename}" ] do
-        FileUtils.cp( "#{@config.dir_src}/#{source}", "#{@topdir}/#{@config.os_path}/SOURCES/#{source_basename}" )
+      file source_file do       
+        FileUtils.cp( "#{@config.dir_src}/#{source}", "#{source_file}" ) if File.exists?( "#{@config.dir.src}/#{source_basename}" )
+        FileUtils.cp( "#{@config.dir.base}/src/#{source}", "#{source_file}" ) if File.exists?( "#{@config.dir.base}/src/#{source_basename}" )
       end
-      
     end
     
     def handle_remote_source(rpm_file, source)

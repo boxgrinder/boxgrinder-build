@@ -1,0 +1,91 @@
+#!/bin/bash
+#
+# Init file for open-vm-tools vmware-guestd daemon
+#
+# chkconfig: 345 80 20
+# description: open-vm-tools guest daemon
+#
+# processname: vmware-guestd
+# pidfile: /var/run/vmware-guestd.pid
+
+# source function library
+. /etc/rc.d/init.d/functions
+
+RETVAL=0
+prog="vmware-guestd"
+
+GUESTD=/usr/sbin/vmware-guestd
+PID_FILE=/var/run/vmware-guestd.pid
+LOCK_FILE=/var/lock/subsys/vmware-guestd
+OPTIONS="--background $PID_FILE"
+DND_DIR="/tmp/VMwareDnD"
+
+setup_modules()
+{
+	modprobe vmsync
+	modprobe vmci
+	modprobe vsock
+	[ ! -d "$DND_DIR" ] && mkdir -m 1777 $DND_DIR
+	modprobe vmmemctl
+	modprobe vmhgfs
+	modprobe vmblock
+	sleep 1
+	mount -t vmblock none /proc/fs/vmblock/mountPoint
+}
+
+unmount_stuff()
+{
+	umount /proc/fs/vmblock/mountPoint
+	sleep 1
+	rmmod vmblock
+}
+
+start()
+{
+	echo -n $"Starting $prog: "
+	setup_modules
+	$GUESTD $OPTIONS && success || failure
+	RETVAL=$?
+	[ "$RETVAL" = 0 ] && touch $LOCK_FILE
+	echo
+}
+
+stop()
+{
+	echo -n $"Stopping $prog: "
+	killall vmware-user
+	unmount_stuff
+	killproc $GUESTD
+	RETVAL=$?
+	[ "$RETVAL" = 0 ] && rm -f $LOCK_FILE
+	[ "$RETVAL" = 0 ] && rm -f $PID_FILE
+	echo
+}
+
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	restart)
+		stop
+		start
+		;;
+	condrestart)
+		if [ -f "$LOCK_FILE" ]; then
+			stop
+			start
+		fi
+		;;
+	status)
+		status $GUESTD
+		RETVAL=$?
+		;;
+	*)
+		echo $"Usage: $0 {start|stop|restart|condrestart|status}"
+		RETVAL=1
+		;;
+esac
+exit $RETVAL
