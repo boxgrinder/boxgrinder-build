@@ -10,3 +10,4 @@ wizard
 .loadpath
 .project
 .settings
+examples/node-info/target/
