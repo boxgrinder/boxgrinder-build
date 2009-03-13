@@ -1,0 +1,6 @@
+
+summary: This is a appliance with multiple appliances
+
+appliances:
+  - minimal-appliance
+  - packages-appliance
