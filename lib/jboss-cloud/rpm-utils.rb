@@ -99,6 +99,8 @@ module JBossCloud
               compare_file_and_upload( sftp, srpm_file, "#{srpms_package_dir}/#{File.basename( srpm_file )}" )
             end
             
+            puts "Refreshing repository information in #{srpms_package_dir}..."
+            ssh.exec!( "createrepo #{srpms_package_dir}" )
           end
           
           puts "Disconnecting from remote server..."
@@ -115,7 +117,6 @@ module JBossCloud
       rescue Net::SFTP::StatusException => e
         raise unless e.code == 2
         upload_file( sftp, file, remote_file )
-        next
       end
       
       if File.stat(file).mtime > Time.at(rstat.mtime) or File.size(file) != rstat.size
