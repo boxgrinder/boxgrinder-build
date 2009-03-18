@@ -43,7 +43,7 @@ module JBossCloud
     def define     
       task 'rpm:all:sign:srpms' => [ 'rpm:all' ] do
         puts "Signing SRPMs..."
-        execute_command "rpm --resign #{@config.dir_top}/#{APPLIANCE_DEFAULTS['os_name']}/#{APPLIANCE_DEFAULTS['os_version']}/SRPMS/*.rpm"
+        execute_command "rpm --resign #{@config.dir_top}/#{APPLIANCE_DEFAULTS['os_name']}/#{APPLIANCE_DEFAULTS['os_version']}/SRPMS/*.src.rpm"
       end
       
       task 'rpm:all:sign:rpms' => [ 'rpm:all' ] do
@@ -82,25 +82,8 @@ module JBossCloud
                   
                   create_directory_if_not_exists( sftp, ssh, package_dir )
                   
-                  Dir[ "#{@config.dir.top}/#{os}/#{version}/RPMS/#{arch}/*.rpm" ].each do |rpm_file|
-                    
-                    remote_file = "#{package_dir}/#{File.basename( rpm_file )}"
-                    
-                    puts "File #{File.basename( rpm_file )}"
-                    
-                    begin
-                      rstat = sftp.stat!( remote_file )
-                    rescue Net::SFTP::StatusException => e
-                      raise unless e.code == 2
-                      upload_file( sftp, rpm_file, remote_file )
-                      next
-                    end
-                    
-                    if File.stat(rpm_file).mtime > Time.at(rstat.mtime) or File.size(rpm_file) != rstat.size
-                      upload_file( sftp, rpm_file, remote_file )
-                    else
-                      puts "File exists and is same as local, skipping..."
-                    end
+                  Dir[ "#{@config.dir.top}/#{os}/#{version}/RPMS/#{arch}/*.rpm" ].each do |rpm_file|             
+                    compare_file_and_upload( sftp, rpm_file, "#{package_dir}/#{File.basename( rpm_file )}" )
                   end
                 end
                 
@@ -108,11 +91,37 @@ module JBossCloud
                 ssh.exec!( "createrepo #{package_dir}" )
               end
             end
+            
+            srpms_package_dir = "#{@connect_data['remote_path']}/SRPMS"
+            create_directory_if_not_exists( sftp, ssh, srpms_package_dir )
+            
+            Dir[ "#{@config.dir_top}/#{APPLIANCE_DEFAULTS['os_name']}/#{APPLIANCE_DEFAULTS['os_version']}/SRPMS/*.src.rpm" ].each do |srpm_file|
+              compare_file_and_upload( sftp, srpm_file, "#{srpms_package_dir}/#{File.basename( srpm_file )}" )
+            end
+            
           end
           
           puts "Disconnecting from remote server..."
           
         end
+      end
+    end
+    
+    def compare_file_and_upload( sftp, file, remote_file )
+      puts "File #{File.basename( file )}"
+      
+      begin
+        rstat = sftp.stat!( remote_file )
+      rescue Net::SFTP::StatusException => e
+        raise unless e.code == 2
+        upload_file( sftp, file, remote_file )
+        next
+      end
+      
+      if File.stat(file).mtime > Time.at(rstat.mtime) or File.size(file) != rstat.size
+        upload_file( sftp, file, remote_file )
+      else
+        puts "File exists and is same as local, skipping..."
       end
     end
     
