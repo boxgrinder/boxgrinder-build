@@ -117,6 +117,7 @@ module JBossCloud
       rescue Net::SFTP::StatusException => e
         raise unless e.code == 2
         upload_file( sftp, file, remote_file )
+        rstat = sftp.stat!( remote_file )
       end
       
       if File.stat(file).mtime > Time.at(rstat.mtime) or File.size(file) != rstat.size
