@@ -23,6 +23,7 @@ require 'jboss-cloud/exec'
 require 'jboss-cloud/topdir'
 require 'jboss-cloud/repodata'
 require 'jboss-cloud/rpm'
+require 'jboss-cloud/rpm-gpg'
 require 'jboss-cloud/appliance'
 require 'jboss-cloud/config'
 require 'jboss-cloud/jboss-cloud-release'
@@ -81,6 +82,7 @@ module JBossCloud
       
       JBossCloud::Topdir.new( @config )
       JBossCloud::JBossCloudRelease.new( @config )
+      JBossCloud::RPMGPG.new( @config )
       
       directory @config.dir_build
       
