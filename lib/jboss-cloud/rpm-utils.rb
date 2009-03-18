@@ -40,11 +40,19 @@ module JBossCloud
       define
     end
     
-    def define
-      desc "Sign all RPMs."
-      task 'rpm:all:sign' => [ 'rpm:all' ] do
+    def define     
+      task 'rpm:all:sign:srpms' => [ 'rpm:all' ] do
+        puts "Signing SRPMs..."
+        execute_command "rpm --resign #{@config.dir_top}/#{APPLIANCE_DEFAULTS['os_name']}/#{APPLIANCE_DEFAULTS['os_version']}/SRPMS/*.rpm"
+      end
+      
+      task 'rpm:all:sign:rpms' => [ 'rpm:all' ] do
+        puts "Signing RPMs..."
         execute_command "rpm --resign #{@config.dir_top}/#{@config.os_path}/RPMS/*/*.rpm"
       end
+      
+      desc "Sign all packages."
+      task 'rpm:all:sign' => [ 'rpm:all:sign:rpms', 'rpm:all:sign:srpms' ]
       
       task 'rpm:all:upload' => [ 'rpm:all' ] do
         if (@connect_data.nil?)
