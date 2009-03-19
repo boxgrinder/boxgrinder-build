@@ -37,7 +37,10 @@ module JBossCloud
       
       cfg = ApplianceConfig.new( name, arch, os_name, os_version )
       
-      cfg.disk_size      = ENV['JBOSS_CLOUD_DISK_SIZE'].nil? ? APPLIANCE_DEFAULTS['disk_size'] : ENV['JBOSS_CLOUD_DISK_SIZE'].to_i
+      # fix for meta-appliance, if not specified disk size, defaults to 10GB
+      disk_size = name.eql?( 'meta-appliance' ) ? 10 : APPLIANCE_DEFAULTS['disk_size']
+      
+      cfg.disk_size      = ENV['JBOSS_CLOUD_DISK_SIZE'].nil? ? disk_size : ENV['JBOSS_CLOUD_DISK_SIZE'].to_i
       cfg.mem_size       = ENV['JBOSS_CLOUD_MEM_SIZE'].nil? ? APPLIANCE_DEFAULTS['mem_size'] : ENV['JBOSS_CLOUD_MEM_SIZE'].to_i
       cfg.network_name   = ENV['JBOSS_CLOUD_NETWORK_NAME'].nil? ? APPLIANCE_DEFAULTS['network_name'] : ENV['JBOSS_CLOUD_NETWORK_NAME']
       cfg.vcpu           = ENV['JBOSS_CLOUD_VCPU'].nil? ? APPLIANCE_DEFAULTS['vcpu'] : ENV['JBOSS_CLOUD_VCPU'].to_i
