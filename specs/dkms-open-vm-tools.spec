@@ -5,17 +5,17 @@
 ##
 
 %define tname open-vm-tools
-%define builddate 2009.02.18
-%define buildver 148847
+%define builddate 2009.03.18
+%define buildver 154848
 
 Name:      dkms-open-vm-tools
-Version:   0
-Release:   1.%{builddate}%{?dist}
+Version:   %{builddate}
+Release:   %{buildver}.1%{?dist}
 Summary:   VMware Tools
 Group:     Applications/Multimedia
 License:   LGPLv2+
 URL:       http://open-vm-tools.sourceforge.net/
-Source0:   http://downloads.sourceforge.net/open-vm-tools/open-vm-tools-2009.02.18-148847.tar.gz
+Source0:   http://downloads.sourceforge.net/open-vm-tools/open-vm-tools-2009.03.18-154848.tar.gz
 Source1:   vmware-guest.init
 BuildRoot: %{_tmppath}/%{name}-%{builddate}-%{release}-root-%(%{__id_u} -n)
 
@@ -193,6 +193,9 @@ fi
 #%attr(4755,root,root) %{_bindir}/vmware-user-suid-wrapper
 
 %changelog
+* Thu Mar 19 2009 Marek Goldmann <marek.goldmann@gmail.com> - 0.1.2009.02.19
+- Update to upstream build 154848
+
 * Fri Feb 20 2009 Marek Goldmann <marek.goldmann@gmail.com> - 0.1.2009.02.18
 - Update to upstream build 148847
 
