@@ -18,32 +18,40 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require 'rake/tasklib'
-
-require 'jboss-cloud/appliance-source.rb'
-require 'jboss-cloud/appliance-spec.rb'
-require 'jboss-cloud/appliance-rpm.rb'
-require 'jboss-cloud/appliance-kickstart.rb'
-require 'jboss-cloud/appliance-image.rb'
+require 'net/ssh'
+require 'net/sftp'
 
 module JBossCloud
-  
-  class Appliance < Rake::TaskLib
+  def compare_file_and_upload( sftp, file, remote_file )
+    puts "File #{File.basename( file )}"
     
-    def initialize( config, appliance_config, appliance_def )
-      @config            = config
-      @appliance_def     = appliance_def
-      @appliance_config  = appliance_config
-
-      define
+    begin
+      rstat = sftp.stat!( remote_file )
+    rescue Net::SFTP::StatusException => e
+      raise unless e.code == 2
+      upload_file( sftp, file, remote_file )
+      rstat = sftp.stat!( remote_file )
     end
     
-    def define
-      JBossCloud::ApplianceSource.new( @config, @appliance_config )
-      JBossCloud::ApplianceSpec.new( @config, @appliance_config )
-      JBossCloud::ApplianceRPM.new( @config, @appliance_config )
-      JBossCloud::ApplianceKickstart.new( @config, @appliance_config )
-      JBossCloud::ApplianceImage.new( @config, @appliance_config )
+    if File.stat(file).mtime > Time.at(rstat.mtime) or File.size(file) != rstat.size
+      upload_file( sftp, file, remote_file )
+    else
+      puts "File exists and is same as local, skipping..."
+    end
+  end
+  
+  def upload_file( sftp, local, remote )
+    puts "Uploading file #{File.basename( local )} (#{File.size( local ) / 1024}kB)..."
+    sftp.upload!(local, remote)
+    sftp.setstat(remote, :permissions => 0644)
+  end
+  
+  def create_directory_if_not_exists( sftp, ssh, path )
+    begin
+      sftp.stat!( path )
+    rescue Net::SFTP::StatusException => e
+      raise unless e.code == 2
+      ssh.exec!( "mkdir -p #{path}" )
     end
   end
 end

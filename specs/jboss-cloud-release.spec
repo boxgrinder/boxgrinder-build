@@ -7,7 +7,7 @@ Summary:        JBoss-Cloud release files
 Group:          System Environment/Base
 License:        LGPL
 URL:            http://oddthesis.org/
-Source:         %{name}-%{version}.%{release}.tar.gz
+Source:         %{name}-%{version}.%{release}.tar.gz  
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
 
