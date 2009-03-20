@@ -53,7 +53,7 @@ module JBossCloud
       end
       
       desc "Sign all packages."
-      task 'rpm:sign:all' => [ 'rpm:all:sign:rpms', 'rpm:all:sign:srpms' ]
+      task 'rpm:sign:all' => [ 'rpm:sign:all:rpms', 'rpm:sign:all:srpms' ]
       
       desc "Upload all packages."
       task 'rpm:upload:all' => [ 'rpm:all' ] do
