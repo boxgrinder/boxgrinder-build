@@ -21,7 +21,6 @@
 require 'rake/tasklib'
 require 'net/ssh'
 require 'net/sftp'
-require 'jboss-cloud/ssh-utils'
 
 module JBossCloud
   class RPMUtils < Rake::TaskLib
@@ -110,5 +109,39 @@ module JBossCloud
         end
       end
     end
+    
+    def compare_file_and_upload( sftp, file, remote_file )
+      puts "File #{File.basename( file )}"
+      
+      begin
+        rstat = sftp.stat!( remote_file )
+      rescue Net::SFTP::StatusException => e
+        raise unless e.code == 2
+        upload_file( sftp, file, remote_file )
+        rstat = sftp.stat!( remote_file )
+      end
+      
+      if File.stat(file).mtime > Time.at(rstat.mtime) or File.size(file) != rstat.size
+        upload_file( sftp, file, remote_file )
+      else
+        puts "File exists and is same as local, skipping..."
+      end
+    end
+    
+    def upload_file( sftp, local, remote )
+      puts "Uploading file #{File.basename( local )} (#{File.size( local ) / 1024}kB)..."
+      sftp.upload!(local, remote)
+      sftp.setstat(remote, :permissions => 0644)
+    end
+    
+    def create_directory_if_not_exists( sftp, ssh, path )
+      begin
+        sftp.stat!( path )
+      rescue Net::SFTP::StatusException => e
+        raise unless e.code == 2
+        ssh.exec!( "mkdir -p #{path}" )
+      end
+    end
+    
   end
 end
