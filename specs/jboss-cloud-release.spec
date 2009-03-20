@@ -1,4 +1,4 @@
-%define dist_version 1.0
+%define dist_version 1
 
 Name:           jboss-cloud-release
 Version:        1.0.0
@@ -53,8 +53,8 @@ cat >> $RPM_BUILD_ROOT/etc/rpm/macros.dist << EOF
 # dist macros.
 
 %%jboss-cloud     %{dist_version}
-%%dist            .jbc%{dist_version}
-%%jbc%{dist_version}   1
+%%dist            .cloud%{dist_version}
+%%cloud%{dist_version}   1
 EOF
 
 %clean

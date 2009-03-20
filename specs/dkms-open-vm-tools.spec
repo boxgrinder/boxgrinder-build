@@ -10,7 +10,7 @@
 
 Name:      dkms-open-vm-tools
 Version:   %{builddate}
-Release:   %{buildver}.1%{?dist}
+Release:   %{buildver}
 Summary:   VMware Tools
 Group:     Applications/Multimedia
 License:   LGPLv2+
