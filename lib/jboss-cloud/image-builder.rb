@@ -36,13 +36,13 @@ require 'ostruct'
 
 module JBossCloud
   class ImageBuilder   
-    def initialize( project_config )     
+    def initialize( project_config = Hash.new )     
       # validates parameters, this is a pre-validation
       ApplianceConfigParameterValidator.new.validate
       
-      name              = project_config[:name]
-      version           = project_config[:version]
-      release           = project_config[:release]
+      name              = project_config[:name]     || DEFAULT_PROJECT_CONFIG[:name]
+      version           = project_config[:version]  || DEFAULT_PROJECT_CONFIG[:version]
+      release           = project_config[:release]  || DEFAULT_PROJECT_CONFIG[:release]
       
       # dirs
       

@@ -60,6 +60,9 @@ module JBossCloud
   }
   
   DEFAULT_PROJECT_CONFIG = {
+    :name              => 'JBoss-Cloud',
+    :version           => '1.0.0.Beta3',
+    :release           => '1',
     :dir_build         => 'build',
     #:topdir            => "#{self.} build/topdir",
     :dir_sources_cache => 'sources-cache',

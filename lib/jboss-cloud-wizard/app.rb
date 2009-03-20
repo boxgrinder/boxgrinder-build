@@ -20,25 +20,22 @@
 
 require 'optparse' 
 require 'ostruct'
+require 'yaml'
 require 'jboss-cloud-wizard/wizard'
 
 module JBossCloudWizard
   class App
 
-    DEFAULT_CONFIG = {
-      :dir_appliances     => 'appliances'
-    }
-
-    def initialize( config )
+    def initialize( config = Hash.new )
       @arguments = ARGV
       @stdin     = STDIN
 
       @options                  = OpenStruct.new
       @options.verbose          = false
-      @options.name             = config[:name]
-      @options.version          = config[:version]
-      @options.release          = config[:release]
-      @options.dir_appliances   = config[:dir_appliances] || DEFAULT_CONFIG[:dir_appliances]
+      @options.name             = config[:name]           || "JBoss-Cloud Support"
+      @options.version          = config[:version]        || "1.0.0.Beta3"
+      @options.release          = config[:release]        || "1"
+      @options.dir_appliances   = config[:dir_appliances] || "appliances"
 
       validate
       #todo initialize all paths
