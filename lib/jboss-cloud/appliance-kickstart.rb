@@ -174,7 +174,8 @@ module JBossCloud
           repos << repo_line
         end
       end
-      return [ repos, excludes ]
+      
+      return [ repos, [ excludes ] ]
     end
   end
   
