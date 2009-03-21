@@ -59,9 +59,7 @@ module JBossCloud
       
       definition['local_repos'] << "repo --name=extra-rpms --cost=1 --baseurl=file://#{Dir.pwd}/extra-rpms/noarch" if ( File.exist?( "extra-rpms" ) )
       
-      for repo in valid_repos
-        definition['repos'] << "repo --name=#{repo[0]} --cost=40 --#{repo[1]}=#{repo[2]}"   
-      end
+      all_excludes = []
       
       for appliance_name in @appliance_config.appliances
         if ( File.exist?( "#{@config.dir_appliances}/#{appliance_name}/#{appliance_name}.post" ) )
@@ -69,14 +67,17 @@ module JBossCloud
           definition['post_script'] += File.read( "#{@config.dir_appliances}/#{appliance_name}/#{appliance_name}.post" )
         end
         
-        all_excludes = []
-        
         repo_lines, repo_excludes = read_repositories( "#{@config.dir_appliances}/#{appliance_name}/#{appliance_name}.appl" )
         definition['repos'] += repo_lines
-        all_excludes += repo_excludes        
+        all_excludes += repo_excludes unless repo_excludes.empty?     
       end
       
-      definition['exclude_clause'] = "--excludepkgs=#{all_excludes.join(',')}" unless ( all_excludes.nil? or all_excludes.empty? )
+      for repo in valid_repos
+        repo_def = "repo --name=#{repo[0]} --cost=40 --#{repo[1]}=#{repo[2]}"
+        repo_def += " --excludepkgs=#{all_excludes.join(',')}" unless all_excludes.empty?
+        
+        definition['repos'] <<  repo_def
+      end
       
       definition
     end
@@ -175,7 +176,7 @@ module JBossCloud
         end
       end
       
-      return [ repos, [ excludes ] ]
+      return [ repos, excludes ]
     end
   end
   
