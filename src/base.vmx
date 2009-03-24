@@ -39,7 +39,7 @@ scsi0.present = "TRUE"
 scsi0.virtualDev = "lsilogic"
 
 ethernet0.present = "TRUE"
-#ethernet0.connectionType = "nat"
+ethernet0.connectionType = "nat"
 ethernet0.networkName = "#NETWORK_NAME#"
 ethernet0.addressType = "generated"
 ethernet0.generatedAddressOffset = "0"
