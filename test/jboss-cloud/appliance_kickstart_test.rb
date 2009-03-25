@@ -50,8 +50,8 @@ class ApplianceKickstartTest < Test::Unit::TestCase
     
     assert_operator(definition['repos'].size, :==, 2)
     
-    assert_equal( definition['repos'][0], "repo --name=fedora-rawhide-base --cost=40 --mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=rawhide&arch=i386" )
-    assert_equal( definition['repos'][1], "repo --name=postgresql --baseurl=http://yum.pgsqlrpms.org/8.3/fedora/fedora-10-i386/" )
+    assert_equal( definition['repos'][0], "repo --name=postgresql --baseurl=http://yum.pgsqlrpms.org/8.3/fedora/fedora-10-i386/" )
+    assert_equal( definition['repos'][1], "repo --name=fedora-rawhide-base --cost=40 --mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=rawhide&arch=i386" )
     
   end
   
@@ -71,9 +71,10 @@ class ApplianceKickstartTest < Test::Unit::TestCase
     
     assert_operator(definition['repos'].size, :==, 3)
     
-    assert_equal( definition['repos'][0], "repo --name=fedora-10-base --cost=40 --mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=fedora-10&arch=i386" )
-    assert_equal( definition['repos'][1], "repo --name=fedora-10-updates --cost=40 --mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=updates-released-f10&arch=i386" )
-    assert_equal( definition['repos'][2], "repo --name=postgresql --baseurl=http://yum.pgsqlrpms.org/8.3/fedora/fedora-10-i386/" )
+    assert_equal( definition['repos'][0], "repo --name=postgresql --baseurl=http://yum.pgsqlrpms.org/8.3/fedora/fedora-10-i386/" )
+    assert_equal( definition['repos'][1], "repo --name=fedora-10-base --cost=40 --mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=fedora-10&arch=i386" )
+    assert_equal( definition['repos'][2], "repo --name=fedora-10-updates --cost=40 --mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=updates-released-f10&arch=i386" )
+
     
   end
 end
