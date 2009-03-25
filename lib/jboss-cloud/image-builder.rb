@@ -27,15 +27,16 @@ require 'jboss-cloud/rpm-utils'
 require 'jboss-cloud/appliance'
 require 'jboss-cloud/config'
 require 'jboss-cloud/jboss-cloud-release'
-require 'jboss-cloud/validator/appliance-validator'
-require 'jboss-cloud/validator/config-validator'
+require 'jboss-cloud/validator/validator'
 require 'jboss-cloud/validator/appliance-config-parameter-validator'
 require 'jboss-cloud/appliance-config-helper'
 require 'jboss-cloud/defaults'
+require 'jboss-cloud/helpers/rake-helper'
 require 'ostruct'
+require 'yaml'
 
-module JBossCloud
-  class ImageBuilder   
+module JBossCloud 
+  class ImageBuilder 
     def initialize( project_config = Hash.new )     
       # validates parameters, this is a pre-validation
       ApplianceConfigParameterValidator.new.validate
@@ -59,26 +60,16 @@ module JBossCloud
       
       @config = Config.new( name, version, release, dir )
       
-      # validates config files, throws ValidationError if something is wrong
-      validate
-      
       define_rules
-    end
-    
-    def validate
-      ConfigValidator.new.validate( @config )
-      
-      Dir[ "#{@config.dir.appliances}/*/*.appl" ].each do |appliance_def|
-        ApplianceValidator.new( @config.dir.appliances, appliance_def ).validate
-      end
     end
     
     def define_rules
       
-      if @config.arch == "i386" and @config.build_arch == "x86_64"
-        puts "Building x86_64 images from i386 system isn't possible, aborting."
-        abort
-      end
+      puts
+      
+      JBossCloud::Validator.new( @config )
+      
+      Rake::Task[ 'validate:all' ].invoke
       
       JBossCloud::Topdir.new( @config )
       JBossCloud::JBossCloudRelease.new( @config )
@@ -86,8 +77,10 @@ module JBossCloud
       
       directory @config.dir_build
       
-      puts "\n\rCurrent architecture:\t#{@config.arch}"
-      puts "Building architecture:\t#{@config.build_arch}\n\r"
+      if JBossCloud.building_task?
+        puts "\n\rCurrent architecture:\t#{@config.arch}"
+        puts "Building architecture:\t#{@config.build_arch}\n\r"
+      end
       
       Dir[ "#{@config.dir.base}/specs/*.spec" ].each do |spec_file|
         JBossCloud::RPM.new( @config, spec_file )

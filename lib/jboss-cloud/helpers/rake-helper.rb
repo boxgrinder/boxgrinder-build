@@ -19,10 +19,22 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 module JBossCloud
-  class ValidationError < StandardError
+  def self.default_task?
+    Rake.application.top_level_tasks.include?("default")
   end
   
-  class ApplianceValidationError < ValidationError
-    
+  def self.validation_task?
+    return false if Rake.application.top_level_tasks.include?("default")
+    Rake.application.top_level_tasks.each do |task|
+      return true if task.match(/^validate:/)
+    end
+    false
+  end
+  
+  def self.building_task?
+    Rake.application.top_level_tasks.each do |task|
+      return true if (task.match(/^appliance:/) or task.match(/^rpm:/)) and !task.match(/^rpm:sign/) and !task.match(/^rpm:upload/)
+    end
+    false
   end
 end

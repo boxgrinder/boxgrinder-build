@@ -24,18 +24,16 @@ require 'yaml'
 
 module JBossCloud
   class ApplianceValidator
-    def initialize( dir_appliances, appliance_def )
-      raise ValidationError, "Appliance directory doesn't exists" if dir_appliances.nil? or ( !File.exists?(File.dirname( dir_appliances )) && !File.directory?(File.dirname( dir_appliances )) )
-      
+    def initialize( dir_appliances, appliance_def )     
       @dir_appliances = dir_appliances
       
       #check if appliance_def is nil
-      raise ValidationError, "Appliance definition file must be specified" if appliance_def.nil?
+      raise ApplianceValidationError, "Appliance definition file must be specified" if appliance_def.nil? or appliance_def.length == 0
       
       @appliance_name = File.basename( appliance_def, '.appl' )
       
       # check if file exists
-      raise ValidationError, "Appliance definition file for '#{@appliance_name}' doesn't exists" unless File.exists?( appliance_def )
+      raise ApplianceValidationError, "Appliance definition file for '#{@appliance_name}' doesn't exists" unless File.exists?( appliance_def )
       
       @appliance_def = appliance_def
     end
@@ -43,15 +41,15 @@ module JBossCloud
     def validate
       @definition = YAML.load_file( @appliance_def )
       # check for summary
-      raise ValidationError, "Appliance definition file for '#{@appliance_name}' should have summary" if @definition['summary'].nil? or @definition['summary'].length == 0
+      raise ApplianceValidationError, "Appliance definition file for '#{@appliance_name}' should have summary" if @definition['summary'].nil? or @definition['summary'].length == 0
       # check if all dependent appliances exists
       appliances, valid = get_appliances(@appliance_name)
-      raise ValidationError, "Could not find all dependent appliances for multiappliance '#{@appliance_name}'" unless valid
+      raise ApplianceValidationError, "Could not find all dependent appliances for multiappliance '#{@appliance_name}'" unless valid
       # check appliance count
-      raise ValidationError, "Invalid appliance count for appliance '#{@appliance_name}'" unless appliances.size >= 1
+      raise ApplianceValidationError, "Invalid appliance count for appliance '#{@appliance_name}'" unless appliances.size >= 1
       # check if puppet configuration file exists
       puppet_file = "#{File.dirname( @appliance_def )}/#{@appliance_name}.pp"      
-      raise ValidationError, "Puppet configuration file '#{puppet_file}' doesn't exists for appliance '#{@appliance_name}'" unless File.exists?( puppet_file )
+      raise ApplianceValidationError, "Puppet configuration file '#{puppet_file}' doesn't exists for appliance '#{@appliance_name}'" unless File.exists?( puppet_file )
     end
     
     protected

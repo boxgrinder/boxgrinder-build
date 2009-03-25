@@ -26,9 +26,14 @@ module JBossCloud
     def validate( config )
       @config = config
       
+      validate_arch
       validate_base_pkgs
       validate_vmware_files
       validate_appliance_dir
+    end
+    
+    def validate_arch
+      raise ValidationError, "Building x86_64 images from i386 system isn't possible" if @config.arch == "i386" and @config.build_arch == "x86_64"
     end
     
     def validate_base_pkgs
@@ -48,8 +53,6 @@ module JBossCloud
       raise ValidationError, "There are no appliances to build in appliances directory '#{@config.dir.appliances}'" if Dir[ "#{@config.dir.appliances}/*/*.appl" ].size == 0
     end
     
-    
-    
     def validate_vmware_files
       if File.exists?( "#{@config.dir.src}/base.vmdk" )
         @config.files.base_vmdk = "#{@config.dir.src}/base.vmdk"
@@ -67,7 +70,5 @@ module JBossCloud
       
       raise ValidationError, "base.vmx file doesn't exists, please check you configuration)" unless File.exists?( @config.files.base_vmx )
     end
-    
-    
   end
 end
