@@ -78,7 +78,7 @@ module JBossCloud
       directory @config.dir_build
       
       if JBossCloud.building_task?
-        puts "\n\rCurrent architecture:\t#{@config.arch}"
+        puts "Current architecture:\t#{@config.arch}"
         puts "Building architecture:\t#{@config.build_arch}\n\r"
       end
       
