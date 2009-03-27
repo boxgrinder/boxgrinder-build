@@ -22,6 +22,8 @@ require 'rake/tasklib'
 require 'fileutils'
 require 'jboss-cloud/validator/errors'
 require 'yaml'
+require 'rubygems'
+require 'EC2'
 
 module JBossCloud
   class ApplianceEC2Image < Rake::TaskLib
@@ -59,7 +61,9 @@ module JBossCloud
       raise ValidationError, "Please specify secret access key in EC2 configuration file (#{@ec2_data_file}). #{more_info}" if @ec2_data['secret_access_key'].nil?
       
       # remove dashes from account number
-      @ec2_data['account_number'] = @ec2_data['account_number'].to_s.gsub(/-/, '')      
+      @ec2_data['account_number'] = @ec2_data['account_number'].to_s.gsub(/-/, '')
+      
+      @ec2 = EC2::Base.new(:access_key_id => @ec2_data['access_key'], :secret_access_key => @ec2_data['secret_access_key'])
     end
     
     def define_tasks
@@ -72,7 +76,11 @@ module JBossCloud
       end
       
       task "appliance:#{@appliance_config.name}:ec2:upload" => [ @appliance_ec2_manifest_file ] do
-        upload_image
+        #upload_image
+      end
+      
+      task "appliance:#{@appliance_config.name}:ec2:register" => [ "appliance:#{@appliance_config.name}:ec2:upload" ] do
+        register_image
       end
       
       desc "Build #{@appliance_config.simple_name} appliance for Amazon EC2"
@@ -106,10 +114,21 @@ module JBossCloud
       end
     end
     
-    def register_ami
+    def register_image
       validate_config
       
-      # ec2-register -C [/Path/To/Cert] -K [/Path/To/Key] [MAH_BUCKET]/ec2-[TIMESTAMP].img.manifest.xml
+      registered = nil
+      
+      for image in @ec2.describe_images( :owner_id => @ec2_data['account_number'] ).imagesSet.item do
+        registered = image if (image.imageLocation.eql?( "#{@ec2_data['bucket_name']}/#{File.basename( @appliance_ec2_manifest_file )}" ))
+      end
+      
+      if registered
+        puts "Image is already registered under id: #{registered.imageId}"
+      else
+        registered = @ec2.register_image( :image_location => "#{@ec2_data['bucket_name']}/#{File.basename( @appliance_ec2_manifest_file )}" )
+        puts "Image successfully registered under id: #{registered.imageId}"
+      end
     end
     
     def convert_image_to_ec2_format
@@ -122,7 +141,7 @@ module JBossCloud
       
       # we're using ec2-converter from thincrust appliance tools (http://thincrust.net/tooling.html)
       command = "sudo ec2-converter -f #{raw_file} --inputtype diskimage -n #{@appliance_ec2_image_file} -t #{tmp_dir}"
-      exit_status =  execute_command( command )
+      exit_status = execute_command( command )
       
       unless exit_status
         puts "\nConverting #{@appliance_config.simple_name} appliance to EC2 format failed! Hint: consult above messages.\n\r"
