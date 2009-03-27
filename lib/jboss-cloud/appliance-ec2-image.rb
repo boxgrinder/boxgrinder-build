@@ -35,6 +35,7 @@ module JBossCloud
       @appliance_xml_file           = "#{@appliance_build_dir}/#{@appliance_config.name}.xml"
       @appliance_ec2_image_file     = "#{@appliance_build_dir}/#{@appliance_config.name}-ec2.img"
       @appliance_ec2_manifest_file  = "#{@bundle_dir}/#{@appliance_config.name}-ec2.img.manifest.xml"
+      @appliance_ec2_register_file  = "#{@appliance_build_dir}/ec2/register"
       
       @ec2_data_file = "#{ENV['HOME']}/.jboss-cloud/ec2"
       
@@ -48,9 +49,14 @@ module JBossCloud
         raise ValidationError, "EC2 configuration file (#{@ec2_data_file}), doesn't exists. Please create."
       end
       
-      raise ValidationError, "Please specify path to cert in EC2 configuration file (#{@ec2_data_file}). See http://oddthesis.org/theses/jboss-cloud/projects/jboss-cloud-support/pages/ec2-configuration-file for more info." if @ec2_data['cert_file'].nil?
-      raise ValidationError, "Please specify path to private key in EC2 configuration file (#{@ec2_data_file}). See http://oddthesis.org/theses/jboss-cloud/projects/jboss-cloud-support/pages/ec2-configuration-file for more info." if @ec2_data['key_file'].nil?
-      raise ValidationError, "Please specify account number in EC2 configuration file (#{@ec2_data_file}). See http://oddthesis.org/theses/jboss-cloud/projects/jboss-cloud-support/pages/ec2-configuration-file for more info." if @ec2_data['account_number'].nil?
+      more_info = "See http://oddthesis.org/theses/jboss-cloud/projects/jboss-cloud-support/pages/ec2-configuration-file for more info."
+      
+      raise ValidationError, "Please specify path to cert in EC2 configuration file (#{@ec2_data_file}). #{more_info}" if @ec2_data['cert_file'].nil?
+      raise ValidationError, "Please specify path to private key in EC2 configuration file (#{@ec2_data_file}). #{more_info}" if @ec2_data['key_file'].nil?
+      raise ValidationError, "Please specify account number in EC2 configuration file (#{@ec2_data_file}). #{more_info}" if @ec2_data['account_number'].nil?
+      raise ValidationError, "Please specify bucket name in EC2 configuration file (#{@ec2_data_file}). #{more_info}" if @ec2_data['bucket_name'].nil?
+      raise ValidationError, "Please specify access key in EC2 configuration file (#{@ec2_data_file}). #{more_info}" if @ec2_data['access_key'].nil?
+      raise ValidationError, "Please specify secret access key in EC2 configuration file (#{@ec2_data_file}). #{more_info}" if @ec2_data['secret_access_key'].nil?
       
       # remove dashes from account number
       @ec2_data['account_number'] = @ec2_data['account_number'].to_s.gsub(/-/, '')      
@@ -65,8 +71,8 @@ module JBossCloud
         bundle_image
       end
       
-      task "testbleh" do
-        bundle_image
+      task "appliance:#{@appliance_config.name}:ec2:upload" => [ @appliance_ec2_manifest_file ] do
+        upload_image
       end
       
       desc "Build #{@appliance_config.simple_name} appliance for Amazon EC2"
@@ -91,7 +97,13 @@ module JBossCloud
     def upload_image
       validate_config
       
-      # ec2-upload-bundle -b [MAH_BUCKET] -m /tmp/ec2-[TIMESTAMP].img.manifest.xml -a [ACCESS_KEY] -s [SECRET_ACCESS_KEY] /tmp/ec2-[TIMESTAMP].img.manifest.xml
+      command =  "ec2-upload-bundle -b #{@ec2_data['bucket_name']} -m #{@appliance_ec2_manifest_file} -a #{@ec2_data['access_key']} -s #{@ec2_data['secret_access_key']} --retry"
+      exit_status =  execute_command( command )
+      
+      unless exit_status
+        puts "\nUploading #{@appliance_config.simple_name} image to Amazon failed! Hint: consult above messages.\n\r"
+        abort
+      end
     end
     
     def register_ami
@@ -110,11 +122,10 @@ module JBossCloud
       
       # we're using ec2-converter from thincrust appliance tools (http://thincrust.net/tooling.html)
       command = "sudo ec2-converter -f #{raw_file} --inputtype diskimage -n #{@appliance_ec2_image_file} -t #{tmp_dir}"
-      
       exit_status =  execute_command( command )
       
       unless exit_status
-        puts "\nConverting #{@appliance_config.simple_name} to EC2 format failed! Hint: consult above messages.\n\r"
+        puts "\nConverting #{@appliance_config.simple_name} appliance to EC2 format failed! Hint: consult above messages.\n\r"
         abort
       end
     end
