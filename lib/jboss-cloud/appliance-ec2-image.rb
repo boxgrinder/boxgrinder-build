@@ -79,7 +79,7 @@ module JBossCloud
       
       FileUtils.mkdir_p( @bundle_dir )
       
-      command = "ec2-bundle-image -i #{@appliance_ec2_image_file} -c #{certs[0]} -k #{pks[0]} -u #{@nb} -r #{@config.build_arch} -d #{@bundle_dir}"
+      command = "ec2-bundle-image -i #{@appliance_ec2_image_file} -c #{@ec2_data['cert_file']} -k #{@ec2_data['key_file']} -u #{@nb} -r #{@config.build_arch} -d #{@bundle_dir}"
       exit_status =  execute_command( command )
       
       unless exit_status
@@ -89,10 +89,14 @@ module JBossCloud
     end
     
     def upload_image
+      validate_config
+      
       # ec2-upload-bundle -b [MAH_BUCKET] -m /tmp/ec2-[TIMESTAMP].img.manifest.xml -a [ACCESS_KEY] -s [SECRET_ACCESS_KEY] /tmp/ec2-[TIMESTAMP].img.manifest.xml
     end
     
     def register_ami
+      validate_config
+      
       # ec2-register -C [/Path/To/Cert] -K [/Path/To/Key] [MAH_BUCKET]/ec2-[TIMESTAMP].img.manifest.xml
     end
     
