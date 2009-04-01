@@ -127,7 +127,7 @@ module JBossCloud
         puts "Image is already registered under id: #{registered.imageId}"
       else
         registered = @ec2.register_image( :image_location => "#{@ec2_data['bucket_name']}/#{File.basename( @appliance_ec2_manifest_file )}" )
-        puts "Image successfully registered under id: #{registered.imageId}"
+        puts "Image successfully registered under id: #{registered.imageId}. Now you can run it using Elasticfox (http://developer.amazonwebservices.com/connect/entry.jspa?externalID=609) or AWS Management Console (https://console.aws.amazon.com/ec2/home)"
       end
     end
     
