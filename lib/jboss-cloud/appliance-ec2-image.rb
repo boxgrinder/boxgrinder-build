@@ -45,13 +45,19 @@ module JBossCloud
     end
     
     def validate_config
+      more_info = "See http://oddthesis.org/theses/jboss-cloud/projects/jboss-cloud-support/pages/ec2-configuration-file for more info."
+      
+      secure_permissions = "600"
+      
       if File.exists?( @ec2_data_file )
         @ec2_data = YAML.load_file( @ec2_data_file )
       else
-        raise ValidationError, "EC2 configuration file (#{@ec2_data_file}), doesn't exists. Please create."
+        raise ValidationError, "EC2 configuration file (#{@ec2_data_file}), doesn't exists. Please create it. #{more_info}"
       end
       
-      more_info = "See http://oddthesis.org/theses/jboss-cloud/projects/jboss-cloud-support/pages/ec2-configuration-file for more info."
+      conf_file_permissions = sprintf( "%o", File.stat( @ec2_data_file ).mode )[ 3, 5 ]
+      
+      raise ValidationError, "EC2 configuration file (#{@ec2_data_file}) has wrong permissions (#{conf_file_permissions}), please correct it, run: 'chmod #{secure_permissions} #{@ec2_data_file}'." unless conf_file_permissions.eql?( secure_permissions )      
       
       raise ValidationError, "Please specify path to cert in EC2 configuration file (#{@ec2_data_file}). #{more_info}" if @ec2_data['cert_file'].nil?
       raise ValidationError, "Please specify path to private key in EC2 configuration file (#{@ec2_data_file}). #{more_info}" if @ec2_data['key_file'].nil?
@@ -60,6 +66,15 @@ module JBossCloud
       raise ValidationError, "Please specify access key in EC2 configuration file (#{@ec2_data_file}). #{more_info}" if @ec2_data['access_key'].nil?
       raise ValidationError, "Please specify secret access key in EC2 configuration file (#{@ec2_data_file}). #{more_info}" if @ec2_data['secret_access_key'].nil?
       
+      raise ValidationError, "Certificate file (cert_file) specified in EC2 configuration file (#{@ec2_data_file}) doesn't exists. Please check your path." unless File.exists?( @ec2_data['cert_file'] )
+      raise ValidationError, "Private key file (key_file) specified in EC2 configuration file (#{@ec2_data_file}) doesn't exists. Please check your path." unless File.exists?( @ec2_data['key_file'] )
+      
+      cert_permission = sprintf( "%o", File.stat( @ec2_data['cert_file'] ).mode )[ 3, 5 ]
+      key_permission = sprintf( "%o", File.stat( @ec2_data['key_file'] ).mode )[ 3, 5 ]
+      
+      raise ValidationError, "Certificate file (cert_file) specified in EC2 configuration file (#{@ec2_data_file}) has wrong permissions (#{cert_permission}), please correct it, run: 'chmod #{secure_permissions} #{@ec2_data['cert_file']}'." unless cert_permission.eql?( secure_permissions )
+      raise ValidationError, "Private key file (key_file) specified in EC2 configuration file (#{@ec2_data_file}) has wrong permissions (#{key_permission}), please correct it, run: 'chmod #{secure_permissions} #{@ec2_data['key_file']}'." unless key_permission.eql?( secure_permissions )
+      
       # remove dashes from account number
       @ec2_data['account_number'] = @ec2_data['account_number'].to_s.gsub(/-/, '')
       
@@ -67,16 +82,18 @@ module JBossCloud
     end
     
     def define_tasks
+      directory @bundle_dir
+      
       file @appliance_ec2_image_file  => [ @appliance_xml_file ] do
         convert_image_to_ec2_format
       end
       
-      file @appliance_ec2_manifest_file => [ @appliance_ec2_image_file ] do
+      file @appliance_ec2_manifest_file => [ @appliance_ec2_image_file, @bundle_dir ] do
         bundle_image
       end
       
       task "appliance:#{@appliance_config.name}:ec2:upload" => [ @appliance_ec2_manifest_file ] do
-        #upload_image
+        upload_image
       end
       
       task "appliance:#{@appliance_config.name}:ec2:register" => [ "appliance:#{@appliance_config.name}:ec2:upload" ] do
@@ -91,8 +108,6 @@ module JBossCloud
     def bundle_image
       validate_config
       
-      FileUtils.mkdir_p( @bundle_dir )
-      
       command = "ec2-bundle-image -i #{@appliance_ec2_image_file} -c #{@ec2_data['cert_file']} -k #{@ec2_data['key_file']} -u #{@nb} -r #{@config.build_arch} -d #{@bundle_dir}"
       exit_status =  execute_command( command )
       
@@ -104,7 +119,7 @@ module JBossCloud
     
     def upload_image
       validate_config
-      
+
       command =  "ec2-upload-bundle -b #{@ec2_data['bucket_name']} -m #{@appliance_ec2_manifest_file} -a #{@ec2_data['access_key']} -s #{@ec2_data['secret_access_key']} --retry"
       exit_status =  execute_command( command )
       

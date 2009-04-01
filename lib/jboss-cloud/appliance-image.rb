@@ -46,7 +46,7 @@ module JBossCloud
       directory tmp_dir
       
       for appliance_name in @appliance_config.appliances
-        task "appliance:#{@appliance_config.name}:rpms" => [ "rpm:#{appliance_name}" ]  
+        task "appliance:#{@appliance_config.name}:rpms" => [ "rpm:#{appliance_name}" ]
       end
       
       file xml_file => [ kickstart_file, "appliance:#{@appliance_config.name}:rpms", tmp_dir ] do
