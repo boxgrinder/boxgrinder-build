@@ -1,13 +1,13 @@
 %define dist_version 1
 
 Name:           jboss-cloud-release
-Version:        1.0.0
-Release:        Beta3
+Version:        1.0.0.Beta3
+Release:        1
 Summary:        JBoss-Cloud release files
 Group:          System Environment/Base
 License:        LGPL
 URL:            http://oddthesis.org/
-Source:         %{name}-%{version}.%{release}.tar.gz  
+Source:         %{name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
 
@@ -19,7 +19,7 @@ Provides:       system-release = %{version}-%{release}
 This package installs base GPG keys and repositories.
 
 %prep
-%setup -n %{name}-%{version}.%{release}
+%setup -n %{name}-%{version}
 
 %build
 
