@@ -2,7 +2,7 @@
 
 Name:           jboss-cloud-release
 Version:        1.0.0.Beta3
-Release:        1
+Release:        2
 Summary:        JBoss-Cloud release files
 Group:          System Environment/Base
 License:        LGPL
