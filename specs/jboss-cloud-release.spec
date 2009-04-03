@@ -1,4 +1,5 @@
 %define dist_version 1
+%define os_version 10
 
 Name:           jboss-cloud-release
 Version:        1.0.0.Beta3

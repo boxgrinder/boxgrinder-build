@@ -6,8 +6,10 @@ dkms
 jboss-cloud-release
 
 #for vmware guesting
-dkms-open-vm-tools
-vm2-support
+#dkms-open-vm-tools
+#vm2-support
+
+openssh-clients
 
 #needed to disable selinux
 lokkit

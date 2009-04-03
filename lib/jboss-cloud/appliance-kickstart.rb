@@ -79,6 +79,11 @@ module JBossCloud
         definition['repos'] <<  repo_def
       end
       
+      #rpmfusion_os_name = @appliance_config.os_name.eql?("rhel") ? "el" : @appliance_config.os_name
+
+      #definition['repos'] << "repo --name=rpmfusion-free-release-#{@appliance_config.arch} --cost=60 --mirrorlist=http://mirrors.rpmfusion.org/mirrorlist?repo=free-#{rpmfusion_os_name}-#{@appliance_config.os_version}&arch=#{@appliance_config.arch}"
+      #definition['repos'] << "repo --name=rpmfusion-free-updates-#{@appliance_config.arch} --cost=60 --mirrorlist=http://mirrors.rpmfusion.org/mirrorlist?repo=free-#{rpmfusion_os_name}-updates-released-#{@appliance_config.os_version}&arch=#{@appliance_config.arch}"
+      
       definition
     end
     
