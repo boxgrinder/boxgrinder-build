@@ -24,6 +24,7 @@ require 'jboss-cloud/topdir'
 require 'jboss-cloud/repodata'
 require 'jboss-cloud/rpm'
 require 'jboss-cloud/rpm-utils'
+require 'jboss-cloud/rpm-sign'
 require 'jboss-cloud/appliance'
 require 'jboss-cloud/config'
 require 'jboss-cloud/jboss-cloud-release'
@@ -84,10 +85,12 @@ module JBossCloud
       
       Dir[ "#{@config.dir.base}/specs/*.spec" ].each do |spec_file|
         JBossCloud::RPM.new( @config, spec_file )
+        JBossCloud::RPMSign.new( @config, spec_file )
       end
       
       Dir[ "#{@config.dir_specs}/extras/*.spec" ].each do |spec_file|
         JBossCloud::RPM.new( @config, spec_file )
+        JBossCloud::RPMSign.new( @config, spec_file )
       end
       
       Dir[ "#{@config.dir_appliances}/*/*.appl" ].each do |appliance_def|        

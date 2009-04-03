@@ -24,7 +24,7 @@ module JBossCloud
   SUPPORTED_OSES = {
     "fedora" => [ "10", "rawhide" ]
   }
-  
+   
   STABLE_RELEASES = {
     "fedora" => "10",
     "rhel" => "5"

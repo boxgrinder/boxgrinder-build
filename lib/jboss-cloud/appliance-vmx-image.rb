@@ -29,8 +29,12 @@ module JBossCloud
       @config            = config
       @appliance_config  = appliance_config
       
-      appliance_build_dir     = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
-      @appliance_xml_file     = "#{appliance_build_dir}/#{@appliance_config.name}.xml"
+      @appliance_build_dir    = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
+      @appliance_xml_file     = "#{@appliance_build_dir}/#{@appliance_config.name}.xml"
+      @base_directory         = File.dirname( @appliance_xml_file )
+      @base_raw_file          = "#{@base_directory}/#{@appliance_config.name}-sda.raw"
+      @vmware_directory       = "#{@base_directory}/vmware"
+      @base_vmware_raw_file   = "#{@vmware_directory}/#{@appliance_config.name}-sda.raw"
       
       define
     end
@@ -57,6 +61,64 @@ module JBossCloud
       total_sectors = gb_sectors * disk_size / 1024
       
       return [ c, h, s, total_sectors ]
+    end
+    
+    def install_packages
+      # TODO remove hardcoded versions
+      local_packages     = [ "#{@appliance_config.arch}/dkms-open-vm-tools-2009.03.18-154848.#{@appliance_config.arch}.rpm", "noarch/vm2-support-1.0.0.Beta1-1.noarch.rpm" ]
+      mount_directory    = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/vmware-mount-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
+      
+      loop_device = `sudo losetup -f 2>&1`.strip
+      
+      if !loop_device.match( /^\/dev\/loop/ )
+        puts "No free loop devices available, please free at least one. See 'losetup -d' command."
+        abort
+      end
+      
+      FileUtils.mkdir_p( mount_directory )
+      
+      appliance_jbcs_dir = "tmp/jboss-cloud-support"
+      appliance_rpms_dir = "tmp/jboss-cloud-support-rpms"
+      
+      puts "Mounting image #{File.basename( @base_vmware_raw_file )}"
+      
+      `sudo losetup -o 32256 #{loop_device} #{@base_vmware_raw_file}`     
+      
+      `sudo mount #{loop_device} -t ext3 #{mount_directory}`
+      `mkdir -p #{mount_directory}/#{appliance_jbcs_dir}`
+      `mkdir -p #{mount_directory}/#{appliance_rpms_dir}`
+      `sudo mount -t sysfs none #{mount_directory}/sys/`
+      `sudo mount -o bind /dev/ #{mount_directory}/dev/`
+      `sudo mount -t proc none #{mount_directory}/proc/`
+      `sudo mount -o bind /etc/resolv.conf #{mount_directory}/etc/resolv.conf`
+      `sudo mount -o bind #{@config.dir.base} #{mount_directory}/#{appliance_jbcs_dir}`
+      `sudo mount -o bind #{@config.dir.top}/#{@appliance_config.os_path}/RPMS #{mount_directory}/#{appliance_rpms_dir}`
+      
+      # import our GPG key
+      execute_command( "sudo chroot #{mount_directory} rpm --import /#{appliance_jbcs_dir}/src/jboss-cloud-release/RPM-GPG-KEY-oddthesis" )
+      
+      for local_package in local_packages
+        puts "Installing package #{File.basename( local_package )}..."
+        execute_command( "sudo chroot #{mount_directory} yum -y localinstall /#{appliance_rpms_dir}/#{local_package}" )
+      end
+      
+      puts "Unmounting image #{File.basename( @base_vmware_raw_file )}"
+      
+      `sudo umount #{mount_directory}/sys`
+      `sudo umount #{mount_directory}/dev`
+      `sudo umount #{mount_directory}/proc`
+      `sudo umount #{mount_directory}/etc/resolv.conf`      
+      `sudo umount #{mount_directory}/#{appliance_jbcs_dir}`
+      `sudo umount #{mount_directory}/#{appliance_rpms_dir}`
+      
+      `rm -rf #{mount_directory}/#{appliance_jbcs_dir}`
+      `rm -rf #{mount_directory}/#{appliance_rpms_dir}`
+      
+      `sudo umount #{mount_directory}`
+      `sudo losetup -d #{loop_device}`
+      
+      FileUtils.rm_rf( mount_directory )
+      
     end
     
     def change_vmdk_values( type )
@@ -100,11 +162,9 @@ module JBossCloud
       vmx_data
     end
     
-    def create_hardlink_to_disk_image( vmware_raw_file )
-      base_raw_file = File.dirname( @appliance_xml_file ) + "/#{@appliance_config.name}-sda.raw"
-      
+    def create_hardlink_to_disk_image( vmware_raw_file )      
       # Hard link RAW disk to VMware destination folder
-      FileUtils.ln( base_raw_file , vmware_raw_file ) if ( !File.exists?( vmware_raw_file ) || File.new( base_raw_file ).mtime > File.new( vmware_raw_file ).mtime )
+      FileUtils.ln( @base_vmware_raw_file , vmware_raw_file ) if ( !File.exists?( vmware_raw_file ) || File.new( @base_raw_file ).mtime > File.new( vmware_raw_file ).mtime )
     end
     
     def define_precursors
@@ -118,8 +178,10 @@ module JBossCloud
       vmware_enterprise_vmdk_file          = vmware_enterprise_output_folder + "/" + @appliance_config.name + '.vmdk'
       vmware_enterprise_raw_file           = vmware_enterprise_output_folder + "/#{@appliance_config.name}-sda.raw"
       
+      directory @vmware_directory
+      
       desc "Build #{super_simple_name} appliance for VMware personal environments (Server/Workstation/Fusion)"
-      task "appliance:#{@appliance_config.name}:vmware:personal" => [ @appliance_xml_file ] do
+      task "appliance:#{@appliance_config.name}:vmware:personal" => [ @base_vmware_raw_file ] do
         FileUtils.mkdir_p vmware_personal_output_folder
         
         # link disk image
@@ -133,7 +195,7 @@ module JBossCloud
       end
       
       desc "Build #{super_simple_name} appliance for VMware enterprise environments (ESX/ESXi)"
-      task "appliance:#{@appliance_config.name}:vmware:enterprise" => [ @appliance_xml_file ] do
+      task "appliance:#{@appliance_config.name}:vmware:enterprise" => [ @base_vmware_raw_file ] do
         FileUtils.mkdir_p vmware_enterprise_output_folder
         
         # link disk image
@@ -144,6 +206,14 @@ module JBossCloud
         
         # create disk descriptor file
         File.new( vmware_enterprise_vmdk_file, "w" ).puts( change_vmdk_values( "vmfs" ) )
+      end
+      
+      file @base_vmware_raw_file => [ @vmware_directory, @appliance_xml_file, "rpm:dkms-open-vm-tools:sign", "rpm:vm2-support:sign" ] do
+        puts "Copying VMware image file, this may take several minutes..."
+        
+        FileUtils.cp( @base_raw_file , @base_vmware_raw_file ) if ( !File.exists?( @base_vmware_raw_file ) || File.new( @base_raw_file ).mtime > File.new( @base_vmware_raw_file ).mtime )
+        
+        install_packages
       end
       
       #desc "Build #{super_simple_name} appliance for VMware"
