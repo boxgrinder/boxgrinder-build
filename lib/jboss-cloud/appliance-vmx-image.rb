@@ -20,6 +20,7 @@
 
 require 'rake/tasklib'
 require 'rexml/document'
+require 'jboss-cloud/appliance-image-customize'
 
 module JBossCloud
   
@@ -35,6 +36,8 @@ module JBossCloud
       @base_raw_file          = "#{@base_directory}/#{@appliance_config.name}-sda.raw"
       @vmware_directory       = "#{@base_directory}/vmware"
       @base_vmware_raw_file   = "#{@vmware_directory}/#{@appliance_config.name}-sda.raw"
+      
+      @appliance_image_customizer = ApplianceImageCustomize.new( @config, @appliance_config )
       
       define
     end
@@ -62,65 +65,7 @@ module JBossCloud
       
       return [ c, h, s, total_sectors ]
     end
-    
-    def install_packages
-      # TODO remove hardcoded versions
-      local_packages     = [ "#{@appliance_config.arch}/dkms-open-vm-tools-2009.03.18-154848.#{@appliance_config.arch}.rpm", "noarch/vm2-support-1.0.0.Beta1-1.noarch.rpm" ]
-      mount_directory    = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/vmware-mount-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
-      
-      loop_device = `sudo losetup -f 2>&1`.strip
-      
-      if !loop_device.match( /^\/dev\/loop/ )
-        puts "No free loop devices available, please free at least one. See 'losetup -d' command."
-        abort
-      end
-      
-      FileUtils.mkdir_p( mount_directory )
-      
-      appliance_jbcs_dir = "tmp/jboss-cloud-support"
-      appliance_rpms_dir = "tmp/jboss-cloud-support-rpms"
-      
-      puts "Mounting image #{File.basename( @base_vmware_raw_file )}"
-      
-      `sudo losetup -o 32256 #{loop_device} #{@base_vmware_raw_file}`     
-      
-      `sudo mount #{loop_device} -t ext3 #{mount_directory}`
-      `mkdir -p #{mount_directory}/#{appliance_jbcs_dir}`
-      `mkdir -p #{mount_directory}/#{appliance_rpms_dir}`
-      `sudo mount -t sysfs none #{mount_directory}/sys/`
-      `sudo mount -o bind /dev/ #{mount_directory}/dev/`
-      `sudo mount -t proc none #{mount_directory}/proc/`
-      `sudo mount -o bind /etc/resolv.conf #{mount_directory}/etc/resolv.conf`
-      `sudo mount -o bind #{@config.dir.base} #{mount_directory}/#{appliance_jbcs_dir}`
-      `sudo mount -o bind #{@config.dir.top}/#{@appliance_config.os_path}/RPMS #{mount_directory}/#{appliance_rpms_dir}`
-      
-      # import our GPG key
-      execute_command( "sudo chroot #{mount_directory} rpm --import /#{appliance_jbcs_dir}/src/jboss-cloud-release/RPM-GPG-KEY-oddthesis" )
-      
-      for local_package in local_packages
-        puts "Installing package #{File.basename( local_package )}..."
-        execute_command( "sudo chroot #{mount_directory} yum -y localinstall /#{appliance_rpms_dir}/#{local_package}" )
-      end
-      
-      puts "Unmounting image #{File.basename( @base_vmware_raw_file )}"
-      
-      `sudo umount #{mount_directory}/sys`
-      `sudo umount #{mount_directory}/dev`
-      `sudo umount #{mount_directory}/proc`
-      `sudo umount #{mount_directory}/etc/resolv.conf`      
-      `sudo umount #{mount_directory}/#{appliance_jbcs_dir}`
-      `sudo umount #{mount_directory}/#{appliance_rpms_dir}`
-      
-      `rm -rf #{mount_directory}/#{appliance_jbcs_dir}`
-      `rm -rf #{mount_directory}/#{appliance_rpms_dir}`
-      
-      `sudo umount #{mount_directory}`
-      `sudo losetup -d #{loop_device}`
-      
-      FileUtils.rm_rf( mount_directory )
-      
-    end
-    
+        
     def change_vmdk_values( type )
       vmdk_data = File.open( @config.files.base_vmdk ).read
       
@@ -213,7 +158,7 @@ module JBossCloud
         
         FileUtils.cp( @base_raw_file , @base_vmware_raw_file ) if ( !File.exists?( @base_vmware_raw_file ) || File.new( @base_raw_file ).mtime > File.new( @base_vmware_raw_file ).mtime )
         
-        install_packages
+        @appliance_image_customizer.install_packages( @base_vmware_raw_file,  { :local => [ "#{@appliance_config.arch}/dkms-open-vm-tools-2009.03.18-154848.#{@appliance_config.arch}.rpm", "noarch/vm2-support-1.0.0.Beta1-1.noarch.rpm" ]})
       end
       
       #desc "Build #{super_simple_name} appliance for VMware"

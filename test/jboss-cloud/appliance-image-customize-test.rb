@@ -1,5 +1,3 @@
-#!/usr/bin/env ruby 
-
 # JBoss, Home of Professional Open Source
 # Copyright 2009, Red Hat Middleware LLC, and individual contributors
 # by the @authors tag. See the copyright.txt in the distribution for a
@@ -20,20 +18,28 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require 'rubygems'
-require 'test/unit/ui/console/testrunner'
-require 'test/unit'
+require "test/unit"
+require 'jboss-cloud/appliance-image-customize'
+require 'jboss-cloud/validator/errors'
 
-$: << File.dirname("#{File.dirname( __FILE__ )}/../lib/jboss-cloud")
-
-Dir.chdir( File.dirname( __FILE__ ) )
-
-# tests to run
-require 'jboss-cloud/validator/appliance_validator_test'
-
-require 'jboss-cloud/config_test'
-require 'jboss-cloud/appliance_config_test'
-
-require 'jboss-cloud/appliance_vmware_image_test'
-require 'jboss-cloud/appliance_kickstart_test'
-require 'jboss-cloud/appliance-image-customize-test'
+class ApplianceImageCustomizeTest < Test::Unit::TestCase
+  def setup
+    @appliance_customize = JBossCloud::ApplianceImageCustomize.new( ConfigHelper.generate_config, ConfigHelper.generate_appliance_config )
+  end
+  
+  def test_empty_package_arrays
+    assert_nothing_raised do 
+      @appliance_customize.install_packages( "/no/raw/file.raw" )
+    end
+  end
+  
+  def test_raw_file_not_valid
+    exception = assert_raise JBossCloud::ValidationError do
+      @appliance_customize.install_packages( "/no/raw/file.raw", { :local => [ "i386/dkms-open-vm-tools-2009.03.18-154848.i386.rpm", "noarch/vm2-support-1.0.0.Beta1-1.noarch.rpm" ] } )  
+    end
+    assert_match /Raw file '\/no\/raw\/file.raw' doesn't exists, please specify valid raw file/, exception.message
+  end
+  
+  
+  
+end
