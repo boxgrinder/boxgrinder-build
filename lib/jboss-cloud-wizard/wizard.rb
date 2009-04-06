@@ -30,7 +30,7 @@ require 'fileutils'
 module JBossCloudWizard
   class Wizard
     
-    AVAILABLE_OUTPUT_FORMATS = ["RAW",  "VMware Enterprise (ESX/ESXi)", "VMware Personal (Player, Workstation, Server)"]
+    AVAILABLE_OUTPUT_FORMATS = ["RAW",  "VMware Enterprise (ESX/ESXi)", "VMware Personal (Player, Workstation, Server)", "Amazon EC2"]
     AVAILABLE_ARCHES = [ "i386", "x86_64" ]
     
     def initialize(options)
@@ -298,6 +298,7 @@ module JBossCloudWizard
       command += "rake appliance:#{@config.name}" if @config.output_format.to_i == 1
       command += "rake appliance:#{@config.name}:vmware:enterprise" if @config.output_format.to_i == 2
       command += "rake appliance:#{@config.name}:vmware:personal" if @config.output_format.to_i == 3
+      command += "rake appliance:#{@config.name}:ec2" if @config.output_format.to_i == 4
       
       unless execute( "#{command}", @options.verbose, log_file_name )
         puts "\n    Build failed. Check log file: '#{log_file_name}'"
