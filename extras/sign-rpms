@@ -1,0 +1,12 @@
+#!/usr/bin/expect -f
+
+set password [lindex $argv 0]
+
+foreach package [lrange $argv 1 end] {
+	spawn -noecho rpm --resign $package
+	expect -exact "Enter pass phrase: "
+	send "$password\r"
+	#expect -re "$package"
+}
+
+expect eof

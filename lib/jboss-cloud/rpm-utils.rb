@@ -21,6 +21,7 @@
 require 'rake/tasklib'
 require 'net/ssh'
 require 'net/sftp'
+require 'jboss-cloud/validator/errors'
 
 module JBossCloud
   class RPMUtils < Rake::TaskLib
@@ -32,23 +33,56 @@ module JBossCloud
       @oses   = SUPPORTED_OSES
       
       @connect_data_file = "#{ENV['HOME']}/.jboss-cloud/ssh_data"
+      @config_data_file = "#{ENV['HOME']}/.jboss-cloud/config"
       
       if File.exists?( @connect_data_file )
         @connect_data = YAML.load_file( @connect_data_file )
       end
       
+      @config_data = {}
+      
+      # TODO just for now, move this to image-builder, validate, make more globally 
+      if File.exists?( @config_data_file )
+        @config_data = YAML.load_file( @config_data_file )
+        @config_data.gpg_password.gsub!(/\$/, "\\$") unless @config_data.gpg_password.nil?
+      end
+      
       define
+    end
+    
+    def check_for_password
+      if @config_data.gpg_password.nil?
+        raise ValidationError, "You have no GPG password specified in JBoss-Cloud config file."
+      end
     end
     
     def define     
       task 'rpm:sign:all:srpms' => [ 'rpm:all' ] do
         puts "Signing SRPMs..."
-        execute_command "rpm --resign #{@config.dir_top}/#{APPLIANCE_DEFAULTS['os_name']}/#{APPLIANCE_DEFAULTS['os_version']}/SRPMS/*.src.rpm"
+        
+        check_for_password
+        
+        `#{@config.dir.base}/extras/sign-rpms #{@config_data.gpg_password} #{@config.dir_top}/#{APPLIANCE_DEFAULTS['os_name']}/#{APPLIANCE_DEFAULTS['os_version']}/SRPMS/*.src.rpm > /dev/null 2>&1`
+        
+        unless $?.to_i == 0
+          puts "An error occured, some SRPMs may be not signed, check your passphrase"
+        else
+          puts "All SRPMs successfully signed!"
+        end
       end
       
       task 'rpm:sign:all:rpms' => [ 'rpm:all' ] do
         puts "Signing RPMs..."
-        execute_command "rpm --resign #{@config.dir_top}/#{@config.os_path}/RPMS/*/*.rpm"
+        
+        check_for_password
+        
+        `#{@config.dir.base}/extras/sign-rpms #{@config_data.gpg_password} #{@config.dir_top}/#{@config.os_path}/RPMS/*/*.rpm > /dev/null 2>&1`
+        
+        unless $?.to_i == 0
+          puts "An error occured, some RPMs may be not signed, check your passphrase"
+        else
+          puts "All RPMs successfully signed!"
+        end
       end
       
       desc "Sign all packages."
