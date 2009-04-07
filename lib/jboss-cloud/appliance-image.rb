@@ -22,6 +22,7 @@ require 'rake/tasklib'
 require 'jboss-cloud/appliance-vmx-image'
 require 'jboss-cloud/appliance-ec2-image'
 require 'yaml'
+require 'jboss-cloud/aws/instance'
 
 module JBossCloud
   class ApplianceImage < Rake::TaskLib
@@ -58,6 +59,7 @@ module JBossCloud
       
       ApplianceVMXImage.new( @config, @appliance_config )
       ApplianceEC2Image.new( @config, @appliance_config )
+      AWSInstance.new( @config, @appliance_config )
       
     end
   end
