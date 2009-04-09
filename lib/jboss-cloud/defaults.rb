@@ -61,7 +61,7 @@ module JBossCloud
 
   DEFAULT_PROJECT_CONFIG = {
           :name              => 'JBoss-Cloud',
-          :version           => '1.0.0.Beta3',
+          :version           => '1.0.0.Beta4',
           :release           => '1',
           :dir_build         => 'build',
           #:topdir            => "#{self.} build/topdir",
@@ -73,9 +73,7 @@ module JBossCloud
           :dir_kickstarts    => 'kickstarts'
   }
 
-
   AWS_DEFAULTS = {
-          "bucket_prefix" => "jboss-cloud"
-  #/#{DEFAULT_PROJECT_CONFIG[:version]}
+          "bucket_prefix" => "#{DEFAULT_PROJECT_CONFIG[:name].downcase}/#{DEFAULT_PROJECT_CONFIG[:version]}"
   }
 end

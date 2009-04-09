@@ -57,7 +57,7 @@ module JBossCloud
       
       desc "Build #{simple_name} RPM."
       task "rpm:#{simple_name}"=>[ rpm_file ]
-      
+
       file rpm_file => [ 'rpm:topdir', @spec_file, "#{@config.dir.top}/#{@config.os_path}/SOURCES/jboss-cloud-release-#{@config.version}.tar.gz" ] do
         Dir.chdir( File.dirname( @spec_file ) ) do
           exit_status = execute_command "rpmbuild --define '_topdir #{@config.dir_root}/#{@topdir}/#{@config.os_path}' --target #{arch} -ba #{simple_name}.spec"

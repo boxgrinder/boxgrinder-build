@@ -1,9 +1,8 @@
-%define dist_version 1
-%define os_version 10
+%define dist_version #OS_VERSION#
 
 Name:           jboss-cloud-release
-Version:        1.0.0.Beta3
-Release:        2
+Version:        1.0.0.Beta4
+Release:        1
 Summary:        JBoss-Cloud release files
 Group:          System Environment/Base
 License:        LGPL
@@ -11,10 +10,9 @@ URL:            http://oddthesis.org/
 Source:         %{name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
-
 Obsoletes:      redhat-release
 Provides:       redhat-release
-Provides:       system-release = %{version}-%{release}
+Provides:       system-release = #OS_VERSION#-%{release}
 
 %description
 This package installs base GPG keys and repositories.
@@ -42,7 +40,7 @@ install -m 644 RPM-GPG-KEY* $RPM_BUILD_ROOT/etc/pki/rpm-gpg/
 
 # yum
 install -d -m 755 $RPM_BUILD_ROOT/etc/yum.repos.d
-cat oddthesis.repo | sed "s/#distro#/%{distro}/g" > $RPM_BUILD_ROOT/etc/yum.repos.d/oddthesis.repo
+cat oddthesis.repo > $RPM_BUILD_ROOT/etc/yum.repos.d/oddthesis.repo
 
 for file in *.repo ; do
   install -m 644 $file $RPM_BUILD_ROOT/etc/yum.repos.d

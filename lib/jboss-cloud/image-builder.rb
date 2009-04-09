@@ -36,18 +36,18 @@ require 'jboss-cloud/helpers/rake-helper'
 require 'ostruct'
 require 'yaml'
 
-module JBossCloud 
-  class ImageBuilder 
-    def initialize( project_config = Hash.new )     
+module JBossCloud
+  class ImageBuilder
+    def initialize( project_config = Hash.new )
       # validates parameters, this is a pre-validation
       ApplianceConfigParameterValidator.new.validate
-      
+
       name              = project_config[:name]     || DEFAULT_PROJECT_CONFIG[:name]
       version           = project_config[:version]  || DEFAULT_PROJECT_CONFIG[:version]
       release           = project_config[:release]  || DEFAULT_PROJECT_CONFIG[:release]
-      
+
       # dirs
-      
+
       dir               = OpenStruct.new
       dir.root          = `pwd`.strip
       dir.build         = project_config[:dir_build]         || DEFAULT_PROJECT_CONFIG[:dir_build]
@@ -58,42 +58,38 @@ module JBossCloud
       dir.appliances    = project_config[:dir_appliances]    || DEFAULT_PROJECT_CONFIG[:dir_appliances]
       dir.src           = project_config[:dir_src]           || DEFAULT_PROJECT_CONFIG[:dir_src]
       dir.kickstarts    = project_config[:dir_kickstarts]    || DEFAULT_PROJECT_CONFIG[:dir_kickstarts]
-      
+
       @config = Config.new( name, version, release, dir )
-      
+
       define_rules
     end
-    
+
     def define_rules
-      
-      puts
-      
+
       JBossCloud::Validator.new( @config )
-      
+
       Rake::Task[ 'validate:all' ].invoke
-      
+
       JBossCloud::Topdir.new( @config )
       JBossCloud::JBossCloudRelease.new( @config )
       JBossCloud::RPMUtils.new( @config )
-      
+
       directory @config.dir_build
-      
+
       if JBossCloud.building_task?
-        puts "Current architecture:\t#{@config.arch}"
-        puts "Building architecture:\t#{@config.build_arch}\n\r"
+        #puts "Current architecture:\t#{@config.arch}"
+        #puts "Building architecture:\t#{@config.build_arch}\n\r"
       end
-      
-      Dir[ "#{@config.dir.base}/specs/*.spec" ].each do |spec_file|
-        JBossCloud::RPM.new( @config, spec_file )
-        JBossCloud::RPMSign.new( @config, spec_file )
+
+      Rake::Task[ "#{@config.dir.top}/#{@config.os_path}/SPECS/jboss-cloud-release.spec" ].invoke
+
+      [ "#{@config.dir.base}/specs/*.spec", "#{@config.dir.specs}/extras/*.spec", "#{@config.dir.top}/#{@config.os_path}/SPECS/*.spec" ].each do |spec_file_dir|
+        Dir[ spec_file_dir ].each do |spec_file|
+          JBossCloud::RPM.new( @config, spec_file )
+        end
       end
-      
-      Dir[ "#{@config.dir_specs}/extras/*.spec" ].each do |spec_file|
-        JBossCloud::RPM.new( @config, spec_file )
-        JBossCloud::RPMSign.new( @config, spec_file )
-      end
-      
-      Dir[ "#{@config.dir_appliances}/*/*.appl" ].each do |appliance_def|        
+
+      Dir[ "#{@config.dir_appliances}/*/*.appl" ].each do |appliance_def|
         JBossCloud::Appliance.new( @config, ApplianceConfigHelper.new.config( appliance_def, @config ), appliance_def )
       end
     end
