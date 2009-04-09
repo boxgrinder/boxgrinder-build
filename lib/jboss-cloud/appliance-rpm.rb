@@ -20,6 +20,8 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
+require 'jboss-cloud/rpm-gpg-sign'
+
 module JBossCloud
   class ApplianceRPM < JBossCloud::RPM
     
@@ -37,7 +39,7 @@ module JBossCloud
       rpm_file              = "#{@config.dir_top}/#{@appliance_config.os_path}/RPMS/noarch/#{simple_name}-#{@config.version_with_release}.noarch.rpm"
       
       JBossCloud::RPM.provides[simple_name] = "#{simple_name}-#{@config.version_with_release}"
-      JBossCloud::RPMSign.new( @config, spec_file )
+      JBossCloud::RPMGPGSign.new( @config, spec_file )
       
       desc "Build #{simple_name} RPM."
       task "rpm:#{simple_name}"=>[ rpm_file ]

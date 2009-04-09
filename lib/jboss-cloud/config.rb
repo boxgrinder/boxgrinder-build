@@ -19,6 +19,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'jboss-cloud/defaults'
+require 'jboss-cloud/helpers/config-helper'
 require 'ostruct'
 
 module JBossCloud
@@ -28,15 +29,15 @@ module JBossCloud
       @arch = arch
       @os_name = os_name
       @os_version = os_version
-      
+
       @appliances = Array.new
     end
-    
+
     attr_reader :name
     attr_reader :arch
     attr_reader :os_name
     attr_reader :os_version
-    
+
     attr_accessor :vcpu
     attr_accessor :mem_size
     attr_accessor :disk_size
@@ -44,45 +45,47 @@ module JBossCloud
     attr_accessor :output_format
     attr_accessor :appliances
     attr_accessor :summary
-    
+
     # used to checking if configuration diffiers from previous in appliance-kickstart
+
     def hash
       # without output_format!
       "#{@name}-#{@arch}-#{@os_name}-#{@os_version}-#{@vcpu}-#{@mem_size}-#{@disk_size}-#{@network_name}-#{@appliances.join("-")}-#{@summary}".hash
     end
-    
+
     def simple_name
       File.basename( @name, '-appliance' )
     end
-    
+
     def os_path
       "#{@os_name}/#{@os_version}"
     end
-    
+
     def main_path
       "#{@arch}/#{os_path}"
     end
-    
+
     def appliance_path
       "appliances/#{main_path}/#{@name}"
     end
-    
+
     def eql?(other)
       hash == other.hash
     end
-    
+
   end
-  class Config   
-    def initialize( name, version, release, dir )
+  class Config
+    def initialize( name, version, release, dir, config_file )
       @name             = name
       @version          = version
       @release          = release
-      
       @dir              = dir
+      @config_file      = config_file
+
       # TODO better way to get this directory
       @dir.base         = "#{File.dirname( __FILE__ )}/../.."
       @files            = OpenStruct.new
-      
+
       @dir_rpms_cache   = @dir.rpms_cache
       @dir_src_cache    = @dir.src_cache
       @dir_root         = @dir.root
@@ -92,16 +95,26 @@ module JBossCloud
       @dir_appliances   = @dir.appliances
       @dir_src          = @dir.src
       @dir_kickstarts   = @dir.kickstarts
-      
+
       @dir_base         = @dir.base
+
+      @data = {}
+
+      if File.exists?( @config_file )
+        @data = YAML.load_file( @config_file )
+        @data.gpg_password.gsub!(/\$/, "\\$") unless @data.gpg_password.nil?
+      end
+
       @arch             = (-1.size) == 8 ? "x86_64" : "i386"
-      
+
       # it's save, we have validated it before
       @build_arch       = ENV['JBOSS_CLOUD_ARCH'].nil? ? @arch : ENV['JBOSS_CLOUD_ARCH']
       @os_name          = ENV['JBOSS_CLOUD_OS_NAME'].nil? ? APPLIANCE_DEFAULTS['os_name'] : ENV['JBOSS_CLOUD_OS_NAME']
       @os_version       = ENV['JBOSS_CLOUD_OS_VERSION'].nil? ? APPLIANCE_DEFAULTS['os_version'] : ENV['JBOSS_CLOUD_OS_VERSION']
+
+      @helper           = JBossCloud::ConfigHelper.new( self )
     end
-    
+
     attr_reader :name
     attr_reader :version
     attr_reader :release
@@ -119,18 +132,20 @@ module JBossCloud
     attr_reader :os_name
     attr_reader :os_version
     attr_reader :dir_kickstarts
-    
+    attr_reader :data
+    attr_reader :helper
+
     attr_reader :dir
     attr_reader :files
-    
+
     def os_path
       "#{@os_name}/#{@os_version}"
     end
-    
+
     def build_path
       "#{@arch}/#{os_path}"
     end
-    
+
     def version_with_release
       @version + ((@release.nil? or @release.empty?) ? "" : "-" + @release)
     end

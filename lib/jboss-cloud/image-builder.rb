@@ -24,7 +24,7 @@ require 'jboss-cloud/topdir'
 require 'jboss-cloud/repodata'
 require 'jboss-cloud/rpm'
 require 'jboss-cloud/rpm-utils'
-require 'jboss-cloud/rpm-sign'
+require 'jboss-cloud/gpg-sign'
 require 'jboss-cloud/appliance'
 require 'jboss-cloud/config'
 require 'jboss-cloud/jboss-cloud-release'
@@ -50,16 +50,18 @@ module JBossCloud
 
       dir               = OpenStruct.new
       dir.root          = `pwd`.strip
-      dir.build         = project_config[:dir_build]         || DEFAULT_PROJECT_CONFIG[:dir_build]
-      dir.top           = project_config[:dir_top]           || "#{dir.build}/topdir"
-      dir.src_cache     = project_config[:dir_sources_cache] || DEFAULT_PROJECT_CONFIG[:dir_sources_cache]
-      dir.rpms_cache    = project_config[:dir_rpms_cache]    || DEFAULT_PROJECT_CONFIG[:dir_rpms_cache]
-      dir.specs         = project_config[:dir_specs]         || DEFAULT_PROJECT_CONFIG[:dir_specs]
-      dir.appliances    = project_config[:dir_appliances]    || DEFAULT_PROJECT_CONFIG[:dir_appliances]
-      dir.src           = project_config[:dir_src]           || DEFAULT_PROJECT_CONFIG[:dir_src]
-      dir.kickstarts    = project_config[:dir_kickstarts]    || DEFAULT_PROJECT_CONFIG[:dir_kickstarts]
+      dir.build         = project_config[:dir_build]          || DEFAULT_PROJECT_CONFIG[:dir_build]
+      dir.top           = project_config[:dir_top]            || "#{dir.build}/topdir"
+      dir.src_cache     = project_config[:dir_sources_cache]  || DEFAULT_PROJECT_CONFIG[:dir_sources_cache]
+      dir.rpms_cache    = project_config[:dir_rpms_cache]     || DEFAULT_PROJECT_CONFIG[:dir_rpms_cache]
+      dir.specs         = project_config[:dir_specs]          || DEFAULT_PROJECT_CONFIG[:dir_specs]
+      dir.appliances    = project_config[:dir_appliances]     || DEFAULT_PROJECT_CONFIG[:dir_appliances]
+      dir.src           = project_config[:dir_src]            || DEFAULT_PROJECT_CONFIG[:dir_src]
+      dir.kickstarts    = project_config[:dir_kickstarts]     || DEFAULT_PROJECT_CONFIG[:dir_kickstarts]
 
-      @config = Config.new( name, version, release, dir )
+      config_file       = ENV['JBOSS_CLOUD_CONFIG_FILE']      || "#{ENV['HOME']}/.jboss-cloud/config"
+
+      @config = Config.new( name, version, release, dir, config_file )
 
       define_rules
     end
@@ -73,6 +75,7 @@ module JBossCloud
       JBossCloud::Topdir.new( @config )
       JBossCloud::JBossCloudRelease.new( @config )
       JBossCloud::RPMUtils.new( @config )
+      JBossCloud::GPGSign.new( @config )
 
       directory @config.dir_build
 

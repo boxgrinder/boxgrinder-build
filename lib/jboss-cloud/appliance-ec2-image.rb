@@ -131,7 +131,7 @@ module JBossCloud
         return
       else
         ami_info = ec2.register_image( :image_location => AWSSupport.instance.bucket_manifest_key( @appliance_config.name ) )
-        puts "Image successfully registered under id: #{ami_info.imageId}. Now you can run it using Elasticfox (http://developer.amazonwebservices.com/connect/entry.jspa?externalID=609) or AWS Management Console (https://console.aws.amazon.com/ec2/home)"
+        puts "Image successfully registered under id: #{ami_info.imageId}. Now you can run 'rake appliance:#{@appliance_config.name}:ec2:run' to launch this image on EC2.'"
       end
     end
 
