@@ -1,18 +1,18 @@
 %define dist_version #OS_VERSION#
 
 Name:           jboss-cloud-release
-Version:        1.0.0.Beta4
+Version:        #OS_VERSION#
 Release:        1
 Summary:        JBoss-Cloud release files
 Group:          System Environment/Base
 License:        LGPL
 URL:            http://oddthesis.org/
-Source:         %{name}-%{version}.tar.gz
+Source:         %{name}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
 Obsoletes:      redhat-release
 Provides:       redhat-release
-Provides:       system-release = #OS_VERSION#-%{release}
+Provides:       system-release = %{version}-%{release}
 
 %description
 This package installs base GPG keys and repositories.

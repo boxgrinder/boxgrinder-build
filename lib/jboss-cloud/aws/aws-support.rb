@@ -63,7 +63,11 @@ module JBossCloud
       manifest_file   = AWSSupport.instance.bucket_manifest_key( appliance_name )
       ami_info        = nil
 
-      for image in ec2.describe_images( :owner_id => aws_data['account_number'] ).imagesSet.item do
+      images = ec2.describe_images( :owner_id => aws_data['account_number'] ).imagesSet
+
+      return nil if images.nil?
+
+      for image in images.item do
         ami_info = image if (image.imageLocation.eql?( manifest_file ))
       end
 

@@ -1,7 +1,7 @@
 #dkms to support rebuilding of modules, this isn't awesome
-gcc
-make
-dkms
+#gcc
+#make
+#dkms
 
 jboss-cloud-release
 
@@ -10,6 +10,7 @@ jboss-cloud-release
 #vm2-support
 
 openssh-clients
+wget
 
 #needed to disable selinux
 lokkit
@@ -68,6 +69,7 @@ iputils
 # Things it would be nice to loose
 -fedora-logos
 generic-logos
+-fedora-release
 -fedora-release-notes
 #%end
 

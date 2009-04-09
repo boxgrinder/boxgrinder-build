@@ -54,11 +54,12 @@ module JBossCloud
       rpm_file = "#{@topdir}/#{@config.os_path}/RPMS/#{arch}/#{simple_name}-#{version}-#{release}.#{arch}.rpm"
       JBossCloud::RPM.provides[simple_name] = "#{simple_name}-#{version}-#{release}"
       JBossCloud::RPM.provides_rpm_path[simple_name] = rpm_file
+      JBossCloud::RPMGPGSign.new( @config, @spec_file )
       
       desc "Build #{simple_name} RPM."
       task "rpm:#{simple_name}"=>[ rpm_file ]
 
-      file rpm_file => [ 'rpm:topdir', @spec_file, "#{@config.dir.top}/#{@config.os_path}/SOURCES/jboss-cloud-release-#{@config.version}.tar.gz" ] do
+      file rpm_file => [ 'rpm:topdir', @spec_file, "#{@config.dir.top}/#{@config.os_path}/SOURCES/jboss-cloud-release.tar.gz" ] do
         Dir.chdir( File.dirname( @spec_file ) ) do
           exit_status = execute_command "rpmbuild --define '_topdir #{@config.dir_root}/#{@topdir}/#{@config.os_path}' --target #{arch} -ba #{simple_name}.spec"
           unless exit_status

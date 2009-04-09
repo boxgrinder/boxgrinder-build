@@ -40,7 +40,7 @@ module JBossCloud
       
       JBossCloud::RPM.provides[simple_name] = "#{simple_name}-#{@config.version_with_release}"
       JBossCloud::RPMGPGSign.new( @config, spec_file )
-      
+
       desc "Build #{simple_name} RPM."
       task "rpm:#{simple_name}"=>[ rpm_file ]
       
@@ -54,7 +54,7 @@ module JBossCloud
         end
       end
       
-      file rpm_file=> [ 'rpm:dkms-open-vm-tools' ]
+      #file rpm_file=> [ 'rpm:dkms-open-vm-tools' ]
       file rpm_file=> [ 'rpm:vm2-support' ]
       file rpm_file=> [ 'rpm:jboss-cloud-release' ]
       

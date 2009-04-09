@@ -23,35 +23,36 @@ require 'rexml/document'
 require 'jboss-cloud/appliance-image-customize'
 
 module JBossCloud
-  
+
   class ApplianceVMXImage < Rake::TaskLib
-    
+
     def initialize( config, appliance_config )
       @config            = config
       @appliance_config  = appliance_config
-      
+
       @appliance_build_dir    = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
       @appliance_xml_file     = "#{@appliance_build_dir}/#{@appliance_config.name}.xml"
       @base_directory         = File.dirname( @appliance_xml_file )
       @base_raw_file          = "#{@base_directory}/#{@appliance_config.name}-sda.raw"
       @vmware_directory       = "#{@base_directory}/vmware"
       @base_vmware_raw_file   = "#{@vmware_directory}/#{@appliance_config.name}-sda.raw"
-      
+
       @appliance_image_customizer = ApplianceImageCustomize.new( @config, @appliance_config )
-      
+
       define
     end
-    
+
     def define
       define_precursors
     end
-    
+
     # returns value of cylinders, heads and sector for selected disk size (in GB)
+
     def generate_scsi_chs(disk_size)
       disk_size =  disk_size * 1024
-      
+
       gb_sectors = 2097152
-      
+
       if disk_size == 1024
         h = 128
         s = 32
@@ -59,59 +60,59 @@ module JBossCloud
         h = 255
         s = 63
       end
-      
+
       c = disk_size / 1024 * gb_sectors / (h*s)
       total_sectors = gb_sectors * disk_size / 1024
-      
+
       return [ c, h, s, total_sectors ]
     end
-        
+
     def change_vmdk_values( type )
       vmdk_data = File.open( @config.files.base_vmdk ).read
-      
+
       c, h, s, total_sectors = generate_scsi_chs( @appliance_config.disk_size )
-      
+
       is_enterprise = type.eql?("vmfs")
-      
-      vmdk_data.gsub!( /#NAME#/ , @appliance_config.name )
-      vmdk_data.gsub!( /#TYPE#/ , type )
-      vmdk_data.gsub!( /#EXTENT_TYPE#/ , is_enterprise ? "VMFS" : "FLAT" )
-      vmdk_data.gsub!( /#NUMBER#/ , is_enterprise ? "" : "0" )
-      vmdk_data.gsub!( /#HW_VERSION#/ , is_enterprise ? "4" : "3" )
-      vmdk_data.gsub!( /#CYLINDERS#/ , c.to_s )
-      vmdk_data.gsub!( /#HEADS#/ , h.to_s )
-      vmdk_data.gsub!( /#SECTORS#/ , s.to_s )
-      vmdk_data.gsub!( /#TOTAL_SECTORS#/ , total_sectors.to_s )
-      
+
+      vmdk_data.gsub!( /#NAME#/, @appliance_config.name )
+      vmdk_data.gsub!( /#TYPE#/, type )
+      vmdk_data.gsub!( /#EXTENT_TYPE#/, is_enterprise ? "VMFS" : "FLAT" )
+      vmdk_data.gsub!( /#NUMBER#/, is_enterprise ? "" : "0" )
+      vmdk_data.gsub!( /#HW_VERSION#/, is_enterprise ? "4" : "3" )
+      vmdk_data.gsub!( /#CYLINDERS#/, c.to_s )
+      vmdk_data.gsub!( /#HEADS#/, h.to_s )
+      vmdk_data.gsub!( /#SECTORS#/, s.to_s )
+      vmdk_data.gsub!( /#TOTAL_SECTORS#/, total_sectors.to_s )
+
       vmdk_data
     end
-    
+
     def change_common_vmx_values
       vmx_data = File.open( @config.files.base_vmx ).read
-      
+
       # replace version with current jboss cloud version
-      vmx_data.gsub!( /#VERSION#/ , @config.version_with_release )
+      vmx_data.gsub!( /#VERSION#/, @config.version_with_release )
       # change name
-      vmx_data.gsub!( /#NAME#/ , @appliance_config.name )
+      vmx_data.gsub!( /#NAME#/, @appliance_config.name )
       # and summary
-      vmx_data.gsub!( /#SUMMARY#/ , @appliance_config.summary )
+      vmx_data.gsub!( /#SUMMARY#/, @appliance_config.summary )
       # replace guestOS informations to: linux or otherlinux-64, this seems to be the savests values
-      vmx_data.gsub!( /#GUESTOS#/ , "#{@appliance_config.arch == "x86_64" ? "otherlinux-64" : "linux"}" )
+      vmx_data.gsub!( /#GUESTOS#/, "#{@appliance_config.arch == "x86_64" ? "otherlinux-64" : "linux"}" )
       # memory size
-      vmx_data.gsub!( /#MEM_SIZE#/ , @appliance_config.mem_size.to_s )
+      vmx_data.gsub!( /#MEM_SIZE#/, @appliance_config.mem_size.to_s )
       # memory size
-      vmx_data.gsub!( /#VCPU#/ , @appliance_config.vcpu.to_s )
+      vmx_data.gsub!( /#VCPU#/, @appliance_config.vcpu.to_s )
       # network name
-      vmx_data.gsub!( /#NETWORK_NAME#/ , @appliance_config.network_name )
-      
+      vmx_data.gsub!( /#NETWORK_NAME#/, @appliance_config.network_name )
+
       vmx_data
     end
-    
-    def create_hardlink_to_disk_image( vmware_raw_file )      
+
+    def create_hardlink_to_disk_image( vmware_raw_file )
       # Hard link RAW disk to VMware destination folder
-      FileUtils.ln( @base_vmware_raw_file , vmware_raw_file ) if ( !File.exists?( vmware_raw_file ) || File.new( @base_raw_file ).mtime > File.new( vmware_raw_file ).mtime )
+      FileUtils.ln( @base_vmware_raw_file, vmware_raw_file ) if ( !File.exists?( vmware_raw_file ) || File.new( @base_raw_file ).mtime > File.new( vmware_raw_file ).mtime )
     end
-    
+
     def define_precursors
       super_simple_name                    = File.basename( @appliance_config.name, '-appliance' )
       vmware_personal_output_folder        = File.dirname( @appliance_xml_file ) + "/vmware/personal"
@@ -122,45 +123,46 @@ module JBossCloud
       vmware_enterprise_vmx_file           = vmware_enterprise_output_folder + "/" + @appliance_config.name + '.vmx'
       vmware_enterprise_vmdk_file          = vmware_enterprise_output_folder + "/" + @appliance_config.name + '.vmdk'
       vmware_enterprise_raw_file           = vmware_enterprise_output_folder + "/#{@appliance_config.name}-sda.raw"
-      
+
       directory @vmware_directory
-      
+
       desc "Build #{super_simple_name} appliance for VMware personal environments (Server/Workstation/Fusion)"
       task "appliance:#{@appliance_config.name}:vmware:personal" => [ @base_vmware_raw_file ] do
         FileUtils.mkdir_p vmware_personal_output_folder
-        
+
         # link disk image
         create_hardlink_to_disk_image( vmware_personal_raw_file )
-        
+
         # create .vmx file
-        File.new( vmware_personal_vmx_file , "w" ).puts( change_common_vmx_values )
-        
+        File.open( vmware_personal_vmx_file, "w" ) {|f| f.write( change_common_vmx_values ) }
+        File.open( vmware_personal_vmx_file, "w" ) {|f| f.write( change_common_vmx_values ) }
+
         # create disk descriptor file
-        File.new( vmware_personal_vmdk_file, "w" ).puts( change_vmdk_values( "monolithicFlat" ) )
+        File.open( vmware_personal_vmdk_file, "w" ) {|f| f.write( change_vmdk_values( "monolithicFlat" ) ) }
       end
-      
+
       desc "Build #{super_simple_name} appliance for VMware enterprise environments (ESX/ESXi)"
       task "appliance:#{@appliance_config.name}:vmware:enterprise" => [ @base_vmware_raw_file ] do
         FileUtils.mkdir_p vmware_enterprise_output_folder
-        
+
         # link disk image
         create_hardlink_to_disk_image( vmware_enterprise_raw_file )
-        
+
         # create .vmx file
-        File.new( vmware_enterprise_vmx_file , "w" ).puts( change_common_vmx_values )
-        
+        File.open( vmware_enterprise_vmx_file, "w" ) {|f| f.write( change_common_vmx_values ) }
+
         # create disk descriptor file
-        File.new( vmware_enterprise_vmdk_file, "w" ).puts( change_vmdk_values( "vmfs" ) )
+        File.open( vmware_enterprise_vmdk_file, "w" ) {|f| f.write( change_vmdk_values( "vmfs" ) ) }
       end
-      
+
       file @base_vmware_raw_file => [ @vmware_directory, @appliance_xml_file, "rpm:vm2-support:sign" ] do
         puts "Copying VMware image file, this may take several minutes..."
-        
-        FileUtils.cp( @base_raw_file , @base_vmware_raw_file ) if ( !File.exists?( @base_vmware_raw_file ) || File.new( @base_raw_file ).mtime > File.new( @base_vmware_raw_file ).mtime )
-        
-        @appliance_image_customizer.customize( @base_vmware_raw_file,  { :local => [ "noarch/vm2-support-1.0.0.Beta1-1.noarch.rpm" ]})
+
+        FileUtils.cp( @base_raw_file, @base_vmware_raw_file ) if ( !File.exists?( @base_vmware_raw_file ) || File.new( @base_raw_file ).mtime > File.new( @base_vmware_raw_file ).mtime )
+
+        @appliance_image_customizer.customize( @base_vmware_raw_file,  { :local => [ "noarch/vm2-support-1.0.0.Beta1-1.noarch.rpm" ], :remote => [ "kmod-open-vm-tools" ] }, [ "http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-stable.noarch.rpm", "http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-stable.noarch.rpm" ])
       end
-      
+
       #desc "Build #{super_simple_name} appliance for VMware"
       #task "appliance:#{@appliance_config.name}:vmware" => [ "appliance:#{@appliance_config.name}:vmware:personal", "appliance:#{@appliance_config.name}:vmware:enterprise" ]
     end

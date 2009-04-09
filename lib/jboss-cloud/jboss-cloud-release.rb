@@ -27,7 +27,7 @@ module JBossCloud
     def initialize( config )
       @config = config
 
-      @file_name                    = "jboss-cloud-release-#{@config.version}"
+      @file_name                    = "jboss-cloud-release"
       @release_source               = "#{@config.dir.top}/#{@config.os_path}/SOURCES/#{@file_name}.tar.gz"
       @jboss_cloud_spec_base_file   = "#{@config.dir.base}/specs/base/jboss-cloud-release.spec"
       @jboss_cloud_spec_file        = "#{@config.dir.top}/#{@config.os_path}/SPECS/jboss-cloud-release.spec"
