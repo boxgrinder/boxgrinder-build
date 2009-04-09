@@ -18,7 +18,7 @@ Provides:       system-release = %{version}-%{release}
 This package installs base GPG keys and repositories.
 
 %prep
-%setup -n %{name}-%{version}
+%setup -n %{name}
 
 %build
 
@@ -58,6 +58,9 @@ EOF
 
 %clean
 rm -rf $RPM_BUILD_ROOT
+
+%post
+echo "distroverpkg=jboss-cloud-release" >> /etc/yum.conf
 
 %files
 %defattr(-,root,root,-)
