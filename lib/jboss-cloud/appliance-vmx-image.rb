@@ -153,12 +153,12 @@ module JBossCloud
         File.new( vmware_enterprise_vmdk_file, "w" ).puts( change_vmdk_values( "vmfs" ) )
       end
       
-      file @base_vmware_raw_file => [ @vmware_directory, @appliance_xml_file, "rpm:dkms-open-vm-tools:sign", "rpm:vm2-support:sign" ] do
+      file @base_vmware_raw_file => [ @vmware_directory, @appliance_xml_file, "rpm:vm2-support:sign" ] do
         puts "Copying VMware image file, this may take several minutes..."
         
         FileUtils.cp( @base_raw_file , @base_vmware_raw_file ) if ( !File.exists?( @base_vmware_raw_file ) || File.new( @base_raw_file ).mtime > File.new( @base_vmware_raw_file ).mtime )
         
-        @appliance_image_customizer.install_packages( @base_vmware_raw_file,  { :local => [ "#{@appliance_config.arch}/dkms-open-vm-tools-2009.03.18-154848.#{@appliance_config.arch}.rpm", "noarch/vm2-support-1.0.0.Beta1-1.noarch.rpm" ]})
+        @appliance_image_customizer.customize( @base_vmware_raw_file,  { :local => [ "noarch/vm2-support-1.0.0.Beta1-1.noarch.rpm" ]})
       end
       
       #desc "Build #{super_simple_name} appliance for VMware"

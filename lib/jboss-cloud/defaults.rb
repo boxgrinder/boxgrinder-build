@@ -74,6 +74,8 @@ module JBossCloud
   }
 
   AWS_DEFAULTS = {
-          "bucket_prefix" => "#{DEFAULT_PROJECT_CONFIG[:name].downcase}/#{DEFAULT_PROJECT_CONFIG[:version]}"
+          :bucket_prefix  => "#{DEFAULT_PROJECT_CONFIG[:name].downcase}/#{DEFAULT_PROJECT_CONFIG[:version]}",
+          :kernel_id      => "aki-a71cf9ce",
+          :ramdisk_id     => "ari-a51cf9cc"
   }
 end

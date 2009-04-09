@@ -29,7 +29,7 @@ module JBossCloud
       @appliance_config  = appliance_config
     end
     
-    def install_packages( raw_file, packages = {} )
+    def customize( raw_file, packages = {} )
       
       if ( packages[:local].nil? and packages[:remote].nil? )
         puts "No additional local or remote packages to install, skipping..."

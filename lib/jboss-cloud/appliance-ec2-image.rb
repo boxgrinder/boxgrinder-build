@@ -76,7 +76,7 @@ module JBossCloud
     def bundle_image
       aws_data = AWSSupport.instance.aws_data
 
-      command = "ec2-bundle-image -i #{@appliance_ec2_image_file} -c #{aws_data['cert_file']} -k #{aws_data['key_file']} -u #{aws_data['account_number']} -r #{@config.build_arch} -d #{@bundle_dir}"
+      command = "ec2-bundle-image -i #{@appliance_ec2_image_file} --kernel #{AWS_DEFAULTS[:kernel_id]} --ramdisk #{AWS_DEFAULTS[:ramdisk_id]} -c #{aws_data['cert_file']} -k #{aws_data['key_file']} -u #{aws_data['account_number']} -r #{@config.build_arch} -d #{@bundle_dir}"
       exit_status =  execute_command( command )
 
       unless exit_status

@@ -46,7 +46,7 @@ module JBossCloud
     end
 
     def bucket_key( appliance_name )
-      "#{aws_data['bucket_name']}/#{AWS_DEFAULTS['bucket_prefix']}/#{appliance_name}"
+      "#{aws_data['bucket_name']}/#{AWS_DEFAULTS[:bucket_prefix]}/#{appliance_name}"
     end
 
     def bucket_manifest_key( appliance_name )
