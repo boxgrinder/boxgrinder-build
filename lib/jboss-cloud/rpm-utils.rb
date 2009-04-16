@@ -22,117 +22,68 @@ require 'rake/tasklib'
 require 'net/ssh'
 require 'net/sftp'
 require 'jboss-cloud/validator/errors'
+require 'jboss-cloud/ssh/ssh-config'
+require 'jboss-cloud/helpers/ssh-helper'
 
 module JBossCloud
   class RPMUtils < Rake::TaskLib
-    
+
     def initialize( config )
       @config = config
-      
+
       @arches = SUPPORTED_ARCHES + [ "noarch" ]
       @oses   = SUPPORTED_OSES
-      
-      @connect_data_file = "#{ENV['HOME']}/.jboss-cloud/ssh_data"
 
-      
-      if File.exists?( @connect_data_file )
-        @connect_data = YAML.load_file( @connect_data_file )
-      end
-      
+      @config_file = "#{ENV['HOME']}/.jboss-cloud/config"
 
-      
       define
     end
 
     def define
       desc "Upload all packages."
-      task 'rpm:upload:all' => [ 'rpm:all' ] do
-        if (@connect_data.nil?)
-          puts "Please specify connection information in '#{@connect_data_file}' file, aborting."
-          abort
-        end
-        
-        Net::SSH.start( @connect_data['host'], @connect_data['username']) do |ssh|
-          
-          puts "Connecting to remote server..."
-          ssh.sftp.connect do |sftp|
-            
-            # create directory structure
-            create_directory_if_not_exists( sftp, ssh, @connect_data['remote_rpm_path'] )
-            
-            begin
-              sftp.stat!( @connect_data['remote_rpm_path'] )
-            rescue Net::SFTP::StatusException => e
-              raise unless e.code == 2
-              ssh.exec!( "mkdir -p #{@connect_data['remote_rpm_path']}" )
+      task 'rpm:upload:all' => [ 'rpm:sign:all' ] do
+        upload_packages
+      end
+    end
+
+    def upload_packages
+      ssh_config = SSHConfig.new( @config_file )
+
+      more_info = "See http://oddthesis.org/ for more info."
+
+      raise ValidationError, "Remote packages path (remote_rpm_path) not specified in ssh section in configuration file '#{@config_file}'. #{more_info}" if ssh_config.cfg['remote_rpm_path'].nil?
+
+      ssh_config.options['path'] = ssh_config.cfg['remote_rpm_path']
+
+      dirs = []
+      packages = {}
+
+      for os in @oses.keys
+        for version in @oses[os]
+          for arch in @arches
+            dirs.push( "#{os}/#{version}/RPMS/#{arch}" )
+            Dir[ "#{@config.dir.top}/#{os}/#{version}/RPMS/#{arch}/*.rpm" ].each do |file|
+              local_prefix_length = "#{@config.dir.top}/".length
+              packages[file[ local_prefix_length, file.length ]] = file
             end
-            
-            for os in @oses.keys
-              for version in @oses[os]
-                for arch in @arches 
-                  package_dir = "#{@connect_data['remote_rpm_path']}/#{os}/#{version}/#{arch}"
-                  
-                  create_directory_if_not_exists( sftp, ssh, package_dir )
-                  
-                  Dir[ "#{@config.dir.top}/#{os}/#{version}/RPMS/#{arch}/*.rpm" ].each do |rpm_file|             
-                    compare_file_and_upload( sftp, rpm_file, "#{package_dir}/#{File.basename( rpm_file )}" )
-                  end
-                end
-                
-                puts "Refreshing repository information in #{package_dir}..."
-                ssh.exec!( "createrepo #{package_dir}" )
-              end
-            end
-            
-            srpms_package_dir = "#{@connect_data['remote_rpm_path']}/SRPMS"
-            create_directory_if_not_exists( sftp, ssh, srpms_package_dir )
-            
-            Dir[ "#{@config.dir_top}/#{APPLIANCE_DEFAULTS['os_name']}/#{APPLIANCE_DEFAULTS['os_version']}/SRPMS/*.src.rpm" ].each do |srpm_file|
-              compare_file_and_upload( sftp, srpm_file, "#{srpms_package_dir}/#{File.basename( srpm_file )}" )
-            end
-            
-            puts "Refreshing repository information in #{srpms_package_dir}..."
-            ssh.exec!( "createrepo #{srpms_package_dir}" )
           end
-          
-          puts "Disconnecting from remote server..."
-          
         end
       end
-    end
-    
-    def compare_file_and_upload( sftp, file, remote_file )
-      puts "File #{File.basename( file )}"
-      
-      begin
-        rstat = sftp.stat!( remote_file )
-      rescue Net::SFTP::StatusException => e
-        raise unless e.code == 2
-        upload_file( sftp, file, remote_file )
-        rstat = sftp.stat!( remote_file )
+
+      Dir[ "#{@config.dir.top}/#{APPLIANCE_DEFAULTS['os_name']}/#{APPLIANCE_DEFAULTS['os_version']}/SRPMS/*.src.rpm" ].each do |file|
+        local_prefix_length = "#{@config.dir.top}/#{APPLIANCE_DEFAULTS['os_name']}/#{APPLIANCE_DEFAULTS['os_version']}/".length
+        packages[file[ local_prefix_length, file.length ]] = file
       end
-      
-      if File.stat(file).mtime > Time.at(rstat.mtime) or File.size(file) != rstat.size
-        upload_file( sftp, file, remote_file )
-      else
-        puts "File exists and is same as local, skipping..."
-      end
+
+      dirs.push( "SRPMS" )
+
+      ssh_helper = SSHHelper.new( ssh_config.options )
+
+      ssh_helper.connect
+      ssh_helper.upload_files( packages )
+      ssh_helper.createrepo( dirs )
+      ssh_helper.disconnect
     end
-    
-    def upload_file( sftp, local, remote )
-      puts "Uploading file #{File.basename( local )} (#{File.size( local ) / 1024}kB)..."
-      sftp.upload!(local, remote)
-      sftp.setstat(remote, :permissions => 0644)
-    end
-    
-    def create_directory_if_not_exists( sftp, ssh, path )
-      begin
-        sftp.stat!( path )
-      rescue Net::SFTP::StatusException => e
-        raise unless e.code == 2
-        ssh.exec!( "mkdir -p #{path}" )
-      end
-    end
-    
+
   end
 end
