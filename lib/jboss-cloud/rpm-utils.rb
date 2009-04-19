@@ -34,8 +34,6 @@ module JBossCloud
       @arches = SUPPORTED_ARCHES + [ "noarch" ]
       @oses   = SUPPORTED_OSES
 
-      @config_file = "#{ENV['HOME']}/.jboss-cloud/config"
-
       define
     end
 
@@ -46,14 +44,14 @@ module JBossCloud
       end
     end
 
+    def validate_rpm_upload_config( ssh_config )
+      raise ValidationError, "Remote packages path (remote_rpm_path) not specified in ssh section in configuration file '#{@config.config_file}'. #{DEFAULT_HELP_TEXT[:general]}" if ssh_config.cfg['remote_rpm_path'].nil?
+    end
+
     def upload_packages
-      ssh_config = SSHConfig.new( @config_file )
+      ssh_config = SSHConfig.new( @config )
 
-      more_info = "See http://oddthesis.org/ for more info."
-
-      raise ValidationError, "Remote packages path (remote_rpm_path) not specified in ssh section in configuration file '#{@config_file}'. #{more_info}" if ssh_config.cfg['remote_rpm_path'].nil?
-
-      ssh_config.options['path'] = ssh_config.cfg['remote_rpm_path']
+      validate_rpm_upload_config( ssh_config )
 
       dirs = []
       packages = {}
@@ -80,7 +78,7 @@ module JBossCloud
       ssh_helper = SSHHelper.new( ssh_config.options )
 
       ssh_helper.connect
-      ssh_helper.upload_files( packages )
+      ssh_helper.upload_files( ssh_config.cfg['remote_rpm_path'], packages )
       ssh_helper.createrepo( dirs )
       ssh_helper.disconnect
     end

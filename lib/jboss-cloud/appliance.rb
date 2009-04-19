@@ -25,6 +25,7 @@ require 'jboss-cloud/appliance-spec.rb'
 require 'jboss-cloud/appliance-rpm.rb'
 require 'jboss-cloud/appliance-kickstart.rb'
 require 'jboss-cloud/appliance-image.rb'
+require 'jboss-cloud/appliance-utils'
 
 module JBossCloud
   
@@ -44,6 +45,7 @@ module JBossCloud
       JBossCloud::ApplianceRPM.new( @config, @appliance_config )
       JBossCloud::ApplianceKickstart.new( @config, @appliance_config )
       JBossCloud::ApplianceImage.new( @config, @appliance_config )
+      JBossCloud::ApplianceUtils.new( @config, @appliance_config  )
     end
   end
 end

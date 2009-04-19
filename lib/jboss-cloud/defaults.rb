@@ -59,6 +59,10 @@ module JBossCloud
           }
   }
 
+  DEFAULT_HELP_TEXT = {
+          :general => "See http://oddthesis.org/ for more info."
+  }
+
   DEFAULT_PROJECT_CONFIG = {
           :name              => 'JBoss-Cloud',
           :version           => '1.0.0.Beta4',

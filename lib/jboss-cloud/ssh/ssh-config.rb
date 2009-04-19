@@ -23,8 +23,8 @@ require 'yaml'
 
 module JBossCloud
   class SSHConfig
-    def initialize( cfg_file )
-      @cfg_file = cfg_file
+    def initialize( config )
+      @config = config
       @options = {}
 
       # defaults
@@ -36,15 +36,13 @@ module JBossCloud
     end
 
     def validate
-      more_info = "See http://oddthesis.org/ for more info."
-
-      raise ValidationError, "Specified configuration file (#{@cfg_file}) doesn't exists. #{more_info}" unless File.exists?( @cfg_file )
+      raise ValidationError, "Specified configuration file (#{@config.config_file}) doesn't exists. #{DEFAULT_HELP_TEXT[:general]}" unless File.exists?( @config.config_file )
 
       # we need only ssh section
-      @cfg = YAML.load_file( @cfg_file )['ssh']
+      @cfg = @config.data['ssh']
 
-      raise ValidationError, "Host not specified in configuration file '#{@cfg_file}'. #{more_info}" if @cfg['host'].nil?
-      raise ValidationError, "Username not specified in configuration file '#{@cfg_file}'. #{more_info}" if @cfg['username'].nil?
+      raise ValidationError, "Host not specified in configuration file '#{@config.config_file}'. #{DEFAULT_HELP_TEXT[:general]}" if @cfg['host'].nil?
+      raise ValidationError, "Username not specified in configuration file '#{@config.config_file}'. #{DEFAULT_HELP_TEXT[:general]}" if @cfg['username'].nil?
 
       @options['host']      = @cfg['host']
       @options['username']  = @cfg['username']

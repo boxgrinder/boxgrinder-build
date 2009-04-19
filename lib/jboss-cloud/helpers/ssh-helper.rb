@@ -44,7 +44,7 @@ module JBossCloud
       @ssh = nil
     end
 
-    def upload_files( files = {} )
+    def upload_files( path, files = {} )
 
       return if files.size == 0
 
@@ -64,11 +64,11 @@ module JBossCloud
       @ssh.sftp.connect do |sftp|
 
         begin
-          sftp.stat!( @options['path'] )
+          sftp.stat!( path )
         rescue Net::SFTP::StatusException => e
           raise unless e.code == 2
           if @options['sftp_create_path']
-            @ssh.exec!( "mkdir -p #{@options['path']}" )
+            @ssh.exec!( "mkdir -p #{path}" )
           else
             raise
           end
@@ -78,7 +78,7 @@ module JBossCloud
 
         files.each do |key, local|
           name       = File.basename( local )
-          remote     = "#{@options['path']}/#{key}"
+          remote     = "#{path}/#{key}"
           size_b     = File.size( local )
           size_kb    = size_b / 1024
           nb_of      = "#{nb += 1}/#{files.size}"
