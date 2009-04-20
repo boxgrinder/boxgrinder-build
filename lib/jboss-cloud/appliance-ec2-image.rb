@@ -26,6 +26,7 @@ require 'rubygems'
 require 'EC2'
 require 'aws/s3'
 require 'jboss-cloud/aws/aws-support'
+require 'jboss-cloud/appliance-image-customize'
 include AWS::S3
 
 module JBossCloud
@@ -41,6 +42,8 @@ module JBossCloud
       @appliance_ec2_image_file     = "#{@appliance_build_dir}/#{@appliance_config.name}-ec2.img"
       @appliance_ec2_manifest_file  = "#{@bundle_dir}/#{@appliance_config.name}-ec2.img.manifest.xml"
       @appliance_ec2_register_file  = "#{@appliance_build_dir}/ec2/register"
+
+      @appliance_image_customizer   = ApplianceImageCustomize.new( @config, @appliance_config )
 
       define_tasks
     end
@@ -76,7 +79,7 @@ module JBossCloud
     def bundle_image
       aws_data = AWSSupport.instance.aws_data
 
-      command = "ec2-bundle-image -i #{@appliance_ec2_image_file} --kernel #{AWS_DEFAULTS[:kernel_id]} --ramdisk #{AWS_DEFAULTS[:ramdisk_id]} -c #{aws_data['cert_file']} -k #{aws_data['key_file']} -u #{aws_data['account_number']} -r #{@config.build_arch} -d #{@bundle_dir}"
+      command = "ec2-bundle-image -i #{@appliance_ec2_image_file} --kernel #{AWS_DEFAULTS[:kernel_id][@appliance_config.arch]} --ramdisk #{AWS_DEFAULTS[:ramdisk_id][@appliance_config.arch]} -c #{aws_data['cert_file']} -k #{aws_data['key_file']} -u #{aws_data['account_number']} -r #{@config.build_arch} -d #{@bundle_dir}"
       exit_status =  execute_command( command )
 
       unless exit_status
@@ -136,21 +139,32 @@ module JBossCloud
     end
 
     def convert_image_to_ec2_format
-      puts "Converting #{@appliance_config.simple_name} appliance image to EC2 format..."
 
-      raw_file = "#{@appliance_build_dir}/#{@appliance_config.name}-sda.raw"
-      tmp_dir = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/ec2-image-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
+
+      raw_file      = "#{@appliance_build_dir}/#{@appliance_config.name}-sda.raw"
+      tmp_dir       = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/ec2-image-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
+      new_raw_file  = "#{tmp_dir}/#{File.basename( raw_file )}"
 
       FileUtils.mkdir_p( tmp_dir )
 
+      puts "Copying RAW file to temporary directory..."
+
+      FileUtils.cp( raw_file, new_raw_file )
+
+      @appliance_image_customizer.customize( new_raw_file, { :rpm_remote => [ AWS_DEFAULTS[:kernel_rpm][@appliance_config.arch] ] })
+
+      puts "Converting #{@appliance_config.simple_name} appliance image to EC2 format..."
+
       # we're using ec2-converter from thincrust appliance tools (http://thincrust.net/tooling.html)
-      command = "sudo ec2-converter -f #{raw_file} --inputtype diskimage -n #{@appliance_ec2_image_file} -t #{tmp_dir}"
+      command = "sudo ec2-converter -f #{new_raw_file} --inputtype diskimage -n #{@appliance_ec2_image_file} -t #{tmp_dir}"
       exit_status = execute_command( command )
 
       unless exit_status
         puts "\nConverting #{@appliance_config.simple_name} appliance to EC2 format failed! Hint: consult above messages.\n\r"
         abort
       end
+
+      FileUtils.rm_rf( tmp_dir )
     end
 
   end

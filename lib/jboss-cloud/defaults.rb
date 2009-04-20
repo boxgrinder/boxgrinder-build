@@ -65,7 +65,7 @@ module JBossCloud
 
   DEFAULT_PROJECT_CONFIG = {
           :name              => 'JBoss-Cloud',
-          :version           => '1.0.0.Beta4',
+          :version           => '1.0.0.Beta5',
           :release           => '1',
           :dir_build         => 'build',
           #:topdir            => "#{self.} build/topdir",
@@ -78,8 +78,9 @@ module JBossCloud
   }
 
   AWS_DEFAULTS = {
-          :bucket_prefix  => "#{DEFAULT_PROJECT_CONFIG[:name].downcase}/#{DEFAULT_PROJECT_CONFIG[:version]}",
-          :kernel_id      => "aki-a71cf9ce",
-          :ramdisk_id     => "ari-a51cf9cc"
+          :bucket_prefix  => "#{DEFAULT_PROJECT_CONFIG[:name].downcase}/#{DEFAULT_PROJECT_CONFIG[:version]}-#{DEFAULT_PROJECT_CONFIG[:release]}",
+          :kernel_id      => { "i386" => "aki-a71cf9ce", "x86_64" => "aki-b51cf9dc" },
+          :ramdisk_id     => { "i386" => "ari-a51cf9cc", "x86_64" => "ari-b31cf9da" },
+          :kernel_rpm     => { "i386" => "http://kojipkgs.fedoraproject.org/packages/kernel-xen-2.6/2.6.21.7/2.fc8/i686/kernel-xen-2.6.21.7-2.fc8.i686.rpm", "x86_64" => "http://kojipkgs.fedoraproject.org/packages/kernel-xen-2.6/2.6.21.7/2.fc8/x86_64/kernel-xen-2.6.21.7-2.fc8.x86_64.rpm" }
   }
 end

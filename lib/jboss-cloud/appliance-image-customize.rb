@@ -31,7 +31,7 @@ module JBossCloud
 
     def customize( raw_file, packages = {}, repos = [] )
 
-      if ( packages[:local].nil? and packages[:remote].nil? and repos.size == 0 )
+      if ( packages[:yum_local].nil? and packages[:yum].nil? and packages[:rpm_remote].nil? and repos.size == 0 )
         puts "No additional local or remote packages to install, skipping..."
         # silent return, we don't have any packages to install
         return
@@ -103,15 +103,20 @@ module JBossCloud
       # import our GPG key
       execute_command( "sudo chroot #{mount_directory} rpm --import /#{appliance_jbcs_dir}/src/jboss-cloud-release/RPM-GPG-KEY-oddthesis" )
 
-      for local_package in packages[:local]
+      for local_package in packages[:yum_local]
         puts "Installing package #{File.basename( local_package )}..."
         execute_command( "sudo chroot #{mount_directory} yum -y localinstall /#{appliance_rpms_dir}/#{local_package}" )
-      end
+      end unless packages[:yum_local].nil?
 
-      for remote_package in packages[:remote]
-        puts "Installing package #{remote_package}..."
-        execute_command( "sudo chroot #{mount_directory} yum -y install #{remote_package}" )
-      end
+      for yum_package in packages[:yum]
+        puts "Installing package #{yum_package}..."
+        execute_command( "sudo chroot #{mount_directory} yum -y install #{yum_package}" )
+      end unless packages[:yum].nil?
+
+      for package in packages[:rpm_remote]
+        puts "Installing package #{package}..."
+        execute_command( "sudo chroot #{mount_directory} rpm -Uvh --force #{package}" )
+      end unless packages[:rpm_remote].nil?
     end
   end
 end

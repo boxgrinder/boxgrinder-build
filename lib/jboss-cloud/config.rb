@@ -96,6 +96,9 @@ module JBossCloud
       @dir_src          = @dir.src
       @dir_kickstarts   = @dir.kickstarts
 
+      @aws                = OpenStruct.new
+      @aws.bucket_prefix  = "#{@name.downcase}/#{version_with_release}"
+
       @dir_base         = @dir.base
 
       @data = {}
