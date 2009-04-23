@@ -44,6 +44,7 @@ module JBossCloud
       @appliance_ec2_register_file  = "#{@appliance_build_dir}/ec2/register"
 
       @appliance_image_customizer   = ApplianceImageCustomize.new( @config, @appliance_config )
+      @aws_support                  = AWSSupport.new( @config.aws )
 
       define_tasks
     end
@@ -77,9 +78,7 @@ module JBossCloud
     end
 
     def bundle_image
-      aws_data = AWSSupport.instance.aws_data
-
-      command = "ec2-bundle-image -i #{@appliance_ec2_image_file} --kernel #{AWS_DEFAULTS[:kernel_id][@appliance_config.arch]} --ramdisk #{AWS_DEFAULTS[:ramdisk_id][@appliance_config.arch]} -c #{aws_data['cert_file']} -k #{aws_data['key_file']} -u #{aws_data['account_number']} -r #{@config.build_arch} -d #{@bundle_dir}"
+      command = "ec2-bundle-image -i #{@appliance_ec2_image_file} --kernel #{AWS_DEFAULTS[:kernel_id][@appliance_config.arch]} --ramdisk #{AWS_DEFAULTS[:ramdisk_id][@appliance_config.arch]} -c #{@aws_support.aws_data['cert_file']} -k #{@aws_support.aws_data['key_file']} -u #{@aws_support.aws_data['account_number']} -r #{@config.build_arch} -d #{@bundle_dir}"
       exit_status =  execute_command( command )
 
       unless exit_status
@@ -89,15 +88,13 @@ module JBossCloud
     end
 
     def appliance_already_uploaded?
-      aws_data = AWSSupport.instance.aws_data
-
       begin
-        bucket = Bucket.find( aws_data['bucket_name'] )
+        bucket = Bucket.find( @aws_support.aws_data['bucket_name'] )
       rescue
         return false
       end
 
-      manifest_location = AWSSupport.instance.bucket_manifest_key( @appliance_config.name )
+      manifest_location = @aws_support.bucket_manifest_key( @appliance_config.name )
       manifest_location = manifest_location[ manifest_location.index( "/" ) + 1, manifest_location.length ]
 
       for object in bucket.objects do
@@ -108,15 +105,12 @@ module JBossCloud
     end
 
     def upload_image
-      aws_data  = AWSSupport.instance.aws_data
-      s3        = AWSSupport.instance.s3
-
       if appliance_already_uploaded?
         puts "Image for #{@appliance_config.simple_name} appliance is already uploaded, skipping..."
         return
       end
 
-      command = "ec2-upload-bundle -b #{AWSSupport.instance.bucket_key( @appliance_config.name )} -m #{@appliance_ec2_manifest_file} -a #{aws_data['access_key']} -s #{aws_data['secret_access_key']} --retry"
+      command = "ec2-upload-bundle -b #{@aws_support.bucket_key( @appliance_config.name )} -m #{@appliance_ec2_manifest_file} -a #{@aws_support.aws_data['access_key']} -s #{@aws_support.aws_data['secret_access_key']} --retry"
       exit_status = execute_command( command )
 
       unless exit_status
@@ -126,21 +120,18 @@ module JBossCloud
     end
 
     def register_image
-      ami_info    = AWSSupport.instance.ami_info( @appliance_config.name )
-      ec2         = AWSSupport.instance.ec2
+      ami_info    = @aws_support.ami_info( @appliance_config.name )
 
       if ami_info
         puts "Image is registered under id: #{ami_info.imageId}"
         return
       else
-        ami_info = ec2.register_image( :image_location => AWSSupport.instance.bucket_manifest_key( @appliance_config.name ) )
+        ami_info = @aws_support.ec2.register_image( :image_location => @aws_support.bucket_manifest_key( @appliance_config.name ) )
         puts "Image successfully registered under id: #{ami_info.imageId}. Now you can run 'rake appliance:#{@appliance_config.name}:ec2:run' to launch this image on EC2.'"
       end
     end
 
     def convert_image_to_ec2_format
-
-
       raw_file      = "#{@appliance_build_dir}/#{@appliance_config.name}-sda.raw"
       tmp_dir       = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/ec2-image-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
       new_raw_file  = "#{tmp_dir}/#{File.basename( raw_file )}"

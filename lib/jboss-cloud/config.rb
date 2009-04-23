@@ -138,6 +138,7 @@ module JBossCloud
     attr_reader :data
     attr_reader :helper
     attr_reader :config_file
+    attr_reader :aws
 
     attr_reader :dir
     attr_reader :files

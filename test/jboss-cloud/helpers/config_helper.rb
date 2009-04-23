@@ -33,7 +33,7 @@ class ConfigHelper
     dir.appliances   = params.dir_appliances || "../../../appliances"
     dir.src          = params.dir_src        || "../../../src"
     
-    config = JBossCloud::Config.new( params.name || "JBoss-Cloud", params.version || "1.0.0", params.release, dir )
+    config = JBossCloud::Config.new( params.name || "JBoss-Cloud", params.version || "1.0.0", params.release, dir, "" )
     
     # files
     config.files.base_vmdk  = params.base_vmdk      || "../../../src/base.vmdk"

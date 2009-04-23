@@ -32,6 +32,8 @@ module JBossCloud
       @instances_dir     = "#{ENV['HOME']}/.jboss-cloud/instances"
       @ec2_run_file      = "#{@instances_dir}/#{@appliance_config.name}.run"
 
+      @aws_support       = AWSSupport.new( @config.aws )
+
       define_tasks
     end
 
@@ -51,10 +53,8 @@ module JBossCloud
     end
 
     def run_instance
-      ec2       = AWSSupport.instance.ec2
-      ami_info  = AWSSupport.instance.ami_info( @appliance_config.name )
-
-      response = ec2.run_instances( :image_id => ami_info.imageId )
+      # TODO select image type
+      response = @aws_support.ec2.run_instances( :image_id => @aws_support.ami_info( @appliance_config.name ).imageId )
 
       ami_info = response.instancesSet.item[0]
 
@@ -64,8 +64,6 @@ module JBossCloud
     end
 
     def terminate_instance
-      ec2 = AWSSupport.instance.ec2
-
       if !File.exist?( @ec2_run_file )
         puts "No instances of #{@appliance_config.simple_name} appliance were launched."
         return
@@ -74,7 +72,7 @@ module JBossCloud
       ami_info = YAML.load_file(  @ec2_run_file )
 
       begin
-        instances = ec2.describe_instances( :instance_id => ami_info.instanceId  )
+        instances = @aws_support.ec2.describe_instances( :instance_id => ami_info.instanceId  )
       rescue
         puts "No running instances of #{@appliance_config.simple_name} appliance with ID = #{ami_info.instanceId}."
         FileUtils.rm( @ec2_run_file )
@@ -83,7 +81,7 @@ module JBossCloud
 
       for reservation in instances.reservationSet.item
         for instance in reservation.instancesSet.item
-          response = ec2.terminate_instances( :instance_id => instance.instanceId )
+          response = @aws_support.ec2..terminate_instances( :instance_id => instance.instanceId )
 
           puts "Instance of #{@appliance_config.simple_name} appliance with ID = #{instance.instanceId} is shutting down."
         end

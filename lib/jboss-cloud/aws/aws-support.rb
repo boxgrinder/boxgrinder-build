@@ -20,33 +20,28 @@
 
 require 'EC2'
 require 'aws/s3'
-require 'singleton'
 require 'jboss-cloud/defaults'
 
 module JBossCloud
   class AWSSupport
-    include Singleton
 
-    def initialize
-      aws_data
-    end
+    def initialize( aws_config )
+      @aws_config = aws_config
 
-    def ec2
-      @ec2 = EC2::Base.new(:access_key_id => @aws_data['access_key'], :secret_access_key => @aws_data['secret_access_key'])
-    end
-
-    def s3
-      @s3 = AWS::S3::Base.establish_connection!(:access_key_id => @aws_data['access_key'],  :secret_access_key => @aws_data['secret_access_key'] )
-    end
-
-    def aws_data
       aws_data_file = ENV['JBOSS_CLOUD_EC2_CONFIGURATION_FILE'] || "#{ENV['HOME']}/.jboss-cloud/ec2"
 
       @aws_data  = validate_aws_config( aws_data_file )
+
+      @ec2  = EC2::Base.new(:access_key_id => @aws_data['access_key'], :secret_access_key => @aws_data['secret_access_key'])
+      @s3   = AWS::S3::Base.establish_connection!(:access_key_id => @aws_data['access_key'],  :secret_access_key => @aws_data['secret_access_key'] )
     end
 
+    attr_reader :aws_data
+    attr_reader :ec2
+    attr_reader :s3
+
     def bucket_key( appliance_name )
-      "#{aws_data['bucket_name']}/#{AWS_DEFAULTS[:bucket_prefix]}/#{appliance_name}"
+      "#{@aws_data['bucket_name']}/#{@aws_config.bucket_prefix}/#{appliance_name}"
     end
 
     def bucket_manifest_key( appliance_name )
@@ -58,17 +53,14 @@ module JBossCloud
     end
 
     def ami_info( appliance_name )
-      ec2             = AWSSupport.instance.ec2
-      aws_data        = AWSSupport.instance.aws_data
-      manifest_file   = AWSSupport.instance.bucket_manifest_key( appliance_name )
-      ami_info        = nil
+      ami_info = nil
 
-      images = ec2.describe_images( :owner_id => aws_data['account_number'] ).imagesSet
+      images = @ec2.describe_images( :owner_id => @aws_data['account_number'] ).imagesSet
 
       return nil if images.nil?
 
       for image in images.item do
-        ami_info = image if (image.imageLocation.eql?( manifest_file ))
+        ami_info = image if (image.imageLocation.eql?( bucket_manifest_key( appliance_name ) ))
       end
 
       ami_info

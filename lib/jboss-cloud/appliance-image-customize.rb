@@ -20,6 +20,7 @@
 
 require 'rake/tasklib'
 require 'jboss-cloud/validator/errors'
+require 'jboss-cloud/exec'
 
 module JBossCloud
   class ApplianceImageCustomize < Rake::TaskLib
