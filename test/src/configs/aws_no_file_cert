@@ -1,0 +1,2 @@
+aws:
+  cert_file: /this/is/a/path

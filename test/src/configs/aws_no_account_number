@@ -1,0 +1,3 @@
+aws:
+  cert_file: src/aws/dumb.file
+  key_file: src/aws/dumb.file

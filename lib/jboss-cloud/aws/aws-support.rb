@@ -67,25 +67,22 @@ module JBossCloud
       more_info           = "See http://oddthesis.org/theses/jboss-cloud/projects/jboss-cloud-support/pages/ec2-configuration-file for more info."
       aws_data            = @config.data['aws']
 
-      #puts "AAAAAAAAAAAAAAA"
-      #puts @config.config_file
-
       raise ValidationError, "Please specify aws section in configuration file (#{@config.config_file}). #{more_info}" if aws_data.nil?
+
       raise ValidationError, "Please specify path to cert in aws section in configuration file (#{@config.config_file}). #{more_info}" if aws_data['cert_file'].nil?
-      raise ValidationError, "Please specify path to private key in aws secstion in configuration file (#{@config.config_file}). #{more_info}" if aws_data['key_file'].nil?
-      raise ValidationError, "Please specify account number in aws secstion in configuration file (#{@config.config_file}). #{more_info}" if aws_data['account_number'].nil?
-      raise ValidationError, "Please specify bucket name in aws secstion in configuration file (#{@config.config_file}). #{more_info}" if aws_data['bucket_name'].nil?
-      raise ValidationError, "Please specify access key in aws secstion in configuration file (#{@config.config_file}). #{more_info}" if aws_data['access_key'].nil?
-      raise ValidationError, "Please specify secret access key in aws secstion in configuration file (#{@config.config_file}). #{more_info}" if aws_data['secret_access_key'].nil?
-
-      raise ValidationError, "Certificate file (cert_file) specified in configuration file (#{@config.config_file}) doesn't exists. Please check your path." unless File.exists?( aws_data['cert_file'] )
-      raise ValidationError, "Private key file (key_file) specified in aws secstion in configuration file (#{@config.config_file}) doesn't exists. Please check your path." unless File.exists?( aws_data['key_file'] )
-
+      raise ValidationError, "Certificate file '#{aws_data['cert_file']}' specified in configuration file (#{@config.config_file}) doesn't exists. Please check your path." unless File.exists?( aws_data['cert_file'] )
       cert_permission = sprintf( "%o", File.stat( aws_data['cert_file'] ).mode )[ 3, 5 ]
-      key_permission = sprintf( "%o", File.stat( aws_data['key_file'] ).mode )[ 3, 5 ]
+      raise ValidationError, "Certificate file '#{aws_data['cert_file']}' specified in aws section in configuration file (#{@config.config_file}) has wrong permissions (#{cert_permission}), please correct it, run: 'chmod #{secure_permissions} #{aws_data['cert_file']}'." unless cert_permission.eql?( secure_permissions )
 
-      raise ValidationError, "Certificate file (cert_file) specified in aws secstion in configuration file (#{@config.config_file}) has wrong permissions (#{cert_permission}), please correct it, run: 'chmod #{secure_permissions} #{aws_data['cert_file']}'." unless cert_permission.eql?( secure_permissions )
-      raise ValidationError, "Private key file (key_file) specified in aws secstion in configuration file (#{@config.config_file}) has wrong permissions (#{key_permission}), please correct it, run: 'chmod #{secure_permissions} #{aws_data['key_file']}'." unless key_permission.eql?( secure_permissions )
+      raise ValidationError, "Please specify path to private key in aws section in configuration file (#{@config.config_file}). #{more_info}" if aws_data['key_file'].nil?
+      raise ValidationError, "Private key file '#{aws_data['key_file']}' specified in aws section in configuration file (#{@config.config_file}) doesn't exists. Please check your path." unless File.exists?( aws_data['key_file'] )
+      key_permission = sprintf( "%o", File.stat( aws_data['key_file'] ).mode )[ 3, 5 ]
+      raise ValidationError, "Private key file '#{aws_data['key_file']}' specified in aws section in configuration file (#{@config.config_file}) has wrong permissions (#{key_permission}), please correct it, run: 'chmod #{secure_permissions} #{aws_data['key_file']}'." unless key_permission.eql?( secure_permissions )
+
+      raise ValidationError, "Please specify account number in aws section in configuration file (#{@config.config_file}). #{more_info}" if aws_data['account_number'].nil?
+      raise ValidationError, "Please specify bucket name in aws section in configuration file (#{@config.config_file}). #{more_info}" if aws_data['bucket_name'].nil?
+      raise ValidationError, "Please specify access key in aws section in configuration file (#{@config.config_file}). #{more_info}" if aws_data['access_key'].nil?
+      raise ValidationError, "Please specify secret access key in aws section in configuration file (#{@config.config_file}). #{more_info}" if aws_data['secret_access_key'].nil?
 
       # remove dashes from account number
       aws_data['account_number'] = aws_data['account_number'].to_s.gsub(/-/, '')
