@@ -44,7 +44,7 @@ module JBossCloud
       @appliance_ec2_register_file  = "#{@appliance_build_dir}/ec2/register"
 
       @appliance_image_customizer   = ApplianceImageCustomize.new( @config, @appliance_config )
-      @aws_support                  = AWSSupport.new( @config.aws )
+      @aws_support                  = AWSSupport.new( @config )
 
       define_tasks
     end

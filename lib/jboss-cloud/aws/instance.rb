@@ -32,7 +32,7 @@ module JBossCloud
       @instances_dir     = "#{ENV['HOME']}/.jboss-cloud/instances"
       @ec2_run_file      = "#{@instances_dir}/#{@appliance_config.name}.run"
 
-      @aws_support       = AWSSupport.new( @config.aws )
+      @aws_support       = AWSSupport.new( @config )
 
       define_tasks
     end

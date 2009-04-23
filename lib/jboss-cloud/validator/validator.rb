@@ -68,7 +68,7 @@ module JBossCloud
       task "validate:config" do
         puts "Validating configuration..." if JBossCloud.validation_task?
         begin
-          ConfigValidator.new.validate( @config )
+          ConfigValidator.new( @config ).validate
         rescue ValidationError => validation_error
           raise "Error while validating configuration: #{validation_error}"
         rescue => exception

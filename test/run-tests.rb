@@ -30,6 +30,7 @@ Dir.chdir( File.dirname( __FILE__ ) )
 
 # tests to run
 require 'jboss-cloud/validator/appliance_validator_test'
+require 'jboss-cloud/validator/config-validator-test'
 
 require 'jboss-cloud/config_test'
 require 'jboss-cloud/appliance_config_test'
@@ -37,3 +38,5 @@ require 'jboss-cloud/appliance_config_test'
 require 'jboss-cloud/appliance_vmware_image_test'
 require 'jboss-cloud/appliance_kickstart_test'
 require 'jboss-cloud/appliance-image-customize-test'
+
+require 'jboss-cloud/aws/aws-support-test'

@@ -105,7 +105,7 @@ module JBossCloud
 
       if File.exists?( @config_file )
         @data = YAML.load_file( @config_file )
-        @data.gpg_password.gsub!(/\$/, "\\$") unless @data.gpg_password.nil?
+        @data['gpg_password'].gsub!(/\$/, "\\$") unless @data['gpg_password'].nil? or @data['gpg_password'].length == 0
       end
 
       @arch             = (-1.size) == 8 ? "x86_64" : "i386"

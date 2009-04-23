@@ -74,6 +74,8 @@ class ConfigTest < Test::Unit::TestCase
     config = ConfigHelper.generate_config
     
     assert_equal( config.version_with_release, "1.0.0" )
-  end  
+  end
+
+  
   
 end

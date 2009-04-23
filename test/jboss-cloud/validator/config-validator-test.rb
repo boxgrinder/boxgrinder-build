@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 # JBoss, Home of Professional Open Source
 # Copyright 2009, Red Hat Middleware LLC, and individual contributors
 # by the @authors tag. See the copyright.txt in the distribution for a
@@ -18,18 +20,19 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require 'jboss-cloud/validator/errors'
+require "test/unit"
+require 'jboss-cloud/helpers/config_helper'
+require 'jboss-cloud/validator/config-validator'
 
-module JBossCloud
-  class ConfigHelper
+class ConfigValidatorTest < Test::Unit::TestCase
+  def setup
+    @config = ConfigHelper.generate_config
+  end
 
-    def initialize( config )
-      @config = config
+  def test_validate_without_configuration_file_specified
+    exception = assert_raise JBossCloud::ValidationError do
+      config_validator = JBossCloud::ConfigValidator.new( @config ).validate
     end
-
-    def validate_gpg_password
-      raise ValidationError, "You have no GPG password specified in JBoss-Cloud config file." if @config.data['gpg_password'].nil?
-    end
-
+    assert_match /Configuration file not specified\./, exception.message
   end
 end

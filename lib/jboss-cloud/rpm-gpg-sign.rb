@@ -48,7 +48,7 @@ module JBossCloud
 
       arch = is_noarch ? "noarch" : @config.build_arch
 
-      `#{@config.dir.base}/extras/sign-rpms #{@config.data.gpg_password} #{@config.dir.top}/#{@config.os_path}/RPMS/#{arch}/#{@simple_name}-#{version}-#{release}.#{arch}.rpm > /dev/null 2>&1`
+      `#{@config.dir.base}/extras/sign-rpms #{@config.data['gpg_password']} #{@config.dir.top}/#{@config.os_path}/RPMS/#{arch}/#{@simple_name}-#{version}-#{release}.#{arch}.rpm > /dev/null 2>&1`
 
       unless $?.to_i == 0
         puts "An error occured while signing #{@simple_name} package, check your passphrase"
