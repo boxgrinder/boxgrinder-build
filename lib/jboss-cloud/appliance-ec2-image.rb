@@ -44,7 +44,6 @@ module JBossCloud
       @appliance_ec2_register_file  = "#{@appliance_build_dir}/ec2/register"
 
       @appliance_image_customizer   = ApplianceImageCustomize.new( @config, @appliance_config )
-      @aws_support                  = AWSSupport.new( @config )
 
       define_tasks
     end
@@ -57,19 +56,23 @@ module JBossCloud
       end
 
       file @appliance_ec2_manifest_file => [ @appliance_ec2_image_file, @bundle_dir ] do
+        @aws_support = AWSSupport.new( @config )
         bundle_image
       end
 
       task "appliance:#{@appliance_config.name}:ec2:upload" => [ @appliance_ec2_manifest_file ] do
+        @aws_support = AWSSupport.new( @config )
         upload_image
       end
 
       task "appliance:#{@appliance_config.name}:ec2:register" => [ "appliance:#{@appliance_config.name}:ec2:upload" ] do
+        @aws_support = AWSSupport.new( @config )
         register_image
       end
 
 
       task "appliance:#{@appliance_config.name}:ec2:list_buckets"  do
+        @aws_support = AWSSupport.new( @config )
         upload_image
       end
 

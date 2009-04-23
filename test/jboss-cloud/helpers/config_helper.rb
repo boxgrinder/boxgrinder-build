@@ -43,7 +43,7 @@ class ConfigHelper
   end
 
   def self.generate_appliance_config( os_version = "10" )
-    appliance_config = JBossCloud::ApplianceConfig.new("valid-appliance", "i386", "fedora", os_version)
+    appliance_config = JBossCloud::ApplianceConfig.new("valid-appliance", (-1.size) == 8 ? "x86_64" : "i386", "fedora", os_version)
 
     appliance_config.disk_size = 2
     appliance_config.summary = "this is a summary"

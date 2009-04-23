@@ -116,9 +116,9 @@ class ApplianceVMwareImageTest < Test::Unit::TestCase
     vmx_image = JBossCloud::ApplianceVMXImage.new( ConfigHelper.generate_config( params ), ConfigHelper.generate_appliance_config )
     
     vmx_file = vmx_image.change_common_vmx_values
-    
+
     guestOS = @current_arch == "x86_64" ? "otherlinux-64" : "linux" 
-    
+
     assert_equal(vmx_file.match(/^guestOS = "(.*)"\s?$/)[1], guestOS)
     assert_equal(vmx_file.match(/^displayName = "(.*)"\s?$/)[1], "valid-appliance")
     assert_equal(vmx_file.match(/^annotation = "(.*)"\s?$/)[1], "this is a summary | Version: 1.0.0")

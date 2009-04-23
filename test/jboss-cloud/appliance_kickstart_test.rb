@@ -25,12 +25,16 @@ require 'jboss-cloud/defaults'
 require 'jboss-cloud/appliance-kickstart'
 
 class ApplianceKickstartTest < Test::Unit::TestCase
-  
+
+  def setup
+    @current_arch = (-1.size) == 8 ? "x86_64" : "i386"
+  end
+
   def common_definition_test( definition )
     # kickstart disk size is in MB (not GB!)
     assert_equal( definition['disk_size'], 2 * 1024 )
     assert_equal( definition['appl_name'], "valid-appliance" )
-    assert_equal( definition['arch'], "i386")
+    assert_equal( definition['arch'], @current_arch)
     assert_equal( definition['appliance_names'], [ "valid-appliance" ] )
   end
   
@@ -46,12 +50,12 @@ class ApplianceKickstartTest < Test::Unit::TestCase
     assert_operator(definition['local_repos'].size, :==, 2)
     
     assert_equal( definition['local_repos'][0], "repo --name=jboss-cloud --cost=10 --baseurl=file:///tmp/dir_root/topdir/fedora/rawhide/RPMS/noarch" )
-    assert_equal( definition['local_repos'][1], "repo --name=jboss-cloud-i386 --cost=10 --baseurl=file:///tmp/dir_root/topdir/fedora/rawhide/RPMS/i386" )
+    assert_equal( definition['local_repos'][1], "repo --name=jboss-cloud-#{@current_arch} --cost=10 --baseurl=file:///tmp/dir_root/topdir/fedora/rawhide/RPMS/#{@current_arch}" )
     
     assert_operator(definition['repos'].size, :==, 2)
     
-    assert_equal( definition['repos'][0], "repo --name=postgresql --baseurl=http://yum.pgsqlrpms.org/8.3/fedora/fedora-10-i386/" )
-    assert_equal( definition['repos'][1], "repo --name=fedora-rawhide-base --cost=40 --mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=rawhide&arch=i386" )
+    assert_equal( definition['repos'][0], "repo --name=postgresql --baseurl=http://yum.pgsqlrpms.org/8.3/fedora/fedora-10-#{@current_arch}/" )
+    assert_equal( definition['repos'][1], "repo --name=fedora-rawhide-base --cost=40 --mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=rawhide&arch=#{@current_arch}" )
     
   end
   
@@ -67,13 +71,13 @@ class ApplianceKickstartTest < Test::Unit::TestCase
     assert_operator(definition['local_repos'].size, :==, 2)
     
     assert_equal( definition['local_repos'][0], "repo --name=jboss-cloud --cost=10 --baseurl=file:///tmp/dir_root/topdir/fedora/10/RPMS/noarch" )
-    assert_equal( definition['local_repos'][1], "repo --name=jboss-cloud-i386 --cost=10 --baseurl=file:///tmp/dir_root/topdir/fedora/10/RPMS/i386" )
+    assert_equal( definition['local_repos'][1], "repo --name=jboss-cloud-#{@current_arch} --cost=10 --baseurl=file:///tmp/dir_root/topdir/fedora/10/RPMS/#{@current_arch}" )
     
     assert_operator(definition['repos'].size, :==, 3)
     
-    assert_equal( definition['repos'][0], "repo --name=postgresql --baseurl=http://yum.pgsqlrpms.org/8.3/fedora/fedora-10-i386/" )
-    assert_equal( definition['repos'][1], "repo --name=fedora-10-base --cost=40 --mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=fedora-10&arch=i386" )
-    assert_equal( definition['repos'][2], "repo --name=fedora-10-updates --cost=40 --mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=updates-released-f10&arch=i386" )
+    assert_equal( definition['repos'][0], "repo --name=postgresql --baseurl=http://yum.pgsqlrpms.org/8.3/fedora/fedora-10-#{(-1.size) == 8 ? "x86_64" : "i386"}/" )
+    assert_equal( definition['repos'][1], "repo --name=fedora-10-base --cost=40 --mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=fedora-10&arch=#{@current_arch}" )
+    assert_equal( definition['repos'][2], "repo --name=fedora-10-updates --cost=40 --mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=updates-released-f10&arch=#{@current_arch}" )
 
     
   end

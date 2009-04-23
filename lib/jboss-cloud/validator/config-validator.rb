@@ -40,12 +40,14 @@ module JBossCloud
 
       more_info = "See http://oddthesis.org/theses/jboss-cloud/projects/jboss-cloud/pages/documentation for more info."
 
-      raise ValidationError, "Configuration file not specified." if @config.config_file.nil? or @config.config_file.length == 0
-      raise ValidationError, "Configuration file (#{@config.config_file}), doesn't exists. Please create it. #{more_info}"  unless File.exists?( @config.config_file )
+      # TODO should be config file required? I think not
+      #raise ValidationError, "Configuration file not specified." if @config.config_file.nil? or @config.config_file.length == 0
+      #raise ValidationError, "Configuration file (#{@config.config_file}), doesn't exists. Please create it. #{more_info}"  unless File.exists?( @config.config_file )
 
-      conf_file_permissions = sprintf( "%o", File.stat( @config.config_file ).mode )[ 3, 5 ]
-
-      raise ValidationError, "Configuration file (#{@config.config_file}) has wrong permissions (#{conf_file_permissions}), please correct it, run: 'chmod #{secure_permissions} #{@config.config_file}'." unless conf_file_permissions.eql?( secure_permissions )
+      if File.exists?( @config.config_file )
+        conf_file_permissions = sprintf( "%o", File.stat( @config.config_file ).mode )[ 3, 5 ]
+        raise ValidationError, "Configuration file (#{@config.config_file}) has wrong permissions (#{conf_file_permissions}), please correct it, run: 'chmod #{secure_permissions} #{@config.config_file}'." unless conf_file_permissions.eql?( secure_permissions )
+      end
     end
 
     def validate_arch
