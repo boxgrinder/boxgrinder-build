@@ -30,9 +30,8 @@ class ConfigValidatorTest < Test::Unit::TestCase
   end
 
   def test_validate_without_configuration_file_specified
-    exception = assert_raise JBossCloud::ValidationError do
+    assert_nothing_raised do
       config_validator = JBossCloud::ConfigValidator.new( @config ).validate
     end
-    assert_match /Configuration file not specified\./, exception.message
   end
 end
