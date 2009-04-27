@@ -160,7 +160,7 @@ module JBossCloud
 
         FileUtils.cp( @base_raw_file, @base_vmware_raw_file ) if ( !File.exists?( @base_vmware_raw_file ) || File.new( @base_raw_file ).mtime > File.new( @base_vmware_raw_file ).mtime )
 
-        @appliance_image_customizer.customize( @base_vmware_raw_file,  { :yum_local => [ "noarch/vm2-support-1.0.0.Beta1-1.noarch.rpm" ], :yum => [ "open-vm-tools" ] }, [ "http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-stable.noarch.rpm", "http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-stable.noarch.rpm" ])
+        @appliance_image_customizer.customize( @base_vmware_raw_file, { :yum_local => [ "noarch/vm2-support-1.0.0.Beta1-1.noarch.rpm" ], :yum => [ "open-vm-tools" ] }, [ "http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-stable.noarch.rpm", "http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-stable.noarch.rpm" ])
       end
 
       #desc "Build #{super_simple_name} appliance for VMware"

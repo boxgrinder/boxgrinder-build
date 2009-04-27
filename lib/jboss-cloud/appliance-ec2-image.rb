@@ -158,6 +158,8 @@ module JBossCloud
         abort
       end
 
+      @appliance_image_customizer.convert_to_large_ec2_ami( @appliance_ec2_image_file ) if @appliance_config.arch.eql?( 'x86_64' )
+
       FileUtils.rm_rf( tmp_dir )
     end
 
