@@ -41,17 +41,18 @@ module JBossCloud
       is_noarch = nil
 
       Dir.chdir( File.dirname( @spec_file ) ) do
-        release = `rpm --specfile #{@simple_name}.spec -q --qf '%{Release}\\n' 2> /dev/null`.split("\n").first
-        version = `rpm --specfile #{@simple_name}.spec -q --qf '%{Version}\\n' 2> /dev/null`.split("\n").first
-        is_noarch = `rpm --specfile #{@simple_name}.spec -q --qf '%{arch}\\n' 2> /dev/null`.split("\n").first == "noarch"
+        release     = `rpm --specfile #{@simple_name}.spec -q --qf '%{Release}\\n' 2> /dev/null`.split("\n").first
+        version     = `rpm --specfile #{@simple_name}.spec -q --qf '%{Version}\\n' 2> /dev/null`.split("\n").first
+        is_noarch   = `rpm --specfile #{@simple_name}.spec -q --qf '%{arch}\\n' 2> /dev/null`.split("\n").first == "noarch"
       end
 
       arch = is_noarch ? "noarch" : @config.build_arch
 
-      `#{@config.dir.base}/extras/sign-rpms #{@config.data['gpg_password']} #{@config.dir.top}/#{@config.os_path}/RPMS/#{arch}/#{@simple_name}-#{version}-#{release}.#{arch}.rpm > /dev/null 2>&1`
+      msg =`#{@config.dir.base}/extras/sign-rpms #{@config.data['gpg_password']} #{@config.dir.top}/#{@config.os_path}/RPMS/#{arch}/#{@simple_name}-#{version}-#{release}.#{arch}.rpm`
 
-      unless $?.to_i == 0
-        puts "An error occured while signing #{@simple_name} package, check your passphrase"
+      if $?.to_i != 0 || ($?.to_i == 0 && msg =~ /Pass phrase check failed/)
+        puts "An error occured while signing #{@simple_name} package. Possible errors: key exists?, wrong passphrase, expect package installed?, %_gpg_name in ~/.rpmmacros set?"
+        abort
       else
         puts "Package #{@simple_name} successfully signed!"
       end
