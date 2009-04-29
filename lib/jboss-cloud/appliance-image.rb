@@ -33,7 +33,7 @@ module JBossCloud
       
       define
     end
-    
+
     def define
       
       appliance_build_dir     = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
@@ -42,16 +42,17 @@ module JBossCloud
       tmp_dir                 = "#{@config.dir_root}/#{@config.dir_build}/tmp"
       
       desc "Build #{@appliance_config.simple_name} appliance."
-      task "appliance:#{@appliance_config.name}" => [ xml_file ]
+      task "appliance:#{@appliance_config.name}" => [ xml_file, "appliance:#{@appliance_config.name}:validate:dependencies" ]
       
       directory tmp_dir
       
       for appliance_name in @appliance_config.appliances
-        task "appliance:#{@appliance_config.name}:rpms" => [ "rpm:#{appliance_name}" ]
+        task "appliance:#{@appliance_config.name}:rpms" => [ "rpm:#{appliance_name}" ] do
+          Rake::Task[ 'rpm:repodata:force' ].invoke
+        end
       end
       
-      file xml_file => [ kickstart_file, "appliance:#{@appliance_config.name}:rpms", tmp_dir ] do
-        Rake::Task[ 'rpm:repodata:force' ].invoke
+      file xml_file => [ kickstart_file, "appliance:#{@appliance_config.name}:validate:dependencies", tmp_dir ] do
         
         command = "sudo PYTHONUNBUFFERED=1 appliance-creator -d -v -t #{tmp_dir} --cache=#{@config.dir_rpms_cache}/#{@appliance_config.main_path} --config #{kickstart_file} -o #{@config.dir_build}/appliances/#{@appliance_config.main_path} --name #{@appliance_config.name} --vmem #{@appliance_config.mem_size} --vcpu #{@appliance_config.vcpu}"
         execute_command( command )

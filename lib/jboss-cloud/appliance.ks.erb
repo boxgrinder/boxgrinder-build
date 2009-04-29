@@ -23,11 +23,11 @@ part / --size <%= disk_size %> --fstype ext3 --ondisk sda
 # Include the repositories
  
 <% for local_repo in local_repos %>
-  <%= local_repo %>
+<%= local_repo %>
 <% end %>
-  repo --cost=20 --name=thincrust   --baseurl=http://www.thincrust.net/repo/noarch/
+repo --cost=20 --name=thincrust   --baseurl=http://www.thincrust.net/repo/noarch/
 <% for repo in repos %>
-  <%= repo %>
+<%= repo %>
 <% end %>
 
 #

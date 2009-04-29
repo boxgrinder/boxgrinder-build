@@ -53,11 +53,7 @@ module JBossCloud
     end
     
     protected
-    
-    def get_config
-      validate( build_config )
-    end
-    
+
     def get_appliances( appliance_name )
       appliances = Array.new
       valid = true

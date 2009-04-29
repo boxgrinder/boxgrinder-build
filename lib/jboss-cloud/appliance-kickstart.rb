@@ -99,6 +99,7 @@ module JBossCloud
       
       file config_file => [ "appliance:#{@appliance_config.name}:config" ] do
         File.open( config_file, "w") {|f| f.write( @appliance_config.to_yaml ) } unless File.exists?( config_file )
+
       end
       
       file "appliance:#{@appliance_config.name}:config" do
@@ -113,9 +114,9 @@ module JBossCloud
       
       file kickstart_file => [ config_file, "#{appliance_build_dir}/base-pkgs.ks" ] do
         template = File.dirname( __FILE__ ) + "/appliance.ks.erb"
-        
+
         kickstart = ERB.new( File.read( template ) ).result( build_definition.send( :binding ) )
-        
+                
         kickstart.gsub!( /#JBOSS_XMX#/ , (@appliance_config.mem_size / 4 * 3).to_s )
         kickstart.gsub!( /#JBOSS_XMS#/ , (@appliance_config.mem_size / 4 * 3 / 4).to_s)
         

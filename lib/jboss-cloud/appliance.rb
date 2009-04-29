@@ -26,11 +26,12 @@ require 'jboss-cloud/appliance-rpm.rb'
 require 'jboss-cloud/appliance-kickstart.rb'
 require 'jboss-cloud/appliance-image.rb'
 require 'jboss-cloud/appliance-utils'
+require 'jboss-cloud/validator/appliance-dependency-validator'
 
 module JBossCloud
-  
+
   class Appliance < Rake::TaskLib
-    
+
     def initialize( config, appliance_config, appliance_def )
       @config            = config
       @appliance_def     = appliance_def
@@ -38,12 +39,13 @@ module JBossCloud
 
       define
     end
-    
+
     def define
       JBossCloud::ApplianceSource.new( @config, @appliance_config )
       JBossCloud::ApplianceSpec.new( @config, @appliance_config )
       JBossCloud::ApplianceRPM.new( @config, @appliance_config )
       JBossCloud::ApplianceKickstart.new( @config, @appliance_config )
+      JBossCloud::ApplianceDependencyValidator.new( @config, @appliance_config )
       JBossCloud::ApplianceImage.new( @config, @appliance_config )
       JBossCloud::ApplianceUtils.new( @config, @appliance_config  )
     end
