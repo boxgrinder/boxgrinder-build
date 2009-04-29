@@ -48,8 +48,8 @@ module JBossCloud
         @appliance_defs += [ "#{@config.dir.appliances}/#{appliance}/#{appliance}.appl" ]
       end
 
-      # Because we're using repoquery command from our building environment, we must ensure, that our repository names are
-      #  
+      # Because we're using repoquery command from our building environment, we must ensure, that our repository
+      # names are unique
       @magic_hash = "#{@config.name.downcase}-"
 
       define_tasks
@@ -57,12 +57,11 @@ module JBossCloud
 
     def define_tasks
       desc "Validate packages dependencies for #{@appliance_config.simple_name} appliance"
-      task "appliance:#{@appliance_config.name}:validate:dependencies" => [ @kickstart_file, "appliance:#{@appliance_config.name}:rpms" ] do
-
-        puts "Resolving packages added to appliance definition files..."
+      task "appliance:#{@appliance_config.name}:validate:dependencies" => [ @kickstart_file, "appliance:#{@appliance_config.name}:rpms", "rpm:repodata:force" ] do
+        puts "\nResolving packages added to #{@appliance_config.simple_name} appliance definition file..."
 
         repos         = read_repos_from_kickstart_file
-        package_list  = generate_package_list
+        package_list  = generate_package_list + [ @appliance_config.name ]
         repo_list     = generate_repo_list( repos )
 
         generate_yum_config( repos )
@@ -76,6 +75,8 @@ module JBossCloud
           abort
         end
       end
+
+      task "appliance:all:validate:dependencies" => [ "appliance:#{@appliance_config.name}:validate:dependencies" ]
     end
 
     def invalid_names( repo_list, package_list )

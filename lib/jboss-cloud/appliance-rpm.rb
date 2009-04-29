@@ -52,6 +52,7 @@ module JBossCloud
             abort
           end
         end
+        Rake::Task[ 'rpm:repodata:force' ].reenable
       end
       
       #file rpm_file=> [ 'rpm:dkms-open-vm-tools' ]

@@ -148,6 +148,9 @@ module JBossCloud
         # link disk image
         create_hardlink_to_disk_image( vmware_enterprise_raw_file )
 
+        # defaults for ESXi (maybe for others too)
+        @appliance_config.network_name = "VM Network" if @appliance_config.network_name.eql?( "NAT" )
+
         # create .vmx file
         File.open( vmware_enterprise_vmx_file, "w" ) {|f| f.write( change_common_vmx_values ) }
 
