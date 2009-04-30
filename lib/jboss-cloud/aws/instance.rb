@@ -85,7 +85,7 @@ module JBossCloud
 
       for reservation in instances.reservationSet.item
         for instance in reservation.instancesSet.item
-          response = @aws_support.ec2..terminate_instances( :instance_id => instance.instanceId )
+          response = @aws_support.ec2.terminate_instances( :instance_id => instance.instanceId )
 
           puts "Instance of #{@appliance_config.simple_name} appliance with ID = #{instance.instanceId} is shutting down."
         end
