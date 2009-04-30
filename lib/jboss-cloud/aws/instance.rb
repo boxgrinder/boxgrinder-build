@@ -54,7 +54,11 @@ module JBossCloud
 
     def run_instance
       # TODO select image type
-      response = @aws_support.ec2.run_instances( :image_id => @aws_support.ami_info( @appliance_config.name ).imageId )
+
+      instance_type   = @appliance_config.is64bit? ? "m1.large" : "m1.small"
+      image_id        = @aws_support.ami_info( @appliance_config.name ).imageId
+
+      response = @aws_support.ec2.run_instances( :image_id => image_id, :instance_type => instance_type )
 
       ami_info = response.instancesSet.item[0]
 

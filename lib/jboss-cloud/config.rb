@@ -73,6 +73,10 @@ module JBossCloud
       hash == other.hash
     end
 
+    def is64bit?
+      @arch.eql?("x86_64")
+    end
+
   end
   class Config
     def initialize( name, version, release, dir, config_file )
