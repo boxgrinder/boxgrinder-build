@@ -41,8 +41,8 @@ module JBossCloud
       @appliance_xml_file           = "#{@appliance_build_dir}/#{@appliance_config.name}.xml"
       @appliance_raw_image          = "#{@appliance_build_dir}/#{@appliance_config.name}-sda.raw"
 
-      @appliance_ec2_image_file     = "#{@appliance_build_dir}/#{@appliance_config.name}-ec2.raw"
-      @appliance_ec2_manifest_file  = "#{@bundle_dir}/#{@appliance_config.name}-ec2.img.manifest.xml"
+      @appliance_ec2_image_file     = "#{@appliance_build_dir}/#{@appliance_config.name}.ec2"
+      @appliance_ec2_manifest_file  = "#{@bundle_dir}/#{@appliance_config.name}.ec2.manifest.xml"
       @appliance_ec2_register_file  = "#{@appliance_build_dir}/ec2/register"
 
       @appliance_image_customizer   = ApplianceImageCustomize.new( @config, @appliance_config )
