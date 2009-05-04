@@ -52,8 +52,8 @@ module JBossCloud
       fstab_data = "/dev/sda1  /         ext3    defaults         1 1\n"
 
       if @appliance_config.is64bit?
-        fstab_data += "/dev/sdb   /mnt      ext3    defaults         1 2\n"
-        fstab_data += "/dev/sdc   /data     ext3    defaults         1 2\n"
+        fstab_data += "/dev/sdb   /mnt      ext3    defaults         0 0\n"
+        fstab_data += "/dev/sdc   /data     ext3    defaults         0 0\n"
       else
         fstab_data += "/dev/sda2  /mnt      ext3    defaults         0 0\n"
         fstab_data += "/dev/sda3  swap      swap    defaults         0 0\n"
@@ -127,7 +127,7 @@ module JBossCloud
       `mkdir -p #{@mount_directory}/#{appliance_rpms_dir}`
       #`sudo mount -t sysfs none #{@mount_directory}/sys/`
       #`sudo mount -o bind /dev/ #{@mount_directory}/dev/`
-      #`sudo mount -t proc none #{@mount_directory}/proc/`
+      `sudo mount -t proc none #{@mount_directory}/proc/`
       `sudo mount -o bind /etc/resolv.conf #{@mount_directory}/etc/resolv.conf`
       `sudo mount -o bind #{@config.dir.base} #{@mount_directory}/#{appliance_jbcs_dir}`
       `sudo mount -o bind #{@config.dir.top}/#{@appliance_config.os_path}/RPMS #{@mount_directory}/#{appliance_rpms_dir}`
@@ -138,7 +138,7 @@ module JBossCloud
 
       #`sudo umount #{@mount_directory}/sys`
       #`sudo umount #{@mount_directory}/dev`
-      #`sudo umount #{@mount_directory}/proc`
+      `sudo umount #{@mount_directory}/proc`
       `sudo umount #{@mount_directory}/etc/resolv.conf`
       `sudo umount #{@mount_directory}/#{appliance_jbcs_dir}`
       `sudo umount #{@mount_directory}/#{appliance_rpms_dir}`
