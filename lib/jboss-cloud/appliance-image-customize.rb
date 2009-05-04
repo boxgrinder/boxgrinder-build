@@ -53,7 +53,7 @@ module JBossCloud
 
       if @appliance_config.is64bit?
         fstab_data += "/dev/sdb   /mnt      ext3    defaults         1 2\n"
-        fstab_data += "/dev/sdc   /data     ext3    defaults         1 3\n"
+        fstab_data += "/dev/sdc   /data     ext3    defaults         1 2\n"
       else
         fstab_data += "/dev/sda2  /mnt      ext3    defaults         0 0\n"
         fstab_data += "/dev/sda3  swap      swap    defaults         0 0\n"
@@ -67,8 +67,10 @@ module JBossCloud
       echo( "#{@mount_directory}/etc/fstab", fstab_data )
 
       # enable networking on default runlevels
-      `sudo chroot #{@mount_directory} /sbin/chkconfig --level 2345 network on`
-      #echo( "#{@mount_directory}/etc/sysconfig/network-scripts/ifcfg-eth0", "TYPE=Ethernet\nUSERCTL=yes\nPEERDNS=yes\nIPV6INIT=no", true )
+      `sudo chroot #{@mount_directory} /sbin/chkconfig --level 345 network on`
+
+      # enable DHCP
+      echo( "#{@mount_directory}/etc/sysconfig/network-scripts/ifcfg-eth0", "DEVICE=eth0\nBOOTPROTO=dhcp\nONBOOT=yes\nTYPE=Ethernet\nUSERCTL=yes\nPEERDNS=yes\nIPV6INIT=no\n" )
 
       umount_image( loop_device, @appliance_raw_image )
     end

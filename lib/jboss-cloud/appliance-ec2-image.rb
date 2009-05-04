@@ -142,21 +142,6 @@ module JBossCloud
       puts "Customizing #{@appliance_config.simple_name} appliance..."
 
       @appliance_image_customizer.customize( @appliance_ec2_image_file, { :rpm_remote => [ AWS_DEFAULTS[:kernel_rpm][@appliance_config.arch], "http://s3.amazonaws.com/ec2-downloads/ec2-ami-tools.noarch.rpm" ] })
-
-
-
-      # we're using ec2-converter from thincrust appliance tools (http://thincrust.net/tooling.html)
-      #command = "sudo ec2-converter -f #{new_raw_file} --inputtype diskimage -n #{@appliance_ec2_image_file} -t #{tmp_dir}"
-      #exit_status = execute_command( command )
-
-      # unless exit_status
-      #   puts "\nConverting #{@appliance_config.simple_name} appliance to EC2 format failed! Hint: consult above messages.\n\r"
-      #   abort
-      # end
-
-      #@appliance_image_customizer.convert_to_large_ec2_ami( @appliance_ec2_image_file ) if @appliance_config.arch.eql?( 'x86_64' )
-
-      #FileUtils.rm_rf( tmp_dir )
     end
 
   end
