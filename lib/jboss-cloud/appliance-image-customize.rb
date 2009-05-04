@@ -44,7 +44,9 @@ module JBossCloud
       `sudo mkdir -p #{@mount_directory}/dev`
       `sudo mkdir -p #{@mount_directory}/data`
 
-      makedef( "#{@mount_directory}/dev" )
+      `sudo /sbin/MAKEDEV -d #{@mount_directory}/dev -x console`
+      `sudo /sbin/MAKEDEV -d #{@mount_directory}/dev -x null`
+      `sudo /sbin/MAKEDEV -d #{@mount_directory}/dev -x zero`
 
       fstab_file = "#{@mount_directory}/etc/fstab"
       fstab_data = ""
@@ -52,20 +54,20 @@ module JBossCloud
       fstab_data += "/dev/sda1  /         ext3    defaults         1 1\n"
 
       if @appliance_config.is64bit?
-        fstab_data += "/dev/sdb   /mnt      ext3    defaults         0 0\n"
-        fstab_data += "/dev/sdc   /data     ext3    defaults         0 0\n"
+        fstab_data += "/dev/sdb   /mnt      ext3    defaults         1 2\n"
+        fstab_data += "/dev/sdc   /data     ext3    defaults         1 3\n"
       else
         fstab_data += "/dev/sda2  /mnt      ext3    defaults         0 0\n"
         fstab_data += "/dev/sda3  swap      swap    defaults         0 0\n"
       end
 
-      fstab_data += "devpts     /dev/pts  devpts  gid=5,mode=620   0 0\n"
-      fstab_data += "tmpfs      /dev/shm  tmpfs   defaults         0 0\n"
-      fstab_data += "proc       /proc     proc    defaults         0 0\n"
-      fstab_data += "sysfs      /sys      sysfs   defaults         0 0\n"
+      fstab_data += "none       /dev/pts  devpts  gid=5,mode=620   0 0\n"
+      fstab_data += "none       /dev/shm  tmpfs   defaults         0 0\n"
+      fstab_data += "none       /proc     proc    defaults         0 0\n"
+      fstab_data += "none       /sys      sysfs   defaults         0 0\n"
 
       echo( "#{@mount_directory}/etc/fstab", fstab_data )
-      echo( "#{@mount_directory}/etc/sysconfig/network-scripts/ifcfg-eth0", "TYPE=Ethernet\nUSERCTL=yes\nPEERDNS=yes\nIPV6INIT=no", true )
+      #echo( "#{@mount_directory}/etc/sysconfig/network-scripts/ifcfg-eth0", "TYPE=Ethernet\nUSERCTL=yes\nPEERDNS=yes\nIPV6INIT=no", true )
 
       umount_image( loop_device, @appliance_raw_image )
     end
@@ -74,12 +76,6 @@ module JBossCloud
       `sudo chmod 777 #{file}`
       `sudo echo "#{content}" #{append ? ">>" : ">"} #{file}`
       `sudo chmod 664 #{file}`
-    end
-
-    def makedef( dir )
-      `sudo /sbin/MAKEDEV -d #{dir} -x console`
-      `sudo /sbin/MAKEDEV -d #{dir} -x null`
-      `sudo /sbin/MAKEDEV -d #{dir} -x zero`
     end
 
     def get_loop_device
