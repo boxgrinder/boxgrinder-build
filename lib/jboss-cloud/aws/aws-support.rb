@@ -41,7 +41,7 @@ module JBossCloud
     end
 
     def bucket_manifest_key( appliance_name )
-      "#{bucket_key( appliance_name )}/#{appliance_name}-ec2.img.manifest.xml"
+      "#{bucket_key( appliance_name )}/#{appliance_name}.ec2.manifest.xml"
     end
 
     def appliance_is_registered?( appliance_name )

@@ -67,10 +67,6 @@ module JBossCloud
       echo( "#{@mount_directory}/etc/fstab", fstab_data )
       echo( "#{@mount_directory}/etc/sysconfig/network-scripts/ifcfg-eth0", "TYPE=Ethernet\nUSERCTL=yes\nPEERDNS=yes\nIPV6INIT=no", true )
 
-      puts `cat #{@mount_directory}/etc/sysconfig/network-scripts/ifcfg-eth0`
-      puts `cat #{@mount_directory}/etc/sysconfig/network`
-      #puts `ls -all #{@mount_directory}/etc`
-
       umount_image( loop_device, @appliance_raw_image )
     end
 
@@ -84,34 +80,6 @@ module JBossCloud
       `sudo /sbin/MAKEDEV -d #{dir} -x console`
       `sudo /sbin/MAKEDEV -d #{dir} -x null`
       `sudo /sbin/MAKEDEV -d #{dir} -x zero`
-    end
-
-    def convert_to_large_ec2_ami( raw_file )
-
-      raise ValidationError, "Raw file '#{raw_file}' doesn't exists, please specify valid raw file" if !File.exists?( raw_file )
-
-      puts "Converting to large AMI..."
-
-      loop_device = get_loop_device
-      mount_image( loop_device, raw_file, 0 )
-
-      fstab_file = "#{@mount_directory}/etc/fstab"
-      fstab_data = nil
-
-      File.open( fstab_file ) do |file|
-        fstab_data = file.read
-      end
-
-      fstab_data.gsub!( /\/dev\/sda2/, '/dev/sdb ' )
-      fstab_data.gsub!( /\/dev\/sda3(.*)/, '' )
-
-      `sudo chmod 777 #{@mount_directory}/etc/fstab`
-      `sudo echo "#{fstab_data}" > #{@mount_directory}/etc/fstab`
-      `sudo chmod 644 #{@mount_directory}/etc/fstab`
-
-      umount_image( loop_device, raw_file )
-
-      puts "Converting to large AMI finished"
     end
 
     def get_loop_device
