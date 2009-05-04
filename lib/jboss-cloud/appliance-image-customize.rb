@@ -29,11 +29,65 @@ module JBossCloud
       @config            = config
       @appliance_config  = appliance_config
 
-      @mount_directory = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/customize-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
+      @appliance_build_dir          = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
+      @bundle_dir                   = "#{@appliance_build_dir}/ec2/bundle"
+      @appliance_xml_file           = "#{@appliance_build_dir}/#{@appliance_config.name}.xml"
+      @appliance_raw_image          = "#{@appliance_build_dir}/#{@appliance_config.name}-sda.raw"
+      @mount_directory              = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/customize-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
+    end
+
+    def convert_to_ami
+      loop_device = get_loop_device
+
+      mount_image( loop_device, @appliance_raw_image )
+
+      `sudo mkdir -p #{@mount_directory}/dev`
+      `sudo mkdir -p #{@mount_directory}/data`
+
+      makedef( "#{@mount_directory}/dev" )
+
+      fstab_file = "#{@mount_directory}/etc/fstab"
+      fstab_data = ""
+
+      fstab_data += "/dev/sda1  /         ext3    defaults         1 1\n"
+
+      if @appliance_config.is64bit?
+        fstab_data += "/dev/sdb   /mnt      ext3    defaults         0 0\n"
+        fstab_data += "/dev/sdc   /data     ext3    defaults         0 0\n"
+      else
+        fstab_data += "/dev/sda2  /mnt      ext3    defaults         0 0\n"
+        fstab_data += "/dev/sda3  swap      swap    defaults         0 0\n"
+      end
+
+      fstab_data += "devpts     /dev/pts  devpts  gid=5,mode=620   0 0\n"
+      fstab_data += "tmpfs      /dev/shm  tmpfs   defaults         0 0\n"
+      fstab_data += "proc       /proc     proc    defaults         0 0\n"
+      fstab_data += "sysfs      /sys      sysfs   defaults         0 0\n"
+
+      echo( "#{@mount_directory}/etc/fstab", fstab_data )
+      echo( "#{@mount_directory}/etc/sysconfig/network-scripts/ifcfg-eth0", "TYPE=Ethernet\nUSERCTL=yes\nPEERDNS=yes\nIPV6INIT=no", true )
+
+      puts `cat #{@mount_directory}/etc/sysconfig/network-scripts/ifcfg-eth0`
+      puts `cat #{@mount_directory}/etc/sysconfig/network`
+      #puts `ls -all #{@mount_directory}/etc`
+
+      umount_image( loop_device, @appliance_raw_image )
+    end
+
+    def echo( file, content, append = false)
+      `sudo chmod 777 #{file}`
+      `sudo echo "#{content}" #{append ? ">>" : ">"} #{file}`
+      `sudo chmod 664 #{file}`
+    end
+
+    def makedef( dir )
+      `sudo /sbin/MAKEDEV -d #{dir} -x console`
+      `sudo /sbin/MAKEDEV -d #{dir} -x null`
+      `sudo /sbin/MAKEDEV -d #{dir} -x zero`
     end
 
     def convert_to_large_ec2_ami( raw_file )
-      
+
       raise ValidationError, "Raw file '#{raw_file}' doesn't exists, please specify valid raw file" if !File.exists?( raw_file )
 
       puts "Converting to large AMI..."
@@ -105,7 +159,7 @@ module JBossCloud
       `mkdir -p #{@mount_directory}/#{appliance_jbcs_dir}`
       `mkdir -p #{@mount_directory}/#{appliance_rpms_dir}`
       `sudo mount -t sysfs none #{@mount_directory}/sys/`
-      `sudo mount -o bind /dev/ #{@mount_directory}/dev/`
+      #`sudo mount -o bind /dev/ #{@mount_directory}/dev/`
       `sudo mount -t proc none #{@mount_directory}/proc/`
       `sudo mount -o bind /etc/resolv.conf #{@mount_directory}/etc/resolv.conf`
       `sudo mount -o bind #{@config.dir.base} #{@mount_directory}/#{appliance_jbcs_dir}`
@@ -116,7 +170,7 @@ module JBossCloud
       puts "Unmounting image #{File.basename( raw_file )}"
 
       `sudo umount #{@mount_directory}/sys`
-      `sudo umount #{@mount_directory}/dev`
+      #`sudo umount #{@mount_directory}/dev`
       `sudo umount #{@mount_directory}/proc`
       `sudo umount #{@mount_directory}/etc/resolv.conf`
       `sudo umount #{@mount_directory}/#{appliance_jbcs_dir}`

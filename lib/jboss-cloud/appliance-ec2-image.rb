@@ -39,7 +39,9 @@ module JBossCloud
       @appliance_build_dir          = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
       @bundle_dir                   = "#{@appliance_build_dir}/ec2/bundle"
       @appliance_xml_file           = "#{@appliance_build_dir}/#{@appliance_config.name}.xml"
-      @appliance_ec2_image_file     = "#{@appliance_build_dir}/#{@appliance_config.name}-ec2.img"
+      @appliance_raw_image          = "#{@appliance_build_dir}/#{@appliance_config.name}-sda.raw"
+
+      @appliance_ec2_image_file     = "#{@appliance_build_dir}/#{@appliance_config.name}-ec2.raw"
       @appliance_ec2_manifest_file  = "#{@bundle_dir}/#{@appliance_config.name}-ec2.img.manifest.xml"
       @appliance_ec2_register_file  = "#{@appliance_build_dir}/ec2/register"
 
@@ -68,12 +70,6 @@ module JBossCloud
       task "appliance:#{@appliance_config.name}:ec2:register" => [ "appliance:#{@appliance_config.name}:ec2:upload" ] do
         @aws_support = AWSSupport.new( @config )
         register_image
-      end
-
-
-      task "appliance:#{@appliance_config.name}:ec2:list_buckets"  do
-        @aws_support = AWSSupport.new( @config )
-        upload_image
       end
 
       desc "Build #{@appliance_config.simple_name} appliance for Amazon EC2"
@@ -135,32 +131,32 @@ module JBossCloud
     end
 
     def convert_image_to_ec2_format
-      raw_file      = "#{@appliance_build_dir}/#{@appliance_config.name}-sda.raw"
-      tmp_dir       = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/ec2-image-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
-      new_raw_file  = "#{tmp_dir}/#{File.basename( raw_file )}"
+      puts "Copying RAW file..."
 
-      FileUtils.mkdir_p( tmp_dir )
-
-      puts "Copying RAW file to temporary directory..."
-
-      FileUtils.cp( raw_file, new_raw_file )
-
-      @appliance_image_customizer.customize( new_raw_file, { :rpm_remote => [ AWS_DEFAULTS[:kernel_rpm][@appliance_config.arch] ] })
+      FileUtils.cp( @appliance_raw_image, @appliance_ec2_image_file )
 
       puts "Converting #{@appliance_config.simple_name} appliance image to EC2 format..."
 
+      @appliance_image_customizer.convert_to_ami
+
+      puts "Customizing #{@appliance_config.simple_name} appliance..."
+
+      @appliance_image_customizer.customize( @appliance_ec2_image_file, { :rpm_remote => [ AWS_DEFAULTS[:kernel_rpm][@appliance_config.arch], "http://s3.amazonaws.com/ec2-downloads/ec2-ami-tools.noarch.rpm" ] })
+
+
+
       # we're using ec2-converter from thincrust appliance tools (http://thincrust.net/tooling.html)
-      command = "sudo ec2-converter -f #{new_raw_file} --inputtype diskimage -n #{@appliance_ec2_image_file} -t #{tmp_dir}"
-      exit_status = execute_command( command )
+      #command = "sudo ec2-converter -f #{new_raw_file} --inputtype diskimage -n #{@appliance_ec2_image_file} -t #{tmp_dir}"
+      #exit_status = execute_command( command )
 
-      unless exit_status
-        puts "\nConverting #{@appliance_config.simple_name} appliance to EC2 format failed! Hint: consult above messages.\n\r"
-        abort
-      end
+      # unless exit_status
+      #   puts "\nConverting #{@appliance_config.simple_name} appliance to EC2 format failed! Hint: consult above messages.\n\r"
+      #   abort
+      # end
 
-      @appliance_image_customizer.convert_to_large_ec2_ami( @appliance_ec2_image_file ) if @appliance_config.arch.eql?( 'x86_64' )
+      #@appliance_image_customizer.convert_to_large_ec2_ami( @appliance_ec2_image_file ) if @appliance_config.arch.eql?( 'x86_64' )
 
-      FileUtils.rm_rf( tmp_dir )
+      #FileUtils.rm_rf( tmp_dir )
     end
 
   end
