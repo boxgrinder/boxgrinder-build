@@ -49,9 +49,7 @@ module JBossCloud
       `sudo /sbin/MAKEDEV -d #{@mount_directory}/dev -x zero`
 
       fstab_file = "#{@mount_directory}/etc/fstab"
-      fstab_data = ""
-
-      fstab_data += "/dev/sda1  /         ext3    defaults         1 1\n"
+      fstab_data = "/dev/sda1  /         ext3    defaults         1 1\n"
 
       if @appliance_config.is64bit?
         fstab_data += "/dev/sdb   /mnt      ext3    defaults         1 2\n"
@@ -67,6 +65,9 @@ module JBossCloud
       fstab_data += "none       /sys      sysfs   defaults         0 0\n"
 
       echo( "#{@mount_directory}/etc/fstab", fstab_data )
+
+      # enable networking on default runlevels
+      `sudo chroot #{@mount_directory} /sbin/chkconfig --level 2345 network on`
       #echo( "#{@mount_directory}/etc/sysconfig/network-scripts/ifcfg-eth0", "TYPE=Ethernet\nUSERCTL=yes\nPEERDNS=yes\nIPV6INIT=no", true )
 
       umount_image( loop_device, @appliance_raw_image )
@@ -122,9 +123,9 @@ module JBossCloud
       `sudo mount #{loop_device} -t ext3 #{@mount_directory}`
       `mkdir -p #{@mount_directory}/#{appliance_jbcs_dir}`
       `mkdir -p #{@mount_directory}/#{appliance_rpms_dir}`
-      `sudo mount -t sysfs none #{@mount_directory}/sys/`
+      #`sudo mount -t sysfs none #{@mount_directory}/sys/`
       #`sudo mount -o bind /dev/ #{@mount_directory}/dev/`
-      `sudo mount -t proc none #{@mount_directory}/proc/`
+      #`sudo mount -t proc none #{@mount_directory}/proc/`
       `sudo mount -o bind /etc/resolv.conf #{@mount_directory}/etc/resolv.conf`
       `sudo mount -o bind #{@config.dir.base} #{@mount_directory}/#{appliance_jbcs_dir}`
       `sudo mount -o bind #{@config.dir.top}/#{@appliance_config.os_path}/RPMS #{@mount_directory}/#{appliance_rpms_dir}`
@@ -133,9 +134,9 @@ module JBossCloud
     def umount_image( loop_device, raw_file, appliance_jbcs_dir = "tmp/jboss-cloud-support", appliance_rpms_dir = "tmp/jboss-cloud-support-rpms"  )
       puts "Unmounting image #{File.basename( raw_file )}"
 
-      `sudo umount #{@mount_directory}/sys`
+      #`sudo umount #{@mount_directory}/sys`
       #`sudo umount #{@mount_directory}/dev`
-      `sudo umount #{@mount_directory}/proc`
+      #`sudo umount #{@mount_directory}/proc`
       `sudo umount #{@mount_directory}/etc/resolv.conf`
       `sudo umount #{@mount_directory}/#{appliance_jbcs_dir}`
       `sudo umount #{@mount_directory}/#{appliance_rpms_dir}`
