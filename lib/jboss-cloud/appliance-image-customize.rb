@@ -29,35 +29,75 @@ module JBossCloud
       @config            = config
       @appliance_config  = appliance_config
 
-      @mount_directory = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/customize-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
+      @appliance_build_dir          = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
+      @bundle_dir                   = "#{@appliance_build_dir}/ec2/bundle"
+      @appliance_xml_file           = "#{@appliance_build_dir}/#{@appliance_config.name}.xml"
+      @appliance_ec2_image_file     = "#{@appliance_build_dir}/#{@appliance_config.name}.ec2"
+      @appliance_raw_image          = "#{@appliance_build_dir}/#{@appliance_config.name}-sda.raw"
+      @mount_directory              = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/customize-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
+
+      @mount_defaults = { :offset => 32256, :appliance_jbcs_dir => "tmp/jboss-cloud-support", :appliance_rpms_dir => "tmp/jboss-cloud-support-rpms" }
     end
 
-    def convert_to_large_ec2_ami( raw_file )
-      
-      raise ValidationError, "Raw file '#{raw_file}' doesn't exists, please specify valid raw file" if !File.exists?( raw_file )
+    def convert_to_ami
 
-      puts "Converting to large AMI..."
+      mount_dir = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/ec2-image-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
+
+      `mkdir -p #{mount_dir}`
+
+      puts "Preparing disk for EC2 image...\n"
+      puts `dd if=/dev/zero of=#{@appliance_ec2_image_file} bs=1M count=#{@appliance_config.disk_size.to_i * 1024}`
+
+      puts "Creating filesystem...\n"
+      puts `mke2fs -Fj #{@appliance_ec2_image_file}`
+
+      `sudo mount -o loop #{@appliance_ec2_image_file} #{mount_dir}`
 
       loop_device = get_loop_device
-      mount_image( loop_device, raw_file, 0 )
+      mount_image( loop_device, @appliance_raw_image )
 
-      fstab_file = "#{@mount_directory}/etc/fstab"
-      fstab_data = nil
+      puts "Rsyncing..."
+      `sudo rsync -u -r -a  #{@mount_directory}/* #{mount_dir}`
 
-      File.open( fstab_file ) do |file|
-        fstab_data = file.read
+      #`sudo mkdir -p #{mount_dir}/proc`
+      `sudo mkdir -p #{mount_dir}/data`
+
+      #`sudo mount -t proc none #{mount_dir}/proc`
+
+      puts "Creating required devices..."
+      #`sudo /sbin/MAKEDEV -d #{mount_dir}/dev -x console`
+      #`sudo /sbin/MAKEDEV -d #{mount_dir}/dev -x null`
+      #`sudo /sbin/MAKEDEV -d #{mount_dir}/dev -x zero`
+
+      fstab_file = "#{mount_dir}/etc/fstab"
+      fstab_data = "/dev/sda1  /         ext3    defaults         1 1\n"
+
+      if @appliance_config.is64bit?
+        fstab_data += "/dev/sdb   /mnt      ext3    defaults         0 0\n"
+        fstab_data += "/dev/sdc   /data     ext3    defaults         0 0\n"
+      else
+        fstab_data += "/dev/sda2  /mnt      ext3    defaults         1 2\n"
+        fstab_data += "/dev/sda3  swap      swap    defaults         0 0\n"
       end
 
-      fstab_data.gsub!( /\/dev\/sda2/, '/dev/sdb ' )
-      fstab_data.gsub!( /\/dev\/sda3(.*)/, '' )
+      fstab_data += "none       /dev/pts  devpts  gid=5,mode=620   0 0\n"
+      fstab_data += "none       /dev/shm  tmpfs   defaults         0 0\n"
+      fstab_data += "none       /proc     proc    defaults         0 0\n"
+      fstab_data += "none       /sys      sysfs   defaults         0 0\n"
 
-      `sudo chmod 777 #{@mount_directory}/etc/fstab`
-      `sudo echo "#{fstab_data}" > #{@mount_directory}/etc/fstab`
-      `sudo chmod 644 #{@mount_directory}/etc/fstab`
+      # Preparing /etc/fstab
+      `sudo echo "#{fstab_data}" > #{mount_dir}/etc/fstab`
 
-      umount_image( loop_device, raw_file )
+      # enable networking on default runlevels
+      `sudo chroot #{mount_dir} /sbin/chkconfig --level 345 network on`
 
-      puts "Converting to large AMI finished"
+      # enable DHCP
+      `sudo echo "DEVICE=eth0\nBOOTPROTO=dhcp\nONBOOT=yes\nTYPE=Ethernet\nUSERCTL=yes\nPEERDNS=yes\nIPV6INIT=no\n" > #{mount_dir}/etc/sysconfig/network-scripts/ifcfg-eth0`
+
+      #`sudo umount #{mount_dir}/proc`
+      `sudo umount #{mount_dir}`
+
+      umount_image( loop_device, @appliance_raw_image )
     end
 
     def get_loop_device
@@ -92,18 +132,20 @@ module JBossCloud
       umount_image( loop_device, raw_file )
     end
 
-    protected
+    #protected
 
-    def mount_image( loop_device, raw_file, offset = 32256, appliance_jbcs_dir = "tmp/jboss-cloud-support", appliance_rpms_dir = "tmp/jboss-cloud-support-rpms" )
+    def mount_image( loop_device, raw_file, offset = 32256 )
       puts "Mounting image #{File.basename( raw_file )}"
-
       FileUtils.mkdir_p( @mount_directory )
 
       `sudo losetup -o #{offset.to_s} #{loop_device} #{raw_file}`
-
       `sudo mount #{loop_device} -t ext3 #{@mount_directory}`
+    end
+
+    def mount_env( appliance_jbcs_dir = "tmp/jboss-cloud-support", appliance_rpms_dir = "tmp/jboss-cloud-support-rpms" )
       `mkdir -p #{@mount_directory}/#{appliance_jbcs_dir}`
       `mkdir -p #{@mount_directory}/#{appliance_rpms_dir}`
+
       `sudo mount -t sysfs none #{@mount_directory}/sys/`
       `sudo mount -o bind /dev/ #{@mount_directory}/dev/`
       `sudo mount -t proc none #{@mount_directory}/proc/`
@@ -112,9 +154,8 @@ module JBossCloud
       `sudo mount -o bind #{@config.dir.top}/#{@appliance_config.os_path}/RPMS #{@mount_directory}/#{appliance_rpms_dir}`
     end
 
-    def umount_image( loop_device, raw_file, appliance_jbcs_dir = "tmp/jboss-cloud-support", appliance_rpms_dir = "tmp/jboss-cloud-support-rpms"  )
-      puts "Unmounting image #{File.basename( raw_file )}"
 
+    def umount_env( appliance_jbcs_dir = "tmp/jboss-cloud-support", appliance_rpms_dir = "tmp/jboss-cloud-support-rpms" )
       `sudo umount #{@mount_directory}/sys`
       `sudo umount #{@mount_directory}/dev`
       `sudo umount #{@mount_directory}/proc`
@@ -124,6 +165,10 @@ module JBossCloud
 
       `rm -rf #{@mount_directory}/#{appliance_jbcs_dir}`
       `rm -rf #{@mount_directory}/#{appliance_rpms_dir}`
+    end
+
+    def umount_image( loop_device, raw_file )
+      puts "Unmounting image #{File.basename( raw_file )}"
 
       `sudo umount #{@mount_directory}`
       `sudo losetup -d #{loop_device}`

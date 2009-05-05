@@ -40,6 +40,4 @@ class ApplianceImageCustomizeTest < Test::Unit::TestCase
     assert_match /Raw file '\/no\/raw\/file.raw' doesn't exists, please specify valid raw file/, exception.message
   end
   
-  
-  
 end
