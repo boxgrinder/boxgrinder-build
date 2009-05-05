@@ -55,7 +55,7 @@ module JBossCloud
         fstab_data += "/dev/sdb   /mnt      ext3    defaults         0 0\n"
         fstab_data += "/dev/sdc   /data     ext3    defaults         0 0\n"
       else
-        fstab_data += "/dev/sda2  /mnt      ext3    defaults         0 0\n"
+        fstab_data += "/dev/sda2  /mnt      ext3    defaults         1 2\n"
         fstab_data += "/dev/sda3  swap      swap    defaults         0 0\n"
       end
 
