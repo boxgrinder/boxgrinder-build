@@ -131,10 +131,6 @@ module JBossCloud
     end
 
     def convert_image_to_ec2_format
-      puts "Copying RAW file..."
-
-      FileUtils.cp( @appliance_raw_image, @appliance_ec2_image_file )
-
       puts "Converting #{@appliance_config.simple_name} appliance image to EC2 format..."
 
       @appliance_image_customizer.convert_to_ami

@@ -33,6 +33,7 @@ module JBossCloud
       @bundle_dir                   = "#{@appliance_build_dir}/ec2/bundle"
       @appliance_xml_file           = "#{@appliance_build_dir}/#{@appliance_config.name}.xml"
       @appliance_ec2_image_file     = "#{@appliance_build_dir}/#{@appliance_config.name}.ec2"
+      @appliance_raw_image          = "#{@appliance_build_dir}/#{@appliance_config.name}-sda.raw"
 
       @mount_directory              = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/customize-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
     end
@@ -44,6 +45,7 @@ module JBossCloud
 
       `mkdir -p #{mount_dir}`
 
+      # TODO add progress bar
       puts "Preparing disk for EC2 image...\n"
       puts `dd if=/dev/zero of=#{@appliance_ec2_image_file} bs=1M count=#{@appliance_config.disk_size.to_i * 1024}`
 
@@ -63,12 +65,10 @@ module JBossCloud
 
       #`sudo mount -t proc none #{mount_dir}/proc`
 
-      puts `ls -all #{mount_dir}/dev`
-
       puts "Creating required devices..."
-      #`sudo /sbin/MAKEDEV -d #{mount_dir}/dev -x console`
-      #`sudo /sbin/MAKEDEV -d #{mount_dir}/dev -x null`
-      #`sudo /sbin/MAKEDEV -d #{mount_dir}/dev -x zero`
+      `sudo /sbin/MAKEDEV -d #{mount_dir}/dev -x console`
+      `sudo /sbin/MAKEDEV -d #{mount_dir}/dev -x null`
+      `sudo /sbin/MAKEDEV -d #{mount_dir}/dev -x zero`
 
       fstab_data = "/dev/sda1  /         ext3    defaults         1 1\n"
 
@@ -86,18 +86,24 @@ module JBossCloud
       fstab_data += "none       /sys      sysfs   defaults         0 0\n"
 
       # Preparing /etc/fstab
-      `sudo echo "#{fstab_data}" > #{mount_dir}/etc/fstab`
+      echo( "#{@mount_directory}/etc/fstab", fstab_data )
 
       # enable networking on default runlevels
       `sudo chroot #{mount_dir} /sbin/chkconfig --level 345 network on`
 
       # enable DHCP
-      `sudo echo "DEVICE=eth0\nBOOTPROTO=dhcp\nONBOOT=yes\nTYPE=Ethernet\nUSERCTL=yes\nPEERDNS=yes\nIPV6INIT=no\n" > #{mount_dir}/etc/sysconfig/network-scripts/ifcfg-eth0`
+      echo( "#{@mount_directory}/etc/sysconfig/network-scripts/ifcfg-eth0", "DEVICE=eth0\nBOOTPROTO=dhcp\nONBOOT=yes\nTYPE=Ethernet\nUSERCTL=yes\nPEERDNS=yes\nIPV6INIT=no\n" )
 
       #`sudo umount #{mount_dir}/proc`
       `sudo umount #{mount_dir}`
 
-      umount_image( loop_device, @appliance_raw_image )
+      umount_image( loop_device, @appliance_ec2_image_file )
+    end
+
+    def echo( file, content, append = false)
+      `sudo chmod 777 #{file}`
+      `sudo echo "#{content}" #{append ? ">>" : ">"} #{file}`
+      `sudo chmod 664 #{file}`
     end
 
     def get_loop_device
@@ -122,13 +128,23 @@ module JBossCloud
       raise ValidationError, "Raw file '#{raw_file}' doesn't exists, please specify valid raw file" if !File.exists?( raw_file )
 
       loop_device = get_loop_device
-      mount_image( loop_device, raw_file )
+
+      # TODO fix this!
+      if (raw_file.eql?( @appliance_ec2_image_file ))
+        mount_image( loop_device, raw_file, 0 )
+      else
+        mount_image( loop_device, raw_file )
+      end
+
+      mount_env
 
       for repo in repos
         execute_command( "sudo chroot #{@mount_directory} rpm -Uvh #{repo}" )
       end
 
       install_packages( packages )
+
+      umount_env
       umount_image( loop_device, raw_file )
     end
 
