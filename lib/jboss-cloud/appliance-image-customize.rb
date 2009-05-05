@@ -33,22 +33,43 @@ module JBossCloud
       @bundle_dir                   = "#{@appliance_build_dir}/ec2/bundle"
       @appliance_xml_file           = "#{@appliance_build_dir}/#{@appliance_config.name}.xml"
       @appliance_ec2_image_file     = "#{@appliance_build_dir}/#{@appliance_config.name}.ec2"
+
       @mount_directory              = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/customize-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
     end
 
+
     def convert_to_ami
+
+      mount_dir = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/ec2-image-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
+
+      `mkdir -p #{mount_dir}`
+
+      puts "Preparing disk for EC2 image...\n"
+      puts `dd if=/dev/zero of=#{@appliance_ec2_image_file} bs=1M count=#{@appliance_config.disk_size.to_i * 1024}`
+
+      puts "Creating filesystem...\n"
+      puts `mke2fs -Fj #{@appliance_ec2_image_file}`
+
+      `sudo mount -o loop #{@appliance_ec2_image_file} #{mount_dir}`
+
       loop_device = get_loop_device
+      mount_image( loop_device, @appliance_raw_image )
 
-      mount_image( loop_device, @appliance_ec2_image_file )
+      puts "Rsyncing..."
+      `sudo rsync -u -r -a  #{@mount_directory}/* #{mount_dir}`
 
-      `sudo mkdir -p #{@mount_directory}/dev`
-      `sudo mkdir -p #{@mount_directory}/data`
+      #`sudo mkdir -p #{mount_dir}/proc`
+      `sudo mkdir -p #{mount_dir}/data`
 
-      `sudo /sbin/MAKEDEV -d #{@mount_directory}/dev -x console`
-      `sudo /sbin/MAKEDEV -d #{@mount_directory}/dev -x null`
-      `sudo /sbin/MAKEDEV -d #{@mount_directory}/dev -x zero`
+      #`sudo mount -t proc none #{mount_dir}/proc`
 
-      fstab_file = "#{@mount_directory}/etc/fstab"
+      puts `ls -all #{mount_dir}/dev`
+
+      puts "Creating required devices..."
+      #`sudo /sbin/MAKEDEV -d #{mount_dir}/dev -x console`
+      #`sudo /sbin/MAKEDEV -d #{mount_dir}/dev -x null`
+      #`sudo /sbin/MAKEDEV -d #{mount_dir}/dev -x zero`
+
       fstab_data = "/dev/sda1  /         ext3    defaults         1 1\n"
 
       if @appliance_config.is64bit?
@@ -64,21 +85,19 @@ module JBossCloud
       fstab_data += "none       /proc     proc    defaults         0 0\n"
       fstab_data += "none       /sys      sysfs   defaults         0 0\n"
 
-      echo( "#{@mount_directory}/etc/fstab", fstab_data )
+      # Preparing /etc/fstab
+      `sudo echo "#{fstab_data}" > #{mount_dir}/etc/fstab`
 
       # enable networking on default runlevels
-      `sudo chroot #{@mount_directory} /sbin/chkconfig --level 345 network on`
+      `sudo chroot #{mount_dir} /sbin/chkconfig --level 345 network on`
 
       # enable DHCP
-      echo( "#{@mount_directory}/etc/sysconfig/network-scripts/ifcfg-eth0", "DEVICE=eth0\nBOOTPROTO=dhcp\nONBOOT=yes\nTYPE=Ethernet\nUSERCTL=yes\nPEERDNS=yes\nIPV6INIT=no\n" )
+      `sudo echo "DEVICE=eth0\nBOOTPROTO=dhcp\nONBOOT=yes\nTYPE=Ethernet\nUSERCTL=yes\nPEERDNS=yes\nIPV6INIT=no\n" > #{mount_dir}/etc/sysconfig/network-scripts/ifcfg-eth0`
 
-      umount_image( loop_device, @appliance_ec2_image_file )
-    end
+      #`sudo umount #{mount_dir}/proc`
+      `sudo umount #{mount_dir}`
 
-    def echo( file, content, append = false)
-      `sudo chmod 777 #{file}`
-      `sudo echo "#{content}" #{append ? ">>" : ">"} #{file}`
-      `sudo chmod 664 #{file}`
+      umount_image( loop_device, @appliance_raw_image )
     end
 
     def get_loop_device
@@ -113,31 +132,31 @@ module JBossCloud
       umount_image( loop_device, raw_file )
     end
 
-    protected
+    #protected
 
-    def mount_image( loop_device, raw_file, offset = 32256, appliance_jbcs_dir = "tmp/jboss-cloud-support", appliance_rpms_dir = "tmp/jboss-cloud-support-rpms" )
+    def mount_image( loop_device, raw_file, offset = 32256 )
       puts "Mounting image #{File.basename( raw_file )}"
-
       FileUtils.mkdir_p( @mount_directory )
 
       `sudo losetup -o #{offset.to_s} #{loop_device} #{raw_file}`
-
       `sudo mount #{loop_device} -t ext3 #{@mount_directory}`
+    end
+
+    def mount_env( appliance_jbcs_dir = "tmp/jboss-cloud-support", appliance_rpms_dir = "tmp/jboss-cloud-support-rpms" )
       `mkdir -p #{@mount_directory}/#{appliance_jbcs_dir}`
       `mkdir -p #{@mount_directory}/#{appliance_rpms_dir}`
-      #`sudo mount -t sysfs none #{@mount_directory}/sys/`
-      #`sudo mount -o bind /dev/ #{@mount_directory}/dev/`
+
+      `sudo mount -t sysfs none #{@mount_directory}/sys/`
+      `sudo mount -o bind /dev/ #{@mount_directory}/dev/`
       `sudo mount -t proc none #{@mount_directory}/proc/`
       `sudo mount -o bind /etc/resolv.conf #{@mount_directory}/etc/resolv.conf`
       `sudo mount -o bind #{@config.dir.base} #{@mount_directory}/#{appliance_jbcs_dir}`
       `sudo mount -o bind #{@config.dir.top}/#{@appliance_config.os_path}/RPMS #{@mount_directory}/#{appliance_rpms_dir}`
     end
 
-    def umount_image( loop_device, raw_file, appliance_jbcs_dir = "tmp/jboss-cloud-support", appliance_rpms_dir = "tmp/jboss-cloud-support-rpms"  )
-      puts "Unmounting image #{File.basename( raw_file )}"
-
-      #`sudo umount #{@mount_directory}/sys`
-      #`sudo umount #{@mount_directory}/dev`
+    def umount_env( appliance_jbcs_dir = "tmp/jboss-cloud-support", appliance_rpms_dir = "tmp/jboss-cloud-support-rpms" )
+      `sudo umount #{@mount_directory}/sys`
+      `sudo umount #{@mount_directory}/dev`
       `sudo umount #{@mount_directory}/proc`
       `sudo umount #{@mount_directory}/etc/resolv.conf`
       `sudo umount #{@mount_directory}/#{appliance_jbcs_dir}`
@@ -145,6 +164,10 @@ module JBossCloud
 
       `rm -rf #{@mount_directory}/#{appliance_jbcs_dir}`
       `rm -rf #{@mount_directory}/#{appliance_rpms_dir}`
+    end
+
+    def umount_image( loop_device, raw_file )
+      puts "Unmounting image #{File.basename( raw_file )}"
 
       `sudo umount #{@mount_directory}`
       `sudo losetup -d #{loop_device}`
