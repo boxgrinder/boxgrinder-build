@@ -46,29 +46,32 @@ module JBossCloud
       `mkdir -p #{mount_dir}`
 
       # TODO add progress bar
-      puts "Preparing disk for EC2 image...\n"
+      puts "\nPreparing disk for EC2 image..."
       puts `dd if=/dev/zero of=#{@appliance_ec2_image_file} bs=1M count=#{@appliance_config.disk_size.to_i * 1024}`
+      puts "\nDisk for EC2 image prepared"
 
-      puts "Creating filesystem...\n"
+      puts "\nCreating filesystem..."
       puts `mke2fs -Fj #{@appliance_ec2_image_file}`
+      puts "\nFilesystem created"
 
       `sudo mount -o loop #{@appliance_ec2_image_file} #{mount_dir}`
 
+      puts "\nSyncing files between RAW and EC2 file..."
       loop_device = get_loop_device
       mount_image( loop_device, @appliance_raw_image )
 
-      puts "Rsyncing..."
       `sudo rsync -u -r -a  #{@mount_directory}/* #{mount_dir}`
 
-      #`sudo mkdir -p #{mount_dir}/proc`
+      umount_image( loop_device, @appliance_ec2_image_file )
+      puts "\nSyncing finished"
+
       `sudo mkdir -p #{mount_dir}/data`
 
-      #`sudo mount -t proc none #{mount_dir}/proc`
-
-      puts "Creating required devices..."
+      puts "\nCreating required devices..."
       `sudo /sbin/MAKEDEV -d #{mount_dir}/dev -x console`
       `sudo /sbin/MAKEDEV -d #{mount_dir}/dev -x null`
       `sudo /sbin/MAKEDEV -d #{mount_dir}/dev -x zero`
+      puts "\nDevices created"
 
       fstab_data = "/dev/sda1  /         ext3    defaults         1 1\n"
 
@@ -86,18 +89,19 @@ module JBossCloud
       fstab_data += "none       /sys      sysfs   defaults         0 0\n"
 
       # Preparing /etc/fstab
-      echo( "#{@mount_directory}/etc/fstab", fstab_data )
+      echo( "#{mount_dir}/etc/fstab", fstab_data )
 
       # enable networking on default runlevels
       `sudo chroot #{mount_dir} /sbin/chkconfig --level 345 network on`
 
       # enable DHCP
-      echo( "#{@mount_directory}/etc/sysconfig/network-scripts/ifcfg-eth0", "DEVICE=eth0\nBOOTPROTO=dhcp\nONBOOT=yes\nTYPE=Ethernet\nUSERCTL=yes\nPEERDNS=yes\nIPV6INIT=no\n" )
+      echo( "#{mount_dir}/etc/sysconfig/network-scripts/ifcfg-eth0", "DEVICE=eth0\nBOOTPROTO=dhcp\nONBOOT=yes\nTYPE=Ethernet\nUSERCTL=yes\nPEERDNS=yes\nIPV6INIT=no\n" )
 
       #`sudo umount #{mount_dir}/proc`
       `sudo umount #{mount_dir}`
+      `rm -rf #{mount_dir}`
 
-      umount_image( loop_device, @appliance_ec2_image_file )
+      puts "\nEC2 image prepared!"
     end
 
     def echo( file, content, append = false)
