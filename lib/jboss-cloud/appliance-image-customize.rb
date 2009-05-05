@@ -46,7 +46,7 @@ module JBossCloud
 
       # TODO add progress bar
       puts "\nPreparing disk for EC2 image..."
-      puts `dd if=/dev/zero of=#{@appliance_ec2_image_file} bs=1M count=#{@appliance_config.disk_size.to_i * 1024}`
+      puts `dd if=/dev/zero of=#{@appliance_ec2_image_file} bs=1M count=#{10 * 1024}`
       puts "\nDisk for EC2 image prepared"
 
       puts "\nCreating filesystem..."
