@@ -32,14 +32,14 @@ module JBossCloud
       @appliance_build_dir          = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
       @bundle_dir                   = "#{@appliance_build_dir}/ec2/bundle"
       @appliance_xml_file           = "#{@appliance_build_dir}/#{@appliance_config.name}.xml"
-      @appliance_raw_image          = "#{@appliance_build_dir}/#{@appliance_config.name}-sda.raw"
+      @appliance_ec2_image_file     = "#{@appliance_build_dir}/#{@appliance_config.name}.ec2"
       @mount_directory              = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/customize-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
     end
 
     def convert_to_ami
       loop_device = get_loop_device
 
-      mount_image( loop_device, @appliance_raw_image )
+      mount_image( loop_device, @appliance_ec2_image_file )
 
       `sudo mkdir -p #{@mount_directory}/dev`
       `sudo mkdir -p #{@mount_directory}/data`
@@ -72,7 +72,7 @@ module JBossCloud
       # enable DHCP
       echo( "#{@mount_directory}/etc/sysconfig/network-scripts/ifcfg-eth0", "DEVICE=eth0\nBOOTPROTO=dhcp\nONBOOT=yes\nTYPE=Ethernet\nUSERCTL=yes\nPEERDNS=yes\nIPV6INIT=no\n" )
 
-      umount_image( loop_device, @appliance_raw_image )
+      umount_image( loop_device, @appliance_ec2_image_file )
     end
 
     def echo( file, content, append = false)

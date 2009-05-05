@@ -31,6 +31,15 @@ module JBossCloud
       @os_version = os_version
 
       @appliances = Array.new
+
+      @path       = OpenStruct.new
+
+      @path.dir   = OpenStruct.new
+      @path.file  = OpenStruct.new
+
+      @path.file.xml    = "#{appliance_path}/#{@name}.xml"
+      @path.file.raw    = "#{appliance_path}/#{@name}-sda.raw"
+      @path.file.ec2    = "#{appliance_path}/#{@name}.ec2"
     end
 
     attr_reader :name
