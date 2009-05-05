@@ -38,7 +38,6 @@ module JBossCloud
       @mount_directory              = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/customize-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
     end
 
-
     def convert_to_ami
 
       mount_dir = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/ec2-image-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
@@ -152,7 +151,7 @@ module JBossCloud
       umount_image( loop_device, raw_file )
     end
 
-    #protected
+    protected
 
     def mount_image( loop_device, raw_file, offset = 32256 )
       puts "Mounting image #{File.basename( raw_file )}"

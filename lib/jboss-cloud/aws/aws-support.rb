@@ -37,7 +37,7 @@ module JBossCloud
     attr_reader :s3
 
     def bucket_key( appliance_name )
-      "#{@aws_data['bucket_name']}/#{@config.aws.bucket_prefix}/#{appliance_name}"
+      "#{@aws_data['bucket_name']}/#{@config.aws.bucket_prefix}/#{@config.build_arch}/#{appliance_name}"
     end
 
     def bucket_manifest_key( appliance_name )
