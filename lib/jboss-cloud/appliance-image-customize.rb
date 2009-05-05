@@ -62,7 +62,7 @@ module JBossCloud
 
       `sudo rsync -u -r -a  #{@mount_directory}/* #{mount_dir}`
 
-      umount_image( loop_device, @appliance_ec2_image_file )
+      umount_image( loop_device, @appliance_raw_image )
       puts "\nSyncing finished"
 
       `sudo mkdir -p #{mount_dir}/data`
