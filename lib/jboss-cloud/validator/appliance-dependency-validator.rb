@@ -89,7 +89,7 @@ module JBossCloud
         found = false
 
         repoquery_output.each do |line|
-          name_from_output = line.strip.match( /^([\S]+)-\d:/ )[1]
+          name_from_output = line.strip.match( /^([\S]+)-\d+:/ )[1]
 
           if name.match( /^#{name_from_output.gsub(/[\+]/, '\\+')}/ )
             found = true
