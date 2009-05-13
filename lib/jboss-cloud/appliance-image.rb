@@ -76,7 +76,7 @@ module JBossCloud
 
       return [] unless File.exists?( gems_file )
       gems = YAML.load_file( "#{@config.dir.base}/kickstarts/gems.yaml" )
-      return [] if gems == false or !gems.class.eql?(Array)
+      return [] if gems == false or gems.nil? or !gems.class.eql?(Array)
 
       gems
     end

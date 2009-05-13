@@ -49,9 +49,9 @@ module JBossCloud
       # TODO make it better!
       yaml_file = YAML.load_file( appliance_def )
       cfg.summary   = yaml_file['summary']
-      cfg.packages  = yaml_file['packages']
-      cfg.gems      = yaml_file['gems']
-      cfg.repos     = yaml_file['repos']
+      cfg.packages  = yaml_file['packages'].nil?  ? [] : yaml_file['packages']
+      cfg.gems      = yaml_file['gems'].nil?      ? [] : yaml_file['gems']
+      cfg.repos     = yaml_file['repos'].nil?     ? [] : yaml_file['repos']
       
       cfg
     end
