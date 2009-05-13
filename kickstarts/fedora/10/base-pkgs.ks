@@ -8,6 +8,8 @@ jboss-cloud-release
 #for vmware guesting
 #dkms-open-vm-tools
 #vm2-support
+jboss-cloud-management
+ruby-devel
 
 openssh-clients
 wget

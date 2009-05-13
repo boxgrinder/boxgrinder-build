@@ -23,43 +23,67 @@ require 'jboss-cloud/appliance-vmx-image'
 require 'jboss-cloud/appliance-ec2-image'
 require 'yaml'
 require 'jboss-cloud/aws/instance'
+require 'jboss-cloud/appliance-image-customize'
 
 module JBossCloud
   class ApplianceImage < Rake::TaskLib
-    
+
     def initialize( config, appliance_config )
       @config           = config
       @appliance_config = appliance_config
-      
+
+      @appliance_image_customizer   = ApplianceImageCustomize.new( @config, @appliance_config )
+
       define
     end
 
     def define
-      
+
       appliance_build_dir     = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
       kickstart_file          = "#{appliance_build_dir}/#{@appliance_config.name}.ks"
       xml_file                = "#{appliance_build_dir}/#{@appliance_config.name}.xml"
       tmp_dir                 = "#{@config.dir_root}/#{@config.dir_build}/tmp"
-      
+
       desc "Build #{@appliance_config.simple_name} appliance."
       task "appliance:#{@appliance_config.name}" => [ xml_file, "appliance:#{@appliance_config.name}:validate:dependencies" ]
-      
+
       directory tmp_dir
-      
+
       for appliance_name in @appliance_config.appliances
         task "appliance:#{@appliance_config.name}:rpms" => [ "rpm:#{appliance_name}" ]
       end
-      
+
       file xml_file => [ kickstart_file, "appliance:#{@appliance_config.name}:validate:dependencies", tmp_dir ] do
-        
         command = "sudo PYTHONUNBUFFERED=1 appliance-creator -d -v -t #{tmp_dir} --cache=#{@config.dir_rpms_cache}/#{@appliance_config.main_path} --config #{kickstart_file} -o #{@config.dir_build}/appliances/#{@appliance_config.main_path} --name #{@appliance_config.name} --vmem #{@appliance_config.mem_size} --vcpu #{@appliance_config.vcpu}"
         execute_command( command )
+
+        gems = get_default_gems + @appliance_config.gems
+
+        # we don't want duplicates
+        gems.uniq!
+
+        install_gems( gems ) if gems.size > 0
       end
-      
+
       ApplianceVMXImage.new( @config, @appliance_config )
       ApplianceEC2Image.new( @config, @appliance_config )
       AWSInstance.new( @config, @appliance_config )
-      
+
     end
+
+    def get_default_gems
+      gems_file = "#{@config.dir.base}/kickstarts/gems.yaml"
+
+      return [] unless File.exists?( gems_file )
+      gems = YAML.load_file( "#{@config.dir.base}/kickstarts/gems.yaml" )
+      return [] if gems == false or !gems.class.eql?(Array)
+
+      gems
+    end
+
+    def install_gems( gems )
+      @appliance_image_customizer.customize( @appliance_config.path.file.raw, { :gems => gems } )
+    end
+
   end
 end

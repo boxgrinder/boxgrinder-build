@@ -137,7 +137,7 @@ module JBossCloud
 
       puts "Customizing #{@appliance_config.simple_name} appliance..."
 
-      @appliance_image_customizer.customize( @appliance_ec2_image_file, { :rpm_remote => [ AWS_DEFAULTS[:kernel_rpm][@appliance_config.arch], "http://s3.amazonaws.com/ec2-downloads/ec2-ami-tools.noarch.rpm" ] })
+      @appliance_image_customizer.customize( @appliance_ec2_image_file, { :packages => { :rpm_remote => [ AWS_DEFAULTS[:kernel_rpm][@appliance_config.arch], "http://s3.amazonaws.com/ec2-downloads/ec2-ami-tools.noarch.rpm" ] } })
     end
 
   end

@@ -119,11 +119,16 @@ module JBossCloud
       loop_device
     end
 
-    # TODO rewrite this!!!
+    def customize( raw_file, options = {} )
 
-    def customize( raw_file, packages = {}, repos = [] )
-      if ( packages[:yum_local].nil? and packages[:yum].nil? and packages[:rpm_remote].nil? and repos.size == 0)
-        puts "No additional local or remote packages to install, skipping..."
+      options = {
+              :packages => { :yum_local => [], :yum => [], :rpm_remote => []},
+              :repos => [],
+              :gems => []
+      }.merge(options)
+
+      if ( options[:gems].size == 0 and options[:packages][:yum_local].size == 0 and options[:packages][:yum].size == 0 and options[:packages][:rpm_remote].size == 0 and options[:repos].size == 0)
+        puts "No additional local or remote packages or gems to install, skipping..."
         # silent return, we don't have any packages to install
         return
       end
@@ -141,11 +146,12 @@ module JBossCloud
 
       mount_env
 
-      for repo in repos
+      for repo in options[:repos]
         execute_command( "sudo chroot #{@mount_directory} rpm -Uvh #{repo}" )
       end
 
-      install_packages( packages )
+      install_packages( options[:packages] )
+      install_gems( options[:gems] )
 
       umount_env
       umount_image( loop_device, raw_file )
@@ -192,6 +198,19 @@ module JBossCloud
       `sudo losetup -d #{loop_device}`
 
       FileUtils.rm_rf( @mount_directory )
+    end
+
+    def install_gems( gems )
+      return if gems.size == 0
+
+      puts "Installing additional gems"
+
+      # Remove, and then add GitHub source
+      `sudo chroot #{@mount_directory} gem sources -r http://gems.github.com`
+      `sudo chroot #{@mount_directory} gem sources -a http://gems.github.com`
+      `sudo chroot #{@mount_directory} gem update --system`
+
+      execute_command( "sudo chroot #{@mount_directory} gem install #{gems.join(' ')}" )
     end
 
     def install_packages( packages, appliance_jbcs_dir = "tmp/jboss-cloud-support", appliance_rpms_dir = "tmp/jboss-cloud-support-rpms" )

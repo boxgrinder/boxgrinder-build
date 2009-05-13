@@ -47,6 +47,9 @@ if [ -d %{buildroot}/%{aceHome}/appliances/%{name}/facts ] ; then
   mv %{buildroot}%{aceHome}/appliances/%{name}/facts/* %{buildroot}/%{aceHome}/facts
 fi
 
+%post
+/bin/echo "appliance_name: <%= name %>" > /etc/jboss-cloud
+
 %clean
 rm -rf %{buildroot}
 

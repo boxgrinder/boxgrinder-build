@@ -35,7 +35,7 @@ class ApplianceImageCustomizeTest < Test::Unit::TestCase
   
   def test_raw_file_not_valid
     exception = assert_raise JBossCloud::ValidationError do
-      @appliance_customize.customize( "/no/raw/file.raw", { :yum_local => [ "i386/dkms-open-vm-tools-2009.03.18-154848.i386.rpm", "noarch/vm2-support-1.0.0.Beta1-1.noarch.rpm" ] } )  
+      @appliance_customize.customize( "/no/raw/file.raw", { :packages =>  { :yum_local => [ "i386/dkms-open-vm-tools-2009.03.18-154848.i386.rpm", "noarch/vm2-support-1.0.0.Beta1-1.noarch.rpm" ] } } )  
     end
     assert_match /Raw file '\/no\/raw\/file.raw' doesn't exists, please specify valid raw file/, exception.message
   end

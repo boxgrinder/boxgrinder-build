@@ -137,7 +137,7 @@ module JBossCloud
         if ( line =~ /Requires: (.*)/ )
           requirement = $1.strip
           handle_requirement( rpm_file, requirement )
-        elsif ( line =~ /Source[0-9]+: (.*)/ )
+        elsif ( line =~ /Source[0-9]*: (.*)/ )
           source = $1.strip
           handle_source( rpm_file, source, version, release  )
         elsif ( line =~ /Patch[0-9]*: (.*)/ )

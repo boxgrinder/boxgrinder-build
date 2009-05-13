@@ -30,6 +30,10 @@ module JBossCloud
       @os_name = os_name
       @os_version = os_version
 
+      @packages   = []
+      @gems       = []
+      @repos      = {}
+
       @appliances = Array.new
 
       @path       = OpenStruct.new
@@ -37,15 +41,16 @@ module JBossCloud
       @path.dir   = OpenStruct.new
       @path.file  = OpenStruct.new
 
-      @path.file.xml    = "#{appliance_path}/#{@name}.xml"
-      @path.file.raw    = "#{appliance_path}/#{@name}-sda.raw"
-      @path.file.ec2    = "#{appliance_path}/#{@name}.ec2"
+      @path.file.xml    = "build/#{appliance_path}/#{@name}.xml"
+      @path.file.raw    = "build/#{appliance_path}/#{@name}-sda.raw"
+      @path.file.ec2    = "build/#{appliance_path}/#{@name}.ec2"
     end
 
     attr_reader :name
     attr_reader :arch
     attr_reader :os_name
     attr_reader :os_version
+    attr_reader :path
 
     attr_accessor :vcpu
     attr_accessor :mem_size
@@ -54,6 +59,9 @@ module JBossCloud
     attr_accessor :output_format
     attr_accessor :appliances
     attr_accessor :summary
+    attr_accessor :packages
+    attr_accessor :gems
+    attr_accessor :repos
 
     # used to checking if configuration diffiers from previous in appliance-kickstart
 
