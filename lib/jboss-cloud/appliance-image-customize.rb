@@ -210,6 +210,13 @@ module JBossCloud
       puts "Installing additional gems..."
 
       execute_command( "sudo chroot #{@mount_directory} /bin/bash -c \"export HOME=/tmp && gem sources -r http://gems.github.com && gem sources -a http://gems.github.com && gem update --system > /dev/null && gem install #{gems.join(' ')} && gem list\"" )
+
+      # TODO select a right place for this
+
+      `sudo chroot #{@mount_directory} thin install`
+      `sudo chroot #{@mount_directory} ln -s /usr/share/jboss-cloud-management/config/config.yaml /etc/thin/config.yaml`
+      `sudo chroot #{@mount_directory} chkconfig --add thin`
+      `sudo chroot #{@mount_directory} chkconfig --level 345 thin on`
     end
 
     def install_packages( packages, appliance_jbcs_dir = "tmp/jboss-cloud-support", appliance_rpms_dir = "tmp/jboss-cloud-support-rpms" )
