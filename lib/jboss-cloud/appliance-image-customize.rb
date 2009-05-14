@@ -122,10 +122,14 @@ module JBossCloud
     def customize( raw_file, options = {} )
 
       options = {
-              :packages => { :yum_local => [], :yum => [], :rpm_remote => []},
+              :packages => {},
               :repos => [],
               :gems => []
       }.merge(options)
+
+      options[:packages][:yum]          = [] if options[:packages][:yum].nil?
+      options[:packages][:yum_local]    = [] if options[:packages][:yum_local].nil?
+      options[:packages][:rpm_remote]   = [] if options[:packages][:rpm_remote].nil?
 
       if ( options[:gems].size == 0 and options[:packages][:yum_local].size == 0 and options[:packages][:yum].size == 0 and options[:packages][:rpm_remote].size == 0 and options[:repos].size == 0)
         puts "No additional local or remote packages or gems to install, skipping..."

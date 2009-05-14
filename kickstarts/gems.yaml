@@ -2,3 +2,4 @@
 - sinatra-sinatra
 - thin
 - rest-client
+- fastthread
