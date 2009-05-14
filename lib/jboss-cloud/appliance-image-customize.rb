@@ -203,14 +203,9 @@ module JBossCloud
     def install_gems( gems )
       return if gems.size == 0
 
-      puts "Installing additional gems"
+      puts "Installing additional gems..."
 
-      # Remove, and then add GitHub source
-      `sudo chroot #{@mount_directory} gem sources -r http://gems.github.com`
-      `sudo chroot #{@mount_directory} gem sources -a http://gems.github.com`
-      `sudo chroot #{@mount_directory} gem update --system`
-
-      execute_command( "sudo chroot #{@mount_directory} gem install #{gems.join(' ')}" )
+      execute_command( "sudo chroot #{@mount_directory} /bin/bash -c \"export HOME=/tmp && gem sources -r http://gems.github.com && gem sources -a http://gems.github.com && gem update --system > /dev/null && gem install #{gems.join(' ')} && gem list\"" )
     end
 
     def install_packages( packages, appliance_jbcs_dir = "tmp/jboss-cloud-support", appliance_rpms_dir = "tmp/jboss-cloud-support-rpms" )

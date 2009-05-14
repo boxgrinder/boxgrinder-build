@@ -9,7 +9,11 @@ jboss-cloud-release
 #dkms-open-vm-tools
 #vm2-support
 jboss-cloud-management
+
+# required for some gems...
 ruby-devel
+gcc-c++
+make
 
 openssh-clients
 wget
