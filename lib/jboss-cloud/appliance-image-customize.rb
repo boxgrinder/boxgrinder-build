@@ -222,6 +222,9 @@ module JBossCloud
     def install_packages( packages, appliance_jbcs_dir = "tmp/jboss-cloud-support", appliance_rpms_dir = "tmp/jboss-cloud-support-rpms" )
       return if packages.size == 0
 
+      `sudo chroot #{@mount_directory} rm -f /var/lib/rpm/__db.*`
+      `sudo chroot #{@mount_directory} rpm --rebuilddb`
+
       # import our GPG key
       execute_command( "sudo chroot #{@mount_directory} rpm --import /#{appliance_jbcs_dir}/src/jboss-cloud-release/RPM-GPG-KEY-oddthesis" )
 
