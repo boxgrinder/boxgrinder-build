@@ -60,7 +60,6 @@ module JBossCloud
     attr_accessor :appliances
     attr_accessor :summary
     attr_accessor :packages
-    attr_accessor :gems
     attr_accessor :repos
 
     # used to checking if configuration diffiers from previous in appliance-kickstart

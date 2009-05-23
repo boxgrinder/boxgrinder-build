@@ -56,13 +56,6 @@ module JBossCloud
       file xml_file => [ kickstart_file, "appliance:#{@appliance_config.name}:validate:dependencies", tmp_dir ] do
         command = "sudo PYTHONUNBUFFERED=1 appliance-creator -d -v -t #{tmp_dir} --cache=#{@config.dir_rpms_cache}/#{@appliance_config.main_path} --config #{kickstart_file} -o #{@config.dir_build}/appliances/#{@appliance_config.main_path} --name #{@appliance_config.name} --vmem #{@appliance_config.mem_size} --vcpu #{@appliance_config.vcpu}"
         execute_command( command )
-
-        gems = get_default_gems + @appliance_config.gems
-
-        # we don't want duplicates
-        gems.uniq!
-
-        install_gems( gems ) if gems.size > 0
       end
 
       ApplianceVMXImage.new( @config, @appliance_config )
@@ -70,20 +63,5 @@ module JBossCloud
       AWSInstance.new( @config, @appliance_config )
 
     end
-
-    def get_default_gems
-      gems_file = "#{@config.dir.base}/kickstarts/gems.yaml"
-
-      return [] unless File.exists?( gems_file )
-      gems = YAML.load_file( "#{@config.dir.base}/kickstarts/gems.yaml" )
-      return [] if gems == false or gems.nil? or !gems.class.eql?(Array)
-
-      gems
-    end
-
-    def install_gems( gems )
-      @appliance_image_customizer.customize( @appliance_config.path.file.raw, { :gems => gems } )
-    end
-
   end
 end
