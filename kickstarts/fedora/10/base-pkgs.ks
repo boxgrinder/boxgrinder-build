@@ -11,9 +11,9 @@ jboss-cloud-release
 jboss-cloud-management
 
 # required for some gems...
-ruby-devel
-gcc-c++
-make
+#ruby-devel
+#gcc-c++
+#make
 
 openssh-clients
 wget
