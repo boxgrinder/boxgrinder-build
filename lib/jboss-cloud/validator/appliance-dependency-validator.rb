@@ -57,7 +57,13 @@ module JBossCloud
 
     def define_tasks
       desc "Validate packages dependencies for #{@appliance_config.simple_name} appliance"
-      task "appliance:#{@appliance_config.name}:validate:dependencies" => [ @kickstart_file, "appliance:#{@appliance_config.name}:rpms", "rpm:repodata:force" ] do
+      task "appliance:#{@appliance_config.name}:validate:dependencies" => [ @kickstart_file ] do
+        # if RAW file is already built, don't check for dependencies
+        return if File.exists?( @appliance_config.path.file.raw )
+
+        Rake::Task[ "appliance:#{@appliance_config.name}:rpms" ].invoke
+        Rake::Task[ 'rpm:repodata:force' ].invoke
+
         puts "\nResolving packages added to #{@appliance_config.simple_name} appliance definition file..."
 
         repos         = read_repos_from_kickstart_file

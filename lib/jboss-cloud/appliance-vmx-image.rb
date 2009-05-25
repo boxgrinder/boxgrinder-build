@@ -158,7 +158,7 @@ module JBossCloud
         File.open( vmware_enterprise_vmdk_file, "w" ) {|f| f.write( change_vmdk_values( "vmfs" ) ) }
       end
 
-      file @base_vmware_raw_file => [ @vmware_directory, @appliance_xml_file, "rpm:vm2-support:sign" ] do
+      file @base_vmware_raw_file => [ @vmware_directory, @appliance_xml_file ] do
         puts "Copying VMware image file, this may take several minutes..."
 
         FileUtils.cp( @base_raw_file, @base_vmware_raw_file ) if ( !File.exists?( @base_vmware_raw_file ) || File.new( @base_raw_file ).mtime > File.new( @base_vmware_raw_file ).mtime )
