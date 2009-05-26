@@ -59,26 +59,26 @@ module JBossCloud
       desc "Validate packages dependencies for #{@appliance_config.simple_name} appliance"
       task "appliance:#{@appliance_config.name}:validate:dependencies" => [ @kickstart_file ] do
         # if RAW file is already built, don't check for dependencies
-        return if File.exists?( @appliance_config.path.file.raw )
+        unless File.exists?( @appliance_config.path.file.raw )
+          Rake::Task[ "appliance:#{@appliance_config.name}:rpms" ].invoke
+          Rake::Task[ 'rpm:repodata:force' ].invoke
 
-        Rake::Task[ "appliance:#{@appliance_config.name}:rpms" ].invoke
-        Rake::Task[ 'rpm:repodata:force' ].invoke
+          puts "\nResolving packages added to #{@appliance_config.simple_name} appliance definition file..."
 
-        puts "\nResolving packages added to #{@appliance_config.simple_name} appliance definition file..."
+          repos         = read_repos_from_kickstart_file
+          package_list  = generate_package_list + [ @appliance_config.name ]
+          repo_list     = generate_repo_list( repos )
 
-        repos         = read_repos_from_kickstart_file
-        package_list  = generate_package_list + [ @appliance_config.name ]
-        repo_list     = generate_repo_list( repos )
+          generate_yum_config( repos )
 
-        generate_yum_config( repos )
+          invalid_names = invalid_names( repo_list, package_list )
 
-        invalid_names = invalid_names( repo_list, package_list )
-
-        if invalid_names.size == 0
-          puts "All additional packages for #{@appliance_config.simple_name} appliance successfully resolved."
-        else
-          puts "Package#{invalid_names.size > 1 ? "s" : ""} #{invalid_names.join(', ')} for #{@appliance_config.simple_name} appliance not found in repositories. Please check package name in appliance definition files (#{@appliance_defs.join(', ')}). Aborting."
-          abort
+          if invalid_names.size == 0
+            puts "All additional packages for #{@appliance_config.simple_name} appliance successfully resolved."
+          else
+            puts "Package#{invalid_names.size > 1 ? "s" : ""} #{invalid_names.join(', ')} for #{@appliance_config.simple_name} appliance not found in repositories. Please check package name in appliance definition files (#{@appliance_defs.join(', ')}). Aborting."
+            abort
+          end
         end
       end
 
