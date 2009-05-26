@@ -22,6 +22,7 @@ require 'rake'
 require 'rake/tasklib'
 require 'jboss-cloud/aws/aws-support'
 require 'yaml'
+require 'base64'
 require 'fileutils'
 
 module JBossCloud
@@ -53,12 +54,11 @@ module JBossCloud
     end
 
     def run_instance
-      # TODO select image type
-
       instance_type   = @appliance_config.is64bit? ? "m1.large" : "m1.small"
       image_id        = @aws_support.ami_info( @appliance_config.name ).imageId
+      user_data       = @appliance_config.name.eql?( "management-appliance" ) ? Base64.encode64( { "access_key" => @aws_support.aws_data['access_key'], "secret_access_key" => @aws_support.aws_data['secret_access_key'] }.to_yaml ) : nil
 
-      response = @aws_support.ec2.run_instances( :image_id => image_id, :instance_type => instance_type )
+      response = @aws_support.ec2.run_instances( :image_id => image_id, :instance_type => instance_type, :user_data => user_data )
 
       ami_info = response.instancesSet.item[0]
 

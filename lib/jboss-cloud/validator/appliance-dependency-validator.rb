@@ -63,26 +63,30 @@ module JBossCloud
           Rake::Task[ "appliance:#{@appliance_config.name}:rpms" ].invoke
           Rake::Task[ 'rpm:repodata:force' ].invoke
 
-          puts "\nResolving packages added to #{@appliance_config.simple_name} appliance definition file..."
-
-          repos         = read_repos_from_kickstart_file
-          package_list  = generate_package_list + [ @appliance_config.name ]
-          repo_list     = generate_repo_list( repos )
-
-          generate_yum_config( repos )
-
-          invalid_names = invalid_names( repo_list, package_list )
-
-          if invalid_names.size == 0
-            puts "All additional packages for #{@appliance_config.simple_name} appliance successfully resolved."
-          else
-            puts "Package#{invalid_names.size > 1 ? "s" : ""} #{invalid_names.join(', ')} for #{@appliance_config.simple_name} appliance not found in repositories. Please check package name in appliance definition files (#{@appliance_defs.join(', ')}). Aborting."
-            abort
-          end
+          resolve_packages          
         end
       end
 
       task "appliance:all:validate:dependencies" => [ "appliance:#{@appliance_config.name}:validate:dependencies" ]
+    end
+
+    def resolve_packages
+      puts "\nResolving packages added to #{@appliance_config.simple_name} appliance definition file..."
+
+      repos         = read_repos_from_kickstart_file
+      package_list  = generate_package_list + [ @appliance_config.name ]
+      repo_list     = generate_repo_list( repos )
+
+      generate_yum_config( repos )
+
+      invalid_names = invalid_names( repo_list, package_list )
+
+      if invalid_names.size == 0
+        puts "All additional packages for #{@appliance_config.simple_name} appliance successfully resolved."
+      else
+        puts "Package#{invalid_names.size > 1 ? "s" : ""} #{invalid_names.join(', ')} for #{@appliance_config.simple_name} appliance not found in repositories. Please check package name in appliance definition files (#{@appliance_defs.join(', ')}). Aborting."
+        abort
+      end
     end
 
     def invalid_names( repo_list, package_list )
