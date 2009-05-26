@@ -56,9 +56,9 @@ module JBossCloud
     def run_instance
       instance_type   = @appliance_config.is64bit? ? "m1.large" : "m1.small"
       image_id        = @aws_support.ami_info( @appliance_config.name ).imageId
-      user_data       = @appliance_config.name.eql?( "management-appliance" ) ? Base64.encode64( { "access_key" => @aws_support.aws_data['access_key'], "secret_access_key" => @aws_support.aws_data['secret_access_key'] }.to_yaml ) : nil
+      user_data       = @appliance_config.name.eql?( "management-appliance" ) ? { "access_key" => @aws_support.aws_data['access_key'], "secret_access_key" => @aws_support.aws_data['secret_access_key'] }.to_yaml : nil
 
-      response = @aws_support.ec2.run_instances( :image_id => image_id, :instance_type => instance_type, :user_data => user_data )
+      response = @aws_support.ec2.run_instances( :image_id => image_id, :instance_type => instance_type, :user_data => user_data, :base64_encoded => true )
 
       ami_info = response.instancesSet.item[0]
 
