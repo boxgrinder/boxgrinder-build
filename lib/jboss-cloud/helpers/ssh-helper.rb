@@ -124,12 +124,12 @@ module JBossCloud
       end
     end
 
-    def createrepo( directories = [] )
+    def createrepo( path, directories = [] )
       raise "You're not connected to server" unless connected?
 
       directories.each do |directory|
         puts "Refreshing repository information in #{directory}..."
-        @ssh.exec!( "createrepo #{directory}" )
+        @ssh.exec!( "createrepo #{path}/#{directory}" )
       end
     end
   end

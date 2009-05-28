@@ -79,7 +79,7 @@ module JBossCloud
 
       ssh_helper.connect
       ssh_helper.upload_files( ssh_config.cfg['remote_rpm_path'], packages )
-      ssh_helper.createrepo( dirs )
+      ssh_helper.createrepo( ssh_config.cfg['remote_rpm_path'], dirs )
       ssh_helper.disconnect
     end
 
