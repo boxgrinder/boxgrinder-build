@@ -53,19 +53,30 @@ module JBossCloud
         upload_packages
       end
 
+      desc "Create RAW package for #{@appliance_config.simple_name} appliance"
+      task "appliance:#{@appliance_config.name}:package:raw" => [ @package_raw ]
+
+      desc "Create VMware Enterprise package for #{@appliance_config.simple_name} appliance"
+      task "appliance:#{@appliance_config.name}:package:vmware:enterprise" => [ @package_vmware_enterprise ]
+
+      desc "Create Vmware Personal package for #{@appliance_config.simple_name} appliance"
+      task "appliance:#{@appliance_config.name}:package:vmware:personal" => [ @package_vmware_personal ]
+
       file @package_raw => [ @package_dir ] do
         puts "Packaging #{@appliance_config.simple_name} appliance RAW image (#{@config.os_name} #{@config.os_version}, #{@config.arch} arch)..."
-        `tar cvzf "#{@package_raw}" #{@appliance_raw_dir}/#{@appliance_config.name}-sda.raw #{@appliance_raw_dir}/#{@appliance_config.name}.xml`
+        `tar -C #{@appliance_raw_dir} -cvzf #{@package_raw} #{@appliance_config.name}-sda.raw #{@appliance_config.name}.xml`
       end
+
+      vmware_files = "#{@appliance_config.name}-sda.raw #{@appliance_config.name}.vmx #{@appliance_config.name}.vmdk"
 
       file @package_vmware_enterprise => [ @package_dir, "appliance:#{@appliance_config.name}:vmware:enterprise" ] do
         puts "Packaging #{@appliance_config.simple_name} appliance VMware Enterprise image (#{@config.os_name} #{@config.os_version}, #{@config.arch} arch)..."
-        `tar cvzf "#{@package_vmware_enterprise}" #{Dir[ "#{@appliance_vmware_enterprise_dir}/*" ].join(" ")}`
+        `tar -C #{@appliance_vmware_enterprise_dir} -cvzf "#{@package_vmware_enterprise}" #{vmware_files}`
       end
 
       file @package_vmware_personal => [ @package_dir, "appliance:#{@appliance_config.name}:vmware:personal" ] do
         puts "Packaging #{@appliance_config.simple_name} appliance VMware Personal image (#{@config.os_name} #{@config.os_version}, #{@config.arch} arch)..."
-        `tar cvzf "#{@package_vmware_personal}" #{Dir[ "#{@appliance_vmware_personal_dir}/*" ].join(" ")}`
+        `tar -C #{@appliance_vmware_personal_dir} -cvzf #{@package_vmware_personal} #{vmware_files}`        
       end
     end
 
