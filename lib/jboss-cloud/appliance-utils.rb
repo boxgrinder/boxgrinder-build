@@ -62,7 +62,7 @@ module JBossCloud
       desc "Create Vmware Personal package for #{@appliance_config.simple_name} appliance"
       task "appliance:#{@appliance_config.name}:package:vmware:personal" => [ @package_vmware_personal ]
 
-      file @package_raw => [ @package_dir ] do
+      file @package_raw => [ @package_dir, "appliance:#{@appliance_config.name}" ] do
         puts "Packaging #{@appliance_config.simple_name} appliance RAW image (#{@config.os_name} #{@config.os_version}, #{@config.arch} arch)..."
         `tar -C #{@appliance_raw_dir} -cvzf #{@package_raw} #{@appliance_config.name}-sda.raw #{@appliance_config.name}.xml`
       end
