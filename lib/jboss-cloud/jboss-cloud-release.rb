@@ -47,9 +47,9 @@ module JBossCloud
       end
 
       file [ @release_source ] => [ 'rpm:topdir' ] do
-        tmp_directory = "/tmp/#{@file_name}"
-        FileUtils.rm_rf( tmp_directory )
-        FileUtils.mkdir( tmp_directory )
+        tmp_directory = "/tmp/#{@file_name}/#{@file_name}"
+        FileUtils.rm_rf( "/tmp/#{@file_name}" )
+        FileUtils.mkdir_p( tmp_directory )
 
         FileUtils.cp_r( "#{@config.dir.base}/src/#{@config.os_path}/jboss-cloud-release/.", tmp_directory ) if ( File.exists?(File.dirname( "#{@config.dir.base}/src/#{@config.os_path}/jboss-cloud-release" )) && File.directory?(File.dirname( "#{@config.dir.base}/src/#{@config.os_path}/jboss-cloud-release" )) )
         FileUtils.cp_r( "#{@config.dir.base}/src/#{@config.os_name}/jboss-cloud-release/.", tmp_directory ) if ( File.exists?(File.dirname( "#{@config.dir.base}/src/#{@config.os_name}/jboss-cloud-release" )) && File.directory?(File.dirname( "#{@config.dir.base}/src/#{@config.os_name}/jboss-cloud-release" )) )
@@ -64,11 +64,11 @@ module JBossCloud
           File.open( repo_file, "w") {|f| f.write( repo_definition ) }
         end
 
-        Dir.chdir( "#{tmp_directory}" ) do
-          execute_command( "tar -czSpf #{@file_name}.tar.gz *" )
+        Dir.chdir( "/tmp/#{@file_name}" ) do
+          execute_command( "tar -czSpf #{@file_name}.tar.gz #{@file_name}/*" )
         end
 
-        FileUtils.cp( "#{tmp_directory}/#{@file_name}.tar.gz", @release_source )
+        FileUtils.cp( "/tmp/#{@file_name}/#{@file_name}.tar.gz", @release_source )
         FileUtils.rm_rf( tmp_directory )
       end
     end
