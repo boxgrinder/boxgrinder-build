@@ -64,12 +64,14 @@ module JBossCloud
           File.open( repo_file, "w") {|f| f.write( repo_definition ) }
         end
 
-        Dir.chdir( "/tmp" ) do
-          execute_command( "tar -czSpf #{@file_name}.tar.gz #{@file_name}" )
+        puts `ls #{tmp_directory}`
+
+        Dir.chdir( "#{tmp_directory}" ) do
+          execute_command( "tar -czSpf #{@file_name}.tar.gz *" )
         end
 
+        FileUtils.cp( "#{tmp_directory}/#{@file_name}.tar.gz", @release_source )
         FileUtils.rm_rf( tmp_directory )
-        FileUtils.cp( "/tmp/#{@file_name}.tar.gz", @release_source )
       end
     end
   end
