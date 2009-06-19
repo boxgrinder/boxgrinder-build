@@ -103,7 +103,7 @@ module JBossCloud
       # memory size
       vmx_data.gsub!( /#VCPU#/, @appliance_config.vcpu.to_s )
       # network name
-      vmx_data.gsub!( /#NETWORK_NAME#/, @appliance_config.network_name )
+      # vmx_data.gsub!( /#NETWORK_NAME#/, @appliance_config.network_name )
 
       vmx_data
     end
@@ -135,7 +135,6 @@ module JBossCloud
 
         # create .vmx file
         File.open( vmware_personal_vmx_file, "w" ) {|f| f.write( change_common_vmx_values ) }
-        File.open( vmware_personal_vmx_file, "w" ) {|f| f.write( change_common_vmx_values ) }
 
         # create disk descriptor file
         File.open( vmware_personal_vmdk_file, "w" ) {|f| f.write( change_vmdk_values( "monolithicFlat" ) ) }
@@ -152,7 +151,10 @@ module JBossCloud
         @appliance_config.network_name = "VM Network" if @appliance_config.network_name.eql?( "NAT" )
 
         # create .vmx file
-        File.open( vmware_enterprise_vmx_file, "w" ) {|f| f.write( change_common_vmx_values ) }
+        vmx_data = change_common_vmx_values
+        vmx_data += "ethernet0.networkName = \"#{@appliance_config.network_name}\""
+
+        File.open( vmware_enterprise_vmx_file, "w" ) {|f| f.write( vmx_data ) }
 
         # create disk descriptor file
         File.open( vmware_enterprise_vmdk_file, "w" ) {|f| f.write( change_vmdk_values( "vmfs" ) ) }

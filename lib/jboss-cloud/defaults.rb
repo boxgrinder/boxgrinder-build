@@ -22,11 +22,11 @@ module JBossCloud
   # here are global variables
   SUPPORTED_ARCHES = [ "i386", "x86_64" ]
   SUPPORTED_OSES = {
-          "fedora" => [ "10", "rawhide" ]
+          "fedora" => [ "11", "10", "rawhide" ]
   }
 
   STABLE_RELEASES = {
-          "fedora" => "10",
+          "fedora" => "11",
           "rhel" => "5"
   }
 
@@ -43,6 +43,14 @@ module JBossCloud
   # you can use #ARCH# variable to specify build arch
   REPOS = {
           "fedora" => {
+                  "11" => {
+                          "base" => {
+                                  "mirrorlist" => "http://mirrors.fedoraproject.org/mirrorlist?repo=fedora-11&arch=#ARCH#"
+                          },
+                          "updates" => {
+                                  "mirrorlist" => "http://mirrors.fedoraproject.org/mirrorlist?repo=updates-released-f11&arch=#ARCH#"
+                          }
+                  },
                   "10" => {
                           "base" => {
                                   "mirrorlist" => "http://mirrors.fedoraproject.org/mirrorlist?repo=fedora-10&arch=#ARCH#"
@@ -69,7 +77,7 @@ module JBossCloud
           :release           => '1',
           :dir_build         => 'build',
           #:topdir            => "#{self.} build/topdir",
-  :dir_sources_cache => 'sources-cache',
+          :dir_sources_cache => 'sources-cache',
           :dir_rpms_cache    => 'rpms-cache',
           :dir_specs         => 'specs',
           :dir_appliances    => 'appliances',
