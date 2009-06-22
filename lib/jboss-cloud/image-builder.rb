@@ -36,7 +36,7 @@ require 'jboss-cloud/config'
 require 'jboss-cloud/jboss-cloud-release'
 require 'jboss-cloud/validator/validator'
 require 'jboss-cloud/validator/appliance-config-parameter-validator'
-require 'jboss-cloud/appliance-config-helper'
+require 'jboss-cloud/helper/appliance-config-helper'
 require 'jboss-cloud/defaults'
 require 'jboss-cloud/helpers/rake-helper'
 require 'ostruct'
@@ -94,12 +94,12 @@ module JBossCloud
 
       [ "#{@config.dir.base}/specs/*.spec", "#{@config.dir.specs}/extras/*.spec", "#{@config.dir.top}/#{@config.os_path}/SPECS/*.spec" ].each do |spec_file_dir|
         Dir[ spec_file_dir ].each do |spec_file|
-          JBossCloud::RPM.new( @config, spec_file )
+          RPM.new( @config, spec_file )
         end
       end
 
       Dir[ "#{@config.dir_appliances}/*/*.appl" ].each do |appliance_def|
-        JBossCloud::Appliance.new( @config, ApplianceConfigHelper.new.config( appliance_def, @config ), appliance_def )
+        Appliance.new( @config, ApplianceConfigHelper.new.config( appliance_def, @config ), appliance_def )
       end
     end
   end

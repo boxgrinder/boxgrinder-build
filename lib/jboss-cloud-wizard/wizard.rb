@@ -256,7 +256,7 @@ module JBossCloudWizard
       build_helper = BuildHelper.new( @config, @options )
 
       msg_before    = "Building #{@config.simple_name} appliance... (this may take a while)"
-      msg_success   = "Build was successful. Check '#{Dir.pwd}/build/appliances/#{@config.arch}/#{@config.name}/' folder for output files."
+      msg_success   = "Build was successful. Check '#{Dir.pwd}/build/appliances/#{@config.arch}/#{@config.os_name}/#{@config.os_version}/#{@config.name}/' folder for output files."
       msg_fail      = "Build failed."
 
       case @config.output_format.to_i

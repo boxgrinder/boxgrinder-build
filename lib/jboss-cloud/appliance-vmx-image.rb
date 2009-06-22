@@ -21,7 +21,6 @@
 require 'rake/tasklib'
 require 'rexml/document'
 require 'jboss-cloud/appliance-image-customize'
-require 'guestfs'
 
 module JBossCloud
 
@@ -126,16 +125,6 @@ module JBossCloud
       vmware_enterprise_raw_file           = vmware_enterprise_output_folder + "/#{@appliance_config.name}-sda.raw"
 
       directory @vmware_directory
-
-      desc "Simple test taks"
-      task "bleh:#{@appliance_config.name}" do
-        g = Guestfs::create
-        puts g
-        puts g.add_drive( @base_vmware_raw_file )
-        puts g.launch
-        puts g.wait_ready
-        puts g.list_partitions
-      end
 
       desc "Build #{super_simple_name} appliance for VMware personal environments (Server/Workstation/Fusion)"
       task "appliance:#{@appliance_config.name}:vmware:personal" => [ @base_vmware_raw_file ] do

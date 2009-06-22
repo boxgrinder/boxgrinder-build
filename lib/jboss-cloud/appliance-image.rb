@@ -24,80 +24,62 @@ require 'jboss-cloud/appliance-ec2-image'
 require 'yaml'
 require 'jboss-cloud/aws/instance'
 require 'jboss-cloud/appliance-image-customize'
-require 'guestfs'
+require 'jboss-cloud/helpers/guestfs-helper'
 
 module JBossCloud
   class ApplianceImage < Rake::TaskLib
 
     def initialize( config, appliance_config )
-      @config           = config
-      @appliance_config = appliance_config
+      @config                  = config
+      @appliance_config        = appliance_config
 
       @appliance_build_dir     = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
-      @raw_file                = "#{@appliance_build_dir}/#{@appliance_config.name}-sda.raw"
+      @raw_disk                = "#{@appliance_build_dir}/#{@appliance_config.name}-sda.raw"
+      @kickstart_file          = "#{@appliance_build_dir}/#{@appliance_config.name}.ks"
+      @tmp_dir                 = "#{@config.dir_root}/#{@config.dir_build}/tmp"
+      @xml_file                = "#{@appliance_build_dir}/#{@appliance_config.name}.xml"
 
-      define
+      define_tasks
     end
 
-    def define
-
-      appliance_build_dir     = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
-      kickstart_file          = "#{appliance_build_dir}/#{@appliance_config.name}.ks"
-
-      xml_file                = "#{appliance_build_dir}/#{@appliance_config.name}.xml"
-      tmp_dir                 = "#{@config.dir_root}/#{@config.dir_build}/tmp"
-
+    def define_tasks
       desc "Build #{@appliance_config.simple_name} appliance."
-      task "appliance:#{@appliance_config.name}" => [ xml_file, "appliance:#{@appliance_config.name}:validate:dependencies" ]
+      task "appliance:#{@appliance_config.name}" => [ @xml_file, "appliance:#{@appliance_config.name}:validate:dependencies" ]
 
-      directory tmp_dir
+      directory @tmp_dir
 
       for appliance_name in @appliance_config.appliances
         task "appliance:#{@appliance_config.name}:rpms" => [ "rpm:#{appliance_name}" ]
       end
 
-      file xml_file => [ kickstart_file, "appliance:#{@appliance_config.name}:validate:dependencies", tmp_dir ] do
-        command = "sudo PYTHONUNBUFFERED=1 appliance-creator -d -v -t #{tmp_dir} --cache=#{@config.dir_rpms_cache}/#{@appliance_config.main_path} --config #{kickstart_file} -o #{@config.dir_build}/appliances/#{@appliance_config.main_path} --name #{@appliance_config.name} --vmem #{@appliance_config.mem_size} --vcpu #{@appliance_config.vcpu}"
-        execute_command( command )
-        `sudo chown oddthesis:oddthesis #{@raw_file}`
-        cleanup_rpm_database
-      end
-
-      task "aaa:#{@appliance_config.name}" do
+      file @xml_file => [ @kickstart_file, "appliance:#{@appliance_config.name}:validate:dependencies", @tmp_dir ] do
+        build_raw_image
         cleanup_rpm_database
       end
 
       ApplianceVMXImage.new( @config, @appliance_config )
       ApplianceEC2Image.new( @config, @appliance_config )
       AWSInstance.new( @config, @appliance_config )
+    end
 
+
+    def build_raw_image
+      command = "sudo PYTHONUNBUFFERED=1 appliance-creator -d -v -t #{@tmp_dir} --cache=#{@config.dir_rpms_cache}/#{@appliance_config.main_path} --config #{@kickstart_file} -o #{@config.dir_build}/appliances/#{@appliance_config.main_path} --name #{@appliance_config.name} --vmem #{@appliance_config.mem_size} --vcpu #{@appliance_config.vcpu}"
+      execute_command( command )
+
+      # fix permissions
+      `sudo chown oddthesis:oddthesis #{@raw_disk}`
     end
 
     def cleanup_rpm_database
-      g = Guestfs::create
-      puts g.add_drive( @raw_file )
-      puts "launch"
-      puts g.launch
-      puts "wait"
-      puts g.wait_ready
-      puts "mount"
-      g.mount( "/dev/sda1", "/" )
-      puts "rm-rf 1"
+      guesfs_helper = GuestFSHelper.new( @raw_disk )
 
+      # TODO this is shitty, I know... https://bugzilla.redhat.com/show_bug.cgi?id=507188
       for i in (1..9)
-        g.rm_rf( "/var/lib/rpm/__db.00#{i.to_s}" )
+        guesfs_helper.guestfs.rm_rf( "/var/lib/rpm/__db.00#{i.to_s}" )
       end
 
-
-      puts "'ls /'"   
-      puts g.command( "'ls /'" )
-      puts g.command( "ls /" )
-
-      puts "Rebuilddb"
-      puts g.command_lines( "rpm --rebuilddb" )
-      puts g.command_lines( "yum search mc" )
-
+      guesfs_helper.guestfs.command( ["rpm", "--rebuilddb"] )
     end
-
   end
 end
