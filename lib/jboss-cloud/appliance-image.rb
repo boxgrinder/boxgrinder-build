@@ -24,6 +24,7 @@ require 'jboss-cloud/appliance-ec2-image'
 require 'yaml'
 require 'jboss-cloud/aws/instance'
 require 'jboss-cloud/appliance-image-customize'
+require 'guestfs'
 
 module JBossCloud
   class ApplianceImage < Rake::TaskLib
@@ -32,7 +33,8 @@ module JBossCloud
       @config           = config
       @appliance_config = appliance_config
 
-      @appliance_image_customizer   = ApplianceImageCustomize.new( @config, @appliance_config )
+      @appliance_build_dir     = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
+      @raw_file                = "#{@appliance_build_dir}/#{@appliance_config.name}-sda.raw"
 
       define
     end
@@ -41,6 +43,7 @@ module JBossCloud
 
       appliance_build_dir     = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
       kickstart_file          = "#{appliance_build_dir}/#{@appliance_config.name}.ks"
+
       xml_file                = "#{appliance_build_dir}/#{@appliance_config.name}.xml"
       tmp_dir                 = "#{@config.dir_root}/#{@config.dir_build}/tmp"
 
@@ -56,6 +59,12 @@ module JBossCloud
       file xml_file => [ kickstart_file, "appliance:#{@appliance_config.name}:validate:dependencies", tmp_dir ] do
         command = "sudo PYTHONUNBUFFERED=1 appliance-creator -d -v -t #{tmp_dir} --cache=#{@config.dir_rpms_cache}/#{@appliance_config.main_path} --config #{kickstart_file} -o #{@config.dir_build}/appliances/#{@appliance_config.main_path} --name #{@appliance_config.name} --vmem #{@appliance_config.mem_size} --vcpu #{@appliance_config.vcpu}"
         execute_command( command )
+        `sudo chown oddthesis:oddthesis #{@raw_file}`
+        cleanup_rpm_database
+      end
+
+      task "aaa:#{@appliance_config.name}" do
+        cleanup_rpm_database
       end
 
       ApplianceVMXImage.new( @config, @appliance_config )
@@ -63,5 +72,32 @@ module JBossCloud
       AWSInstance.new( @config, @appliance_config )
 
     end
+
+    def cleanup_rpm_database
+      g = Guestfs::create
+      puts g.add_drive( @raw_file )
+      puts "launch"
+      puts g.launch
+      puts "wait"
+      puts g.wait_ready
+      puts "mount"
+      g.mount( "/dev/sda1", "/" )
+      puts "rm-rf 1"
+
+      for i in (1..9)
+        g.rm_rf( "/var/lib/rpm/__db.00#{i.to_s}" )
+      end
+
+
+      puts "'ls /'"   
+      puts g.command( "'ls /'" )
+      puts g.command( "ls /" )
+
+      puts "Rebuilddb"
+      puts g.command_lines( "rpm --rebuilddb" )
+      puts g.command_lines( "yum search mc" )
+
+    end
+
   end
 end

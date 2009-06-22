@@ -19,7 +19,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'jboss-cloud-wizard/step'
-require 'jboss-cloud-support/defaults'
+require 'jboss-cloud/defaults'
 
 module JBossCloudWizard
   class StepAppliance < Step
@@ -33,8 +33,8 @@ module JBossCloudWizard
       ask_for_appliance
       ask_for_architecture
 
-      config = JBossCloud::ApplianceConfig.new( @appliance, @arch, APPLIANCE_DEFAULTS['os_name'], APPLIANCE_DEFAULTS['os_version'] )
-      config.vcpu = APPLIANCE_DEFAULTS['vcpu']
+      config = JBossCloud::ApplianceConfig.new( @appliance, @arch, JBossCloud::APPLIANCE_DEFAULTS['os_name'], JBossCloud::APPLIANCE_DEFAULTS['os_version'] )
+      config.vcpu = JBossCloud::APPLIANCE_DEFAULTS['vcpu']
 
       config
     end

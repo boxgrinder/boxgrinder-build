@@ -3,7 +3,7 @@
 Name:           jboss-cloud-release
 Version:        #OS_VERSION#
 Release:        1
-Summary:        JBoss-Cloud release files
+Summary:        JBoss Cloud release files
 Group:          System Environment/Base
 License:        LGPL
 URL:            http://oddthesis.org/
@@ -37,6 +37,15 @@ ln -s jboss-cloud-release $RPM_BUILD_ROOT/etc/system-release
 # gpg
 install -d -m 755 $RPM_BUILD_ROOT/etc/pki/rpm-gpg
 install -m 644 RPM-GPG-KEY* $RPM_BUILD_ROOT/etc/pki/rpm-gpg/
+
+pushd $RPM_BUILD_ROOT/etc/pki/rpm-gpg/
+for arch in i386 x86_64
+  do
+  ln -s RPM-GPG-KEY-fedora-%{dist_version}-primary RPM-GPG-KEY-fedora-$arch
+done
+
+ln -s RPM-GPG-KEY-fedora-%{dist_version}-primary RPM-GPG-KEY-fedora
+popd
 
 # yum
 install -d -m 755 $RPM_BUILD_ROOT/etc/yum.repos.d
