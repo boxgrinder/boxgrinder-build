@@ -24,8 +24,9 @@ require 'yaml'
 
 module JBossCloud
   class ApplianceValidator
-    def initialize( dir_appliances, appliance_def )     
+    def initialize( dir_appliances, appliance_def, log )
       @dir_appliances = dir_appliances
+      @log            = log
       
       #check if appliance_def is nil
       raise ApplianceValidationError, "Appliance definition file must be specified" if appliance_def.nil? or appliance_def.length == 0
@@ -61,7 +62,7 @@ module JBossCloud
       appliance_def = "#{@dir_appliances}/#{appliance_name}/#{appliance_name}.appl"
       
       unless  File.exists?( appliance_def )
-        puts "Appliance configuration file for '#{appliance_name}' doesn't exists, please check your config files."
+        @log.info "Appliance configuration file for '#{appliance_name}' doesn't exists, please check your config files."
         return false
       end
       

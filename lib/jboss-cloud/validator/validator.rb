@@ -59,7 +59,7 @@ module JBossCloud
         appliances = Dir[ "#{@config.dir.appliances}/*/*.appl" ]
 
         appliances.each do |appliance_def|
-          ApplianceValidator.new( @config.dir.appliances, appliance_def ).validate
+          ApplianceValidator.new( @config.dir.appliances, appliance_def, @log ).validate
         end
 
         if appliances.size == 0
@@ -79,7 +79,7 @@ module JBossCloud
     def validate_configuration
       @log.info "Validating configuration..." if JBossCloud.validation_task?
       begin
-        ConfigValidator.new( @config ).validate
+        ConfigValidator.new( @config, @log ).validate
       rescue ValidationError => validation_error
         raise "Error while validating configuration: #{validation_error}"
       rescue => exception

@@ -104,6 +104,8 @@ module JBossCloud
 
       # TODO better way to get this directory
       @dir.base         = "#{File.dirname( __FILE__ )}/../.."
+      @dir.tmp          = "#{@dir.build}/tmp"
+
       @files            = OpenStruct.new
 
       @dir_rpms_cache   = @dir.rpms_cache

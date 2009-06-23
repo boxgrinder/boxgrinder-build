@@ -19,6 +19,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'rake/tasklib'
+require 'jboss-cloud/repodata'
 
 module JBossCloud
   class Topdir < Rake::TaskLib
@@ -30,10 +31,10 @@ module JBossCloud
       @arches = SUPPORTED_ARCHES + [ "noarch" ]
       @oses   = SUPPORTED_OSES
 
-      define
+      define_tasks
     end
 
-    def define
+    def define_tasks
 
       for os in @oses.keys
         for version in @oses[os]
@@ -44,7 +45,6 @@ module JBossCloud
           directory "#{@topdir}/#{os}/#{version}/RPMS"
           directory "#{@topdir}/#{os}/#{version}/SRPMS"
 
-          #desc "Create the RPM build topdir"
           task "rpm:topdir" => [
             "#{@topdir}/#{os}/#{version}/tmp",
             "#{@topdir}/#{os}/#{version}/SPECS",
@@ -62,7 +62,7 @@ module JBossCloud
         end
       end    
 
-      JBossCloud::Repodata.new( @config )
+      Repodata.new( @config )
     end
   end
 end

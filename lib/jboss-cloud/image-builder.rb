@@ -27,7 +27,6 @@ end
 require 'rake'
 require 'jboss-cloud/exec'
 require 'jboss-cloud/topdir'
-require 'jboss-cloud/repodata'
 require 'jboss-cloud/rpm'
 require 'jboss-cloud/rpm-utils'
 require 'jboss-cloud/gpg-sign'
@@ -80,8 +79,8 @@ module JBossCloud
 
       Rake::Task[ 'validate:all' ].invoke
 
-      JBossCloud::Topdir.new( @config )
-      JBossCloud::JBossCloudRelease.new( @config )
+      Topdir.new( @config )
+      JBossCloudRelease.new( @config )
       JBossCloud::RPMUtils.new( @config )
       JBossCloud::GPGSign.new( @config )
 

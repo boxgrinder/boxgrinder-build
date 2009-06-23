@@ -23,8 +23,9 @@ require 'jboss-cloud/validator/errors'
 
 module JBossCloud
   class ConfigValidator
-    def initialize( config )
+    def initialize( config, log )
       @config = config
+      @log    = log
     end
 
     def validate

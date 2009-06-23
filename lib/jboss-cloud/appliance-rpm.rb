@@ -56,9 +56,9 @@ module JBossCloud
       end
       
       #file rpm_file=> [ 'rpm:dkms-open-vm-tools' ]
-      file rpm_file=> [ 'rpm:vm2-support' ]
-      file rpm_file=> [ 'rpm:jboss-cloud-release' ]
-      file rpm_file=> [ 'rpm:jboss-cloud-management' ]
+      file rpm_file => [ 'rpm:vm2-support' ]
+      file rpm_file => [ 'rpm:jboss-cloud-release', "#{@config.dir.top}/#{@config.os_path}/SPECS/jboss-cloud-release.spec" ]
+      file rpm_file => [ 'rpm:jboss-cloud-management' ]
       
     end
     
