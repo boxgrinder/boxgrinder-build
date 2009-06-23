@@ -21,7 +21,7 @@
 additional_libs = [ "amazon-ec2", "aws-s3", "net-ssh", "net-sftp" ]
 
 additional_libs.each do |lib|
- $LOAD_PATH.unshift( "#{File.dirname( __FILE__ )}/../#{lib}/lib" )
+  $LOAD_PATH.unshift( "#{File.dirname( __FILE__ )}/../#{lib}/lib" )
 end
 
 require 'rake'
@@ -44,7 +44,8 @@ require 'yaml'
 
 module JBossCloud
   class ImageBuilder
-    def initialize( project_config = Hash.new )
+    def initialize( log, project_config = Hash.new )
+      @log = log
       # validates parameters, this is a pre-validation
       ApplianceConfigParameterValidator.new.validate
 
@@ -68,13 +69,14 @@ module JBossCloud
       config_file       = ENV['JBOSS_CLOUD_CONFIG_FILE']      || "#{ENV['HOME']}/.jboss-cloud/config"
 
       @config = Config.new( name, version, release, dir, config_file )
+      
 
       define_rules
     end
 
     def define_rules
 
-      JBossCloud::Validator.new( @config )
+      Validator.new( @config, @log )
 
       Rake::Task[ 'validate:all' ].invoke
 
@@ -85,10 +87,8 @@ module JBossCloud
 
       directory @config.dir_build
 
-      if JBossCloud.building_task?
-        #puts "Current architecture:\t#{@config.arch}"
-        #puts "Building architecture:\t#{@config.build_arch}\n\r"
-      end
+      @log.debug "Current architecture: #{@config.arch}"
+      @log.debug "Building architecture: #{@config.build_arch}"
 
       Rake::Task[ "#{@config.dir.top}/#{@config.os_path}/SPECS/jboss-cloud-release.spec" ].invoke
 

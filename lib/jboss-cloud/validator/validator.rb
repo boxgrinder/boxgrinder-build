@@ -26,61 +26,67 @@ require 'rake/tasklib'
 
 module JBossCloud
   class Validator < Rake::TaskLib
-    
-    def initialize( config )
+
+    def initialize( config, log )
       @config = config
-      
-      define
+      @log    = log
+
+      define_tasks
     end
-    
-    def define     
-      
+
+    def define_tasks
+
       desc "Validate appliance files definitions"
-      task "validate:definitions" do     
-        
-        puts "Validating appliances definitions..." if JBossCloud.validation_task?
-        
-        begin         
-          raise ValidationError, "Appliance directory '#{@config.dir.appliances}' doesn't exists, please check your Rakefile" if @config.dir.appliances.nil? or !File.exists?(File.dirname( @config.dir.appliances )) or !File.directory?(File.dirname( @config.dir.appliances ))
-          
-          appliances = Dir[ "#{@config.dir.appliances}/*/*.appl" ]
-          
-          appliances.each do |appliance_def|
-            ApplianceValidator.new( @config.dir.appliances, appliance_def ).validate
-          end
-          
-          if appliances.size == 0
-            puts "No appliance definitions found in '#{@config.dir.appliances}' directory" if JBossCloud.validation_task?
-          else
-            puts "All #{appliances.size} appliances definitions are valid" if JBossCloud.validation_task?
-          end  
-        rescue ApplianceValidationError => appliance_validation_error
-          raise "Error while validating appliance definition: #{appliance_validation_error}"
-        rescue ValidationError => validation_error
-          raise "Error while validating appliance definitions: #{validation_error}"
-        rescue => exception
-          raise "Something went wrong: #{exception}"
-        end
-        
+      task "validate:definitions" do
+        validate_definitions
       end
-      
+
       desc "Validate configuration"
       task "validate:config" do
-        puts "Validating configuration..." if JBossCloud.validation_task?
-        begin
-          ConfigValidator.new( @config ).validate
-        rescue ValidationError => validation_error
-          raise "Error while validating configuration: #{validation_error}"
-        rescue => exception
-          raise "Something went wrong: #{exception}"
-        end
-        
-        puts "Configuration is valid" if JBossCloud.validation_task?
+        validate_configuration
       end
-      
+
       desc "Validate everything"
       task "validate:all" => [ "validate:definitions", "validate:config" ]
     end
-    
+
+    def validate_definitions
+      @log.info "Validating appliance definitions..." if JBossCloud.validation_task?
+
+      begin
+        raise ValidationError, "Appliance directory '#{@config.dir.appliances}' doesn't exists, please check your Rakefile" if @config.dir.appliances.nil? or !File.exists?(File.dirname( @config.dir.appliances )) or !File.directory?(File.dirname( @config.dir.appliances ))
+
+        appliances = Dir[ "#{@config.dir.appliances}/*/*.appl" ]
+
+        appliances.each do |appliance_def|
+          ApplianceValidator.new( @config.dir.appliances, appliance_def ).validate
+        end
+
+        if appliances.size == 0
+          @log.info "No appliance definitions found in '#{@config.dir.appliances}' directory" if JBossCloud.validation_task?
+        else
+          @log.info "All #{appliances.size} appliances definitions are valid" if JBossCloud.validation_task?
+        end
+      rescue ApplianceValidationError => appliance_validation_error
+        raise "Error while validating appliance definition: #{appliance_validation_error}"
+      rescue ValidationError => validation_error
+        raise "Error while validating appliance definitions: #{validation_error}"
+      rescue => exception
+        raise "Something went wrong: #{exception}"
+      end
+    end
+
+    def validate_configuration
+      @log.info "Validating configuration..." if JBossCloud.validation_task?
+      begin
+        ConfigValidator.new( @config ).validate
+      rescue ValidationError => validation_error
+        raise "Error while validating configuration: #{validation_error}"
+      rescue => exception
+        raise "Something went wrong: #{exception}"
+      end
+
+      @log.info "Configuration is valid" if JBossCloud.validation_task?
+    end
   end
 end
