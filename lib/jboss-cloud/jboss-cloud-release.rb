@@ -37,6 +37,8 @@ module JBossCloud
     end
 
     def define_tasks
+      task 'rpm:jboss-cloud-release' => [ @release_source, @jboss_cloud_spec_file ]
+
       file @jboss_cloud_spec_file  => [ 'rpm:topdir' ] do
         create_jboss_cloud_release_spec_file
       end

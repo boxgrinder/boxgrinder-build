@@ -25,15 +25,22 @@ module JBossCloud
     end
 
     def execute( command, file = nil )
-      @log.debug "Executing command: '#{command}'"
+      begin
+        @log.debug "Executing command: '#{command}'"
 
-      out = `#{command}`
-     
-      if $?.to_i != 0
-        raise "An error occured executing commad: '#{command}'"
-      else
-        @log.debug "Command return:\r\n#{out}"
-        @log.debug "Command '#{command}' executed successfuly"
+        out = `#{command} 2>&1`
+
+        @log.debug "Command return:\r\n+++++\r\n#{out}\r\n+++++"
+
+        if $?.to_i != 0
+          raise "An error occured executing commad: '#{command}'"
+        else
+          @log.debug "Command '#{command}' executed successfuly"
+        end
+      rescue => e
+        @log.fatal e
+        @log.fatal "Aborting: #{e.message}. See previous errors for more information."
+        abort
       end
     end
   end

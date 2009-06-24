@@ -86,7 +86,7 @@ module JBossCloud
       GPGSign.new( @config, @log )
 
       directory @config.dir_build
-   
+
       @log.debug "Current architecture: #{@config.arch}"
       @log.debug "Building architecture: #{@config.build_arch}"
 
