@@ -46,31 +46,25 @@ module JBossCloud
     end
 
     def sign_srpms
-      @log.info "Signing SRPMs..."
-
-      @config.helper.validate_gpg_password
-
-      begin
-        @exec_helper.execute( "#{@config.dir.base}/extras/sign-rpms #{@config.data['gpg_password']} #{@config.dir.top}/#{APPLIANCE_DEFAULTS['os_name']}/#{APPLIANCE_DEFAULTS['os_version']}/SRPMS/*.src.rpm > /dev/null 2>&1" )
-      rescue => e
-        raise e, "An error occured, some SRPMs may be not signed. Possible errors: key exists?, wrong passphrase, expect package installed?, %_gpg_name in ~/.rpmmacros set?"
-      end
-
-      @log.info "All SRPMs successfully signed!"
+      validate_and_sign( "#{@config.dir.base}/extras/sign-rpms #{@config.data['gpg_password']} #{@config.dir.top}/#{APPLIANCE_DEFAULTS['os_name']}/#{APPLIANCE_DEFAULTS['os_version']}/SRPMS/*.src.rpm > /dev/null 2>&1", "SRPMs" )
     end
 
     def sing_rpms
-      puts "Signing RPMs..."
+      validate_and_sign( "#{@config.dir.base}/extras/sign-rpms #{@config.data['gpg_password']} #{@config.dir.top}/#{@config.os_path}/RPMS/*/*.rpm > /dev/null 2>&1", "RPMs" )
+    end
 
-      @config.helper.validate_gpg_password
+    def validate_and_sign( command, type )
+      @log.info "Signing #{type}..."
 
-      `#{@config.dir.base}/extras/sign-rpms #{@config.data['gpg_password']} #{@config.dir.top}/#{@config.os_path}/RPMS/*/*.rpm > /dev/null 2>&1`
-
-      unless $?.to_i == 0
-        puts "An error occured, some RPMs may be not signed. Possible errors: key exists?, wrong passphrase, expect package installed?, %_gpg_name in ~/.rpmmacros set?"
-      else
-        puts "All RPMs successfully signed!"
+      begin
+        @config.helper.validate_gpg_password
+        @exec_helper.execute( command )
+      rescue => e
+        @log.fatal "An error occured, some #{type} may be not signed. Possible errors: key exists?, wrong passphrase, expect package installed?, %_gpg_name in ~/.rpmmacros set?"
+        ExceptionHelper.new( @log ).log_and_exit( e )
       end
+
+      @log.info "All #{type} were successfully signed!"
     end
   end
 end

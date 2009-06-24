@@ -42,6 +42,7 @@ require 'ostruct'
 require 'yaml'
 
 require 'jboss-cloud/helpers/exec-helper'
+require 'jboss-cloud/helpers/exception-helper'
 
 module JBossCloud
   class ImageBuilder

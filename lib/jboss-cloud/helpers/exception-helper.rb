@@ -19,29 +19,15 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 module JBossCloud
-  class ExecHelper
+  class ExceptionHelper
     def initialize( log )
       @log = log
     end
 
-    def execute( command, file = nil )
-      begin
-        @log.debug "Executing command: '#{command}'"
-
-        out = `#{command} 2>&1`
-
-        formatted_output = "Command return:\r\n+++++\r\n#{out}\r\n+++++"
-
-        if $?.to_i != 0
-          @log.error formatted_output
-          raise "An error occured executing commad: '#{command}'"
-        else
-          @log.debug formatted_output
-          @log.debug "Command '#{command}' executed successfuly"
-        end
-      rescue => e
-        ExceptionHelper.new( @log ).log_and_exit( e )
-      end
+    def log_and_exit( e )
+      @log.fatal e
+      @log.fatal "Aborting: #{e.message}. See previous errors for more information."
+      abort
     end
   end
 end

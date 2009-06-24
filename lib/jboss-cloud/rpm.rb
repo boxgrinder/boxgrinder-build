@@ -80,8 +80,12 @@ module JBossCloud
     def build_rpm
       @log.info "Building package '#{@rpm_file_basename}'..."
 
-      Dir.chdir( File.dirname( @spec_file ) ) do
-        @exec_helper.execute( "rpmbuild --define '_topdir #{@config.dir_root}/#{@config.dir.top}/#{@config.os_path}' --target #{@rpm_arch} -ba #{@simple_name}.spec" )
+      begin
+        Dir.chdir( File.dirname( @spec_file ) ) do
+          @exec_helper.execute( "rpmbuild --define '_topdir #{@config.dir_root}/#{@config.dir.top}/#{@config.os_path}' --target #{@rpm_arch} -ba #{@simple_name}.spec" )
+        end
+      rescue => e
+        ExceptionHelper.new( @log ).log_and_exit( e )
       end
 
       @log.info "Package '#{@rpm_file_basename}' was built successfully."
@@ -131,7 +135,7 @@ module JBossCloud
       file source_file => [ 'rpm:topdir' ] do
         if ( ! File.exist?( source_cache_file ) )
           FileUtils.mkdir_p( @config.dir_src_cache )
-          execute_command( "wget #{source} -O #{source_cache_file} --progress=bar:mega" )
+          @exec_helper.execute( "wget #{source} -O #{source_cache_file} --progress=bar:mega" )
         end
         FileUtils.cp( source_cache_file, source_file )
       end

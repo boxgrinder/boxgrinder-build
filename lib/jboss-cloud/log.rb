@@ -69,10 +69,5 @@ module JBossCloud
       @stdout_log.fatal( msg )
       @file_log.fatal( msg )
     end
-
-    def raise( error, msg )
-
-    end
-
   end
 end
