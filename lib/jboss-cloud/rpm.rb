@@ -31,50 +31,63 @@ module JBossCloud
       @provides_rpm_path ||= {}
     end
 
-    def initialize( config, spec_file )
-      @config = config
-      @topdir = @config.dir_top
-      @spec_file = spec_file
-      define
-    end
+    def initialize( config, spec_file, log )
+      @config     = config
+      @spec_file  = spec_file
+      @log        = log
 
-    def define
-      simple_name = File.basename( @spec_file, ".spec" )
-      release = nil
-      version = nil
-      is_noarch = nil
+      @exec_helper = ExecHelper.new( @log )
+      @simple_name = File.basename( @spec_file, ".spec" )
+
+      @rpm_release    = nil
+      @rpm_version    = nil
+      @rpm_is_noarch  = nil
+
       Dir.chdir( File.dirname( @spec_file ) ) do
-        release = `rpm --specfile #{simple_name}.spec -q --qf '%{Release}\\n' 2> /dev/null`.split("\n").first
-        version = `rpm --specfile #{simple_name}.spec -q --qf '%{Version}\\n' 2> /dev/null`.split("\n").first
-        is_noarch = `rpm --specfile #{simple_name}.spec -q --qf '%{arch}\\n' 2> /dev/null`.split("\n").first == "noarch"
+        @rpm_release     = `rpm --specfile #{@simple_name}.spec -q --qf '%{Release}\\n' 2> /dev/null`.split("\n").first
+        @rpm_version     = `rpm --specfile #{@simple_name}.spec -q --qf '%{Version}\\n' 2> /dev/null`.split("\n").first
+        @rpm_is_noarch   = `rpm --specfile #{@simple_name}.spec -q --qf '%{arch}\\n' 2> /dev/null`.split("\n").first == "noarch"
       end
 
-      arch = is_noarch ? "noarch" : @config.build_arch
+      @rpm_arch = @rpm_is_noarch ? "noarch" : @config.build_arch
 
-      rpm_file = "#{@topdir}/#{@config.os_path}/RPMS/#{arch}/#{simple_name}-#{version}-#{release}.#{arch}.rpm"
-      JBossCloud::RPM.provides[simple_name] = "#{simple_name}-#{version}-#{release}"
-      JBossCloud::RPM.provides_rpm_path[simple_name] = rpm_file
-      JBossCloud::RPMGPGSign.new( @config, @spec_file )
+      @rpm_file             = "#{@config.dir.top}/#{@config.os_path}/RPMS/#{@rpm_arch}/#{@simple_name}-#{@rpm_version}-#{@rpm_release}.#{@rpm_arch}.rpm"
+      @rpm_file_basename    = File.basename( @rpm_file )
 
-      desc "Build #{simple_name} RPM."
-      task "rpm:#{simple_name}"=>[ rpm_file ]
+      RPM.provides[@simple_name]            = "#{@simple_name}-#{@rpm_version}-#{@rpm_release}"
+      RPM.provides_rpm_path[@simple_name]   = @rpm_file
 
-      file rpm_file => [ 'rpm:topdir', @spec_file, "#{@config.dir.top}/#{@config.os_path}/SOURCES/jboss-cloud-release.tar.gz" ] do
-        Dir.chdir( File.dirname( @spec_file ) ) do
-          exit_status = execute_command "rpmbuild --define '_topdir #{@config.dir_root}/#{@topdir}/#{@config.os_path}' --target #{arch} -ba #{simple_name}.spec"
-          unless exit_status
-            puts "\nBuilding #{simple_name} failed! Hint: consult above messages.\n\r"
-            abort
-          end
-        end
-        Rake::Task[ 'rpm:repodata:force' ].reenable
-      end
+      RPMGPGSign.new( @config, @spec_file )
 
-      task 'rpm:all' => [ rpm_file ]
+      build_source_dependencies( @rpm_file, @rpm_version, @rpm_release )
 
-      build_source_dependencies( rpm_file, version, release )
+      define_tasks
     end
 
+    def define_tasks
+
+      desc "Build #{@simple_name} RPM."
+      task "rpm:#{@simple_name}" => [ @rpm_file ]
+
+      file @rpm_file => [ 'rpm:topdir', @spec_file ] do
+        build_rpm
+      end
+
+      desc "Build all RPMs"
+      task 'rpm:all' => [ @rpm_file ]
+    end
+
+    def build_rpm
+      @log.info "Building package '#{@rpm_file_basename}'..."
+
+      Dir.chdir( File.dirname( @spec_file ) ) do
+        @exec_helper.execute( "rpmbuild --define '_topdir #{@config.dir_root}/#{@config.dir.top}/#{@config.os_path}' --target #{@rpm_arch} -ba #{@simple_name}.spec" )
+      end
+
+      @log.info "Package '#{@rpm_file_basename}' was built successfully."
+
+      Rake::Task[ 'rpm:repodata:force' ].reenable
+    end
 
     def handle_requirement(rpm_file, requirement)
       if JBossCloud::RPM.provides.keys.include?( requirement )
@@ -93,7 +106,7 @@ module JBossCloud
 
     def handle_local_source(rpm_file, source)
       source_basename = File.basename( source )
-      source_file     = "#{@topdir}/#{@config.os_path}/SOURCES/#{source_basename}"
+      source_file     = "#{@config.dir.top}/#{@config.os_path}/SOURCES/#{source_basename}"
 
       file rpm_file => [ source_file ]
 
@@ -110,7 +123,7 @@ module JBossCloud
     def handle_remote_source(rpm_file, source)
       source_basename = File.basename( source )
 
-      source_file       = "#{@topdir}/#{@config.os_path}/SOURCES/#{source_basename}"
+      source_file       = "#{@config.dir.top}/#{@config.os_path}/SOURCES/#{source_basename}"
       source_cache_file = "#{@config.dir_src_cache}/#{source_basename}"
 
       file rpm_file => [ source_file ]
@@ -148,6 +161,3 @@ module JBossCloud
     end
   end
 end
-
-desc "Build all RPMs"
-task 'rpm:all'

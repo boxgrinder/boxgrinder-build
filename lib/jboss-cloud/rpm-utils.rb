@@ -34,10 +34,10 @@ module JBossCloud
       @arches = SUPPORTED_ARCHES + [ "noarch" ]
       @oses   = SUPPORTED_OSES
 
-      define
+      define_tasks
     end
 
-    def define
+    def define_tasks
       desc "Upload all packages."
       task 'rpm:upload:all' => [ 'rpm:sign:all' ] do
         upload_packages

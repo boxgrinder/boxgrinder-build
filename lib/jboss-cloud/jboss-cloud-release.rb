@@ -55,9 +55,10 @@ module JBossCloud
     end
 
     def create_source_for_jboss_cloud_release_rpm
-      tmp_directory = "#{@config.dir.tmp}/#{@file_name}"
+      root_tmp_directory = "#{@config.dir.tmp}/#{@file_name}"
+      tmp_directory = "#{root_tmp_directory}/#{@file_name}"
 
-      FileUtils.rm_rf( tmp_directory )
+      FileUtils.rm_rf( root_tmp_directory )
       FileUtils.mkdir_p( tmp_directory )
 
       FileUtils.cp_r( "#{@config.dir.base}/src/#{@config.os_path}/jboss-cloud-release/.", tmp_directory ) if ( File.exists?(File.dirname( "#{@config.dir.base}/src/#{@config.os_path}/jboss-cloud-release" )) && File.directory?(File.dirname( "#{@config.dir.base}/src/#{@config.os_path}/jboss-cloud-release" )) )
@@ -73,12 +74,12 @@ module JBossCloud
         File.open( repo_file, "w") {|f| f.write( repo_definition ) }
       end
 
-      Dir.chdir( tmp_directory ) do
-        execute_command( "tar -czSpf #{@file_name_with_extension} *" )
+      Dir.chdir( root_tmp_directory ) do
+        execute_command( "tar -czSpf #{@file_name_with_extension} #{@file_name}/*" )
       end
 
-      FileUtils.cp( "#{tmp_directory}/#{@file_name_with_extension}", @release_source )
-      FileUtils.rm_rf( tmp_directory )
+      FileUtils.cp( "#{root_tmp_directory}/#{@file_name_with_extension}", @release_source )
+      FileUtils.rm_rf( root_tmp_directory )
     end
   end
 end

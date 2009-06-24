@@ -41,6 +41,8 @@ require 'jboss-cloud/helpers/rake-helper'
 require 'ostruct'
 require 'yaml'
 
+require 'jboss-cloud/helpers/exec-helper'
+
 module JBossCloud
   class ImageBuilder
     def initialize( log, project_config = Hash.new )
@@ -68,7 +70,6 @@ module JBossCloud
       config_file       = ENV['JBOSS_CLOUD_CONFIG_FILE']      || "#{ENV['HOME']}/.jboss-cloud/config"
 
       @config = Config.new( name, version, release, dir, config_file )
-      
 
       define_rules
     end
@@ -81,11 +82,11 @@ module JBossCloud
 
       Topdir.new( @config )
       JBossCloudRelease.new( @config )
-      JBossCloud::RPMUtils.new( @config )
-      JBossCloud::GPGSign.new( @config )
+      RPMUtils.new( @config )
+      GPGSign.new( @config, @log )
 
       directory @config.dir_build
-
+   
       @log.debug "Current architecture: #{@config.arch}"
       @log.debug "Building architecture: #{@config.build_arch}"
 
@@ -93,7 +94,7 @@ module JBossCloud
 
       [ "#{@config.dir.base}/specs/*.spec", "#{@config.dir.specs}/extras/*.spec", "#{@config.dir.top}/#{@config.os_path}/SPECS/*.spec" ].each do |spec_file_dir|
         Dir[ spec_file_dir ].each do |spec_file|
-          RPM.new( @config, spec_file )
+          RPM.new( @config, spec_file, @log )
         end
       end
 

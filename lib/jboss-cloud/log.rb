@@ -21,8 +21,25 @@
 module JBossCloud
   class Log
     def initialize
+      treshold = ENV['JBOSS_CLOUD_LOG_THRESHOLD']
+
+      unless treshold.nil?
+        case treshold
+          when "fatal"
+            treshold = Logger::FATAL
+          when "debug"
+            treshold = Logger::DEBUG
+          when "error"
+            treshold = Logger::ERROR
+          when "warn"
+            treshold = Logger::WARN
+          when "info"
+            treshold = Logger::INFO
+        end
+      end
+
       @stdout_log         = Logger.new(STDOUT)
-      @stdout_log.level   = Logger::INFO
+      @stdout_log.level   = treshold || Logger::INFO
 
       @file_log           = Logger.new('jboss-cloud.log', 10, 1024000)
       @file_log.level     = Logger::DEBUG

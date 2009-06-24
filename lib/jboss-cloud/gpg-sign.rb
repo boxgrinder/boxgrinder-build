@@ -23,24 +23,40 @@ require 'rake/tasklib'
 module JBossCloud
   class GPGSign < Rake::TaskLib
 
-    def initialize( config )
+    def initialize( config, log )
       @config  = config
+      @log     = log
+
+      @exec_helper = ExecHelper.new( @log )
 
       define_tasks
     end
 
+    def define_tasks
+      task 'rpm:sign:all:srpms' => [ 'rpm:all' ] do
+        sign_srpms
+      end
+
+      task 'rpm:sign:all:rpms' => [ 'rpm:all' ] do
+        sing_rpms
+      end
+
+      desc "Sign all packages."
+      task 'rpm:sign:all' => [ 'rpm:sign:all:rpms', 'rpm:sign:all:srpms' ]
+    end
+
     def sign_srpms
-      puts "Signing SRPMs..."
+      @log.info "Signing SRPMs..."
 
       @config.helper.validate_gpg_password
 
-      `#{@config.dir.base}/extras/sign-rpms #{@config.data['gpg_password']} #{@config.dir.top}/#{APPLIANCE_DEFAULTS['os_name']}/#{APPLIANCE_DEFAULTS['os_version']}/SRPMS/*.src.rpm > /dev/null 2>&1`
-
-      unless $?.to_i == 0
-        puts "An error occured, some SRPMs may be not signed. Possible errors: key exists?, wrong passphrase, expect package installed?, %_gpg_name in ~/.rpmmacros set?"
-      else
-        puts "All SRPMs successfully signed!"
+      begin
+        @exec_helper.execute( "#{@config.dir.base}/extras/sign-rpms #{@config.data['gpg_password']} #{@config.dir.top}/#{APPLIANCE_DEFAULTS['os_name']}/#{APPLIANCE_DEFAULTS['os_version']}/SRPMS/*.src.rpm > /dev/null 2>&1" )
+      rescue => e
+        raise e, "An error occured, some SRPMs may be not signed. Possible errors: key exists?, wrong passphrase, expect package installed?, %_gpg_name in ~/.rpmmacros set?"
       end
+
+      @log.info "All SRPMs successfully signed!"
     end
 
     def sing_rpms
@@ -55,19 +71,6 @@ module JBossCloud
       else
         puts "All RPMs successfully signed!"
       end
-    end
-
-    def define_tasks
-      task 'rpm:sign:all:srpms' => [ 'rpm:all' ] do
-        sign_srpms
-      end
-
-      task 'rpm:sign:all:rpms' => [ 'rpm:all' ] do
-        sing_rpms
-      end
-
-      desc "Sign all packages."
-      task 'rpm:sign:all' => [ 'rpm:sign:all:rpms', 'rpm:sign:all:srpms' ]
     end
   end
 end
