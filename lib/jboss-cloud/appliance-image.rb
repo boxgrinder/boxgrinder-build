@@ -29,9 +29,12 @@ require 'jboss-cloud/helpers/guestfs-helper'
 module JBossCloud
   class ApplianceImage < Rake::TaskLib
 
-    def initialize( config, appliance_config )
+    def initialize( config, appliance_config, log )
       @config                  = config
       @appliance_config        = appliance_config
+      @log                     = log
+
+      @exec_helper             = ExecHelper.new( @log )
 
       @appliance_build_dir     = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
       @raw_disk                = "#{@appliance_build_dir}/#{@appliance_config.name}-sda.raw"
@@ -64,22 +67,27 @@ module JBossCloud
 
 
     def build_raw_image
-      command = "sudo PYTHONUNBUFFERED=1 appliance-creator -d -v -t #{@tmp_dir} --cache=#{@config.dir_rpms_cache}/#{@appliance_config.main_path} --config #{@kickstart_file} -o #{@config.dir_build}/appliances/#{@appliance_config.main_path} --name #{@appliance_config.name} --vmem #{@appliance_config.mem_size} --vcpu #{@appliance_config.vcpu}"
-      execute_command( command )
+      @log.info "Building #{@appliance_config.simple_name} appliance..."
+
+      @exec_helper.execute "sudo PYTHONUNBUFFERED=1 appliance-creator -d -v -t #{@tmp_dir} --cache=#{@config.dir_rpms_cache}/#{@appliance_config.main_path} --config #{@kickstart_file} -o #{@config.dir_build}/appliances/#{@appliance_config.main_path} --name #{@appliance_config.name} --vmem #{@appliance_config.mem_size} --vcpu #{@appliance_config.vcpu}"
 
       # fix permissions
       `sudo chown oddthesis:oddthesis #{@raw_disk}`
+
+      @log.info "Appliance #{@appliance_config.simple_name} was built successfully."
     end
 
     def cleanup_rpm_database
+      @log.info "Cleaning up RPM database in #{@appliance_config.simple_name} appliance..."
+
       guesfs_helper = GuestFSHelper.new( @raw_disk )
 
       # TODO this is shitty, I know... https://bugzilla.redhat.com/show_bug.cgi?id=507188
-      for i in (1..9)
-        guesfs_helper.guestfs.rm_rf( "/var/lib/rpm/__db.00#{i.to_s}" )
-      end
+      guesfs_helper.guestfs.sh( "rm /var/lib/rpm/__db.*" )
 
       guesfs_helper.guestfs.command( ["rpm", "--rebuilddb"] )
+
+      @log.info "RPM database in #{@appliance_config.simple_name} appliance cleaned."
     end
   end
 end

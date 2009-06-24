@@ -47,7 +47,7 @@ module JBossCloud
       JBossCloud::ApplianceRPM.new( @config, @appliance_config, @log )
       JBossCloud::ApplianceKickstart.new( @config, @appliance_config )
       JBossCloud::ApplianceDependencyValidator.new( @config, @appliance_config, @log )
-      JBossCloud::ApplianceImage.new( @config, @appliance_config )
+      JBossCloud::ApplianceImage.new( @config, @appliance_config, @log )
       JBossCloud::ApplianceUtils.new( @config, @appliance_config  )
     end
   end
