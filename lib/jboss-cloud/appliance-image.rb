@@ -29,12 +29,12 @@ require 'jboss-cloud/helpers/guestfs-helper'
 module JBossCloud
   class ApplianceImage < Rake::TaskLib
 
-    def initialize( config, appliance_config, log )
+    def initialize( config, appliance_config )
       @config                  = config
       @appliance_config        = appliance_config
-      @log                     = log
 
-      @exec_helper             = ExecHelper.new( @log )
+      @log          = LOG
+      @exec_helper  = EXEC_HELPER
 
       @appliance_build_dir     = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
       @raw_disk                = "#{@appliance_build_dir}/#{@appliance_config.name}-sda.raw"

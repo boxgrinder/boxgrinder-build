@@ -41,13 +41,12 @@ require 'jboss-cloud/helpers/rake-helper'
 require 'ostruct'
 require 'yaml'
 
-require 'jboss-cloud/helpers/exec-helper'
 require 'jboss-cloud/helpers/exception-helper'
 
 module JBossCloud
   class ImageBuilder
-    def initialize( log, project_config = Hash.new )
-      @log = log
+    def initialize( project_config = Hash.new )
+      @log = LOG
       # validates parameters, this is a pre-validation
       ApplianceConfigParameterValidator.new.validate
 
@@ -77,14 +76,14 @@ module JBossCloud
 
     def define_rules
 
-      Validator.new( @config, @log )
+      Validator.new( @config )
 
       Rake::Task[ 'validate:all' ].invoke
 
-      Topdir.new( @config, @log )
+      Topdir.new( @config )
       JBossCloudRelease.new( @config )
       RPMUtils.new( @config )
-      GPGSign.new( @config, @log )
+      GPGSign.new( @config )
 
       directory @config.dir_build
 
@@ -95,12 +94,12 @@ module JBossCloud
 
       [ "#{@config.dir.base}/specs/*.spec", "#{@config.dir.specs}/extras/*.spec", "#{@config.dir.top}/#{@config.os_path}/SPECS/*.spec" ].each do |spec_file_dir|
         Dir[ spec_file_dir ].each do |spec_file|
-          RPM.new( @config, spec_file, @log )
+          RPM.new( @config, spec_file )
         end
       end
 
       Dir[ "#{@config.dir_appliances}/*/*.appl" ].each do |appliance_def|
-        Appliance.new( @config, ApplianceConfigHelper.new.config( appliance_def, @config ), appliance_def, @log )
+        Appliance.new( @config, ApplianceConfigHelper.new.config( appliance_def, @config ), appliance_def )
       end
     end
   end

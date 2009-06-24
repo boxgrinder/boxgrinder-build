@@ -31,12 +31,13 @@ module JBossCloud
       @provides_rpm_path ||= {}
     end
 
-    def initialize( config, spec_file, log )
+    def initialize( config, spec_file )
       @config     = config
       @spec_file  = spec_file
-      @log        = log
 
-      @exec_helper = ExecHelper.new( @log )
+      @log          = LOG
+      @exec_helper  = EXEC_HELPER
+      
       @simple_name = File.basename( @spec_file, ".spec" )
 
       @rpm_release    = nil
@@ -57,7 +58,7 @@ module JBossCloud
       RPM.provides[@simple_name]            = "#{@simple_name}-#{@rpm_version}-#{@rpm_release}"
       RPM.provides_rpm_path[@simple_name]   = @rpm_file
 
-      RPMGPGSign.new( @config, @spec_file, @rpm_file, @log )
+      RPMGPGSign.new( @config, @spec_file, @rpm_file )
 
       build_source_dependencies( @rpm_file, @rpm_version, @rpm_release )
 
@@ -84,7 +85,7 @@ module JBossCloud
           @exec_helper.execute( "rpmbuild --define '_topdir #{@config.dir_root}/#{@config.dir.top}/#{@config.os_path}' --target #{@rpm_arch} -ba #{@simple_name}.spec" )
         end
       rescue => e
-        ExceptionHelper.new( @log ).log_and_exit( e )
+        EXCEPTION_HELPER.log_and_exit( e )
       end
 
       @log.info "Package '#{@rpm_file_basename}' was built successfully."

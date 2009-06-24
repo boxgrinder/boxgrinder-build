@@ -32,22 +32,21 @@ module JBossCloud
 
   class Appliance < Rake::TaskLib
 
-    def initialize( config, appliance_config, appliance_def, log )
+    def initialize( config, appliance_config, appliance_def )
       @config            = config
       @appliance_def     = appliance_def
       @appliance_config  = appliance_config
-      @log               = log
 
       define
     end
 
     def define
-      JBossCloud::ApplianceSource.new( @config, @appliance_config, @log )
+      JBossCloud::ApplianceSource.new( @config, @appliance_config )
       JBossCloud::ApplianceSpec.new( @config, @appliance_config )
-      JBossCloud::ApplianceRPM.new( @config, @appliance_config, @log )
+      JBossCloud::ApplianceRPM.new( @config, @appliance_config )
       JBossCloud::ApplianceKickstart.new( @config, @appliance_config )
-      JBossCloud::ApplianceDependencyValidator.new( @config, @appliance_config, @log )
-      JBossCloud::ApplianceImage.new( @config, @appliance_config, @log )
+      JBossCloud::ApplianceDependencyValidator.new( @config, @appliance_config )
+      JBossCloud::ApplianceImage.new( @config, @appliance_config )
       JBossCloud::ApplianceUtils.new( @config, @appliance_config  )
     end
   end

@@ -34,16 +34,16 @@ module JBossCloud
   end
 
   class ApplianceDependencyValidator
-    def initialize( config, appliance_config, log )
+    def initialize( config, appliance_config )
       @config             = config
       @appliance_config   = appliance_config
-      @log                = log
+
+      @log          = LOG
+      @exec_helper  = EXEC_HELPER
 
       appliance_build_dir     = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
       @kickstart_file         = "#{appliance_build_dir}/#{@appliance_config.name}.ks"
       @yum_config_file        = "#{appliance_build_dir}/#{@appliance_config.name}.yum.conf"
-
-      @exec_helper = ExecHelper.new( @log )
 
       @appliance_defs = []
 
@@ -91,7 +91,7 @@ module JBossCloud
           raise "Package#{invalid_names.size > 1 ? "s" : ""} #{invalid_names.join(', ')} for #{@appliance_config.simple_name} appliance not found in repositories. Please check package name in appliance definition files (#{@appliance_defs.join(', ')})"
         end
       rescue => e
-        ExceptionHelper.new( @log ).log_and_exit( e )
+        EXCEPTION_HELPER.log_and_exit( e )
       end
     end
 

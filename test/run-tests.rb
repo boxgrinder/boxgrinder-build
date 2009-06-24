@@ -39,4 +39,4 @@ require 'jboss-cloud/appliance_vmware_image_test'
 require 'jboss-cloud/appliance_kickstart_test'
 require 'jboss-cloud/appliance-image-customize-test'
 
-require 'jboss-cloud/aws/aws-support-test'
+#require 'jboss-cloud/aws/aws-support-test'

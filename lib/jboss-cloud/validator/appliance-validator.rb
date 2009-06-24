@@ -24,9 +24,9 @@ require 'yaml'
 
 module JBossCloud
   class ApplianceValidator
-    def initialize( dir_appliances, appliance_def, log )
+    def initialize( dir_appliances, appliance_def )
       @dir_appliances = dir_appliances
-      @log            = log
+      @log            = LOG
       
       #check if appliance_def is nil
       raise ApplianceValidationError, "Appliance definition file must be specified" if appliance_def.nil? or appliance_def.length == 0

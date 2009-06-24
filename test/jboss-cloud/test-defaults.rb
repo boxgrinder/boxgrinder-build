@@ -1,5 +1,3 @@
-#!/usr/bin/env ruby
-
 # JBoss, Home of Professional Open Source
 # Copyright 2009, Red Hat Middleware LLC, and individual contributors
 # by the @authors tag. See the copyright.txt in the distribution for a
@@ -20,18 +18,8 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require "test/unit"
-require 'jboss-cloud/test-helpers/config-helper'
-require 'jboss-cloud/validator/config-validator'
+require 'jboss-cloud/log'
 
-class ConfigValidatorTest < Test::Unit::TestCase
-  def setup
-    @config = ConfigHelper.generate_config
-  end
-
-  def test_validate_without_configuration_file_specified
-    assert_nothing_raised do
-      config_validator = JBossCloud::ConfigValidator.new( @config ).validate
-    end
-  end
+module JBossCloud
+  LOG = Log.new
 end

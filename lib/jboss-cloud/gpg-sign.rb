@@ -23,11 +23,11 @@ require 'rake/tasklib'
 module JBossCloud
   class GPGSign < Rake::TaskLib
 
-    def initialize( config, log )
+    def initialize( config )
       @config  = config
-      @log     = log
 
-      @exec_helper = ExecHelper.new( @log )
+      @log          = LOG
+      @exec_helper  = EXEC_HELPER
 
       define_tasks
     end
@@ -61,7 +61,7 @@ module JBossCloud
         @exec_helper.execute( command )
       rescue => e
         @log.fatal "An error occured, some #{type} may be not signed. Possible errors: key exists?, wrong passphrase, expect package installed?, %_gpg_name in ~/.rpmmacros set?"
-        ExceptionHelper.new( @log ).log_and_exit( e )
+        EXCEPTION_HELPER.log_and_exit( e )
       end
 
       @log.info "All #{type} were successfully signed!"

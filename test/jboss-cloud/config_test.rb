@@ -19,7 +19,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require "test/unit"
-require "jboss-cloud/helpers/config_helper"
+require 'jboss-cloud/test-helpers/config-helper'
 require 'jboss-cloud/config'
 
 class ConfigTest < Test::Unit::TestCase
@@ -43,7 +43,7 @@ class ConfigTest < Test::Unit::TestCase
     config = ConfigHelper.generate_config
     
     assert_equal( config.os_name, "fedora" )
-    assert_equal( config.os_version, "10" )
+    assert_equal( config.os_version, "11" )
     
     assert_equal( config.build_arch, @current_arch )
   end  
@@ -51,13 +51,13 @@ class ConfigTest < Test::Unit::TestCase
   def test_os_path
     config = ConfigHelper.generate_config
     
-    assert_equal( config.os_path, "fedora/10" )
+    assert_equal( config.os_path, "fedora/11" )
   end  
   
   def test_build_path
     config = ConfigHelper.generate_config
     
-    assert_equal( config.build_path, "#{@current_arch}/fedora/10" )
+    assert_equal( config.build_path, "#{@current_arch}/fedora/11" )
   end  
   
   def test_version_with_relesase_with_release

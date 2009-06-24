@@ -24,15 +24,15 @@ require 'jboss-cloud/repodata'
 module JBossCloud
   class Topdir < Rake::TaskLib
 
-    def initialize( config, log )
+    def initialize( config )
       @config = config
-      @log    = log
+      @log    = LOG
 
       @topdir = @config.dir_top
       @arches = SUPPORTED_ARCHES + [ "noarch" ]
       @oses   = SUPPORTED_OSES
 
-      Repodata.new( @config, @log )
+      Repodata.new( @config )
 
       define_tasks
     end

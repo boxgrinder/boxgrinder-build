@@ -18,7 +18,15 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
+require 'jboss-cloud/log'
+require 'jboss-cloud/helpers/exec-helper'
+require 'jboss-cloud/helpers/exception-helper'
+
 module JBossCloud
+  LOG           = Log.new
+  EXEC_HELPER   = ExecHelper.new
+  EXCEPTION_HELPER = ExceptionHelper.new
+
   # here are global variables
   SUPPORTED_ARCHES = [ "i386", "x86_64" ]
   SUPPORTED_OSES = {

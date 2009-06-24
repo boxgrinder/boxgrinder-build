@@ -20,8 +20,8 @@
 
 module JBossCloud
   class ExceptionHelper
-    def initialize( log )
-      @log = log
+    def initialize
+      @log = LOG
     end
 
     def log_and_exit( e )

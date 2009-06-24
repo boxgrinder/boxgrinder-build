@@ -22,7 +22,7 @@ require 'test/unit'
 
 require 'jboss-cloud/config'
 require 'jboss-cloud/appliance-vmx-image'
-require "jboss-cloud/helpers/config_helper"
+require 'jboss-cloud/test-helpers/config-helper'
 require 'ostruct'
 
 class ApplianceVMwareImageTest < Test::Unit::TestCase
@@ -127,8 +127,7 @@ class ApplianceVMwareImageTest < Test::Unit::TestCase
     assert_equal(vmx_file.match(/^numvcpus = "(.*)"\s?$/)[1], "1")
     assert_equal(vmx_file.match(/^memsize = "(.*)"\s?$/)[1], "1024")
     assert_equal(vmx_file.match(/^log.fileName = "(.*)"\s?$/)[1], "valid-appliance.log")
-    assert_equal(vmx_file.match(/^scsi0:0.fileName = "(.*)"\s?$/)[1], "valid-appliance.vmdk")
-    assert_equal(vmx_file.match(/^ethernet0.networkName = "(.*)"\s?$/)[1], "NAT")   
+    assert_equal(vmx_file.match(/^scsi0:0.fileName = "(.*)"\s?$/)[1], "valid-appliance.vmdk")  
   end
   
   

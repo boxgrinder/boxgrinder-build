@@ -22,7 +22,7 @@ module JBossCloud
   def self.default_task?
     Rake.application.top_level_tasks.include?("default")
   end
-  
+
   def self.validation_task?
     return false if Rake.application.top_level_tasks.include?("default")
     Rake.application.top_level_tasks.each do |task|
@@ -30,7 +30,7 @@ module JBossCloud
     end
     false
   end
-  
+
   def self.building_task?
     Rake.application.top_level_tasks.each do |task|
       return true if (task.match(/^appliance:/) or task.match(/^rpm:/)) and !task.match(/^rpm:sign/) and !task.match(/^rpm:upload/)

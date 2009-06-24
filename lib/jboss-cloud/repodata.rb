@@ -23,14 +23,14 @@ require 'rake/tasklib'
 module JBossCloud
   class Repodata < Rake::TaskLib
 
-    def initialize( config, log )
+    def initialize( config )
       @config = config
-      @log    = log
+      @log    = LOG
 
       @arches = SUPPORTED_ARCHES + [ "noarch" ]
       @oses   = SUPPORTED_OSES
 
-      @exec_helper = ExecHelper.new( @log )
+      @exec_helper = EXEC_HELPER
 
       define_tasks
     end

@@ -20,8 +20,8 @@
 
 module JBossCloud
   class ExecHelper
-    def initialize( log )
-      @log = log
+    def initialize
+      @log = LOG
     end
 
     def execute( command, file = nil )
@@ -41,7 +41,7 @@ module JBossCloud
           return out
         end
       rescue => e
-        ExceptionHelper.new( @log ).log_and_exit( e )
+        EXCEPTION_HELPER.log_and_exit( e )
       end
     end
   end

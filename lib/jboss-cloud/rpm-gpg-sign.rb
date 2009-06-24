@@ -23,15 +23,17 @@ require 'rake/tasklib'
 module JBossCloud
   class RPMGPGSign < Rake::TaskLib
 
-    def initialize( config, spec_file, rpm_file, log )
+    def initialize( config, spec_file, rpm_file )
       @config           = config
       @spec_file        = spec_file
-      @log              = log
+
       @rpm_file         = rpm_file
 
       @rpm_file_basename  = File.basename( @rpm_file )
       @simple_name        = File.basename( @spec_file, ".spec" )
-      @exec_helper        = ExecHelper.new( @log )
+
+      @log          = LOG
+      @exec_helper  = EXEC_HELPER
 
       define_tasks
     end
@@ -51,7 +53,7 @@ module JBossCloud
 
         raise "An error occured. Possible errors: key exists?, wrong passphrase, expect package installed?, %_gpg_name in ~/.rpmmacros set?" if out =~ /Pass phrase check failed/
       rescue => e
-        ExceptionHelper.new( @log ).log_and_exit( e )
+        EXCEPTION_HELPER.log_and_exit( e )
       end
 
       @log.info "Package '#{@rpm_file_basename}' successfully signed!"
