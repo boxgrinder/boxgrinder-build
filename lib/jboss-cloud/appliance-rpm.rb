@@ -25,10 +25,13 @@ require 'jboss-cloud/rpm-gpg-sign'
 module JBossCloud
   class ApplianceRPM < JBossCloud::RPM
     
-    def initialize( config, appliance_config )
+    def initialize( config, appliance_config, log )
       @config            = config
       @appliance_config  = appliance_config
-      
+      @log               = log
+
+      @exec_helper        = ExecHelper.new( @log )
+
       define
     end
     
@@ -39,18 +42,14 @@ module JBossCloud
       rpm_file              = "#{@config.dir_top}/#{@appliance_config.os_path}/RPMS/noarch/#{simple_name}-#{@config.version_with_release}.noarch.rpm"
       
       JBossCloud::RPM.provides[simple_name] = "#{simple_name}-#{@config.version_with_release}"
-      JBossCloud::RPMGPGSign.new( @config, spec_file )
+      JBossCloud::RPMGPGSign.new( @config, spec_file, rpm_file, @log )
 
       desc "Build #{simple_name} RPM."
       task "rpm:#{simple_name}"=>[ rpm_file ]
       
       file rpm_file => [ spec_file, "#{@config.dir_top}/#{@appliance_config.os_path}/SOURCES/#{simple_name}-#{@config.version}.tar.gz", 'rpm:topdir' ] do
         Dir.chdir( File.dirname( spec_file ) ) do
-          exit_status = execute_command "rpmbuild --define '_topdir #{@config.dir_root}/#{@config.dir_top}/#{@config.os_name}/#{@config.os_version}' --target noarch -ba #{simple_name}.spec"
-          unless exit_status
-            puts "\nBuilding #{simple_name} failed! Hint: consult above messages.\n\r"
-            abort
-          end
+          @exec_helper.execute( "rpmbuild --define '_topdir #{@config.dir_root}/#{@config.dir_top}/#{@config.os_name}/#{@config.os_version}' --target noarch -ba #{simple_name}.spec" )
         end
         Rake::Task[ 'rpm:repodata:force' ].reenable
       end

@@ -38,6 +38,7 @@ module JBossCloud
         else
           @log.debug formatted_output
           @log.debug "Command '#{command}' executed successfuly"
+          return out
         end
       rescue => e
         ExceptionHelper.new( @log ).log_and_exit( e )

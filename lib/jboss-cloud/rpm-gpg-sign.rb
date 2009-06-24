@@ -23,45 +23,38 @@ require 'rake/tasklib'
 module JBossCloud
   class RPMGPGSign < Rake::TaskLib
 
-    def initialize( config, spec_file )
-      @config     = config
-      @spec_file  = spec_file
-      @simple_name  = File.basename( @spec_file, ".spec" )
+    def initialize( config, spec_file, rpm_file, log )
+      @config           = config
+      @spec_file        = spec_file
+      @log              = log
+      @rpm_file         = rpm_file
+
+      @rpm_file_basename  = File.basename( @rpm_file )
+      @simple_name        = File.basename( @spec_file, ".spec" )
+      @exec_helper        = ExecHelper.new( @log )
 
       define_tasks
-    end
-
-    def sign_rpm
-      puts "Signing #{@simple_name} RPM..."
-
-      @config.helper.validate_gpg_password
-
-      release = nil
-      version = nil
-      is_noarch = nil
-
-      Dir.chdir( File.dirname( @spec_file ) ) do
-        release     = `rpm --specfile #{@simple_name}.spec -q --qf '%{Release}\\n' 2> /dev/null`.split("\n").first
-        version     = `rpm --specfile #{@simple_name}.spec -q --qf '%{Version}\\n' 2> /dev/null`.split("\n").first
-        is_noarch   = `rpm --specfile #{@simple_name}.spec -q --qf '%{arch}\\n' 2> /dev/null`.split("\n").first == "noarch"
-      end
-
-      arch = is_noarch ? "noarch" : @config.build_arch
-
-      msg =`#{@config.dir.base}/extras/sign-rpms #{@config.data['gpg_password']} #{@config.dir.top}/#{@config.os_path}/RPMS/#{arch}/#{@simple_name}-#{version}-#{release}.#{arch}.rpm`
-
-      if $?.to_i != 0 || ($?.to_i == 0 && msg =~ /Pass phrase check failed/)
-        puts "An error occured while signing #{@simple_name} package. Possible errors: key exists?, wrong passphrase, expect package installed?, %_gpg_name in ~/.rpmmacros set?"
-        abort
-      else
-        puts "Package #{@simple_name} successfully signed!"
-      end
     end
 
     def define_tasks
       task "rpm:#{@simple_name}:sign" => [ "rpm:#{@simple_name}" ] do
         sign_rpm
       end
+    end
+
+    def sign_rpm
+      @log.info "Signing package '#{@rpm_file_basename}'..."
+
+      begin
+        @config.helper.validate_gpg_password
+        out = @exec_helper.execute( "#{@config.dir.base}/extras/sign-rpms #{@config.data['gpg_password']} #{@rpm_file}" )
+
+        raise "An error occured. Possible errors: key exists?, wrong passphrase, expect package installed?, %_gpg_name in ~/.rpmmacros set?" if out =~ /Pass phrase check failed/
+      rescue => e
+        ExceptionHelper.new( @log ).log_and_exit( e )
+      end
+
+      @log.info "Package '#{@rpm_file_basename}' successfully signed!"
     end
   end
 end

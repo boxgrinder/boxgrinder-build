@@ -22,23 +22,29 @@ require 'rake/tasklib'
 
 module JBossCloud
   class ApplianceSource < Rake::TaskLib
-    def initialize( config, appliance_config )
+    def initialize( config, appliance_config, log )
       @config                = config
       @appliance_config      = appliance_config
-      
+      @log                   = log
+
+      @exec_helper           = ExecHelper.new( @log )
+
       @appliance_dir         = "#{@config.dir_appliances}/#{@appliance_config.name}"
       @appliance_build_dir   = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
-      
-      define
+
+      @source_files   = FileList.new( "#{@appliance_dir}/*/**" )
+      @source_tar_gz  = "#{@config.dir_top}/#{@appliance_config.os_path}/SOURCES/#{@appliance_config.name}-#{@config.version}.tar.gz"
+
+      define_tasks
     end
     
-    def define
+    def define_tasks
       directory @appliance_build_dir
       
       source_files = FileList.new( "#{@appliance_dir}/*/**" )      
       source_tar_gz = "#{@config.dir_top}/#{@appliance_config.os_path}/SOURCES/#{@appliance_config.name}-#{@config.version}.tar.gz"
       
-      file source_tar_gz => [ @appliance_build_dir, source_files, 'rpm:topdir' ].flatten do
+      file @source_tar_gz => [ @appliance_build_dir, @source_files, 'rpm:topdir' ].flatten do
         stage_directory = "#{@appliance_build_dir}/sources/#{@appliance_config.name}-#{@config.version}/appliances"
         FileUtils.rm_rf stage_directory
         FileUtils.mkdir_p stage_directory
@@ -61,8 +67,7 @@ module JBossCloud
         File.open( puppet_file, 'w' ) {|f| f.write( erb.result( defs.send( :binding ) ) ) }
         
         Dir.chdir( "#{@appliance_build_dir}/sources" ) do
-          command = "tar zcvf #{@config.dir_root}/#{source_tar_gz} #{@appliance_config.name}-#{@config.version}/"
-          execute_command( command )
+          @exec_helper.execute( "tar zcvf #{@config.dir_root}/#{source_tar_gz} #{@appliance_config.name}-#{@config.version}/" )
         end
       end
       

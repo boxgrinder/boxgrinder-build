@@ -57,7 +57,7 @@ module JBossCloud
       RPM.provides[@simple_name]            = "#{@simple_name}-#{@rpm_version}-#{@rpm_release}"
       RPM.provides_rpm_path[@simple_name]   = @rpm_file
 
-      RPMGPGSign.new( @config, @spec_file )
+      RPMGPGSign.new( @config, @spec_file, @rpm_file, @log )
 
       build_source_dependencies( @rpm_file, @rpm_version, @rpm_release )
 
@@ -73,7 +73,6 @@ module JBossCloud
         build_rpm
       end
 
-      desc "Build all RPMs"
       task 'rpm:all' => [ @rpm_file ]
     end
 
@@ -165,3 +164,6 @@ module JBossCloud
     end
   end
 end
+
+desc "Build all RPMs"
+task 'rpm:all'

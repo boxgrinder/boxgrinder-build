@@ -81,7 +81,7 @@ module JBossCloud
 
       Rake::Task[ 'validate:all' ].invoke
 
-      Topdir.new( @config )
+      Topdir.new( @config, @log )
       JBossCloudRelease.new( @config )
       RPMUtils.new( @config )
       GPGSign.new( @config, @log )
@@ -100,7 +100,7 @@ module JBossCloud
       end
 
       Dir[ "#{@config.dir_appliances}/*/*.appl" ].each do |appliance_def|
-        Appliance.new( @config, ApplianceConfigHelper.new.config( appliance_def, @config ), appliance_def )
+        Appliance.new( @config, ApplianceConfigHelper.new.config( appliance_def, @config ), appliance_def, @log )
       end
     end
   end

@@ -24,12 +24,15 @@ require 'jboss-cloud/repodata'
 module JBossCloud
   class Topdir < Rake::TaskLib
 
-    def initialize( config )
+    def initialize( config, log )
       @config = config
-      
+      @log    = log
+
       @topdir = @config.dir_top
       @arches = SUPPORTED_ARCHES + [ "noarch" ]
       @oses   = SUPPORTED_OSES
+
+      Repodata.new( @config, @log )
 
       define_tasks
     end
@@ -46,12 +49,12 @@ module JBossCloud
           directory "#{@topdir}/#{os}/#{version}/SRPMS"
 
           task "rpm:topdir" => [
-            "#{@topdir}/#{os}/#{version}/tmp",
-            "#{@topdir}/#{os}/#{version}/SPECS",
-            "#{@topdir}/#{os}/#{version}/SOURCES",
-            "#{@topdir}/#{os}/#{version}/BUILD",
-            "#{@topdir}/#{os}/#{version}/RPMS",
-            "#{@topdir}/#{os}/#{version}/SRPMS",
+                  "#{@topdir}/#{os}/#{version}/tmp",
+                  "#{@topdir}/#{os}/#{version}/SPECS",
+                  "#{@topdir}/#{os}/#{version}/SOURCES",
+                  "#{@topdir}/#{os}/#{version}/BUILD",
+                  "#{@topdir}/#{os}/#{version}/RPMS",
+                  "#{@topdir}/#{os}/#{version}/SRPMS",
           ]
 
           for arch in @arches
@@ -60,9 +63,7 @@ module JBossCloud
             task "rpm:topdir" => [ "#{@topdir}/#{os}/#{version}/RPMS/#{arch}" ]
           end
         end
-      end    
-
-      Repodata.new( @config )
+      end
     end
   end
 end

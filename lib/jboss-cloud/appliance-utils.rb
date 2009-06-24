@@ -45,7 +45,6 @@ module JBossCloud
 
       directory @package_dir
 
-      desc "Upload all appliance packages to server"
       task "appliance:upload:all" => [ "appliance:#{@appliance_config.name}:upload" ]
 
       desc "Upload #{@appliance_config.simple_name} appliance package to server"
@@ -108,3 +107,6 @@ module JBossCloud
     end
   end
 end
+
+desc "Upload all appliance packages to server"
+task "appliance:upload:all"

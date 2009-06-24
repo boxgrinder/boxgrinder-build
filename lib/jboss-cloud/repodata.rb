@@ -23,11 +23,15 @@ require 'rake/tasklib'
 module JBossCloud
   class Repodata < Rake::TaskLib
 
-    def initialize( config )
+    def initialize( config, log )
       @config = config
-      @topdir = @config.dir_top
+      @log    = log
+
       @arches = SUPPORTED_ARCHES + [ "noarch" ]
       @oses   = SUPPORTED_OSES
+
+      @exec_helper = ExecHelper.new( @log )
+
       define_tasks
     end
 
@@ -39,13 +43,17 @@ module JBossCloud
     end
 
     def createrepo
+      @log.debug "Refreshing repodata..."
+
       for os in @oses.keys
         for version in @oses[os]
           for arch in @arches
-            execute_command( "createrepo --update #{@topdir}/#{os}/#{version}/RPMS/#{arch}" )
+            @exec_helper.execute( "createrepo --update #{@config.dir.top}/#{os}/#{version}/RPMS/#{arch}" )
           end
         end
       end
+
+      @log.debug "Refreshing repodata finished."
     end
   end
 end

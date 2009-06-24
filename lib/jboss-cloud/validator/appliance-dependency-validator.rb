@@ -34,13 +34,16 @@ module JBossCloud
   end
 
   class ApplianceDependencyValidator
-    def initialize( config, appliance_config )
-      @config           = config
-      @appliance_config = appliance_config
+    def initialize( config, appliance_config, log )
+      @config             = config
+      @appliance_config   = appliance_config
+      @log                = log
 
       appliance_build_dir     = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
       @kickstart_file         = "#{appliance_build_dir}/#{@appliance_config.name}.ks"
       @yum_config_file        = "#{appliance_build_dir}/#{@appliance_config.name}.yum.conf"
+
+      @exec_helper = ExecHelper.new( @log )
 
       @appliance_defs = []
 
@@ -63,7 +66,7 @@ module JBossCloud
           Rake::Task[ "appliance:#{@appliance_config.name}:rpms" ].invoke
           Rake::Task[ 'rpm:repodata:force' ].invoke
 
-          resolve_packages          
+          resolve_packages
         end
       end
 
@@ -71,29 +74,32 @@ module JBossCloud
     end
 
     def resolve_packages
-      puts "\nResolving packages added to #{@appliance_config.simple_name} appliance definition file..."
+      @log.info "Resolving packages added to #{@appliance_config.simple_name} appliance definition file..."
 
       repos         = read_repos_from_kickstart_file
       package_list  = generate_package_list + [ @appliance_config.name ]
       repo_list     = generate_repo_list( repos )
 
-      generate_yum_config( repos )
+      begin
+        generate_yum_config( repos )
 
-      invalid_names = invalid_names( repo_list, package_list )
+        invalid_names = invalid_names( repo_list, package_list )
 
-      if invalid_names.size == 0
-        puts "All additional packages for #{@appliance_config.simple_name} appliance successfully resolved."
-      else
-        puts "Package#{invalid_names.size > 1 ? "s" : ""} #{invalid_names.join(', ')} for #{@appliance_config.simple_name} appliance not found in repositories. Please check package name in appliance definition files (#{@appliance_defs.join(', ')}). Aborting."
-        abort
+        if invalid_names.size == 0
+          @log.info "All additional packages for #{@appliance_config.simple_name} appliance successfully resolved."
+        else
+          raise "Package#{invalid_names.size > 1 ? "s" : ""} #{invalid_names.join(', ')} for #{@appliance_config.simple_name} appliance not found in repositories. Please check package name in appliance definition files (#{@appliance_defs.join(', ')})"
+        end
+      rescue => e
+        ExceptionHelper.new( @log ).log_and_exit( e )
       end
     end
 
     def invalid_names( repo_list, package_list )
-      puts "Quering package database..."
+      @log.info "Quering package database..."
 
-      repoquery_output  = `sudo repoquery --disablerepo=* --enablerepo=#{repo_list} -c #{@yum_config_file} list available #{package_list.join( ' ' )} --nevra --archlist=#{@appliance_config.arch},noarch`
-      invalid_names     = []
+      repoquery_output = @exec_helper.execute( "sudo repoquery --disablerepo=* --enablerepo=#{repo_list} -c #{@yum_config_file} list available #{package_list.join( ' ' )} --nevra --archlist=#{@appliance_config.arch},noarch" )
+      invalid_names    = []
 
       for name in package_list
         found = false
