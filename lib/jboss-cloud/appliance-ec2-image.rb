@@ -34,6 +34,7 @@ module JBossCloud
     def initialize( config, appliance_config )
       @config            = config
       @appliance_config  = appliance_config
+      @log               = LOG
 
       @appliance_build_dir          = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
       @bundle_dir                   = "#{@appliance_build_dir}/ec2/bundle"

@@ -20,7 +20,6 @@
 
 require 'rake/tasklib'
 require 'jboss-cloud/validator/errors'
-require 'jboss-cloud/exec'
 
 module JBossCloud
   class ApplianceImageCustomize < Rake::TaskLib
@@ -35,27 +34,31 @@ module JBossCloud
       @appliance_ec2_image_file     = "#{@appliance_build_dir}/#{@appliance_config.name}.ec2"
       @appliance_raw_image          = "#{@appliance_build_dir}/#{@appliance_config.name}-sda.raw"
 
+      @exec_helper                  = EXEC_HELPER
+      @log                          = LOG
+
       @mount_directory              = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/customize-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
     end
 
     def convert_to_ami
+      @log.info "Converting to AMI..."
 
       mount_dir = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/ec2-image-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
 
       `mkdir -p #{mount_dir}`
 
       # TODO add progress bar
-      puts "\nPreparing disk for EC2 image..."
-      puts `dd if=/dev/zero of=#{@appliance_ec2_image_file} bs=1M count=#{10 * 1024}`
-      puts "\nDisk for EC2 image prepared"
+      @log.debug "Preparing disk for EC2 image..."
+      @exec_helper.execute "dd if=/dev/zero of=#{@appliance_ec2_image_file} bs=1M count=#{10 * 1024}"
+      @log.debug "Disk for EC2 image prepared"
 
-      puts "\nCreating filesystem..."
-      puts `mke2fs -Fj #{@appliance_ec2_image_file}`
-      puts "\nFilesystem created"
+      @log.debug "Creating filesystem..."
+      @exec_helper.execute "mke2fs -Fj #{@appliance_ec2_image_file}"
+      @log.debug "Filesystem created"
 
-      `sudo mount -o loop #{@appliance_ec2_image_file} #{mount_dir}`
+      @exec_helper.execute "sudo mount -o loop #{@appliance_ec2_image_file} #{mount_dir}"
 
-      puts "\nSyncing files between RAW and EC2 file..."
+      @log.debug "Syncing files between RAW and EC2 file..."
       loop_device = get_loop_device
       mount_image( loop_device, @appliance_raw_image )
 
@@ -66,11 +69,11 @@ module JBossCloud
 
       `sudo mkdir -p #{mount_dir}/data`
 
-      puts "\nCreating required devices..."
+      @log.debug "Creating required devices..."
       `sudo /sbin/MAKEDEV -d #{mount_dir}/dev -x console`
       `sudo /sbin/MAKEDEV -d #{mount_dir}/dev -x null`
       `sudo /sbin/MAKEDEV -d #{mount_dir}/dev -x zero`
-      puts "\nDevices created"
+      @log.debug "Devices created"
 
       fstab_data = "/dev/sda1  /         ext3    defaults         1 1\n"
 
@@ -129,9 +132,9 @@ module JBossCloud
 
       options[:packages][:yum]          = [] if options[:packages][:yum].nil?
       options[:packages][:yum_local]    = [] if options[:packages][:yum_local].nil?
-      options[:packages][:rpm_remote]   = [] if options[:packages][:rpm_remote].nil?
+      options[:packages][:rpm]          = [] if options[:packages][:rpm].nil?
 
-      if ( options[:gems].size == 0 and options[:packages][:yum_local].size == 0 and options[:packages][:yum].size == 0 and options[:packages][:rpm_remote].size == 0 and options[:repos].size == 0)
+      if ( options[:gems].size == 0 and options[:packages][:yum_local].size == 0 and options[:packages][:rpm].size == 0 and options[:packages][:yum].size == 0 and options[:repos].size == 0)
         puts "No additional local or remote packages or gems to install, skipping..."
         # silent return, we don't have any packages to install
         return
@@ -151,7 +154,7 @@ module JBossCloud
       mount_env
 
       for repo in options[:repos]
-        execute_command( "sudo chroot #{@mount_directory} rpm -Uvh #{repo}" )
+        @exec_helper.execute( "sudo chroot #{@mount_directory} rpm -Uvh #{repo}" )
       end
 
       install_packages( options[:packages] )
@@ -164,7 +167,7 @@ module JBossCloud
     protected
 
     def mount_image( loop_device, raw_file, offset = 32256 )
-      puts "Mounting image #{File.basename( raw_file )}"
+      @log.debug "Mounting image #{File.basename( raw_file )}"
       FileUtils.mkdir_p( @mount_directory )
 
       `sudo losetup -o #{offset.to_s} #{loop_device} #{raw_file}`
@@ -196,7 +199,7 @@ module JBossCloud
     end
 
     def umount_image( loop_device, raw_file )
-      puts "Unmounting image #{File.basename( raw_file )}"
+      @log.debug "Unmounting image #{File.basename( raw_file )}"
 
       `sudo umount #{@mount_directory}`
       `sudo losetup -d #{loop_device}`
@@ -209,7 +212,7 @@ module JBossCloud
 
       puts "Installing additional gems..."
 
-      execute_command( "sudo chroot #{@mount_directory} /bin/bash -c \"export HOME=/tmp && gem sources -r http://gems.github.com && gem sources -a http://gems.github.com && gem update --system > /dev/null && gem install #{gems.join(' ')} && gem list\"" )
+      @exec_helper.execute( "sudo chroot #{@mount_directory} /bin/bash -c \"export HOME=/tmp && gem sources -r http://gems.github.com && gem sources -a http://gems.github.com && gem update --system > /dev/null && gem install #{gems.join(' ')} && gem list\"" )
 
       # TODO select a right place for this
 
@@ -222,26 +225,23 @@ module JBossCloud
     def install_packages( packages, appliance_jbcs_dir = "tmp/jboss-cloud-support", appliance_rpms_dir = "tmp/jboss-cloud-support-rpms" )
       return if packages.size == 0
 
-      `sudo chroot #{@mount_directory} rm -f /var/lib/rpm/__db.*`
-      `sudo chroot #{@mount_directory} rpm --rebuilddb`
-
       # import our GPG key
-      execute_command( "sudo chroot #{@mount_directory} rpm --import /#{appliance_jbcs_dir}/src/jboss-cloud-release/RPM-GPG-KEY-oddthesis" )
+      #@exec_helper.execute( "sudo chroot #{@mount_directory} rpm --import /#{appliance_jbcs_dir}/src/jboss-cloud-release/RPM-GPG-KEY-oddthesis" )
 
       for local_package in packages[:yum_local]
         puts "Installing package #{File.basename( local_package )}..."
-        execute_command( "sudo chroot #{@mount_directory} yum -y localinstall /#{appliance_rpms_dir}/#{local_package}" )
+        @exec_helper.execute( "sudo chroot #{@mount_directory} yum -y localinstall /#{appliance_rpms_dir}/#{local_package}" )
       end unless packages[:yum_local].nil?
 
       for yum_package in packages[:yum]
         puts "Installing package #{yum_package}..."
-        execute_command( "sudo chroot #{@mount_directory} yum -y install #{yum_package}" )
+        @exec_helper.execute( "sudo chroot #{@mount_directory} yum -y install #{yum_package}" )
       end unless packages[:yum].nil?
 
-      for package in packages[:rpm_remote]
+      for package in packages[:rpm]
         puts "Installing package #{package}..."
-        execute_command( "sudo chroot #{@mount_directory} rpm -Uvh --force #{package}" )
-      end unless packages[:rpm_remote].nil?
+        @exec_helper.execute( "sudo chroot #{@mount_directory} rpm -Uvh --force #{package}" )
+      end unless packages[:rpm].nil?
     end
   end
 end

@@ -29,6 +29,7 @@ module JBossCloud
     def initialize( config, appliance_config )
       @config            = config
       @appliance_config  = appliance_config
+      @log               = LOG
 
       @appliance_build_dir    = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
       @appliance_xml_file     = "#{@appliance_build_dir}/#{@appliance_config.name}.xml"
@@ -37,15 +38,39 @@ module JBossCloud
       @vmware_directory       = "#{@base_directory}/vmware"
       @base_vmware_raw_file   = "#{@vmware_directory}/#{@appliance_config.name}-sda.raw"
 
+      @super_simple_name                    = File.basename( @appliance_config.name, '-appliance' )
+      @vmware_personal_output_folder        = File.dirname( @appliance_xml_file ) + "/vmware/personal"
+      @vmware_personal_vmx_file             = @vmware_personal_output_folder + "/" + @appliance_config.name + '.vmx'
+      @vmware_personal_vmdk_file            = @vmware_personal_output_folder + "/" + @appliance_config.name + '.vmdk'
+      @vmware_personal_raw_file             = @vmware_personal_output_folder + "/#{@appliance_config.name}-sda.raw"
+      @vmware_enterprise_output_folder      = File.dirname( @appliance_xml_file ) + "/vmware/enterprise"
+      @vmware_enterprise_vmx_file           = @vmware_enterprise_output_folder + "/" + @appliance_config.name + '.vmx'
+      @vmware_enterprise_vmdk_file          = @vmware_enterprise_output_folder + "/" + @appliance_config.name + '.vmdk'
+      @vmware_enterprise_raw_file           = @vmware_enterprise_output_folder + "/#{@appliance_config.name}-sda.raw"
+
       @appliance_image_customizer = ApplianceImageCustomize.new( @config, @appliance_config )
 
-      define
+      define_tasks
     end
 
-    def define
-      define_precursors
-    end
+    def define_tasks
+      directory @vmware_directory
 
+      desc "Build #{@super_simple_name} appliance for VMware personal environments (Server/Workstation/Fusion)"
+      task "appliance:#{@appliance_config.name}:vmware:personal" => [ @base_vmware_raw_file ] do
+        build_vmware_personal
+      end
+
+      desc "Build #{@super_simple_name} appliance for VMware enterprise environments (ESX/ESXi)"
+      task "appliance:#{@appliance_config.name}:vmware:enterprise" => [ @base_vmware_raw_file ] do
+        build_vmware_enterprise
+      end
+
+      file @base_vmware_raw_file => [ @vmware_directory, @appliance_xml_file ] do
+        create_base_vmware_raw_file
+      end
+    end
+ 
     # returns value of cylinders, heads and sector for selected disk size (in GB)
 
     def generate_scsi_chs(disk_size)
@@ -113,63 +138,49 @@ module JBossCloud
       FileUtils.ln( @base_vmware_raw_file, vmware_raw_file ) if ( !File.exists?( vmware_raw_file ) || File.new( @base_raw_file ).mtime > File.new( vmware_raw_file ).mtime )
     end
 
-    def define_precursors
-      super_simple_name                    = File.basename( @appliance_config.name, '-appliance' )
-      vmware_personal_output_folder        = File.dirname( @appliance_xml_file ) + "/vmware/personal"
-      vmware_personal_vmx_file             = vmware_personal_output_folder + "/" + @appliance_config.name + '.vmx'
-      vmware_personal_vmdk_file            = vmware_personal_output_folder + "/" + @appliance_config.name + '.vmdk'
-      vmware_personal_raw_file             = vmware_personal_output_folder + "/#{@appliance_config.name}-sda.raw"
-      vmware_enterprise_output_folder      = File.dirname( @appliance_xml_file ) + "/vmware/enterprise"
-      vmware_enterprise_vmx_file           = vmware_enterprise_output_folder + "/" + @appliance_config.name + '.vmx'
-      vmware_enterprise_vmdk_file          = vmware_enterprise_output_folder + "/" + @appliance_config.name + '.vmdk'
-      vmware_enterprise_raw_file           = vmware_enterprise_output_folder + "/#{@appliance_config.name}-sda.raw"
+    def build_vmware_personal
+      FileUtils.mkdir_p @vmware_personal_output_folder
 
-      directory @vmware_directory
+      # link disk image
+      create_hardlink_to_disk_image( @vmware_personal_raw_file )
 
-      desc "Build #{super_simple_name} appliance for VMware personal environments (Server/Workstation/Fusion)"
-      task "appliance:#{@appliance_config.name}:vmware:personal" => [ @base_vmware_raw_file ] do
-        FileUtils.mkdir_p vmware_personal_output_folder
+      # create .vmx file
+      File.open( @vmware_personal_vmx_file, "w" ) {|f| f.write( change_common_vmx_values ) }
 
-        # link disk image
-        create_hardlink_to_disk_image( vmware_personal_raw_file )
+      # create disk descriptor file
+      File.open( @vmware_personal_vmdk_file, "w" ) {|f| f.write( change_vmdk_values( "monolithicFlat" ) ) }
+    end
 
-        # create .vmx file
-        File.open( vmware_personal_vmx_file, "w" ) {|f| f.write( change_common_vmx_values ) }
+    def build_vmware_enterprise
+      FileUtils.mkdir_p @vmware_enterprise_output_folder
 
-        # create disk descriptor file
-        File.open( vmware_personal_vmdk_file, "w" ) {|f| f.write( change_vmdk_values( "monolithicFlat" ) ) }
-      end
+      # link disk image
+      create_hardlink_to_disk_image( @vmware_enterprise_raw_file )
 
-      desc "Build #{super_simple_name} appliance for VMware enterprise environments (ESX/ESXi)"
-      task "appliance:#{@appliance_config.name}:vmware:enterprise" => [ @base_vmware_raw_file ] do
-        FileUtils.mkdir_p vmware_enterprise_output_folder
+      # defaults for ESXi (maybe for others too)
+      @appliance_config.network_name = "VM Network" if @appliance_config.network_name.eql?( "NAT" )
 
-        # link disk image
-        create_hardlink_to_disk_image( vmware_enterprise_raw_file )
+      # create .vmx file
+      vmx_data = change_common_vmx_values
+      vmx_data += "ethernet0.networkName = \"#{@appliance_config.network_name}\""
 
-        # defaults for ESXi (maybe for others too)
-        @appliance_config.network_name = "VM Network" if @appliance_config.network_name.eql?( "NAT" )
+      File.open( @vmware_enterprise_vmx_file, "w" ) {|f| f.write( vmx_data ) }
 
-        # create .vmx file
-        vmx_data = change_common_vmx_values
-        vmx_data += "ethernet0.networkName = \"#{@appliance_config.network_name}\""
+      # create disk descriptor file
+      File.open( @vmware_enterprise_vmdk_file, "w" ) {|f| f.write( change_vmdk_values( "vmfs" ) ) }
+    end
 
-        File.open( vmware_enterprise_vmx_file, "w" ) {|f| f.write( vmx_data ) }
+    def create_base_vmware_raw_file
+      @log.info "Copying VMware image file, this may take several minutes..."
 
-        # create disk descriptor file
-        File.open( vmware_enterprise_vmdk_file, "w" ) {|f| f.write( change_vmdk_values( "vmfs" ) ) }
-      end
+      FileUtils.cp( @base_raw_file, @base_vmware_raw_file ) if ( !File.exists?( @base_vmware_raw_file ) || File.new( @base_raw_file ).mtime > File.new( @base_vmware_raw_file ).mtime )
 
-      file @base_vmware_raw_file => [ @vmware_directory, @appliance_xml_file ] do
-        puts "Copying VMware image file, this may take several minutes..."
+      @log.info "VMware image copied"
+      @log.info "Installing VMware tools..."
 
-        FileUtils.cp( @base_raw_file, @base_vmware_raw_file ) if ( !File.exists?( @base_vmware_raw_file ) || File.new( @base_raw_file ).mtime > File.new( @base_vmware_raw_file ).mtime )
+      @appliance_image_customizer.customize( @base_vmware_raw_file, { :packages => { :rpm => [ "noarch/vm2-support-1.0.0.Beta1-1.noarch.rpm" ], :yum => [ "open-vm-tools" ] }, :repos => [ "http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-stable.noarch.rpm", "http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-stable.noarch.rpm" ] } )
 
-        @appliance_image_customizer.customize( @base_vmware_raw_file, { :packages => { :yum_local => [ "noarch/vm2-support-1.0.0.Beta1-1.noarch.rpm" ], :yum => [ "open-vm-tools" ] }, :repos => [ "http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-stable.noarch.rpm", "http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-stable.noarch.rpm" ] } )
-      end
-
-      #desc "Build #{super_simple_name} appliance for VMware"
-      #task "appliance:#{@appliance_config.name}:vmware" => [ "appliance:#{@appliance_config.name}:vmware:personal", "appliance:#{@appliance_config.name}:vmware:enterprise" ]
+      @log.info "VMware tools installed."
     end
   end
 end
