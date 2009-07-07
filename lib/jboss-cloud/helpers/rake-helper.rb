@@ -18,6 +18,24 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
+require 'jboss-cloud/image-builder'
+
+module Rake
+  class Task
+    alias_method :execute_original, :execute
+
+    def execute( args=nil )
+      begin
+        execute_original( args )
+      rescue => e
+        JBossCloud::LOG.fatal e
+        JBossCloud::LOG.fatal e.message
+        abort
+      end
+    end
+  end
+end
+
 module JBossCloud
   def self.default_task?
     Rake.application.top_level_tasks.include?("default")
@@ -37,4 +55,23 @@ module JBossCloud
     end
     false
   end
+
+  class RakeHelper
+    def initialize
+      begin
+        LOG.debug "Running new Rake session..."
+
+        ImageBuilder.new
+      rescue ValidationError => e
+        LOG.fatal "ValidationError: #{e.message}."
+        abort
+      rescue => e
+        LOG.fatal e
+        LOG.fatal "Aborting: #{e.message}. See previous errors for more information."
+        abort
+      end
+    end
+  end
 end
+
+

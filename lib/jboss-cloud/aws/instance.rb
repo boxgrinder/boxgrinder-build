@@ -33,6 +33,9 @@ module JBossCloud
       @instances_dir     = "#{ENV['HOME']}/.jboss-cloud/instances"
       @ec2_run_file      = "#{@instances_dir}/#{@appliance_config.name}.run"
 
+      @exec_helper       = EXEC_HELPER
+      @log               = LOG
+
       define_tasks
     end
 
@@ -64,12 +67,12 @@ module JBossCloud
 
       File.open( @ec2_run_file, "w") {|f| f.write( ami_info.to_yaml ) }
 
-      puts "One instance of #{@appliance_config.simple_name} appliance is launched, instance ID: #{ami_info.instanceId} "
+      @log.info "One instance of #{@appliance_config.simple_name} appliance is launched, instance ID: #{ami_info.instanceId} "
     end
 
     def terminate_instance
       if !File.exist?( @ec2_run_file )
-        puts "No instances of #{@appliance_config.simple_name} appliance were launched."
+        @log.info "No instances of #{@appliance_config.simple_name} appliance were launched."
         return
       end
 
@@ -78,7 +81,7 @@ module JBossCloud
       begin
         instances = @aws_support.ec2.describe_instances( :instance_id => ami_info.instanceId  )
       rescue
-        puts "No running instances of #{@appliance_config.simple_name} appliance with ID = #{ami_info.instanceId}."
+        @log.info "No running instances of #{@appliance_config.simple_name} appliance with ID = #{ami_info.instanceId}."
         FileUtils.rm( @ec2_run_file )
         return
       end
@@ -87,7 +90,7 @@ module JBossCloud
         for instance in reservation.instancesSet.item
           response = @aws_support.ec2.terminate_instances( :instance_id => instance.instanceId )
 
-          puts "Instance of #{@appliance_config.simple_name} appliance with ID = #{instance.instanceId} is shutting down."
+          @log.info "Instance of #{@appliance_config.simple_name} appliance with ID = #{instance.instanceId} is shutting down."
         end
       end
 

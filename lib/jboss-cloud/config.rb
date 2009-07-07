@@ -93,6 +93,12 @@ module JBossCloud
       @arch.eql?("x86_64")
     end
 
+    def is_development?
+      return true if @os_name.eql?("fedora") and @os_version.eql?("rawhide")
+
+      false
+    end
+
   end
   class Config
     def initialize( name, version, release, dir, config_file )

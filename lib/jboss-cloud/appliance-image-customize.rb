@@ -20,6 +20,7 @@
 
 require 'rake/tasklib'
 require 'jboss-cloud/validator/errors'
+require 'jboss-cloud/helpers/guestfs-helper'
 
 module JBossCloud
   class ApplianceImageCustomize < Rake::TaskLib
@@ -65,7 +66,7 @@ module JBossCloud
       `sudo rsync -u -r -a  #{@mount_directory}/* #{mount_dir}`
 
       umount_image( loop_device, @appliance_raw_image )
-      puts "\nSyncing finished"
+      @log.debug "\nSyncing finished"
 
       `sudo mkdir -p #{mount_dir}/data`
 
@@ -103,7 +104,7 @@ module JBossCloud
       `sudo umount #{mount_dir}`
       `rm -rf #{mount_dir}`
 
-      puts "\nEC2 image prepared!"
+      @log.debug "\nEC2 image prepared!"
     end
 
     def echo( file, content, append = false)
@@ -135,33 +136,53 @@ module JBossCloud
       options[:packages][:rpm]          = [] if options[:packages][:rpm].nil?
 
       if ( options[:gems].size == 0 and options[:packages][:yum_local].size == 0 and options[:packages][:rpm].size == 0 and options[:packages][:yum].size == 0 and options[:repos].size == 0)
-        puts "No additional local or remote packages or gems to install, skipping..."
+        @log.debug "No additional local or remote packages or gems to install, skipping..."
         # silent return, we don't have any packages to install
         return
       end
 
       raise ValidationError, "Raw file '#{raw_file}' doesn't exists, please specify valid raw file" if !File.exists?( raw_file )
 
-      loop_device = get_loop_device
+      #loop_device = get_loop_device
 
       # TODO fix this!
-      if (raw_file.eql?( @appliance_ec2_image_file ))
-        mount_image( loop_device, raw_file, 0 )
-      else
-        mount_image( loop_device, raw_file )
-      end
+      #if (raw_file.eql?( @appliance_ec2_image_file ))
+      #  mount_image( loop_device, raw_file, 0 )
+      #else
+      #  mount_image( loop_device, raw_file )
+      #end
 
-      mount_env
+      guesfs_helper = GuestFSHelper.new( raw_file )
+
+      #mount_env
 
       for repo in options[:repos]
-        @exec_helper.execute( "sudo chroot #{@mount_directory} rpm -Uvh #{repo}" )
+        @log.debug "Installing repo file '#{repo}'..."
+        guesfs_helper.guestfs.command( ["rpm", "-Uvh", repo] )
+        @log.debug "Installed!"
+        #@exec_helper.execute( "sudo chroot #{@mount_directory} rpm -Uvh #{repo}" )
       end
 
-      install_packages( options[:packages] )
-      install_gems( options[:gems] )
+      #install_packages( options[:packages] )
+      #install_gems( options[:gems] )
 
-      umount_env
-      umount_image( loop_device, raw_file )
+
+      for yum_package in options[:packages][:yum]
+        @log.debug "Installing package #{yum_package}..."
+        guesfs_helper.guestfs.command( ["yum", "-y", "install", yum_package] )
+        @log.debug "Installed!"
+      end unless options[:packages][:yum].nil?
+
+      for package in options[:packages][:rpm]
+        @log.debug "Installing package #{package}..."
+        guesfs_helper.guestfs.command( ["rpm", "-Uvh", "--force", package] )
+        @log.debug "Installed!"
+      end unless options[:packages][:rpm].nil?
+
+      guesfs_helper.guestfs.close
+
+      #umount_env
+      #umount_image( loop_device, raw_file )
     end
 
     protected
@@ -207,10 +228,11 @@ module JBossCloud
       FileUtils.rm_rf( @mount_directory )
     end
 
+    # TODO: remove this!!!
     def install_gems( gems )
       return if gems.size == 0
 
-      puts "Installing additional gems..."
+      @log.info "Installing additional gems..."
 
       @exec_helper.execute( "sudo chroot #{@mount_directory} /bin/bash -c \"export HOME=/tmp && gem sources -r http://gems.github.com && gem sources -a http://gems.github.com && gem update --system > /dev/null && gem install #{gems.join(' ')} && gem list\"" )
 
@@ -229,18 +251,21 @@ module JBossCloud
       #@exec_helper.execute( "sudo chroot #{@mount_directory} rpm --import /#{appliance_jbcs_dir}/src/jboss-cloud-release/RPM-GPG-KEY-oddthesis" )
 
       for local_package in packages[:yum_local]
-        puts "Installing package #{File.basename( local_package )}..."
+        @log.debug "Installing package #{File.basename( local_package )}..."
         @exec_helper.execute( "sudo chroot #{@mount_directory} yum -y localinstall /#{appliance_rpms_dir}/#{local_package}" )
+        @log.debug "Installed!"
       end unless packages[:yum_local].nil?
 
       for yum_package in packages[:yum]
-        puts "Installing package #{yum_package}..."
+        @log.debug "Installing package #{yum_package}..."
         @exec_helper.execute( "sudo chroot #{@mount_directory} yum -y install #{yum_package}" )
+        @log.debug "Installed!"
       end unless packages[:yum].nil?
 
       for package in packages[:rpm]
-        puts "Installing package #{package}..."
+        @log.debug "Installing package #{package}..."
         @exec_helper.execute( "sudo chroot #{@mount_directory} rpm -Uvh --force #{package}" )
+        @log.debug "Installed!"
       end unless packages[:rpm].nil?
     end
   end

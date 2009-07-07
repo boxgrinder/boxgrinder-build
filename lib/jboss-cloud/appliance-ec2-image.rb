@@ -34,6 +34,8 @@ module JBossCloud
     def initialize( config, appliance_config )
       @config            = config
       @appliance_config  = appliance_config
+
+      @exec_helper       = EXEC_HELPER
       @log               = LOG
 
       @appliance_build_dir          = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
@@ -77,13 +79,7 @@ module JBossCloud
     end
 
     def bundle_image
-      command = "ec2-bundle-image -i #{@appliance_ec2_image_file} --kernel #{AWS_DEFAULTS[:kernel_id][@appliance_config.arch]} --ramdisk #{AWS_DEFAULTS[:ramdisk_id][@appliance_config.arch]} -c #{@aws_support.aws_data['cert_file']} -k #{@aws_support.aws_data['key_file']} -u #{@aws_support.aws_data['account_number']} -r #{@config.build_arch} -d #{@bundle_dir}"
-      exit_status =  execute_command( command )
-
-      unless exit_status
-        puts "\nBundling #{@appliance_config.simple_name} image failed! Hint: consult above messages.\n\r"
-        abort
-      end
+      @exec_helper.execute( "ec2-bundle-image -i #{@appliance_ec2_image_file} --kernel #{AWS_DEFAULTS[:kernel_id][@appliance_config.arch]} --ramdisk #{AWS_DEFAULTS[:ramdisk_id][@appliance_config.arch]} -c #{@aws_support.aws_data['cert_file']} -k #{@aws_support.aws_data['key_file']} -u #{@aws_support.aws_data['account_number']} -r #{@config.build_arch} -d #{@bundle_dir}" )
     end
 
     def appliance_already_uploaded?
@@ -105,37 +101,31 @@ module JBossCloud
 
     def upload_image
       if appliance_already_uploaded?
-        puts "Image for #{@appliance_config.simple_name} appliance is already uploaded, skipping..."
+        @log.debug "Image for #{@appliance_config.simple_name} appliance is already uploaded, skipping..."
         return
       end
 
-      command = "ec2-upload-bundle -b #{@aws_support.bucket_key( @appliance_config.name )} -m #{@appliance_ec2_manifest_file} -a #{@aws_support.aws_data['access_key']} -s #{@aws_support.aws_data['secret_access_key']} --retry"
-      exit_status = execute_command( command )
-
-      unless exit_status
-        puts "\nUploading #{@appliance_config.simple_name} image to Amazon failed! Hint: consult above messages.\n\r"
-        abort
-      end
+      @exec_helper.execute( "ec2-upload-bundle -b #{@aws_support.bucket_key( @appliance_config.name )} -m #{@appliance_ec2_manifest_file} -a #{@aws_support.aws_data['access_key']} -s #{@aws_support.aws_data['secret_access_key']} --retry" )
     end
 
     def register_image
       ami_info    = @aws_support.ami_info( @appliance_config.name )
 
       if ami_info
-        puts "Image is registered under id: #{ami_info.imageId}"
+        @log.info "Image is registered under id: #{ami_info.imageId}"
         return
       else
         ami_info = @aws_support.ec2.register_image( :image_location => @aws_support.bucket_manifest_key( @appliance_config.name ) )
-        puts "Image successfully registered under id: #{ami_info.imageId}. Now you can run 'rake appliance:#{@appliance_config.name}:ec2:run' to launch this image on EC2.'"
+        @log.info "Image successfully registered under id: #{ami_info.imageId}. Now you can run 'rake appliance:#{@appliance_config.name}:ec2:run' to launch this image on EC2.'"
       end
     end
 
     def convert_image_to_ec2_format
-      puts "Converting #{@appliance_config.simple_name} appliance image to EC2 format..."
+      @log.info "Converting #{@appliance_config.simple_name} appliance image to EC2 format..."
 
       @appliance_image_customizer.convert_to_ami
 
-      puts "Customizing #{@appliance_config.simple_name} appliance..."
+      @log.info "Customizing #{@appliance_config.simple_name} appliance..."
 
       @appliance_image_customizer.customize( @appliance_ec2_image_file, { :packages => { :rpm_remote => [ AWS_DEFAULTS[:kernel_rpm][@appliance_config.arch], "http://s3.amazonaws.com/ec2-downloads/ec2-ami-tools.noarch.rpm" ] } })
     end

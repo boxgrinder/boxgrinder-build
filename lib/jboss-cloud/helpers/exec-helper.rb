@@ -25,23 +25,19 @@ module JBossCloud
     end
 
     def execute( command, file = nil )
-      begin
-        @log.debug "Executing command: '#{command}'"
+      @log.debug "Executing command: '#{command}'"
 
-        out = `#{command} 2>&1`
+      out = `#{command} 2>&1`
 
-        formatted_output = "Command return:\r\n+++++\r\n#{out}\r\n+++++"
+      formatted_output = "Command return:\r\n+++++\r\n#{out}\r\n+++++"
 
-        if $?.to_i != 0
-          @log.error formatted_output
-          raise "An error occured executing commad: '#{command}'"
-        else
-          @log.debug formatted_output
-          @log.debug "Command '#{command}' executed successfuly"
-          return out
-        end
-      rescue => e
-        EXCEPTION_HELPER.log_and_exit( e )
+      if $?.to_i != 0
+        @log.error formatted_output
+        raise "An error occured executing commad: '#{command}'"
+      else
+        @log.debug formatted_output
+        @log.debug "Command '#{command}' executed successfuly"
+        return out
       end
     end
   end

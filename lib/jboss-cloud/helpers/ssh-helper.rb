@@ -26,10 +26,13 @@ module JBossCloud
   class SSHHelper
     def initialize( options )
       @options = options
+
+      @exec_helper       = EXEC_HELPER
+      @log               = LOG
     end
 
     def connect
-      puts "Connecting to #{@options['host']}..."
+      @log.info "Connecting to #{@options['host']}..."
       @ssh = Net::SSH.start( @options['host'], @options['username'], { :password => @options['password'] } )
     end
 
@@ -39,7 +42,7 @@ module JBossCloud
     end
 
     def disconnect
-      puts "Disconnecting from #{@options['host']}..."
+      @log.info "Disconnecting from #{@options['host']}..."
       @ssh.close if connected?
       @ssh = nil
     end
@@ -59,7 +62,7 @@ module JBossCloud
       global_size_kb = global_size / 1024
       global_size_mb = global_size_kb / 1024
 
-      puts "\n#{files.size} files to upload (#{global_size_mb > 0 ? global_size_mb.to_s + "MB" : global_size_kb > 0 ? global_size_kb.to_s + "kB" : global_size.to_s})\n\r"
+      @log.info "\n#{files.size} files to upload (#{global_size_mb > 0 ? global_size_mb.to_s + "MB" : global_size_kb > 0 ? global_size_kb.to_s + "kB" : global_size.to_s})\n\r"
 
       @ssh.sftp.connect do |sftp|
 
@@ -92,7 +95,7 @@ module JBossCloud
               remote_md5_sum  = @ssh.exec!( "md5sum #{remote} | awk '{ print $1 }'" ).strip
 
               if (local_md5_sum.eql?( remote_md5_sum ))
-                puts "#{nb_of} #{name}: files are identical (md5sum: #{local_md5_sum}), skipping..."
+                @log.info "#{nb_of} #{name}: files are identical (md5sum: #{local_md5_sum}), skipping..."
                 next
               end
             end
@@ -108,13 +111,13 @@ module JBossCloud
 
           sftp.upload!( local, remote ) do |event, uploader, *args|
             case event
-            when :open then
-            when :put then
-              pbar.set( args[1] )
-            when :close then
-            when :mkdir then
-            when :finish then
-              pbar.finish
+              when :open then
+              when :put then
+                pbar.set( args[1] )
+              when :close then
+              when :mkdir then
+              when :finish then
+                pbar.finish
             end
           end
 
@@ -128,7 +131,7 @@ module JBossCloud
       raise "You're not connected to server" unless connected?
 
       directories.each do |directory|
-        puts "Refreshing repository information in #{directory}..."
+        @log.info "Refreshing repository information in #{directory}..."
         @ssh.exec!( "createrepo #{path}/#{directory}" )
       end
     end

@@ -41,7 +41,7 @@ require 'jboss-cloud/helpers/rake-helper'
 require 'ostruct'
 require 'yaml'
 
-require 'jboss-cloud/helpers/exception-helper'
+$stderr.reopen("/dev/null")
 
 module JBossCloud
   class ImageBuilder

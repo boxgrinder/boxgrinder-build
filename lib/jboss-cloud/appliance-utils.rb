@@ -38,6 +38,9 @@ module JBossCloud
       @appliance_vmware_personal_dir       = "#{@config.dir_build}/#{@appliance_config.appliance_path}/vmware/personal"
       @appliance_vmware_enterprise_dir     = "#{@config.dir_build}/#{@appliance_config.appliance_path}/vmware/enterprise"
 
+      @exec_helper       = EXEC_HELPER
+      @log               = LOG
+
       define_tasks
     end
 
@@ -62,20 +65,20 @@ module JBossCloud
       task "appliance:#{@appliance_config.name}:package:vmware:personal" => [ @package_vmware_personal ]
 
       file @package_raw => [ @package_dir, "appliance:#{@appliance_config.name}" ] do
-        puts "Packaging #{@appliance_config.simple_name} appliance RAW image (#{@config.os_name} #{@config.os_version}, #{@config.arch} arch)..."
-        `tar -C #{@appliance_raw_dir} -cvzf #{@package_raw} #{@appliance_config.name}-sda.raw #{@appliance_config.name}.xml`
+        @log.info "Packaging #{@appliance_config.simple_name} appliance RAW image (#{@config.os_name} #{@config.os_version}, #{@config.arch} arch)..."
+        @exec_helper.execute "tar -C #{@appliance_raw_dir} -cvzf #{@package_raw} #{@appliance_config.name}-sda.raw #{@appliance_config.name}.xml"
       end
 
       vmware_files = "#{@appliance_config.name}-sda.raw #{@appliance_config.name}.vmx #{@appliance_config.name}.vmdk"
 
       file @package_vmware_enterprise => [ @package_dir, "appliance:#{@appliance_config.name}:vmware:enterprise" ] do
-        puts "Packaging #{@appliance_config.simple_name} appliance VMware Enterprise image (#{@config.os_name} #{@config.os_version}, #{@config.arch} arch)..."
-        `tar -C #{@appliance_vmware_enterprise_dir} -cvzf "#{@package_vmware_enterprise}" #{vmware_files}`
+        @log.info "Packaging #{@appliance_config.simple_name} appliance VMware Enterprise image (#{@config.os_name} #{@config.os_version}, #{@config.arch} arch)..."
+        @exec_helper.execute "tar -C #{@appliance_vmware_enterprise_dir} -cvzf '#{@package_vmware_enterprise}' #{vmware_files}"
       end
 
       file @package_vmware_personal => [ @package_dir, "appliance:#{@appliance_config.name}:vmware:personal" ] do
-        puts "Packaging #{@appliance_config.simple_name} appliance VMware Personal image (#{@config.os_name} #{@config.os_version}, #{@config.arch} arch)..."
-        `tar -C #{@appliance_vmware_personal_dir} -cvzf #{@package_vmware_personal} #{vmware_files}`        
+        @log.info "Packaging #{@appliance_config.simple_name} appliance VMware Personal image (#{@config.os_name} #{@config.os_version}, #{@config.arch} arch)..."
+        @exec_helper.execute "tar -C #{@appliance_vmware_personal_dir} -cvzf #{@package_vmware_personal} #{vmware_files}"
       end
     end
 

@@ -70,7 +70,7 @@ module JBossCloud
         create_base_vmware_raw_file
       end
     end
- 
+
     # returns value of cylinders, heads and sector for selected disk size (in GB)
 
     def generate_scsi_chs(disk_size)
@@ -178,7 +178,14 @@ module JBossCloud
       @log.info "VMware image copied"
       @log.info "Installing VMware tools..."
 
-      @appliance_image_customizer.customize( @base_vmware_raw_file, { :packages => { :rpm => [ "noarch/vm2-support-1.0.0.Beta1-1.noarch.rpm" ], :yum => [ "open-vm-tools" ] }, :repos => [ "http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-stable.noarch.rpm", "http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-stable.noarch.rpm" ] } )
+      if @appliance_config.is_development?
+        rpmfusion_repo_rpm = [ "http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-rawhide.noarch.rpm", "http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-rawhide.noarch.rpm" ]
+      else
+        rpmfusion_repo_rpm = [ "http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-stable.noarch.rpm", "http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-stable.noarch.rpm" ]
+      end
+
+      #@appliance_image_customizer.customize( @base_vmware_raw_file, { :packages => { :yum => [ "open-vm-tools" ] }, :repos => rpmfusion_repo_rpm } )
+      #:rpm => [ "noarch/vm2-support-1.0.0.Beta1-1.noarch.rpm" ]
 
       @log.info "VMware tools installed."
     end

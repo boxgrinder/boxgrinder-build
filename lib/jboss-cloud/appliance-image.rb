@@ -73,6 +73,7 @@ module JBossCloud
 
       # fix permissions
       `sudo chown oddthesis:oddthesis #{@raw_disk}`
+      `sudo chown oddthesis:oddthesis #{@xml_file}`
 
       @log.info "Appliance #{@appliance_config.simple_name} was built successfully."
     end
@@ -84,8 +85,9 @@ module JBossCloud
 
       # TODO this is shitty, I know... https://bugzilla.redhat.com/show_bug.cgi?id=507188
       guesfs_helper.guestfs.sh( "rm /var/lib/rpm/__db.*" )
-
       guesfs_helper.guestfs.command( ["rpm", "--rebuilddb"] )
+
+      guesfs_helper.guestfs.close
 
       @log.info "RPM database in #{@appliance_config.simple_name} appliance cleaned."
     end

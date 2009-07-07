@@ -25,18 +25,37 @@ module JBossCloud
     def initialize( raw_disk )
       @raw_disk = raw_disk
 
+      @log = LOG
+
       launch
     end
 
     attr_reader :guestfs
 
     def launch
+      @log.debug "Preparing guestfs..."
       @guestfs = Guestfs::create
 
+      @log.debug "Adding drive '#{@raw_disk}'..."
       @guestfs.add_drive( @raw_disk )
+      @log.debug "Drive added."
+
+      @log.debug "Launching guestfs..."
       @guestfs.launch
+      @log.debug "Waiting for guestfs..."
       @guestfs.wait_ready
+      @log.debug "Guestfs launched."
+
+      @log.debug "Mounting root partition..."
       @guestfs.mount( "/dev/sda1", "/" )
+      @log.debug "Root partition mounted."
+
+      # TODO is this really needed?
+      @log.debug "Uploading '/etc/resolv.conf'..."
+      @guestfs.upload( "/etc/resolv.conf",  "/etc/resolv.conf" )
+      @log.debug "'/etc/resolv.conf' uploaded."
+
+      @log.debug "Guestfs launched."
     end
   end
 end
