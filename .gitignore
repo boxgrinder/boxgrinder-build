@@ -11,3 +11,4 @@ wizard
 .project
 .settings
 *.log*
+.idea
