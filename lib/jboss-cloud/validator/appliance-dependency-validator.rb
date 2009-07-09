@@ -80,19 +80,16 @@ module JBossCloud
       package_list  = generate_package_list + [ @appliance_config.name ]
       repo_list     = generate_repo_list( repos )
 
-      begin
-        generate_yum_config( repos )
+      generate_yum_config( repos )
 
-        invalid_names = invalid_names( repo_list, package_list )
+      invalid_names = invalid_names( repo_list, package_list )
 
-        if invalid_names.size == 0
-          @log.info "All additional packages for #{@appliance_config.simple_name} appliance successfully resolved."
-        else
-          raise "Package#{invalid_names.size > 1 ? "s" : ""} #{invalid_names.join(', ')} for #{@appliance_config.simple_name} appliance not found in repositories. Please check package name in appliance definition files (#{@appliance_defs.join(', ')})"
-        end
-      rescue => e
-        EXCEPTION_HELPER.log_and_exit( e )
+      if invalid_names.size == 0
+        @log.info "All additional packages for #{@appliance_config.simple_name} appliance successfully resolved."
+      else
+        raise "Package#{invalid_names.size > 1 ? "s" : ""} #{invalid_names.join(', ')} for #{@appliance_config.simple_name} appliance not found in repositories. Please check package name in appliance definition files (#{@appliance_defs.join(', ')})"
       end
+
     end
 
     def invalid_names( repo_list, package_list )

@@ -61,7 +61,7 @@ module JBossCloud
         @exec_helper.execute( command )
       rescue => e
         @log.fatal "An error occured, some #{type} may be not signed. Possible errors: key exists?, wrong passphrase, expect package installed?, %_gpg_name in ~/.rpmmacros set?"
-        EXCEPTION_HELPER.log_and_exit( e )
+        raise e
       end
 
       @log.info "All #{type} were successfully signed!"

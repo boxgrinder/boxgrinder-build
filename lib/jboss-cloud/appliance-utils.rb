@@ -50,7 +50,7 @@ module JBossCloud
 
       task "appliance:upload:all" => [ "appliance:#{@appliance_config.name}:upload" ]
 
-      desc "Upload #{@appliance_config.simple_name} appliance package to server"
+      #desc "Upload #{@appliance_config.simple_name} appliance package to server"
       task "appliance:#{@appliance_config.name}:upload" => [ @package_raw, @package_vmware_enterprise, @package_vmware_personal ] do
         upload_packages
       end

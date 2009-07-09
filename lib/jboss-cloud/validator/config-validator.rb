@@ -69,7 +69,7 @@ module JBossCloud
 
     def validate_appliance_dir
       raise ValidationError, "Appliances directory '#{@config.dir.appliances}' doesn't exists, please create one or adjust your" if !File.exists?(File.dirname( @config.dir.appliances )) && !File.directory?(File.dirname( @config.dir.appliances ))
-      raise ValidationError, "There are no appliances to build in appliances directory '#{@config.dir.appliances}'" if Dir[ "#{@config.dir.appliances}/*/*.appl" ].size == 0
+      #raise ValidationError, "There are no appliances to build in appliances directory '#{@config.dir.appliances}'" if Dir[ "#{@config.dir.appliances}/*/*.appl" ].size == 0
     end
 
     def validate_vmware_files

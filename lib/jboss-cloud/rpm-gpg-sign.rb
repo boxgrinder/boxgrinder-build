@@ -47,14 +47,10 @@ module JBossCloud
     def sign_rpm
       @log.info "Signing package '#{@rpm_file_basename}'..."
 
-      begin
-        @config.helper.validate_gpg_password
-        out = @exec_helper.execute( "#{@config.dir.base}/extras/sign-rpms #{@config.data['gpg_password']} #{@rpm_file}" )
+      @config.helper.validate_gpg_password
+      out = @exec_helper.execute( "#{@config.dir.base}/extras/sign-rpms #{@config.data['gpg_password']} #{@rpm_file}" )
 
-        raise "An error occured. Possible errors: key exists?, wrong passphrase, expect package installed?, %_gpg_name in ~/.rpmmacros set?" if out =~ /Pass phrase check failed/
-      rescue => e
-        EXCEPTION_HELPER.log_and_exit( e )
-      end
+      raise "An error occured. Possible errors: key exists?, wrong passphrase, expect package installed?, %_gpg_name in ~/.rpmmacros set?" if out =~ /Pass phrase check failed/
 
       @log.info "Package '#{@rpm_file_basename}' successfully signed!"
     end

@@ -45,7 +45,7 @@ module JBossCloud
         compress_appliance_source
       end
 
-      desc "Build source for #{@appliance_config.simple_name} appliance"
+      #desc "Build source for #{@appliance_config.simple_name} appliance"
       task "appliance:#{@appliance_config.name}:source" => [ @source_tar_gz ]
     end
 

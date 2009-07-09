@@ -54,9 +54,9 @@ module JBossCloud
         Rake::Task[ 'rpm:repodata:force' ].reenable
       end
 
-      file rpm_file => [ 'rpm:vm2-support' ]
+      #file rpm_file => [ 'rpm:vm2-support' ]
       file rpm_file => [ 'rpm:jboss-cloud-release' ]
-      file rpm_file => [ 'rpm:jboss-cloud-management' ]
+      #file rpm_file => [ 'rpm:jboss-cloud-management' ]
 
     end
 

@@ -37,7 +37,7 @@ module JBossCloud
 
       @log          = LOG
       @exec_helper  = EXEC_HELPER
-      
+
       @simple_name = File.basename( @spec_file, ".spec" )
 
       @rpm_release    = nil
@@ -66,7 +66,6 @@ module JBossCloud
     end
 
     def define_tasks
-
       desc "Build #{@simple_name} RPM."
       task "rpm:#{@simple_name}" => [ @rpm_file ]
 
@@ -80,12 +79,8 @@ module JBossCloud
     def build_rpm
       @log.info "Building package '#{@rpm_file_basename}'..."
 
-      begin
-        Dir.chdir( File.dirname( @spec_file ) ) do
-          @exec_helper.execute( "rpmbuild --define '_topdir #{@config.dir_root}/#{@config.dir.top}/#{@config.os_path}' --target #{@rpm_arch} -ba #{@simple_name}.spec" )
-        end
-      rescue => e
-        EXCEPTION_HELPER.log_and_exit( e )
+      Dir.chdir( File.dirname( @spec_file ) ) do
+        @exec_helper.execute( "rpmbuild --define '_topdir #{@config.dir_root}/#{@config.dir.top}/#{@config.os_path}' --target #{@rpm_arch} -ba #{@simple_name}.spec" )
       end
 
       @log.info "Package '#{@rpm_file_basename}' was built successfully."
@@ -100,12 +95,17 @@ module JBossCloud
     end
 
     def handle_source(rpm_file, source, version, release)
-      source = substitute_version_info( source, version, release )
+      source = substitute_version_info( source, version, release ) 
+
+      @log.debug "Handling source '#{source}'..."
+
       if ( source =~ %r{http://} )
         handle_remote_source( rpm_file, source )
       else
         handle_local_source( rpm_file, source )
       end
+
+      @log.debug "Source '#{source}' handled."
     end
 
     def handle_local_source(rpm_file, source)
@@ -143,21 +143,25 @@ module JBossCloud
 
     def substitute_version_info(str, version=nil, release=nil)
       s = str.dup
+
+      name = File.basename( @spec_file, ".*" )
+
       s.gsub!( /%\{version\}/, version ) if version
       s.gsub!( /%\{release\}/, release ) if release
+      s.gsub!( /%\{name\}/, name )      
       s
     end
 
     def build_source_dependencies( rpm_file, version=nil, release=nil)
       File.open( @spec_file).each_line do |line|
         line.gsub!( /#.*$/, '' )
-        if ( line =~ /Requires: (.*)/ )
+        if ( line =~ /Requires:(.*)/ )
           requirement = $1.strip
           handle_requirement( rpm_file, requirement )
-        elsif ( line =~ /Source[0-9]*: (.*)/ )
+        elsif ( line =~ /Source[0-9]*:(.*)/ )
           source = $1.strip
           handle_source( rpm_file, source, version, release  )
-        elsif ( line =~ /Patch[0-9]*: (.*)/ )
+        elsif ( line =~ /Patch[0-9]*:(.*)/ )
           patch = $1.strip
           handle_source( rpm_file, patch, version, release  )
         end

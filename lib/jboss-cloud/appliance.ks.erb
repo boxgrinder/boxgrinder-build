@@ -1,7 +1,3 @@
-#
-# THIS IS A GENERATED FILE.  DO NOT EDIT.
-#
-
 lang en_US.UTF-8
 keyboard us
 timezone US/Eastern
@@ -9,32 +5,35 @@ auth --useshadow --enablemd5
 selinux --disabled
 firewall --disabled
 bootloader --timeout=1 --append="acpi=force scsi_mod.scan=sync"
+firstboot --disabled
+
+<% if graphical %>
+xconfig --startxonboot
+services --enabled=NetworkManager --disabled=network,sshd
+<% else %>
 network --bootproto=dhcp --device=eth0 --onboot=on
+<% end %>
 
-# Root password is oddthesis
-rootpw --iscrypted $1$rJT7v$rovvIw9nHJQdLZBvZJNPa0
+rootpw <%= root_password %> 
+part / --size <%= disk_size %> --fstype <%= fstype %> --ondisk sda
 
-# 
-# Partitoin Information. Change this as necessary
-#
-part / --size <%= disk_size %> --fstype ext3 --ondisk sda
-
-#
-# Include the repositories
- 
 <% for local_repo in local_repos %>
 <%= local_repo %>
 <% end %>
-repo --cost=20 --name=thincrust   --baseurl=http://www.thincrust.net/repo/noarch/
+repo --cost=20 --name=thincrust --baseurl=http://www.thincrust.net/repo/noarch/
 <% for repo in repos %>
 <%= repo %>
 <% end %>
 
-#
-# Add all the packages after the base packages
-#
-#
+<% if graphical %>
+%packages --excludedocs
+<% else %>
 %packages --excludedocs --nobase
+<% end %>
+
+<% for package in packages %>
+  <%= package %>
+<% end %>
 
 %include base-pkgs.ks
 
@@ -44,18 +43,24 @@ repo --cost=20 --name=thincrust   --baseurl=http://www.thincrust.net/repo/noarch
 
 %end
 
-#
-# Add custom post scripts after the base post.
-# 
-%post
-    /sbin/chkconfig --level 345 ace on
-    mkdir /etc/sysconfig/ace
-    touch /etc/sysconfig/ace/appliancename
-    
-    <% for appliance_name in appliance_names %>
-      echo <%= appliance_name %> >> /etc/sysconfig/ace/appliancename
-    <% end %>
 
-    <%= post_script %>
+%post
+
+<% if graphical %>
+chkconfig --level 345 firstboot off 2>/dev/null
+<% else %>
+/sbin/chkconfig --level 345 ace on
+mkdir /etc/sysconfig/ace
+touch /etc/sysconfig/ace/appliancename
+
+<% for appliance_name in appliance_names %>
+  echo <%= appliance_name %> >> /etc/sysconfig/ace/appliancename
+<% end %>
+
+<%= post_script %>
+<% end %>
+
+
+
 %end
 

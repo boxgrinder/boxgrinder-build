@@ -18,7 +18,7 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-additional_libs = [ "amazon-ec2", "aws-s3", "net-ssh", "net-sftp" ]
+additional_libs = [ "amazon-ec2", "aws-s3", "net-ssh", "net-sftp", "highline", "htauth" ]
 
 additional_libs.each do |lib|
   $LOAD_PATH.unshift( "#{File.dirname( __FILE__ )}/../#{lib}/lib" )
@@ -75,7 +75,6 @@ module JBossCloud
     end
 
     def define_rules
-
       Validator.new( @config )
 
       Rake::Task[ 'validate:all' ].invoke
@@ -92,7 +91,7 @@ module JBossCloud
 
       Rake::Task[ "#{@config.dir.top}/#{@config.os_path}/SPECS/jboss-cloud-release.spec" ].invoke
 
-      [ "#{@config.dir.base}/specs/*.spec", "#{@config.dir.specs}/extras/*.spec", "#{@config.dir.top}/#{@config.os_path}/SPECS/*.spec" ].each do |spec_file_dir|
+      [ "#{@config.dir.base}/specs/*.spec", "#{@config.dir.specs}/*.spec", "#{@config.dir.specs}/extras/*.spec", "#{@config.dir.top}/#{@config.os_path}/SPECS/*.spec" ].each do |spec_file_dir|
         Dir[ spec_file_dir ].each do |spec_file|
           RPM.new( @config, spec_file )
         end

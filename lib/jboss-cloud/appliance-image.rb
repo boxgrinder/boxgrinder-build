@@ -61,7 +61,7 @@ module JBossCloud
 
       file @xml_file => [ @kickstart_file, "appliance:#{@appliance_config.name}:validate:dependencies", @tmp_dir ] do
         build_raw_image
-        cleanup_rpm_database
+        #cleanup_rpm_database
       end
     end
 

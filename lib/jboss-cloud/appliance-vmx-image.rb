@@ -173,7 +173,9 @@ module JBossCloud
     def create_base_vmware_raw_file
       @log.info "Copying VMware image file, this may take several minutes..."
 
-      FileUtils.cp( @base_raw_file, @base_vmware_raw_file ) if ( !File.exists?( @base_vmware_raw_file ) || File.new( @base_raw_file ).mtime > File.new( @base_vmware_raw_file ).mtime )
+      #FileUtils.cp( @base_raw_file, @base_vmware_raw_file ) if ( !File.exists?( @base_vmware_raw_file ) || File.new( @base_raw_file ).mtime > File.new( @base_vmware_raw_file ).mtime )
+
+      FileUtils.ln( @base_raw_file, @base_vmware_raw_file )
 
       @log.info "VMware image copied"
       @log.info "Installing VMware tools..."
