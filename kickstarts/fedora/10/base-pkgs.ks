@@ -8,7 +8,7 @@ jboss-cloud-release
 #for vmware guesting
 #dkms-open-vm-tools
 #vm2-support
-jboss-cloud-management
+#jboss-cloud-management
 
 # required for some gems...
 #ruby-devel
