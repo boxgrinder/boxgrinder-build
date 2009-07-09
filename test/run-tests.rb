@@ -28,6 +28,12 @@ $: << File.dirname("#{File.dirname( __FILE__ )}/../lib/jboss-cloud")
 
 Dir.chdir( File.dirname( __FILE__ ) )
 
+additional_libs = [ "amazon-ec2", "aws-s3", "net-ssh", "net-sftp", "highline", "htauth" ]
+
+additional_libs.each do |lib|
+  $LOAD_PATH.unshift( "../lib/#{lib}/lib" )
+end
+
 # tests to run
 require 'jboss-cloud/validator/appliance_validator_test'
 require 'jboss-cloud/validator/config-validator-test'

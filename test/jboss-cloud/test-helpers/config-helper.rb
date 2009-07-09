@@ -55,4 +55,17 @@ class ConfigHelper
     appliance_config
   end
 
+  def self.generate_appliance_config_gnome( os_version = "11" )
+    appliance_config = JBossCloud::ApplianceConfig.new("valid-appliance-gnome", (-1.size) == 8 ? "x86_64" : "i386", "fedora", os_version)
+
+    appliance_config.disk_size = 2
+    appliance_config.summary = "this is a summary"
+    appliance_config.network_name = "NAT"
+    appliance_config.vcpu = "1"
+    appliance_config.mem_size = "1024"
+    appliance_config.appliances = [ appliance_config.name ]
+
+    appliance_config
+  end
+
 end
