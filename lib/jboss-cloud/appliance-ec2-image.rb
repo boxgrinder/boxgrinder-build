@@ -79,7 +79,11 @@ module JBossCloud
     end
 
     def bundle_image
+      @log.info "Bundling AMI..."
+
       @exec_helper.execute( "ec2-bundle-image -i #{@appliance_ec2_image_file} --kernel #{AWS_DEFAULTS[:kernel_id][@appliance_config.arch]} --ramdisk #{AWS_DEFAULTS[:ramdisk_id][@appliance_config.arch]} -c #{@aws_support.aws_data['cert_file']} -k #{@aws_support.aws_data['key_file']} -u #{@aws_support.aws_data['account_number']} -r #{@config.build_arch} -d #{@bundle_dir}" )
+
+      @log.info "Bundling AMI finished."
     end
 
     def appliance_already_uploaded?
@@ -105,6 +109,8 @@ module JBossCloud
         return
       end
 
+      @log.info "Uploading #{@appliance_config.simple_name} AMI to bucket '#{@aws_support.aws_data['bucket_name']}'..."
+
       @exec_helper.execute( "ec2-upload-bundle -b #{@aws_support.bucket_key( @appliance_config.name )} -m #{@appliance_ec2_manifest_file} -a #{@aws_support.aws_data['access_key']} -s #{@aws_support.aws_data['secret_access_key']} --retry" )
     end
 
@@ -125,9 +131,11 @@ module JBossCloud
 
       @appliance_image_customizer.convert_to_ami
 
-      @log.info "Customizing #{@appliance_config.simple_name} appliance..."
+      @log.info "Installing Xen kernel and additional packages..."
 
-      @appliance_image_customizer.customize( @appliance_ec2_image_file, { :packages => { :rpm_remote => [ AWS_DEFAULTS[:kernel_rpm][@appliance_config.arch], "http://s3.amazonaws.com/ec2-downloads/ec2-ami-tools.noarch.rpm" ] } })
+      @appliance_image_customizer.customize( @appliance_ec2_image_file, { :packages => { :rpm => [ AWS_DEFAULTS[:kernel_rpm][@appliance_config.arch], "http://s3.amazonaws.com/ec2-downloads/ec2-ami-tools.noarch.rpm" ] } })
+
+      @log.info "Installed!"
     end
 
   end

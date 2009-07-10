@@ -46,14 +46,20 @@ module JBossCloud
       @guestfs.wait_ready
       @log.debug "Guestfs launched."
 
+      if @guestfs.list_partitions.size > 0
+        partition_to_mount = "/dev/sda1"
+      else
+        partition_to_mount = "/dev/sda"
+      end
+
       @log.debug "Mounting root partition..."
-      @guestfs.mount( "/dev/sda1", "/" )
+      @guestfs.mount( partition_to_mount, "/" )
       @log.debug "Root partition mounted."
 
       # TODO is this really needed?
-      @log.debug "Uploading '/etc/resolv.conf'..."
-      @guestfs.upload( "/etc/resolv.conf",  "/etc/resolv.conf" )
-      @log.debug "'/etc/resolv.conf' uploaded."
+      # @log.debug "Uploading '/etc/resolv.conf'..."
+      # @guestfs.upload( "/etc/resolv.conf",  "/etc/resolv.conf" )
+      # @log.debug "'/etc/resolv.conf' uploaded."
 
       @log.debug "Guestfs launched."
     end
