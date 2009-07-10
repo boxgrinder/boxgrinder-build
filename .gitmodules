@@ -16,6 +16,3 @@
 [submodule "lib/highline"]
 	path = lib/highline
 	url = git://github.com/elliottcable/highline.git
-[submodule "lib/builder"]
-	path = lib/builder
-	url = git://github.com/goldmann/builder.git
