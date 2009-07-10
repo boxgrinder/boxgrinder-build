@@ -28,7 +28,7 @@ module JBossCloud
   # here are global variables
   SUPPORTED_ARCHES = [ "i386", "x86_64" ]
   SUPPORTED_OSES = {
-          "fedora" => [ "11", "10", "rawhide" ]
+          "fedora" => [ "11", "rawhide" ]
   }
 
   STABLE_RELEASES = {
@@ -58,15 +58,7 @@ module JBossCloud
                           "updates" => {
                                   "mirrorlist" => "http://mirrors.fedoraproject.org/mirrorlist?repo=updates-released-f11&arch=#ARCH#"
                           }
-                  },
-                  "10" => {
-                          "base" => {
-                                  "mirrorlist" => "http://mirrors.fedoraproject.org/mirrorlist?repo=fedora-10&arch=#ARCH#"
-                          },
-                          "updates" => {
-                                  "mirrorlist" => "http://mirrors.fedoraproject.org/mirrorlist?repo=updates-released-f10&arch=#ARCH#"
-                          }
-                  },
+                  },         
                   "rawhide" => {
                           "base" => {
                                   "mirrorlist" => "http://mirrors.fedoraproject.org/mirrorlist?repo=rawhide&arch=#ARCH#"

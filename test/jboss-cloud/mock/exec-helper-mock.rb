@@ -18,8 +18,14 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require 'jboss-cloud/log'
+class ExecHelperMock
+  def initialize
+    @commands = []
+  end
 
-module JBossCloud
-  LOG = Log.new
+  def execute( command )
+    @commands.push command.to_s  
+  end
+
+  attr_reader :commands
 end

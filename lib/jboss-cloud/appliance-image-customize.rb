@@ -25,9 +25,12 @@ require 'jboss-cloud/helpers/guestfs-helper'
 module JBossCloud
   class ApplianceImageCustomize < Rake::TaskLib
 
-    def initialize( config, appliance_config )
+    def initialize( config, appliance_config, options = {}  )
       @config            = config
       @appliance_config  = appliance_config
+
+      @log          = options[:log]         || LOG
+      @exec_helper  = options[:exec_helper] || EXEC_HELPER
 
       @appliance_build_dir          = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
       @bundle_dir                   = "#{@appliance_build_dir}/ec2/bundle"
@@ -35,15 +38,10 @@ module JBossCloud
       @appliance_ec2_image_file     = "#{@appliance_build_dir}/#{@appliance_config.name}.ec2"
       @appliance_raw_image          = "#{@appliance_build_dir}/#{@appliance_config.name}-sda.raw"
 
-      @exec_helper                  = EXEC_HELPER
-      @log                          = LOG
-
       @mount_directory              = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/customize-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
     end
 
     def convert_to_ami
-      @log.info "Converting to AMI..."
-
       mount_dir = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/ec2-image-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
 
       `mkdir -p #{mount_dir}`
@@ -68,6 +66,7 @@ module JBossCloud
       umount_image( loop_device, @appliance_raw_image )
       @log.debug "\nSyncing finished"
 
+      # TODO rewrite this to use libguesfs
       `sudo mkdir -p #{mount_dir}/data`
 
       @log.debug "Creating required devices..."
@@ -107,6 +106,56 @@ module JBossCloud
       @log.debug "\nEC2 image prepared!"
     end
 
+    def validate_options( options )
+      options = {
+              :packages => {},
+              :repos => []
+      }.merge(options)
+
+      options[:packages][:yum]          = options[:packages][:yum]        || []
+      options[:packages][:yum_local]    = options[:packages][:yum_local]  || []
+      options[:packages][:rpm]          = options[:packages][:rpm]        || []
+
+      if ( options[:packages][:yum_local].size == 0 and options[:packages][:rpm].size == 0 and options[:packages][:yum].size == 0 and options[:repos].size == 0)
+        @log.debug "No additional local or remote packages or gems to install, skipping..."
+        return false
+      end
+
+      true
+    end
+
+    def customize( raw_file, options = {} )
+      # silent return, we don't have any packages to install
+      return unless validate_options( options )
+
+      raise ValidationError, "Raw file '#{raw_file}' doesn't exists, please specify valid raw file" if !File.exists?( raw_file )
+
+      guesfs_helper = GuestFSHelper.new( raw_file )
+
+      for repo in options[:repos]
+        @log.debug "Installing repo file '#{repo}'..."
+        guesfs_helper.guestfs.command( ["rpm", "-Uvh", repo] )
+        @log.debug "Installed!"
+      end
+
+      for yum_package in options[:packages][:yum]
+        @log.debug "Installing package #{yum_package}..."
+        guesfs_helper.guestfs.command( ["yum", "-y", "install", yum_package] )
+        @log.debug "Installed!"
+      end unless options[:packages][:yum].nil?
+
+      for package in options[:packages][:rpm]
+        @log.debug "Installing package #{package}..."
+        guesfs_helper.guestfs.command( ["rpm", "-Uvh", "--force", package] )
+        @log.debug "Installed!"
+      end unless options[:packages][:rpm].nil?
+
+      guesfs_helper.guestfs.close
+    end
+
+    protected
+
+    # TODO Remove this!
     def echo( file, content, append = false)
       `sudo chmod 777 #{file}`
       `sudo echo "#{content}" #{append ? ">>" : ">"} #{file}`
@@ -123,100 +172,12 @@ module JBossCloud
       loop_device
     end
 
-    def customize( raw_file, options = {} )
-
-      options = {
-              :packages => {},
-              :repos => [],
-              :gems => []
-      }.merge(options)
-
-      options[:packages][:yum]          = [] if options[:packages][:yum].nil?
-      options[:packages][:yum_local]    = [] if options[:packages][:yum_local].nil?
-      options[:packages][:rpm]          = [] if options[:packages][:rpm].nil?
-
-      if ( options[:gems].size == 0 and options[:packages][:yum_local].size == 0 and options[:packages][:rpm].size == 0 and options[:packages][:yum].size == 0 and options[:repos].size == 0)
-        @log.debug "No additional local or remote packages or gems to install, skipping..."
-        # silent return, we don't have any packages to install
-        return
-      end
-
-      raise ValidationError, "Raw file '#{raw_file}' doesn't exists, please specify valid raw file" if !File.exists?( raw_file )
-
-      #loop_device = get_loop_device
-
-      # TODO fix this!
-      #if (raw_file.eql?( @appliance_ec2_image_file ))
-      #  mount_image( loop_device, raw_file, 0 )
-      #else
-      #  mount_image( loop_device, raw_file )
-      #end
-
-      guesfs_helper = GuestFSHelper.new( raw_file )
-
-      #mount_env
-
-      for repo in options[:repos]
-        @log.debug "Installing repo file '#{repo}'..."
-        guesfs_helper.guestfs.command( ["rpm", "-Uvh", repo] )
-        @log.debug "Installed!"
-        #@exec_helper.execute( "sudo chroot #{@mount_directory} rpm -Uvh #{repo}" )
-      end
-
-      #install_packages( options[:packages] )
-      #install_gems( options[:gems] )
-
-
-      for yum_package in options[:packages][:yum]
-        @log.debug "Installing package #{yum_package}..."
-        guesfs_helper.guestfs.command( ["yum", "-y", "install", yum_package] )
-        @log.debug "Installed!"
-      end unless options[:packages][:yum].nil?
-
-      for package in options[:packages][:rpm]
-        @log.debug "Installing package #{package}..."
-        guesfs_helper.guestfs.command( ["rpm", "-Uvh", "--force", package] )
-        @log.debug "Installed!"
-      end unless options[:packages][:rpm].nil?
-
-      guesfs_helper.guestfs.close
-
-      #umount_env
-      #umount_image( loop_device, raw_file )
-    end
-
-    protected
-
     def mount_image( loop_device, raw_file, offset = 32256 )
       @log.debug "Mounting image #{File.basename( raw_file )}"
       FileUtils.mkdir_p( @mount_directory )
 
       `sudo losetup -o #{offset.to_s} #{loop_device} #{raw_file}`
       `sudo mount #{loop_device} -t ext3 #{@mount_directory}`
-    end
-
-    def mount_env( appliance_jbcs_dir = "tmp/jboss-cloud-support", appliance_rpms_dir = "tmp/jboss-cloud-support-rpms" )
-      `mkdir -p #{@mount_directory}/#{appliance_jbcs_dir}`
-      `mkdir -p #{@mount_directory}/#{appliance_rpms_dir}`
-
-      `sudo mount -t sysfs none #{@mount_directory}/sys/`
-      `sudo mount -o bind /dev/ #{@mount_directory}/dev/`
-      `sudo mount -t proc none #{@mount_directory}/proc/`
-      `sudo mount -o bind /etc/resolv.conf #{@mount_directory}/etc/resolv.conf`
-      `sudo mount -o bind #{@config.dir.base} #{@mount_directory}/#{appliance_jbcs_dir}`
-      `sudo mount -o bind #{@config.dir.top}/#{@appliance_config.os_path}/RPMS #{@mount_directory}/#{appliance_rpms_dir}`
-    end
-
-    def umount_env( appliance_jbcs_dir = "tmp/jboss-cloud-support", appliance_rpms_dir = "tmp/jboss-cloud-support-rpms" )
-      `sudo umount #{@mount_directory}/sys`
-      `sudo umount #{@mount_directory}/dev`
-      `sudo umount #{@mount_directory}/proc`
-      `sudo umount #{@mount_directory}/etc/resolv.conf`
-      `sudo umount #{@mount_directory}/#{appliance_jbcs_dir}`
-      `sudo umount #{@mount_directory}/#{appliance_rpms_dir}`
-
-      `rm -rf #{@mount_directory}/#{appliance_jbcs_dir}`
-      `rm -rf #{@mount_directory}/#{appliance_rpms_dir}`
     end
 
     def umount_image( loop_device, raw_file )
@@ -242,31 +203,6 @@ module JBossCloud
       `sudo chroot #{@mount_directory} ln -s /usr/share/jboss-cloud-management/config/config.yaml /etc/thin/config.yaml`
       `sudo chroot #{@mount_directory} chkconfig --add thin`
       `sudo chroot #{@mount_directory} chkconfig --level 345 thin on`
-    end
-
-    def install_packages( packages, appliance_jbcs_dir = "tmp/jboss-cloud-support", appliance_rpms_dir = "tmp/jboss-cloud-support-rpms" )
-      return if packages.size == 0
-
-      # import our GPG key
-      #@exec_helper.execute( "sudo chroot #{@mount_directory} rpm --import /#{appliance_jbcs_dir}/src/jboss-cloud-release/RPM-GPG-KEY-oddthesis" )
-
-      for local_package in packages[:yum_local]
-        @log.debug "Installing package #{File.basename( local_package )}..."
-        @exec_helper.execute( "sudo chroot #{@mount_directory} yum -y localinstall /#{appliance_rpms_dir}/#{local_package}" )
-        @log.debug "Installed!"
-      end unless packages[:yum_local].nil?
-
-      for yum_package in packages[:yum]
-        @log.debug "Installing package #{yum_package}..."
-        @exec_helper.execute( "sudo chroot #{@mount_directory} yum -y install #{yum_package}" )
-        @log.debug "Installed!"
-      end unless packages[:yum].nil?
-
-      for package in packages[:rpm]
-        @log.debug "Installing package #{package}..."
-        @exec_helper.execute( "sudo chroot #{@mount_directory} rpm -Uvh --force #{package}" )
-        @log.debug "Installed!"
-      end unless packages[:rpm].nil?
     end
   end
 end

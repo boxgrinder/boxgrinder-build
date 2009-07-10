@@ -24,21 +24,23 @@ require 'yaml'
 
 module JBossCloud
   class ApplianceValidator
-    def initialize( dir_appliances, appliance_def )
+    def initialize( dir_appliances, appliance_def, options = {} )
       @dir_appliances = dir_appliances
-      @log            = LOG
-      
+
+      @log          = options[:log]         || LOG
+      @exec_helper  = options[:exec_helper] || EXEC_HELPER
+
       #check if appliance_def is nil
       raise ApplianceValidationError, "Appliance definition file must be specified" if appliance_def.nil? or appliance_def.length == 0
-      
+
       @appliance_name = File.basename( appliance_def, '.appl' )
-      
+
       # check if file exists
       raise ApplianceValidationError, "Appliance definition file for '#{@appliance_name}' doesn't exists" unless File.exists?( appliance_def )
-      
+
       @appliance_def = appliance_def
     end
-    
+
     def validate
       @definition = YAML.load_file( @appliance_def )
       # check for summary
@@ -49,36 +51,36 @@ module JBossCloud
       # check appliance count
       raise ApplianceValidationError, "Invalid appliance count for appliance '#{@appliance_name}'" unless appliances.size >= 1
       # check if puppet configuration file exists
-      puppet_file = "#{File.dirname( @appliance_def )}/#{@appliance_name}.pp"      
+      puppet_file = "#{File.dirname( @appliance_def )}/#{@appliance_name}.pp"
       raise ApplianceValidationError, "Puppet configuration file '#{puppet_file}' doesn't exists for appliance '#{@appliance_name}'" unless File.exists?( puppet_file )
     end
-    
+
     protected
 
     def get_appliances( appliance_name )
       appliances = Array.new
       valid = true
-      
+
       appliance_def = "#{@dir_appliances}/#{appliance_name}/#{appliance_name}.appl"
-      
+
       unless  File.exists?( appliance_def )
         @log.info "Appliance configuration file for '#{appliance_name}' doesn't exists, please check your config files."
         return false
       end
-      
+
       appliances_read = YAML.load_file( appliance_def )['appliances']
-      
+
       appliances_read.each do |appl|
         appls, v = get_appliances( appl )
-        
+
         appliances += appls if v
         valid = false unless v
       end unless appliances_read.nil? or appliances_read.empty?
-      
+
       appliances.push( appliance_name )
-      
+
       [ appliances, valid ]
     end
-    
+
   end
 end

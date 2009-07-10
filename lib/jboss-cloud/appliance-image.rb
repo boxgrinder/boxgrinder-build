@@ -29,12 +29,12 @@ require 'jboss-cloud/helpers/guestfs-helper'
 module JBossCloud
   class ApplianceImage < Rake::TaskLib
 
-    def initialize( config, appliance_config )
+    def initialize( config, appliance_config, options = {} )
       @config                  = config
       @appliance_config        = appliance_config
 
-      @log          = LOG
-      @exec_helper  = EXEC_HELPER
+      @log          = options[:log]         || LOG
+      @exec_helper  = options[:exec_helper] || EXEC_HELPER
 
       @appliance_build_dir     = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
       @raw_disk                = "#{@appliance_build_dir}/#{@appliance_config.name}-sda.raw"
@@ -61,10 +61,9 @@ module JBossCloud
 
       file @xml_file => [ @kickstart_file, "appliance:#{@appliance_config.name}:validate:dependencies", @tmp_dir ] do
         build_raw_image
-        #cleanup_rpm_database
+        cleanup_rpm_database
       end
     end
-
 
     def build_raw_image
       @log.info "Building #{@appliance_config.simple_name} appliance..."
@@ -72,8 +71,8 @@ module JBossCloud
       @exec_helper.execute "sudo PYTHONUNBUFFERED=1 appliance-creator -d -v -t #{@tmp_dir} --cache=#{@config.dir_rpms_cache}/#{@appliance_config.main_path} --config #{@kickstart_file} -o #{@config.dir_build}/appliances/#{@appliance_config.main_path} --name #{@appliance_config.name} --vmem #{@appliance_config.mem_size} --vcpu #{@appliance_config.vcpu}"
 
       # fix permissions
-      `sudo chown oddthesis:oddthesis #{@raw_disk}`
-      `sudo chown oddthesis:oddthesis #{@xml_file}`
+      @exec_helper.execute "sudo chown oddthesis:oddthesis #{@raw_disk}"
+      @exec_helper.execute "sudo chown oddthesis:oddthesis #{@xml_file}"
 
       @log.info "Appliance #{@appliance_config.simple_name} was built successfully."
     end

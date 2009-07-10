@@ -24,14 +24,16 @@ require "test/unit"
 require 'jboss-cloud/test-helpers/config-helper'
 require 'jboss-cloud/validator/config-validator'
 
-class ConfigValidatorTest < Test::Unit::TestCase
-  def setup
-    @config = ConfigHelper.generate_config
-  end
+module JBossCloud
+  class ConfigValidatorTest < Test::Unit::TestCase
+    def setup
+      @config = ConfigHelper.generate_config
+    end
 
-  def test_validate_without_configuration_file_specified
-    assert_nothing_raised do
-      config_validator = JBossCloud::ConfigValidator.new( @config ).validate
+    def test_validate_without_configuration_file_specified
+      assert_nothing_raised do
+        config_validator = JBossCloud::ConfigValidator.new( @config ).validate
+      end
     end
   end
 end

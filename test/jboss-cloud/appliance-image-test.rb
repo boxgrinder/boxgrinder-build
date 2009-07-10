@@ -18,30 +18,27 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require "test/unit"
-require 'jboss-cloud/appliance-image-customize'
-require 'jboss-cloud/validator/errors'
-
+require 'test/unit'
+require 'jboss-cloud/appliance-image'
 
 module JBossCloud
-  class ApplianceImageCustomizeTest < Test::Unit::TestCase
+
+  class ApplianceImageTest < Test::Unit::TestCase
     def setup
       @options = { :log => LogMock.new, :exec_helper => ExecHelperMock.new }
-      @appliance_customize = JBossCloud::ApplianceImageCustomize.new( ConfigHelper.generate_config, ConfigHelper.generate_appliance_config, @options )
+      @appliance_image = ApplianceImage.new( ConfigHelper.generate_config, ConfigHelper.generate_appliance_config, @options )
     end
 
-    def test_empty_package_arrays
-      assert_nothing_raised do
-        @appliance_customize.customize( "/no/raw/file.raw" )
-      end
-    end
+    def test_build_valid_appliance
+      @appliance_image.build_raw_image
 
-    def test_raw_file_not_valid
-      exception = assert_raise JBossCloud::ValidationError do
-        @appliance_customize.customize( "/no/raw/file.raw", { :packages =>  { :yum => [ "i386/dkms-open-vm-tools-2009.03.18-154848.i386.rpm", "noarch/vm2-support-1.0.0.Beta1-1.noarch.rpm" ] } } )
-      end
-      assert_match /Raw file '\/no\/raw\/file.raw' doesn't exists, please specify valid raw file/, exception.message
-    end
+      assert_equal @options[:exec_helper].commands[0], "sudo PYTHONUNBUFFERED=1 appliance-creator -d -v -t /tmp/dir_root/build/tmp --cache=rpms_cache/x86_64/fedora/11 --config build/appliances/x86_64/fedora/11/valid-appliance/valid-appliance.ks -o build/appliances/x86_64/fedora/11 --name valid-appliance --vmem 1024 --vcpu 1"
 
+      assert_equal @options[:log].commands[0][:symbol], :info
+      assert_equal @options[:log].commands[0][:args][0], "Building valid appliance..."
+
+      assert_equal @options[:log].commands[1][:symbol], :info
+      assert_equal @options[:log].commands[1][:args][0], "Appliance valid was built successfully."
+    end
   end
 end

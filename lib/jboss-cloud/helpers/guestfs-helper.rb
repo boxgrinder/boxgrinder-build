@@ -57,9 +57,9 @@ module JBossCloud
       @log.debug "Root partition mounted."
 
       # TODO is this really needed?
-      # @log.debug "Uploading '/etc/resolv.conf'..."
-      # @guestfs.upload( "/etc/resolv.conf",  "/etc/resolv.conf" )
-      # @log.debug "'/etc/resolv.conf' uploaded."
+      @log.debug "Uploading '/etc/resolv.conf'..."
+      @guestfs.upload( "/etc/resolv.conf",  "/etc/resolv.conf" )
+      @log.debug "'/etc/resolv.conf' uploaded."
 
       @log.debug "Guestfs launched."
     end

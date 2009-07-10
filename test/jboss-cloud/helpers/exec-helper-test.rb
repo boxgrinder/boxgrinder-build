@@ -1,8 +1,6 @@
 require 'test/unit'
 require 'jboss-cloud/helpers/exec-helper'
 
-require '../test/jboss-cloud/test-defaults'
-
 module JBossCloud
 
   class ExecHelper < Test::Unit::TestCase

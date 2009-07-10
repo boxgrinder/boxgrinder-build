@@ -1,5 +1,3 @@
-#!/usr/bin/env ruby 
-
 # JBoss, Home of Professional Open Source
 # Copyright 2009, Red Hat Middleware LLC, and individual contributors
 # by the @authors tag. See the copyright.txt in the distribution for a
@@ -20,37 +18,14 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require 'rubygems'
-require 'test/unit/ui/console/testrunner'
-require 'test/unit'
+class LogMock
+  def initialize
+    @commands = []
+  end
 
-$: << File.dirname("#{File.dirname( __FILE__ )}/../lib/jboss-cloud")
+  attr_reader :commands
 
-Dir.chdir( File.dirname( __FILE__ ) )
-
-additional_libs = [ "amazon-ec2", "aws-s3", "net-ssh", "net-sftp", "highline", "htauth" ]
-
-additional_libs.each do |lib|
-  $LOAD_PATH.unshift( "../lib/#{lib}/lib" )
+  def method_missing(symbol, *args)
+    @commands += [{ :symbol =>  symbol, :args => args}]
+  end
 end
-
-`chmod 600 src/aws/*`
-
-require 'jboss-cloud/mock/log-mock'
-require 'jboss-cloud/mock/exec-helper-mock'
-
-require 'jboss-cloud/test-helpers/config-helper'
-
-# tests to run
-require 'jboss-cloud/validator/appliance-validator-test'
-require 'jboss-cloud/validator/config-validator-test'
-
-require 'jboss-cloud/config-test'
-require 'jboss-cloud/appliance-config-test'
-
-require 'jboss-cloud/appliance-vmware-image-test'
-require 'jboss-cloud/appliance-kickstart-test'
-require 'jboss-cloud/appliance-image-customize-test'
-require 'jboss-cloud/appliance-image-test'
-
-require 'jboss-cloud/aws/aws-support-test'

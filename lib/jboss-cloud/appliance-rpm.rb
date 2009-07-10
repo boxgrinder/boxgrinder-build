@@ -56,7 +56,7 @@ module JBossCloud
 
       #file rpm_file => [ 'rpm:vm2-support' ]
       file rpm_file => [ 'rpm:jboss-cloud-release' ]
-      #file rpm_file => [ 'rpm:jboss-cloud-management' ]
+      file rpm_file => [ 'rpm:jboss-cloud-gems' ]
 
     end
 
