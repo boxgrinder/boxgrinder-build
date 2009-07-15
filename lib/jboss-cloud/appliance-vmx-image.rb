@@ -173,9 +173,9 @@ module JBossCloud
     def create_base_vmware_raw_file
       @log.info "Copying VMware image file, this may take several minutes..."
 
-      #FileUtils.cp( @base_raw_file, @base_vmware_raw_file ) if ( !File.exists?( @base_vmware_raw_file ) || File.new( @base_raw_file ).mtime > File.new( @base_vmware_raw_file ).mtime )
+      FileUtils.cp( @base_raw_file, @base_vmware_raw_file ) if ( !File.exists?( @base_vmware_raw_file ) || File.new( @base_raw_file ).mtime > File.new( @base_vmware_raw_file ).mtime )
 
-      FileUtils.ln( @base_raw_file, @base_vmware_raw_file )
+      #FileUtils.ln( @base_raw_file, @base_vmware_raw_file )
 
       @log.info "VMware image copied"
       @log.info "Installing VMware tools..."
@@ -186,7 +186,7 @@ module JBossCloud
         rpmfusion_repo_rpm = [ "http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-stable.noarch.rpm", "http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-stable.noarch.rpm" ]
       end
 
-      #@appliance_image_customizer.customize( @base_vmware_raw_file, { :packages => { :yum => [ "open-vm-tools" ] }, :repos => rpmfusion_repo_rpm } )
+      @appliance_image_customizer.customize( @base_vmware_raw_file, { :packages => { :yum => [ "open-vm-tools" ] }, :repos => rpmfusion_repo_rpm } )
       #:rpm => [ "noarch/vm2-support-1.0.0.Beta1-1.noarch.rpm" ]
 
       @log.info "VMware tools installed."

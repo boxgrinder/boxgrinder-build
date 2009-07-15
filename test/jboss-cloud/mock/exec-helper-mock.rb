@@ -19,12 +19,15 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 class ExecHelperMock
-  def initialize
+  def initialize( return_value = nil )
     @commands = []
+    @return_value = return_value
   end
 
   def execute( command )
-    @commands.push command.to_s  
+    @commands.push command.to_s
+
+    @return_value
   end
 
   attr_reader :commands

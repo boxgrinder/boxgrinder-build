@@ -1,16 +1,7 @@
-#dkms to support rebuilding of modules, this isn't awesome
-#gcc
-#make
-#dkms
-
 jboss-cloud-release
-
-#for vmware guesting
-#dkms-open-vm-tools
-#vm2-support
 jboss-cloud-gems
 
-# required for some gems...
+# TODO: remove this if possible
 ruby-devel
 gcc-c++
 make
@@ -21,7 +12,6 @@ wget
 #needed to disable selinux
 lokkit
 
-#%packages --excludedocs --nobase
 bash
 kernel
 grub2
@@ -48,6 +38,8 @@ iputils
 -setserial
 -ed
 
+# no firstboot
+-system-config-keyboard
 -firstboot
 
 # Remove the authconfig pieces
@@ -78,5 +70,3 @@ iputils
 -fedora-logos
 generic-logos
 -fedora-release-notes
-#%end
-

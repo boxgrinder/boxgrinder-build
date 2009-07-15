@@ -56,7 +56,7 @@ module JBossCloud
         definition['graphical'] = true
 
         # default X package groups
-        definition['packages'] = [ "@base-x", "@base", "@core", "@fonts", "@input-methods", "@admin-tools", "@dial-up", "@hardware-support", "@printing", "firefox" ]
+        definition['packages'] = [ "@base-x", "@base", "@core", "@fonts", "@input-methods", "@admin-tools", "@dial-up", "@hardware-support", "@printing" ]
 
         #selected desktop environment
         definition['packages'] += [ "@#{appliance_definition['desktop']}-desktop" ]

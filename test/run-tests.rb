@@ -43,6 +43,7 @@ require 'jboss-cloud/test-helpers/config-helper'
 
 # tests to run
 require 'jboss-cloud/validator/appliance-validator-test'
+require 'jboss-cloud/validator/appliance-dependency-validator-test'
 require 'jboss-cloud/validator/config-validator-test'
 
 require 'jboss-cloud/config-test'

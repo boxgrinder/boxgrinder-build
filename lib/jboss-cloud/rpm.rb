@@ -119,8 +119,8 @@ module JBossCloud
       # else
 
       file source_file do
-        FileUtils.cp( "#{@config.dir_src}/#{source}", "#{source_file}" ) if File.exists?( "#{@config.dir.src}/#{source_basename}" )
-        FileUtils.cp( "#{@config.dir.base}/src/#{source}", "#{source_file}" ) if File.exists?( "#{@config.dir.base}/src/#{source_basename}" )
+        FileUtils.cp( "#{@config.dir.src}/#{source}", "#{source_file}" ) if File.exists?( "#{@config.dir.src}/#{source}" )
+        FileUtils.cp( "#{@config.dir.base}/src/#{source}", "#{source_file}" ) if File.exists?( "#{@config.dir.base}/src/#{source}" )
       end
     end
 
@@ -135,7 +135,7 @@ module JBossCloud
       file source_file => [ 'rpm:topdir' ] do
         if ( ! File.exist?( source_cache_file ) )
           FileUtils.mkdir_p( @config.dir_src_cache )
-          @exec_helper.execute( "wget #{source} -O #{source_cache_file} --progress=bar:mega" )
+          @exec_helper.execute( "wget #{source} -O #{source_cache_file}" )
         end
         FileUtils.cp( source_cache_file, source_file )
       end

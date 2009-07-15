@@ -91,7 +91,7 @@ module JBossCloud
 
       Rake::Task[ "#{@config.dir.top}/#{@config.os_path}/SPECS/jboss-cloud-release.spec" ].invoke
 
-      [ "#{@config.dir.base}/specs/*.spec", "#{@config.dir.specs}/*.spec", "#{@config.dir.specs}/extras/*.spec", "#{@config.dir.top}/#{@config.os_path}/SPECS/*.spec" ].each do |spec_file_dir|
+      [ "#{@config.dir.base}/specs/*.spec", "#{@config.dir.specs}/*.spec", "#{@config.dir.specs}/*/*.spec", "#{@config.dir.top}/#{@config.os_path}/SPECS/*.spec" ].each do |spec_file_dir|
         Dir[ spec_file_dir ].each do |spec_file|
           RPM.new( @config, spec_file )
         end

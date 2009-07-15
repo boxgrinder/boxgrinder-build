@@ -22,7 +22,7 @@ require 'yaml'
 
 module JBossCloud
   class Repo
-    def initialize(name, baseurl = nil, mirrorlist = nil)
+    def initialize( name, baseurl = nil, mirrorlist = nil )
       @name         = name
       @baseurl      = baseurl
       @mirrorlist   = mirrorlist
@@ -34,12 +34,12 @@ module JBossCloud
   end
 
   class ApplianceDependencyValidator
-    def initialize( config, appliance_config )
+    def initialize( config, appliance_config, options = {}  )
       @config             = config
       @appliance_config   = appliance_config
 
-      @log          = LOG
-      @exec_helper  = EXEC_HELPER
+      @log                = options[:log]         || LOG
+      @exec_helper        = options[:exec_helper] || EXEC_HELPER
 
       appliance_build_dir     = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
       @kickstart_file         = "#{appliance_build_dir}/#{@appliance_config.name}.ks"
@@ -89,22 +89,24 @@ module JBossCloud
       else
         raise "Package#{invalid_names.size > 1 ? "s" : ""} #{invalid_names.join(', ')} for #{@appliance_config.simple_name} appliance not found in repositories. Please check package name in appliance definition files (#{@appliance_defs.join(', ')})"
       end
-
     end
 
     def invalid_names( repo_list, package_list )
       @log.info "Quering package database..."
 
-      repoquery_output = @exec_helper.execute( "sudo repoquery --disablerepo=* --enablerepo=#{repo_list} -c #{@yum_config_file} list available #{package_list.join( ' ' )} --nevra --archlist=#{@appliance_config.arch},noarch" )
+      repoquery_output = @exec_helper.execute( "sudo repoquery --quiet --disablerepo=* --enablerepo=#{repo_list} -c #{@yum_config_file} list available #{package_list.join( ' ' )} --nevra --archlist=#{@appliance_config.arch},noarch" )
       invalid_names    = []
 
       for name in package_list
         found = false
 
         repoquery_output.each do |line|
-          name_from_output = line.strip.match( /^([\S]+)-\d+:/ )[1]
+          line = line.strip
 
-          if name.match( /^#{name_from_output.gsub(/[\+]/, '\\+')}/ )
+          package = line.match( /^([\S]+)-\d+:/ )
+          package = package.nil? ? line : package[1]
+
+          if package.size > 0 and name.match( /^#{package.gsub(/[\+]/, '\\+')}/ )
             found = true
           end
         end

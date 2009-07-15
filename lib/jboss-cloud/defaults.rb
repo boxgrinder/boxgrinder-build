@@ -46,7 +46,7 @@ module JBossCloud
           "arch" => (-1.size) == 8 ? "x86_64" : "i386"
   }
 
-  SUPPORTED_DESKTOP_TYPES = [ "gnome", "kde", "xfce" ]
+  SUPPORTED_DESKTOP_TYPES = [ "gnome" ]
 
   # you can use #ARCH# variable to specify build arch
   REPOS = {
