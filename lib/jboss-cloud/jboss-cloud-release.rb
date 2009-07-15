@@ -30,7 +30,7 @@ module JBossCloud
       @file_name                    = "jboss-cloud-release"
       @file_name_with_extension     = "#{@file_name}.tar.gz"
       @release_source               = "#{@config.dir.top}/#{@config.os_path}/SOURCES/#{@file_name_with_extension}"
-      @jboss_cloud_spec_base_file   = "#{@config.dir.base}/specs/jboss-cloud-release.spec"
+      @jboss_cloud_spec_base_file   = "#{@config.dir.base}/specs/gsub/jboss-cloud-release.spec"
       @jboss_cloud_spec_file        = "#{@config.dir.top}/#{@config.os_path}/SPECS/jboss-cloud-release.spec"
 
       define_tasks
