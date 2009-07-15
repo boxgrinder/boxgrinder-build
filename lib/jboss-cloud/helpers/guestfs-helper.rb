@@ -36,6 +36,9 @@ module JBossCloud
       @log.debug "Preparing guestfs..."
       @guestfs = Guestfs::create
 
+      # see: https://bugzilla.redhat.com/show_bug.cgi?id=502058
+      @guestfs.set_append( "noapic" )
+
       @log.debug "Adding drive '#{@raw_disk}'..."
       @guestfs.add_drive( @raw_disk )
       @log.debug "Drive added."
