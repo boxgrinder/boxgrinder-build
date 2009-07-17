@@ -136,7 +136,7 @@ module JBossCloud
         @log.debug "Installing repo file '#{repo}'..."
         guesfs_helper.guestfs.command( ["rpm", "-Uvh", repo] )
         @log.debug "Installed!"
-      end
+      end unless options[:repos].nil?
 
       for yum_package in options[:packages][:yum]
         @log.debug "Installing package #{yum_package}..."
