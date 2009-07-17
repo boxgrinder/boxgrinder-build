@@ -43,7 +43,7 @@ module JBossCloud
       @stdout_log         = Logger.new(STDOUT)
       @stdout_log.level   = treshold || Logger::INFO
 
-      @file_log           = Logger.new('jboss-cloud.log') # , 10, 1024000
+      @file_log           = Logger.new('jboss-appliance.log') # , 10, 1024000
       @file_log.level     = Logger::DEBUG
     end
 
