@@ -27,12 +27,13 @@ module JBossCloud
     def setup
       @options = { :log => LogMock.new, :exec_helper => ExecHelperMock.new }
       @appliance_image = ApplianceImage.new( ConfigHelper.generate_config, ConfigHelper.generate_appliance_config, @options )
+      @current_arch = (-1.size) == 8 ? "x86_64" : "i386"
     end
 
     def test_build_valid_appliance
       @appliance_image.build_raw_image
 
-      assert_equal @options[:exec_helper].commands[0], "sudo PYTHONUNBUFFERED=1 appliance-creator -d -v -t /tmp/dir_root/build/tmp --cache=rpms_cache/x86_64/fedora/11 --config build/appliances/x86_64/fedora/11/valid-appliance/valid-appliance.ks -o build/appliances/x86_64/fedora/11 --name valid-appliance --vmem 1024 --vcpu 1"
+      assert_equal @options[:exec_helper].commands[0], "sudo PYTHONUNBUFFERED=1 appliance-creator -d -v -t /tmp/dir_root/build/tmp --cache=rpms_cache/#{@current_arch}/#{APPLIANCE_DEFAULTS['os_name']}/#{APPLIANCE_DEFAULTS['os_version']} --config build/appliances/#{@current_arch}/#{APPLIANCE_DEFAULTS['os_name']}/#{APPLIANCE_DEFAULTS['os_version']}/valid-appliance/valid-appliance.ks -o build/appliances/#{@current_arch}/#{APPLIANCE_DEFAULTS['os_name']}/#{APPLIANCE_DEFAULTS['os_version']} --name valid-appliance --vmem 1024 --vcpu 1"
 
       assert_equal @options[:log].commands[0][:symbol], :info
       assert_equal @options[:log].commands[0][:args][0], "Building valid appliance..."
