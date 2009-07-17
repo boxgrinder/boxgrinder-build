@@ -94,7 +94,13 @@ module JBossCloud
     def invalid_names( repo_list, package_list )
       @log.info "Quering package database..."
 
-      repoquery_output = @exec_helper.execute( "sudo repoquery --quiet --disablerepo=* --enablerepo=#{repo_list} -c #{@yum_config_file} list available #{package_list.join( ' ' )} --nevra --archlist=#{@appliance_config.arch},noarch" )
+      unless @appliance_config.is64bit?
+        arches = "i386,i486,i586,i686"
+      else
+        arches = "x86_64"
+      end
+
+      repoquery_output = @exec_helper.execute( "sudo repoquery --quiet --disablerepo=* --enablerepo=#{repo_list} -c #{@yum_config_file} list available #{package_list.join( ' ' )} --nevra --archlist=#{arches},noarch" )
       invalid_names    = []
 
       for name in package_list

@@ -84,7 +84,10 @@ module JBossCloud
 
       # TODO this is shitty, I know... https://bugzilla.redhat.com/show_bug.cgi?id=507188
       guesfs_helper.guestfs.sh( "rm /var/lib/rpm/__db.*" )
+
+      @log.debug "Rebuilding RPM database..."
       guesfs_helper.guestfs.command( ["rpm", "--rebuilddb"] )
+      @log.debug "Rebuilding RPM database finished."
 
       guesfs_helper.guestfs.close
 
