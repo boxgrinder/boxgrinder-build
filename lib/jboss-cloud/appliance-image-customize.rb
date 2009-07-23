@@ -103,7 +103,7 @@ module JBossCloud
       `sudo umount #{mount_dir}`
       `rm -rf #{mount_dir}`
 
-      @log.debug "\nEC2 image prepared!"
+      @log.debug "EC2 image prepared!"
     end
 
     def validate_options( options )
@@ -139,13 +139,13 @@ module JBossCloud
       end unless options[:repos].nil?
 
       for yum_package in options[:packages][:yum]
-        @log.debug "Installing package #{yum_package}..."
+        @log.debug "Installing package '#{yum_package}'..."
         guesfs_helper.guestfs.command( ["yum", "-y", "install", yum_package] )
         @log.debug "Installed!"
       end unless options[:packages][:yum].nil?
 
       for package in options[:packages][:rpm]
-        @log.debug "Installing package #{package}..."
+        @log.debug "Installing package '#{package}'..."
         guesfs_helper.guestfs.command( ["rpm", "-Uvh", "--force", package] )
         @log.debug "Installed!"
       end unless options[:packages][:rpm].nil?
