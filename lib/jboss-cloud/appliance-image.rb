@@ -89,6 +89,12 @@ module JBossCloud
       guesfs_helper.guestfs.command( ["rpm", "--rebuilddb"] )
       @log.debug "Rebuilding RPM database finished."
 
+      # For management-appliance we need libguestf from updates-testing repo
+      # TODO: remove this after libguestfs is pushed to stable
+      @log.debug "Updating libguestfs..."
+      guesfs_helper.guestfs.sh( "yum -y update ruby-libguestfs --enablerepo=updates-testing" ) if @appliance_config.name.eql?( "meta-appliance" )
+      @log.debug "Libguestfs updated"
+
       guesfs_helper.guestfs.close
 
       @log.info "RPM database in #{@appliance_config.simple_name} appliance cleaned."
