@@ -186,7 +186,13 @@ module JBossCloud
         rpmfusion_repo_rpm = [ "http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-stable.noarch.rpm", "http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-stable.noarch.rpm" ]
       end
 
-      @appliance_image_customizer.customize( @base_vmware_raw_file, { :packages => { :yum => [ "open-vm-tools" ] }, :repos => rpmfusion_repo_rpm } )
+      if @appliance_config.is64bit?
+        open_vm_tools = "open-vm-tools"
+      else
+        open_vm_tools = "open-vm-tools.i586"
+      end
+
+      @appliance_image_customizer.customize( @base_vmware_raw_file, { :packages => { :yum => [ open_vm_tools ] }, :repos => rpmfusion_repo_rpm } )
       #:rpm => [ "noarch/vm2-support-1.0.0.Beta1-1.noarch.rpm" ]
 
       @log.info "VMware tools installed."

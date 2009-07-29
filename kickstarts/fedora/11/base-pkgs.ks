@@ -14,7 +14,7 @@ lokkit
 
 bash
 kernel
-grub2
+grub
 e2fsprogs
 passwd
 policycoreutils

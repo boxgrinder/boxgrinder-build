@@ -18,45 +18,17 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require 'rake/tasklib'
+require 'jboss-cloud/rpm'
 
 module JBossCloud
-  class Repodata < Rake::TaskLib
-
-    def initialize( config )
-      @config = config
-      @log    = LOG
-
-      @arches = SUPPORTED_ARCHES + [ "noarch" ]
-      @oses   = SUPPORTED_OSES
-
-      @exec_helper = EXEC_HELPER
-
-      define_tasks
+  class RPMTest < Test::Unit::TestCase
+    def setup
+      @options = { :log => LogMock.new, :exec_helper => ExecHelperMock.new }
+      @rpm = RPM.new( ConfigHelper.generate_config, "src/specs/open-vm-tools.spec", @options)
     end
 
-    def define_tasks
-      desc "Force a rebuild of the repository data"
-      task "rpm:repodata:force" => [ 'rpm:topdir' ] do
-        createrepo
-      end
-    end
-
-    def createrepo
-      @log.debug "Refreshing repodata..."
-
-      for os in @oses.keys
-        for version in @oses[os]
-          for arch in @arches
-            @exec_helper.execute( "createrepo --update #{@config.dir.top}/#{os}/#{version}/RPMS/#{arch}" )
-          end
-
-          # TODO: remove this after open-vm-tools will be fixed in rpmfusion
-          @exec_helper.execute( "createrepo --update #{@config.dir.top}/#{os}/#{version}/RPMS/i586" ) if File.exists?( "#{@config.dir.top}/#{os}/#{version}/RPMS/i586" )
-        end
-      end
-
-      @log.debug "Refreshing repodata finished."
+    def test_substitute_data
+      assert_equal "http://downloads.sourceforge.net/open-vm-tools/open-vm-tools-2009.07.22-179896.tar.gz", @rpm.substitute_defined_data( "http://downloads.sourceforge.net/open-vm-tools/open-vm-tools-%{builddate}-%{buildver}.tar.gz" )
     end
   end
 end

@@ -46,6 +46,7 @@ require 'jboss-cloud/validator/appliance-validator-test'
 require 'jboss-cloud/validator/appliance-dependency-validator-test'
 require 'jboss-cloud/validator/config-validator-test'
 
+require 'jboss-cloud/rpm-test'
 require 'jboss-cloud/config-test'
 require 'jboss-cloud/appliance-config-test'
 

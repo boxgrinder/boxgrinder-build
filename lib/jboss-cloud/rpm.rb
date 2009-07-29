@@ -19,6 +19,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'rake/tasklib'
+require 'jboss-cloud/rpm-gpg-sign'
 
 module JBossCloud
   class RPM < Rake::TaskLib
@@ -31,12 +32,12 @@ module JBossCloud
       @provides_rpm_path ||= {}
     end
 
-    def initialize( config, spec_file )
+    def initialize( config, spec_file, options = {}  )
       @config     = config
       @spec_file  = spec_file
 
-      @log          = LOG
-      @exec_helper  = EXEC_HELPER
+      @log          = options[:log]         || LOG
+      @exec_helper  = options[:exec_helper] || EXEC_HELPER
 
       @simple_name = File.basename( @spec_file, ".spec" )
 
@@ -60,8 +61,6 @@ module JBossCloud
 
       RPMGPGSign.new( @config, @spec_file, @rpm_file )
 
-      build_source_dependencies( @rpm_file, @rpm_version, @rpm_release )
-
       define_tasks
     end
 
@@ -70,6 +69,7 @@ module JBossCloud
       task "rpm:#{@simple_name}" => [ @rpm_file ]
 
       file @rpm_file => [ 'rpm:topdir', @spec_file ] do
+        build_source_dependencies( @rpm_file, @rpm_version, @rpm_release )
         build_rpm
       end
 
@@ -79,8 +79,15 @@ module JBossCloud
     def build_rpm
       @log.info "Building package '#{@rpm_file_basename}'..."
 
+      # TODO: remove this after open-vm-tools will be fixed in rpmfusion
+      if (@simple_name.eql?( "open-vm-tools" ) or @simple_name.eql?( "open-vm-tools-kmod" )) and @rpm_arch.eql?( "i386" )
+        arch = "i586"
+      else
+        arch = @rpm_arch
+      end
+
       Dir.chdir( File.dirname( @spec_file ) ) do
-        @exec_helper.execute( "rpmbuild --define '_topdir #{@config.dir_root}/#{@config.dir.top}/#{@config.os_path}' --target #{@rpm_arch} -ba #{@simple_name}.spec" )
+        @exec_helper.execute( "rpmbuild --define '_topdir #{@config.dir_root}/#{@config.dir.top}/#{@config.os_path}' --target #{arch} -ba #{@simple_name}.spec" )
       end
 
       @log.info "Package '#{@rpm_file_basename}' was built successfully."
@@ -94,8 +101,30 @@ module JBossCloud
       end
     end
 
+    def substitute_defined_data(str, version=nil, release=nil)
+      substitutes = {}
+
+      File.open( @spec_file).each_line do |line|
+        match = line.match(/^%define (.*) (.*)$/)
+        substitutes[match[1].strip] = match[2].strip  if match
+      end
+
+      s = str.dup
+
+      for key in substitutes.keys
+        s.gsub!( /%\{#{key}\}/, substitutes[key] )
+      end
+
+      name = File.basename( @spec_file, ".*" )
+
+      s.gsub!( /%\{version\}/, version ) if version
+      s.gsub!( /%\{release\}/, release ) if release
+      s.gsub!( /%\{name\}/, name )
+      s
+    end
+
     def handle_source(rpm_file, source, version, release)
-      source = substitute_version_info( source, version, release ) 
+      source = substitute_defined_data( source, version, release )
 
       @log.debug "Handling source '#{source}'..."
 
@@ -118,10 +147,10 @@ module JBossCloud
       #  nothing
       # else
 
-      file source_file do
-        FileUtils.cp( "#{@config.dir.src}/#{source}", "#{source_file}" ) if File.exists?( "#{@config.dir.src}/#{source}" )
-        FileUtils.cp( "#{@config.dir.base}/src/#{source}", "#{source_file}" ) if File.exists?( "#{@config.dir.base}/src/#{source}" )
-      end
+      FileUtils.cp( "#{@config.dir.src}/#{source}", "#{source_file}" ) if File.exists?( "#{@config.dir.src}/#{source}" )
+      FileUtils.cp( "#{@config.dir.base}/src/#{source}", "#{source_file}" ) if File.exists?( "#{@config.dir.base}/src/#{source}" )
+
+      raise "Source '#{source}' not handled!" unless File.exists?( source_file )
     end
 
     def handle_remote_source(rpm_file, source)
@@ -132,24 +161,14 @@ module JBossCloud
 
       file rpm_file => [ source_file ]
 
-      file source_file => [ 'rpm:topdir' ] do
-        if ( ! File.exist?( source_cache_file ) )
-          FileUtils.mkdir_p( @config.dir_src_cache )
-          @exec_helper.execute( "wget #{source} -O #{source_cache_file}" )
-        end
-        FileUtils.cp( source_cache_file, source_file )
+      if ( ! File.exist?( source_cache_file ) )
+        FileUtils.mkdir_p( @config.dir_src_cache )
+        @exec_helper.execute( "wget #{source} -O #{source_cache_file}" )
       end
-    end
 
-    def substitute_version_info(str, version=nil, release=nil)
-      s = str.dup
+      FileUtils.cp( source_cache_file, source_file )
 
-      name = File.basename( @spec_file, ".*" )
-
-      s.gsub!( /%\{version\}/, version ) if version
-      s.gsub!( /%\{release\}/, release ) if release
-      s.gsub!( /%\{name\}/, name )      
-      s
+      raise "Source '#{source}' not handled!" unless File.exists?( source_file )
     end
 
     def build_source_dependencies( rpm_file, version=nil, release=nil)
