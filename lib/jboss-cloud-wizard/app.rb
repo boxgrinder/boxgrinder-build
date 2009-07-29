@@ -32,8 +32,8 @@ module JBossCloudWizard
 
       @options                  = OpenStruct.new
       @options.verbose          = false
-      @options.name             = config[:name]           || "JBoss-Cloud Support"
-      @options.version          = config[:version]        || "1.0.0.Beta3"
+      @options.name             = config[:name]           || "JBoss Appliance Support"
+      @options.version          = config[:version]        || "1.0.0.Beta6"
       @options.release          = config[:release]        || "1"
       @options.dir_appliances   = config[:dir_appliances] || "appliances"
 

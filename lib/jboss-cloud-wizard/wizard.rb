@@ -32,7 +32,7 @@ require 'fileutils'
 module JBossCloudWizard
   class Wizard
 
-    AVAILABLE_OUTPUT_FORMATS = ["RAW",  "VMware Enterprise (ESX/ESXi)", "VMware Personal (Player, Workstation, Server)", "Amazon EC2"]
+    AVAILABLE_OUTPUT_FORMATS = ["RAW",  "VMware Enterprise (ESX/ESXi, vSphere)", "VMware Personal (Player, Workstation, Server, Fusion)", "Amazon EC2"]
     AVAILABLE_ARCHES = [ "i386", "x86_64" ]
 
     def initialize(options)
