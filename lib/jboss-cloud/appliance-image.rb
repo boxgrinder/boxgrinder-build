@@ -97,6 +97,15 @@ module JBossCloud
         @log.debug "Libguestfs and appliance-tools updated"
       end
 
+      # TODO: better way to do this?
+      if @appliance_config.name.eql?( "management-appliance" )
+        @log.debug "Removing ACE..."
+        guesfs_helper.guestfs.sh( "yum -y remove ace*" )
+        guesfs_helper.guestfs.sh( "rm /var/lib/rpm/__db.*" )
+        guesfs_helper.guestfs.command( ["rpm", "--rebuilddb"] )
+        @log.debug "ACE removed."
+      end
+
       guesfs_helper.guestfs.close
 
       @log.info "RPM database in #{@appliance_config.simple_name} appliance cleaned."

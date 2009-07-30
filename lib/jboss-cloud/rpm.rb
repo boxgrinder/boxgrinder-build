@@ -80,7 +80,7 @@ module JBossCloud
       @log.info "Building package '#{@rpm_file_basename}'..."
 
       Dir.chdir( File.dirname( @spec_file ) ) do
-        @exec_helper.execute( "rpmbuild --define '_topdir #{@config.dir_root}/#{@config.dir.top}/#{@config.os_path}' --target #{arch} -ba #{@simple_name}.spec" )
+        @exec_helper.execute( "rpmbuild --define '_topdir #{@config.dir_root}/#{@config.dir.top}/#{@config.os_path}' --target #{@rpm_arch} -ba #{@simple_name}.spec" )
       end
 
       @log.info "Package '#{@rpm_file_basename}' was built successfully."
