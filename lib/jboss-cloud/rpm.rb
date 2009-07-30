@@ -79,13 +79,6 @@ module JBossCloud
     def build_rpm
       @log.info "Building package '#{@rpm_file_basename}'..."
 
-      # TODO: remove this after open-vm-tools will be fixed in rpmfusion
-      if (@simple_name.eql?( "open-vm-tools" ) or @simple_name.eql?( "open-vm-tools-kmod" )) and @rpm_arch.eql?( "i386" )
-        arch = "i586"
-      else
-        arch = @rpm_arch
-      end
-
       Dir.chdir( File.dirname( @spec_file ) ) do
         @exec_helper.execute( "rpmbuild --define '_topdir #{@config.dir_root}/#{@config.dir.top}/#{@config.os_path}' --target #{arch} -ba #{@simple_name}.spec" )
       end

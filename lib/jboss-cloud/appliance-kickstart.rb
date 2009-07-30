@@ -77,7 +77,7 @@ module JBossCloud
 
       definition['fstype'] = "ext3"
       definition['root_password'] = "oddthesis"
-  
+
       def definition.method_missing(sym, *args)
         self[ sym.to_s ]
       end

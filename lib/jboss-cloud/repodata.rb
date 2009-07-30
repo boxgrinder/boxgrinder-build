@@ -50,9 +50,6 @@ module JBossCloud
           for arch in @arches
             @exec_helper.execute( "createrepo --update #{@config.dir.top}/#{os}/#{version}/RPMS/#{arch}" )
           end
-
-          # TODO: remove this after open-vm-tools will be fixed in rpmfusion
-          @exec_helper.execute( "createrepo --update #{@config.dir.top}/#{os}/#{version}/RPMS/i586" ) if File.exists?( "#{@config.dir.top}/#{os}/#{version}/RPMS/i586" )
         end
       end
 
