@@ -92,9 +92,9 @@ module JBossCloud
       # For management-appliance we need libguestf from updates-testing repo
       # TODO: remove this after libguestfs is pushed to stable
       if @appliance_config.name.eql?( "meta-appliance" )
-        @log.debug "Updating libguestfs and appliance-tools..."
-        guesfs_helper.guestfs.sh( "yum -y update ruby-libguestfs appliance-tools --enablerepo=updates-testing" )
-        @log.debug "Libguestfs and appliance-tools updated"
+        @log.debug "Updating libguestfs..."
+        guesfs_helper.guestfs.sh( "yum -y update ruby-libguestfs --enablerepo=updates-testing" )
+        @log.debug "Libguestfs updated"
       end
 
       # TODO: better way to do this?
