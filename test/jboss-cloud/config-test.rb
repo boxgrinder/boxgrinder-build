@@ -31,7 +31,7 @@ module JBossCloud
     end
 
     def self.generate_valid_config( params )
-      JBossCloud::Config.new("JBoss-Cloud", "1.0.0", release, "/tmp/dir_rpms_cache", "/tmp/dir_src_cache", "/tmp/dir_root", "/tmp/dir_top", "/tmp/dir_build", "/tmp/dir_specs", "/tmp/dir_appliances", "/tmp/dir_src" )
+      JBossCloud::Config.new("JBoss Cloud", "1.0.0", release, "/tmp/dir_rpms_cache", "/tmp/dir_src_cache", "/tmp/dir_root", "/tmp/dir_top", "/tmp/dir_build", "/tmp/dir_specs", "/tmp/dir_appliances", "/tmp/dir_src" )
     end
 
     def test_initialize_config
@@ -78,7 +78,13 @@ module JBossCloud
       assert_equal( config.version_with_release, "1.0.0" )
     end
 
+    def test_name
+      params = OpenStruct.new
+      params.name = "JBoss Cloud"
 
+      config = ConfigHelper.generate_config( params )
 
+      assert_equal( config.name, "JBoss Cloud" )
+    end
   end
 end

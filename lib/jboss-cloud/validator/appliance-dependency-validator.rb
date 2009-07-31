@@ -53,7 +53,7 @@ module JBossCloud
 
       # Because we're using repoquery command from our building environment, we must ensure, that our repository
       # names are unique
-      @magic_hash = "#{@config.name.downcase}-"
+      @magic_hash = "#{@config.name.downcase.gsub!(" ", "_")}-"
 
       define_tasks
     end
@@ -164,7 +164,7 @@ module JBossCloud
     def generate_yum_config( repo_list )
       File.open( @yum_config_file, "w") do |f|
 
-        f.puts( "[main]\r\ncachedir=/tmp/#{@config.name.downcase}-#{@appliance_config.arch}-yum-cache/\r\n" )
+        f.puts( "[main]\r\ncachedir=/tmp/#{@magic_hash}#{@appliance_config.arch}-yum-cache/\r\n" )
 
         for repo in repo_list
           f.puts( "[#{@magic_hash}#{repo.name}]" )

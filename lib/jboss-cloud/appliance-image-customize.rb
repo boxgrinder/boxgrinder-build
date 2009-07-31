@@ -100,7 +100,7 @@ module JBossCloud
       echo( "#{mount_dir}/etc/sysconfig/network-scripts/ifcfg-eth0", "DEVICE=eth0\nBOOTPROTO=dhcp\nONBOOT=yes\nTYPE=Ethernet\nUSERCTL=yes\nPEERDNS=yes\nIPV6INIT=no\n" )
 
       #`sudo umount #{mount_dir}/proc`
-      `sudo umount #{mount_dir}`
+      `sudo umount -d #{mount_dir}`
       `rm -rf #{mount_dir}`
 
       @log.debug "EC2 image prepared!"
@@ -183,7 +183,7 @@ module JBossCloud
     def umount_image( loop_device, raw_file )
       @log.debug "Unmounting image #{File.basename( raw_file )}"
 
-      `sudo umount #{@mount_directory}`
+      `sudo umount -d #{@mount_directory}`
       `sudo losetup -d #{loop_device}`
 
       FileUtils.rm_rf( @mount_directory )
