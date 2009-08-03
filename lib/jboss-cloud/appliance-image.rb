@@ -71,8 +71,8 @@ module JBossCloud
       @exec_helper.execute "sudo PYTHONUNBUFFERED=1 appliance-creator -d -v -t #{@tmp_dir} --cache=#{@config.dir_rpms_cache}/#{@appliance_config.main_path} --config #{@kickstart_file} -o #{@config.dir_build}/appliances/#{@appliance_config.main_path} --name #{@appliance_config.name} --vmem #{@appliance_config.mem_size} --vcpu #{@appliance_config.vcpu}"
 
       # fix permissions
-      @exec_helper.execute "sudo chown oddthesis:oddthesis #{@raw_disk}"
-      @exec_helper.execute "sudo chown oddthesis:oddthesis #{@xml_file}"
+      @exec_helper.execute "sudo chmod 666 #{@raw_disk}"
+      @exec_helper.execute "sudo chmod 666 #{@xml_file}"
 
       @log.info "Appliance #{@appliance_config.simple_name} was built successfully."
     end
