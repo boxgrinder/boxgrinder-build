@@ -61,7 +61,7 @@ module JBossCloud
 
       file @xml_file => [ @kickstart_file, "appliance:#{@appliance_config.name}:validate:dependencies", @tmp_dir ] do
         build_raw_image
-        cleanup_rpm_database
+        do_post_build_operations
       end
     end
 
@@ -77,38 +77,47 @@ module JBossCloud
       @log.info "Appliance #{@appliance_config.simple_name} was built successfully."
     end
 
-    def cleanup_rpm_database
-      @log.info "Cleaning up RPM database in #{@appliance_config.simple_name} appliance..."
+    def do_post_build_operations
+      @log.info "Executing post operations after build..."
 
       guesfs_helper = GuestFSHelper.new( @raw_disk )
 
-      # TODO this is shitty, I know... https://bugzilla.redhat.com/show_bug.cgi?id=507188
-      guesfs_helper.guestfs.sh( "rm /var/lib/rpm/__db.*" )
+      # don't use DNS for SSH
+      guesfs_helper.guestfs.aug_init( "/", 0 )
+      guesfs_helper.guestfs.aug_set( "/files/etc/ssh/sshd_config/UseDNS", "no" )
+      guesfs_helper.guestfs.aug_save
 
-      @log.debug "Rebuilding RPM database..."
-      guesfs_helper.guestfs.command( ["rpm", "--rebuilddb"] )
-      @log.debug "Rebuilding RPM database finished."
+      # before we install anything we need to clean up RPM database...
+      cleanup_rpm_database( guesfs_helper.guestfs )
 
-      # For management-appliance we need libguestf from updates-testing repo
-      # TODO: remove this after libguestfs is pushed to stable
-      if @appliance_config.name.eql?( "meta-appliance" )
-        @log.debug "Updating libguestfs..."
-        guesfs_helper.guestfs.sh( "yum -y update ruby-libguestfs --enablerepo=updates-testing" )
-        @log.debug "Libguestfs updated"
-      end
-
-      # TODO: better way to do this?
+      # for management-appliance we don't need ACE
+      # TODO: remove ACE for all images
       if @appliance_config.name.eql?( "management-appliance" )
-        @log.debug "Removing ACE..."
-        guesfs_helper.guestfs.sh( "yum -y remove ace*" )
-        guesfs_helper.guestfs.sh( "rm /var/lib/rpm/__db.*" )
-        guesfs_helper.guestfs.command( ["rpm", "--rebuilddb"] )
-        @log.debug "ACE removed."
+        remove_ace( guesfs_helper.guestfs )
       end
 
       guesfs_helper.guestfs.close
 
-      @log.info "RPM database in #{@appliance_config.simple_name} appliance cleaned."
+      @log.info "Post operations executed."
+    end
+
+    def remove_ace( guestfs )
+      @log.debug "Removing ACE..."
+      guestfs.sh( "yum -y remove ace*" )
+
+      # clean RPM database one more time
+      cleanup_rpm_database( guestfs )
+
+      @log.debug "ACE removed."
+    end
+
+    def cleanup_rpm_database( guestfs )
+      # TODO this is shitty, I know... https://bugzilla.redhat.com/show_bug.cgi?id=507188
+      guestfs.sh( "rm /var/lib/rpm/__db.*" )
+
+      @log.debug "Cleaning RPM database..."
+      guestfs.command( ["rpm", "--rebuilddb"] )
+      @log.debug "Cleaning RPM database finished."
     end
   end
 end
