@@ -100,9 +100,8 @@ module JBossCloud
       echo( "#{mount_dir}/etc/sysconfig/network-scripts/ifcfg-eth0", "DEVICE=eth0\nBOOTPROTO=dhcp\nONBOOT=yes\nTYPE=Ethernet\nUSERCTL=yes\nPEERDNS=yes\nIPV6INIT=no\n" )
 
       # rc.local scripts
-      rc_local  = "dd if=/dev/urandom count=50|md5sum|awk '{ print $1 }'|passwd --stdin root\n"
-      rc_local += "\nif [ ! -d /root/.ssh ] ; then\n    mkdir -p /root/.ssh\n    chmod 700 /root/.ssh\nfi\n"
-      rc_local += "\ncurl http://169.254.169.254/2009-04-04//meta-data/public-keys/0/openssh-key > /tmp/my-key\nif [ $? -eq 0 ] ; then\n    cat /tmp/my-key >> /root/.ssh/authorized_keys\n    chmod 700 /root/.ssh/authorized_keys\n    rm /tmp/my-key\nfi"
+      rc_local  = "\nif [ ! -d /root/.ssh ] ; then\n    mkdir -p /root/.ssh\n    chmod 700 /root/.ssh\nfi\n"
+      rc_local += "\ncurl http://169.254.169.254/2009-04-04//meta-data/public-keys/0/openssh-key > /tmp/my-key\nif [ $? -eq 0 ] ; then\n    dd if=/dev/urandom count=50|md5sum|awk '{ print $1 }'|passwd --stdin root\n    cat /tmp/my-key >> /root/.ssh/authorized_keys\n    chmod 700 /root/.ssh/authorized_keys\n    rm /tmp/my-key\nfi"
 
       echo( "#{mount_dir}/etc/rc.local", rc_local, true )
 
