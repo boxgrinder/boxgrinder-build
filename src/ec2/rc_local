@@ -1,0 +1,21 @@
+#!/bin/sh
+#
+# This script will be executed *after* all the other init scripts.
+# You can put your own initialization stuff in here if you don't
+# want to do the full Sys V style init stuff.
+
+touch /var/lock/subsys/local
+
+if [ ! -d /root/.ssh ] ; then
+    mkdir -p /root/.ssh
+    chmod 700 /root/.ssh
+fi
+
+curl http://169.254.169.254/2009-04-04/meta-data/public-keys/0/openssh-key > /tmp/my-key
+
+if [ $? -eq 0 ] ; then
+    dd if=/dev/urandom count=50 2>/dev/null|md5sum|awk '{ print $1 }'|passwd --stdin root
+    cat /tmp/my-key >> /root/.ssh/authorized_keys
+    chmod 600 /root/.ssh/authorized_keys
+    rm /tmp/my-key
+fi

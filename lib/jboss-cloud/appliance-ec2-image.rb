@@ -131,11 +131,7 @@ module JBossCloud
 
       @appliance_image_customizer.convert_to_ami
 
-      @log.info "Installing Xen kernel and additional packages..."
-
-      @appliance_image_customizer.customize( @appliance_ec2_image_file, { :packages => { :rpm => [ AWS_DEFAULTS[:kernel_rpm][@appliance_config.arch], "http://s3.amazonaws.com/ec2-downloads/ec2-ami-tools.noarch.rpm" ] } })
-
-      @log.info "Installed!"
+      @log.info "Image converted to EC2 format."
     end
 
   end

@@ -29,13 +29,13 @@ module JBossCloud
 
       out = `#{command} 2>&1`
 
-      formatted_output = "Command return:\r\n+++++\r\n#{out}\r\n+++++"
+      formatted_output = "Command return:\r\n+++++\r\n#{out}+++++"
 
       if $?.to_i != 0
         @log.error formatted_output
         raise "An error occured executing commad: '#{command}'"
       else
-        @log.debug formatted_output
+        @log.debug formatted_output unless out.strip.length == 0
         @log.debug "Command '#{command}' executed successfuly"
         return out
       end

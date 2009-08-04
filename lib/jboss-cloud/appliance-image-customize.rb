@@ -39,14 +39,25 @@ module JBossCloud
       @appliance_raw_image          = "#{@appliance_build_dir}/#{@appliance_config.name}-sda.raw"
 
       @mount_directory              = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/customize-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
+
     end
 
     def convert_to_ami
       mount_dir = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/ec2-image-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
 
-      `mkdir -p #{mount_dir}`
+      fstab_64bit     = "#{@config.dir.base}/src/ec2/fstab_64bit"
+      fstab_32bit     = "#{@config.dir.base}/src/ec2/fstab_32bit"
+      ifcfg_eth0      = "#{@config.dir.base}/src/ec2/ifcfg-eth0"
+      rc_local_file   = "#{@config.dir.base}/src/ec2/rc_local"
 
-      # TODO add progress bar
+      rpms = {
+              AWS_DEFAULTS[:kernel_rpm][@appliance_config.arch].split("/").last => AWS_DEFAULTS[:kernel_rpm][@appliance_config.arch],
+              "ec2-ami-tools.noarch.rpm" => "http://s3.amazonaws.com/ec2-downloads/ec2-ami-tools.noarch.rpm"
+      }
+
+      cache_rpms( rpms )
+
+      # TODO add progress bar?
       @log.debug "Preparing disk for EC2 image..."
       @exec_helper.execute "dd if=/dev/zero of=#{@appliance_ec2_image_file} bs=1M count=#{10 * 1024}"
       @log.debug "Disk for EC2 image prepared"
@@ -55,58 +66,59 @@ module JBossCloud
       @exec_helper.execute "mke2fs -Fj #{@appliance_ec2_image_file}"
       @log.debug "Filesystem created"
 
+      `mkdir -p #{mount_dir}`
+
       @exec_helper.execute "sudo mount -o loop #{@appliance_ec2_image_file} #{mount_dir}"
 
-      @log.debug "Syncing files between RAW and EC2 file..."
       loop_device = get_loop_device
       mount_image( loop_device, @appliance_raw_image )
 
-      `sudo rsync -u -r -a  #{@mount_directory}/* #{mount_dir}`
+      @log.debug "Syncing files between RAW and EC2 file..."
+      @exec_helper.execute "sudo rsync -u -r -a  #{@mount_directory}/* #{mount_dir}"
+      @log.debug "Syncing finished"
 
       umount_image( loop_device, @appliance_raw_image )
-      @log.debug "\nSyncing finished"
 
-      # TODO rewrite this to use libguesfs
-      `sudo mkdir -p #{mount_dir}/data`
+      @exec_helper.execute "sudo umount -d #{mount_dir}"
+
+      `rm -rf #{mount_dir}`
+
+      guestfs = GuestFSHelper.new( @appliance_ec2_image_file ).guestfs
 
       @log.debug "Creating required devices..."
-      `sudo /sbin/MAKEDEV -d #{mount_dir}/dev -x console`
-      `sudo /sbin/MAKEDEV -d #{mount_dir}/dev -x null`
-      `sudo /sbin/MAKEDEV -d #{mount_dir}/dev -x zero`
-      @log.debug "Devices created"
+      guestfs.sh( "/sbin/MAKEDEV -d /dev -x console" )
+      guestfs.sh( "/sbin/MAKEDEV -d /dev -x null" )
+      guestfs.sh( "/sbin/MAKEDEV -d /dev -x zero" )
+      @log.debug "Devices created."
 
-      fstab_data = "/dev/sda1  /         ext3    defaults         1 1\n"
-
-      if @appliance_config.is64bit?
-        fstab_data += "/dev/sdb   /mnt      ext3    defaults         0 0\n"
-        fstab_data += "/dev/sdc   /data     ext3    defaults         0 0\n"
-      else
-        fstab_data += "/dev/sda2  /mnt      ext3    defaults         1 2\n"
-        fstab_data += "/dev/sda3  swap      swap    defaults         0 0\n"
-      end
-
-      fstab_data += "none       /dev/pts  devpts  gid=5,mode=620   0 0\n"
-      fstab_data += "none       /dev/shm  tmpfs   defaults         0 0\n"
-      fstab_data += "none       /proc     proc    defaults         0 0\n"
-      fstab_data += "none       /sys      sysfs   defaults         0 0\n"
-
-      # Preparing /etc/fstab
-      echo( "#{mount_dir}/etc/fstab", fstab_data )
+      @log.debug "Uploading '/etc/fstab' file..."
+      fstab_file = @appliance_config.is64bit? ? fstab_64bit : fstab_32bit
+      guestfs.upload( fstab_file, "/etc/fstab" )
+      @log.debug "'/etc/fstab' file uploaded."
 
       # enable networking on default runlevels
-      `sudo chroot #{mount_dir} /sbin/chkconfig --level 345 network on`
+      @log.debug "Enabling networking..."
+      guestfs.sh( "/sbin/chkconfig --level 345 network on" )
+      guestfs.upload( ifcfg_eth0, "/etc/sysconfig/network-scripts/ifcfg-eth0" )
+      @log.debug "Networking enabled."
 
-      # enable DHCP
-      echo( "#{mount_dir}/etc/sysconfig/network-scripts/ifcfg-eth0", "DEVICE=eth0\nBOOTPROTO=dhcp\nONBOOT=yes\nTYPE=Ethernet\nUSERCTL=yes\nPEERDNS=yes\nIPV6INIT=no\n" )
+      @log.debug "Uploading '/etc/rc.local' file..."
+      guestfs.upload( rc_local_file, "/etc/rc.local" )
+      @log.debug "'/etc/rc.local' file uploaded."
 
-      # rc.local scripts
-      rc_local  = "\nif [ ! -d /root/.ssh ] ; then\n    mkdir -p /root/.ssh\n    chmod 700 /root/.ssh\nfi\n"
-      rc_local += "\ncurl http://169.254.169.254/2009-04-04//meta-data/public-keys/0/openssh-key > /tmp/my-key\nif [ $? -eq 0 ] ; then\n    dd if=/dev/urandom count=50|md5sum|awk '{ print $1 }'|passwd --stdin root\n    cat /tmp/my-key >> /root/.ssh/authorized_keys\n    chmod 700 /root/.ssh/authorized_keys\n    rm /tmp/my-key\nfi"
+      @log.debug "Installing additional packages..."
+      guestfs.mkdir_p("/tmp/rpms")
 
-      echo( "#{mount_dir}/etc/rc.local", rc_local, true )
+      for name in rpms.keys
+        cache_file = "#{@config.dir_src_cache}/#{name}"
+        guestfs.upload( cache_file, "/tmp/rpms/#{name}" )
+      end
 
-      `sudo umount -d #{mount_dir}`
-      `rm -rf #{mount_dir}`
+      guestfs.sh( "rpm -Uvh /tmp/rpms/*.rpm" )
+      guestfs.rm_rf("/tmp/rpms")
+      @log.debug "Additional packages installed."
+
+      guestfs.close
 
       @log.debug "EC2 image prepared!"
     end
@@ -135,36 +147,40 @@ module JBossCloud
 
       raise ValidationError, "Raw file '#{raw_file}' doesn't exists, please specify valid raw file" if !File.exists?( raw_file )
 
-      guesfs_helper = GuestFSHelper.new( raw_file )
+      guestfs = GuestFSHelper.new( raw_file ).guestfs
 
       for repo in options[:repos]
         @log.debug "Installing repo file '#{repo}'..."
-        guesfs_helper.guestfs.command( ["rpm", "-Uvh", repo] )
+        guestfs.command( ["rpm", "-Uvh", repo] )
         @log.debug "Installed!"
       end unless options[:repos].nil?
 
       for yum_package in options[:packages][:yum]
         @log.debug "Installing package '#{yum_package}'..."
-        guesfs_helper.guestfs.command( ["yum", "-y", "install", yum_package] )
+        guestfs.command( ["yum", "-y", "install", yum_package] )
         @log.debug "Installed!"
       end unless options[:packages][:yum].nil?
 
       for package in options[:packages][:rpm]
         @log.debug "Installing package '#{package}'..."
-        guesfs_helper.guestfs.command( ["rpm", "-Uvh", "--force", package] )
+        guestfs.command( ["rpm", "-Uvh", "--force", package] )
         @log.debug "Installed!"
       end unless options[:packages][:rpm].nil?
 
-      guesfs_helper.guestfs.close
+      guestfs.close
     end
 
     protected
 
-    # TODO Remove this!
-    def echo( file, content, append = false)
-      `sudo chmod 777 #{file}`
-      `sudo echo "#{content}" #{append ? ">>" : ">"} #{file}`
-      `sudo chmod 664 #{file}`
+    def cache_rpms( rpms )
+      for name in rpms.keys
+        cache_file = "#{@config.dir_src_cache}/#{name}"
+
+        if ( ! File.exist?( cache_file ) )
+          FileUtils.mkdir_p( @config.dir_src_cache )
+          @exec_helper.execute( "wget #{rpms[name]} -O #{cache_file}" )
+        end
+      end
     end
 
     def get_loop_device
@@ -192,22 +208,6 @@ module JBossCloud
       `sudo losetup -d #{loop_device}`
 
       FileUtils.rm_rf( @mount_directory )
-    end
-
-    # TODO: remove this!!!
-    def install_gems( gems )
-      return if gems.size == 0
-
-      @log.info "Installing additional gems..."
-
-      @exec_helper.execute( "sudo chroot #{@mount_directory} /bin/bash -c \"export HOME=/tmp && gem sources -r http://gems.github.com && gem sources -a http://gems.github.com && gem update --system > /dev/null && gem install #{gems.join(' ')} && gem list\"" )
-
-      # TODO select a right place for this
-
-      `sudo chroot #{@mount_directory} thin install`
-      `sudo chroot #{@mount_directory} ln -s /usr/share/jboss-cloud-management/config/config.yaml /etc/thin/config.yaml`
-      `sudo chroot #{@mount_directory} chkconfig --add thin`
-      `sudo chroot #{@mount_directory} chkconfig --level 345 thin on`
     end
   end
 end
