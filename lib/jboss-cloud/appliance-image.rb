@@ -80,23 +80,33 @@ module JBossCloud
     def do_post_build_operations
       @log.info "Executing post operations after build..."
 
-      guesfs_helper = GuestFSHelper.new( @raw_disk )
+      guestfs = GuestFSHelper.new( @raw_disk ).guestfs
+
+      guestfs.aug_init( "/", 0 )
 
       # don't use DNS for SSH
-      guesfs_helper.guestfs.aug_init( "/", 0 )
-      guesfs_helper.guestfs.aug_set( "/files/etc/ssh/sshd_config/UseDNS", "no" )
-      guesfs_helper.guestfs.aug_save
+      guestfs.aug_set( "/files/etc/ssh/sshd_config/UseDNS", "no" )
+
+      # set nice banner for SSH
+      banner_file = "/etc/ssh/banner"
+      guestfs.upload( "#{@config.dir.base}/src/ssh_banner", banner_file )
+      guestfs.sh( "sed -i s/#NAME#/'#{@config.name}'/ #{banner_file}" )
+      guestfs.sh( "sed -i s/#VERSION#/'#{@config.version_with_release}'/ #{banner_file}" )
+      guestfs.sh( "sed -i s/#APPLIANCE#/'#{@appliance_config.simple_name} appliance'/ #{banner_file}" )
+      guestfs.aug_set( "/files/etc/ssh/sshd_config/Banner", banner_file )
+
+      guestfs.aug_save
 
       # before we install anything we need to clean up RPM database...
-      cleanup_rpm_database( guesfs_helper.guestfs )
+      cleanup_rpm_database( guestfs )
 
       # for management-appliance we don't need ACE
       # TODO: remove ACE for all images
-      if @appliance_config.name.eql?( "management-appliance" )
-        remove_ace( guesfs_helper.guestfs )
+      if @appliance_config.name.eql?( "management-appliance" ) or @appliance_config.name.eql?( "back-end-appliance" )
+        remove_ace( guestfs )
       end
 
-      guesfs_helper.guestfs.close
+      guestfs.close
 
       @log.info "Post operations executed."
     end
@@ -104,11 +114,10 @@ module JBossCloud
     def remove_ace( guestfs )
       @log.debug "Removing ACE..."
       guestfs.sh( "yum -y remove ace*" )
+      @log.debug "ACE removed."
 
       # clean RPM database one more time
       cleanup_rpm_database( guestfs )
-
-      @log.debug "ACE removed."
     end
 
     def cleanup_rpm_database( guestfs )

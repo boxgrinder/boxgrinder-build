@@ -62,7 +62,7 @@ module JBossCloud
       global_size_kb = global_size / 1024
       global_size_mb = global_size_kb / 1024
 
-      @log.info "\n#{files.size} files to upload (#{global_size_mb > 0 ? global_size_mb.to_s + "MB" : global_size_kb > 0 ? global_size_kb.to_s + "kB" : global_size.to_s})\n\r"
+      @log.info "#{files.size} files to upload (#{global_size_mb > 0 ? global_size_mb.to_s + "MB" : global_size_kb > 0 ? global_size_kb.to_s + "kB" : global_size.to_s})"
 
       @ssh.sftp.connect do |sftp|
 
