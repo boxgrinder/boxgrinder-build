@@ -87,15 +87,14 @@ module JBossCloud
       # don't use DNS for SSH
       guestfs.aug_set( "/files/etc/ssh/sshd_config/UseDNS", "no" )
 
+      guestfs.aug_save
+
       # set nice banner for SSH
-      banner_file = "/etc/ssh/banner"
+      banner_file = "/etc/motd"
       guestfs.upload( "#{@config.dir.base}/src/ssh_banner", banner_file )
       guestfs.sh( "sed -i s/#NAME#/'#{@config.name}'/ #{banner_file}" )
       guestfs.sh( "sed -i s/#VERSION#/'#{@config.version_with_release}'/ #{banner_file}" )
       guestfs.sh( "sed -i s/#APPLIANCE#/'#{@appliance_config.simple_name} appliance'/ #{banner_file}" )
-      guestfs.aug_set( "/files/etc/ssh/sshd_config/Banner", banner_file )
-
-      guestfs.aug_save
 
       # before we install anything we need to clean up RPM database...
       cleanup_rpm_database( guestfs )
