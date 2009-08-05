@@ -106,7 +106,7 @@ module JBossCloud
       guestfs.upload( rc_local_file, "/etc/rc.local" )
       @log.debug "'/etc/rc.local' file uploaded."
 
-      @log.debug "Installing additional packages..."
+      @log.debug "Installing additional packages (#{rpms.keys.join( ", " )})..."
       guestfs.mkdir_p("/tmp/rpms")
 
       for name in rpms.keys
