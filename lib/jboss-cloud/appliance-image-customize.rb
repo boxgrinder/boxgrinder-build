@@ -21,6 +21,7 @@
 require 'rake/tasklib'
 require 'jboss-cloud/validator/errors'
 require 'jboss-cloud/helpers/guestfs-helper'
+require 'tempfile'
 
 module JBossCloud
   class ApplianceImageCustomize < Rake::TaskLib
@@ -103,15 +104,13 @@ module JBossCloud
       @log.debug "Networking enabled."
 
       @log.debug "Uploading '/etc/rc.local' file..."
-      rc_local = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/rc_local-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
+      rc_local = Tempfile.new('rc_local')
+      rc_local << guestfs.read_file( "/etc/rc.local" ) + File.new( rc_local_file ).read
+      rc_local.flush
 
-      rc_local_original = guestfs.read_file( "/etc/rc.local" )
+      guestfs.upload( rc_local.path, "/etc/rc.local" )
 
-      File.open( rc_local , 'a') {|f| f.write( rc_local_original + File.new( rc_local_file ).read ) }
-
-      guestfs.upload( rc_local, "/etc/rc.local" )
-
-      FileUtils.rm( rc_local )
+      rc_local.close
       @log.debug "'/etc/rc.local' file uploaded."
 
       @log.debug "Installing additional packages (#{rpms.keys.join( ", " )})..."
