@@ -103,7 +103,15 @@ module JBossCloud
       @log.debug "Networking enabled."
 
       @log.debug "Uploading '/etc/rc.local' file..."
-      guestfs.upload( rc_local_file, "/etc/rc.local" )
+      rc_local = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/rc_local-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
+
+      guestfs.download( "/etc/rc.local", rc_local )
+
+      File.open( rc_local , 'a') {|f| f.write( File.new( rc_local_file ).read ) }
+
+      guestfs.upload( rc_local, "/etc/rc.local" )
+
+      FileUtils.rm( rc_local )
       @log.debug "'/etc/rc.local' file uploaded."
 
       @log.debug "Installing additional packages (#{rpms.keys.join( ", " )})..."

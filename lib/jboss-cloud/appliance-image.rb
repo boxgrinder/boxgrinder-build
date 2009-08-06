@@ -90,11 +90,14 @@ module JBossCloud
       guestfs.aug_save
 
       # set nice banner for SSH
-      banner_file = "/etc/motd"
-      guestfs.upload( "#{@config.dir.base}/src/ssh_banner", banner_file )
-      guestfs.sh( "sed -i s/#NAME#/'#{@config.name}'/ #{banner_file}" )
-      guestfs.sh( "sed -i s/#VERSION#/'#{@config.version_with_release}'/ #{banner_file}" )
-      guestfs.sh( "sed -i s/#APPLIANCE#/'#{@appliance_config.simple_name} appliance'/ #{banner_file}" )
+      motd_file = "/etc/init.d/motd"
+      guestfs.upload( "#{@config.dir.base}/src/motd.init", motd_file )
+      guestfs.sh( "sed -i s/#NAME#/'#{@config.name}'/ #{motd_file}" )
+      guestfs.sh( "sed -i s/#VERSION#/'#{@config.version_with_release}'/ #{motd_file}" )
+      guestfs.sh( "sed -i s/#APPLIANCE#/'#{@appliance_config.simple_name} appliance'/ #{motd_file}" )
+
+      guestfs.sh( "/bin/chmod +x #{motd_file}" )
+      guestfs.sh( "/sbin/chkconfig --add motd" )
 
       # before we install anything we need to clean up RPM database...
       cleanup_rpm_database( guestfs )
