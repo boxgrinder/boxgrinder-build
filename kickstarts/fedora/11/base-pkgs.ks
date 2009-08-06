@@ -1,10 +1,13 @@
 jboss-cloud-release
 jboss-cloud-gems
 
-# TODO: remove this if possible
+# TODO: remove this if possible (currenlty needed for thin)
 ruby-devel
 gcc-c++
 make
+
+# we don't want ACE
+-ace
 
 openssh-clients
 wget

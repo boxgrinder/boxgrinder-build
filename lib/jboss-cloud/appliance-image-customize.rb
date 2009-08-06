@@ -105,9 +105,9 @@ module JBossCloud
       @log.debug "Uploading '/etc/rc.local' file..."
       rc_local = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/rc_local-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
 
-      guestfs.download( "/etc/rc.local", rc_local )
+      rc_local_original = guestfs.read_file( "/etc/rc.local" )
 
-      File.open( rc_local , 'a') {|f| f.write( File.new( rc_local_file ).read ) }
+      File.open( rc_local , 'a') {|f| f.write( rc_local_original + File.new( rc_local_file ).read ) }
 
       guestfs.upload( rc_local, "/etc/rc.local" )
 
