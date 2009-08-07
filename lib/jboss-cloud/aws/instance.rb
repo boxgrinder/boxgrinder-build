@@ -44,16 +44,16 @@ module JBossCloud
       directory @instances_dir
 
       #desc "Run #{@appliance_config.simple_name} appliance on Amazon EC2."
-      task "appliance:#{@appliance_config.name}:ec2:run" => [ "appliance:#{@appliance_config.name}:ec2:register", @instances_dir ] do
-        @aws_support = AWSSupport.new( @config )
-        run_instance
-      end
+      #task "appliance:#{@appliance_config.name}:ec2:run" => [ "appliance:#{@appliance_config.name}:ec2:register", @instances_dir ] do
+      #  @aws_support = AWSSupport.new( @config )
+      #  run_instance
+      #end
 
       #desc "Terminate running #{@appliance_config.simple_name} appliance on Amazon EC2."
-      task "appliance:#{@appliance_config.name}:ec2:terminate" => [ @instances_dir ] do
-        @aws_support = AWSSupport.new( @config )
-        terminate_instance
-      end
+      #task "appliance:#{@appliance_config.name}:ec2:terminate" => [ @instances_dir ] do
+      #  @aws_support = AWSSupport.new( @config )
+      #  terminate_instance
+      #end
     end
 
     def run_instance
