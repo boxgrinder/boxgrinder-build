@@ -69,21 +69,19 @@ module JBossCloud
       task "rpm:#{@simple_name}" => [ @rpm_file ]
 
       file @rpm_file => [ 'rpm:topdir', @spec_file ] do
+        @log.info "Building package '#{@rpm_file_basename}'..."
         build_source_dependencies( @rpm_file, @rpm_version, @rpm_release )
         build_rpm
+        @log.info "Package '#{@rpm_file_basename}' was built successfully."
       end
 
       task 'rpm:all' => [ @rpm_file ]
     end
 
     def build_rpm
-      @log.info "Building package '#{@rpm_file_basename}'..."
-
       Dir.chdir( File.dirname( @spec_file ) ) do
         @exec_helper.execute( "rpmbuild --define '_topdir #{@config.dir_root}/#{@config.dir.top}/#{@config.os_path}' --target #{@rpm_arch} -ba #{@simple_name}.spec" )
       end
-
-      @log.info "Package '#{@rpm_file_basename}' was built successfully."
 
       Rake::Task[ 'rpm:repodata:force' ].reenable
     end
