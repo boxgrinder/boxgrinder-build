@@ -104,7 +104,7 @@ module JBossCloud
 
       # for management-appliance we don't need ACE
       # TODO: remove ACE for all images
-      if @appliance_config.name.eql?( "management-appliance" ) or @appliance_config.name.eql?( "back-end-appliance" )
+      if @appliance_config.name.eql?( "management-appliance" ) or @appliance_config.name.eql?( "back-end-appliance" ) or @appliance_config.name.eql?( "front-end-appliance" )
         remove_ace( guestfs )
       end
 
