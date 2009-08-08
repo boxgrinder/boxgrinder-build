@@ -107,6 +107,7 @@ module JBossCloud
         @log.debug "Applying APR/HTTPD workaround..."
         guestfs.sh( "yum -y remove apr" )
         guestfs.sh( "yum -y install mod_cluster --disablerepo=updates" )
+        guestfs.sh( "/sbin/chkconfig --level 234 httpd on" )
         @log.debug "Workaround applied."
       end
 
