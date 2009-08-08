@@ -122,7 +122,7 @@ module JBossCloud
         return
       else
         ami_info = @aws_support.ec2.register_image( :image_location => @aws_support.bucket_manifest_key( @appliance_config.name ) )
-        @log.info "Image successfully registered under id: #{ami_info.imageId}.'"
+        @log.info "Image successfully registered under id: #{ami_info.imageId}."
       end
     end
 

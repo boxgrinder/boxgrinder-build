@@ -102,24 +102,24 @@ module JBossCloud
       # before we install anything we need to clean up RPM database...
       cleanup_rpm_database( guestfs )
 
-      # for management-appliance we don't need ACE
-      # TODO: remove ACE for all images
-      if @appliance_config.name.eql?( "management-appliance" ) or @appliance_config.name.eql?( "back-end-appliance" ) or @appliance_config.name.eql?( "front-end-appliance" )
-        remove_ace( guestfs )
+      # http://oddthesis.lighthouseapp.com/projects/19748-jboss-cloud/tickets/95
+      if @appliance_config.name.eql?( "front-end-appliance" )
+        @log.debug "Applying APR/HTTPD workaround..."
+        guestfs.sh( "yum -y remove apr" )
+        guestfs.sh( "yum -y install mod_cluster --disablerepo=updates" )
+        @log.debug "Workaround applied."
       end
 
-      guestfs.close
-
-      @log.info "Post operations executed."
-    end
-
-    def remove_ace( guestfs )
       @log.debug "Removing ACE..."
       guestfs.sh( "yum -y remove ace*" )
       @log.debug "ACE removed."
 
-      # clean RPM database one more time
+      # clean RPM database one more time to leave image clean
       cleanup_rpm_database( guestfs )
+
+      guestfs.close
+
+      @log.info "Post operations executed."
     end
 
     def cleanup_rpm_database( guestfs )
