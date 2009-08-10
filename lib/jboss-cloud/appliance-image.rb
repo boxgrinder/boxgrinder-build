@@ -99,6 +99,9 @@ module JBossCloud
       guestfs.sh( "/bin/chmod +x #{motd_file}" )
       guestfs.sh( "/sbin/chkconfig --add motd" )
 
+      # enable networking, we want to be sure!
+      guestfs.sh( "/sbin/chkconfig network on" )
+
       # before we install anything we need to clean up RPM database...
       cleanup_rpm_database( guestfs )
 
