@@ -65,12 +65,6 @@ module JBossCloud
         self[ sym.to_s ]
       end
 
-      puppet_file = "#{stage_directory}/#{@appliance_config.name}/#{@appliance_config.name}.pp"
-
-      erb = ERB.new( File.read( puppet_file ) )
-
-      File.open( puppet_file, 'w' ) {|f| f.write( erb.result( defs.send( :binding ) ) ) }
-
       Dir.chdir( "#{@appliance_build_dir}/sources" ) do
         @exec_helper.execute( "tar zcvf #{@config.dir_root}/#{@source_tar_gz} #{@appliance_config.name}-#{@config.version}/" )
       end

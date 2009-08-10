@@ -52,9 +52,6 @@ module JBossCloud
       raise ApplianceValidationError, "Could not find all dependent appliances for multiappliance '#{@appliance_name}'" unless valid
       # check appliance count
       raise ApplianceValidationError, "Invalid appliance count for appliance '#{@appliance_name}'" unless appliances.size >= 1
-      # check if puppet configuration file exists
-      puppet_file = "#{File.dirname( @appliance_def )}/#{@appliance_name}.pp"
-      raise ApplianceValidationError, "Puppet configuration file '#{puppet_file}' doesn't exists for appliance '#{@appliance_name}'" unless File.exists?( puppet_file )
     end
 
     protected

@@ -1,9 +1,3 @@
-#
-# This is a generated file, do no edit
-#
-
-%define aceHome /usr/share/ace
-
 Summary: 	<%= summary %>
 Name:  		<%= name %>
 Version: 	<%= version %>
@@ -14,10 +8,6 @@ License: 	LGPLv2+
 URL: 	    http://oddthesis.org/
 Source0: 	<%= name %>-<%= version %>.tar.gz
 BuildArch: 	noarch
-Requires: 	ace-banners
-Requires: 	ace-console
-Requires: 	ace-ssh
-#Requires: 	dkms-open-vm-tools
 <% for package in packages %>
 Requires:       <%= package %>
 <% end %>
@@ -31,34 +21,25 @@ Requires: 	rsync
 %prep
 %setup 
 
-%build 
-
 %install
-rm -rf %{buildroot}
-mkdir -p %{buildroot}/%{aceHome}
-mkdir -p %{buildroot}/%{aceHome}/lenses
-cp -R * %{buildroot}/%{aceHome}
-if [ -d %{buildroot}/%{aceHome}/appliances/%{name}/lenses ] ; then
-  mkdir -p %{buildroot}/%{aceHome}/facts
-  mv %{buildroot}%{aceHome}/appliances/%{name}/lenses/* %{buildroot}/%{aceHome}/lenses
-fi
-if [ -d %{buildroot}/%{aceHome}/appliances/%{name}/facts ] ; then
-  mkdir -p %{buildroot}/%{aceHome}/facts
-  mv %{buildroot}%{aceHome}/appliances/%{name}/facts/* %{buildroot}/%{aceHome}/facts
-fi
+rm -rf $RPM_BUILD_ROOT
+
+install -d -m 755 $RPM_BUILD_ROOT/usr/share/%{name}/sources
+cp -R * $RPM_BUILD_ROOT/usr/share/%{name}/sources
 
 %post
 /bin/echo "appliance_name: <%= name %>" > /etc/jboss-cloud
 
 %clean
-rm -rf %{buildroot}
+rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%dir %{aceHome}
-%{aceHome}/*
+/
 
 %changelog
+* Mon Aug 10 2009 Marek Goldmann <mgoldman@redhat.com>
+- ACE removed
+
 * Thu Mar 26 2008 Bryan Kearney <bkearney@redhat.com> 0.0-1
 - Initial packaging
-

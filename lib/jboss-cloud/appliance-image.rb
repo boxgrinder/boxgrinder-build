@@ -103,20 +103,16 @@ module JBossCloud
       cleanup_rpm_database( guestfs )
 
       # http://oddthesis.lighthouseapp.com/projects/19748-jboss-cloud/tickets/95
-      if @appliance_config.name.eql?( "front-end-appliance" )
+      if guestfs.sh( "rpm -qa | grep httpd | wc -l" ).to_i > 0
         @log.debug "Applying APR/HTTPD workaround..."
         guestfs.sh( "yum -y remove apr" )
         guestfs.sh( "yum -y install mod_cluster --disablerepo=updates" )
         guestfs.sh( "/sbin/chkconfig --level 234 httpd on" )
         @log.debug "Workaround applied."
+
+        # clean RPM database one more time to leave image clean
+        cleanup_rpm_database( guestfs )
       end
-
-      @log.debug "Removing ACE..."
-      guestfs.sh( "yum -y remove ace*" )
-      @log.debug "ACE removed."
-
-      # clean RPM database one more time to leave image clean
-      cleanup_rpm_database( guestfs )
 
       guestfs.close
 

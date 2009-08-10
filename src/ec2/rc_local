@@ -1,7 +1,7 @@
 
 homes=`find /home/* -maxdepth 0 -type d | tr '\n' ' '`
 
-curl http://169.254.169.254/2009-04-04/meta-data/public-keys/0/openssh-key > /tmp/my-key
+curl http://169.254.169.254/2009-04-04/meta-data/public-keys/0/openssh-key 2>/dev/null >/tmp/my-key
 
 if [ $? -eq 0 ] ; then
     if [ ! -d /root/.ssh ] ; then
@@ -9,7 +9,7 @@ if [ $? -eq 0 ] ; then
         chmod 700 /root/.ssh
     fi
 
-    dd if=/dev/urandom count=50 2>/dev/null|md5sum|awk '{ print $1 }'|passwd --stdin root
+    dd if=/dev/urandom count=50 2>/dev/null|md5sum|awk '{ print $1 }'|passwd --stdin root >/dev/null
     cat /tmp/my-key >> /root/.ssh/authorized_keys
     chmod 600 /root/.ssh/authorized_keys
 
@@ -22,7 +22,7 @@ if [ $? -eq 0 ] ; then
             chown $user $home/.ssh
         fi
 
-       dd if=/dev/urandom count=50 2>/dev/null|md5sum|awk '{ print $1 }'|passwd --stdin $user
+       dd if=/dev/urandom count=50 2>/dev/null|md5sum|awk '{ print $1 }'|passwd --stdin $user >/dev/null
        cat /tmp/my-key >> $home/.ssh/authorized_keys
        chmod 600 $home/.ssh/authorized_keys
        chown $user $home/.ssh/authorized_keys
