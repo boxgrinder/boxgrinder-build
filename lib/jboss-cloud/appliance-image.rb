@@ -99,18 +99,15 @@ module JBossCloud
       guestfs.sh( "/bin/chmod +x #{motd_file}" )
       guestfs.sh( "/sbin/chkconfig --add motd" )
 
-      # enable networking, we want to be sure!
-      guestfs.sh( "/sbin/chkconfig network on" )
-
       # before we install anything we need to clean up RPM database...
       cleanup_rpm_database( guestfs )
 
-      # http://oddthesis.lighthouseapp.com/projects/19748-jboss-cloud/tickets/95
+      # TODO remove this, http://oddthesis.lighthouseapp.com/projects/19748-jboss-cloud/tickets/95
       if guestfs.sh( "rpm -qa | grep httpd | wc -l" ).to_i > 0
         @log.debug "Applying APR/HTTPD workaround..."
         guestfs.sh( "yum -y remove apr" )
         guestfs.sh( "yum -y install mod_cluster --disablerepo=updates" )
-        guestfs.sh( "/sbin/chkconfig --level 234 httpd on" )
+        guestfs.sh( "/sbin/chkconfig httpd on" )
         @log.debug "Workaround applied."
 
         # clean RPM database one more time to leave image clean
@@ -127,7 +124,7 @@ module JBossCloud
       guestfs.sh( "rm /var/lib/rpm/__db.*" )
 
       @log.debug "Cleaning RPM database..."
-      guestfs.command( ["rpm", "--rebuilddb"] )
+      guestfs.sh( "rpm --rebuilddb" )
       @log.debug "Cleaning RPM database finished."
     end
   end

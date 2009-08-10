@@ -12,6 +12,7 @@ xconfig --startxonboot
 services --enabled=NetworkManager --disabled=network,sshd
 <% else %>
 network --bootproto=dhcp --device=eth0 --onboot=on
+services --enabled=network
 <% end %>
 
 rootpw <%= root_password %> 
