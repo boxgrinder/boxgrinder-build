@@ -24,8 +24,7 @@ module JBossCloud
   class GuestFSHelper
     def initialize( raw_disk )
       @raw_disk = raw_disk
-
-      @log = LOG
+      @log      = LOG
 
       launch
     end
@@ -36,12 +35,12 @@ module JBossCloud
       @log.debug "Preparing guestfs..."
       @guestfs = Guestfs::create
 
-      # see: https://bugzilla.redhat.com/show_bug.cgi?id=502058
+      # TODO remove this, https://bugzilla.redhat.com/show_bug.cgi?id=502058
       @guestfs.set_append( "noapic" )
-
 
       # workaround for latest qemu
       # It'll only work if qemu-stable package is installed. It is installed by default on meta-appliance
+      # TODO wait for stable qemu and remove this
       qemu_wrapper = "/usr/share/qemu-stable/bin/qemu.wrapper"
 
       if File.exists?( qemu_wrapper )
@@ -74,6 +73,14 @@ module JBossCloud
       @log.debug "'/etc/resolv.conf' uploaded."
 
       @log.debug "Guestfs launched."
+    end
+
+    # TODO this is shitty, I know... https://bugzilla.redhat.com/show_bug.cgi?id=507188
+    def rebuild_rpm_database
+      @log.debug "Cleaning RPM database..."
+      @guestfs.sh( "rm /var/lib/rpm/__db.*" )
+      @guestfs.sh( "rpm --rebuilddb" )
+      @log.debug "Cleaning RPM database finished."
     end
   end
 end

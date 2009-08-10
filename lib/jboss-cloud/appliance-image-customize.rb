@@ -154,24 +154,27 @@ module JBossCloud
 
       raise ValidationError, "Raw file '#{raw_file}' doesn't exists, please specify valid raw file" if !File.exists?( raw_file )
 
-      guestfs = GuestFSHelper.new( raw_file ).guestfs
+      guestfs_helper  = GuestFSHelper.new( raw_file )
+      guestfs         = guestfs_helper.guestfs
+
+      guestfs_helper.rebuild_rpm_database
 
       for repo in options[:repos]
         @log.debug "Installing repo file '#{repo}'..."
-        guestfs.command( ["rpm", "-Uvh", repo] )
-        @log.debug "Installed!"
+        guestfs.sh( "rpm -Uvh #{repo}" )
+        @log.debug "Repo file '#{repo}' installed."
       end unless options[:repos].nil?
 
       for yum_package in options[:packages][:yum]
         @log.debug "Installing package '#{yum_package}'..."
-        guestfs.command( ["yum", "-y", "install", yum_package] )
-        @log.debug "Installed!"
+        guestfs.sh( "yum -y install #{yum_package}" )
+        @log.debug "Package '#{yum_package}' installed."
       end unless options[:packages][:yum].nil?
 
       for package in options[:packages][:rpm]
         @log.debug "Installing package '#{package}'..."
-        guestfs.command( ["rpm", "-Uvh", "--force", package] )
-        @log.debug "Installed!"
+        guestfs.sh( "rpm -Uvh --force #{package}" )
+        @log.debug "Package '#{package}' installed."
       end unless options[:packages][:rpm].nil?
 
       guestfs.close

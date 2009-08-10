@@ -67,7 +67,7 @@ module JBossCloud
       end
 
       file @base_vmware_raw_file => [ @vmware_directory, @appliance_xml_file ] do
-        create_base_vmware_raw_file
+        convert_to_vmware
       end
     end
 
@@ -170,14 +170,12 @@ module JBossCloud
       File.open( @vmware_enterprise_vmdk_file, "w" ) {|f| f.write( change_vmdk_values( "vmfs" ) ) }
     end
 
-    def create_base_vmware_raw_file
+    def convert_to_vmware
       @log.info "Copying VMware image file, this may take several minutes..."
 
       FileUtils.cp( @base_raw_file, @base_vmware_raw_file ) if ( !File.exists?( @base_vmware_raw_file ) || File.new( @base_raw_file ).mtime > File.new( @base_vmware_raw_file ).mtime )
 
-      #FileUtils.ln( @base_raw_file, @base_vmware_raw_file )
-
-      @log.info "VMware image copied"
+      @log.info "VMware image copied."
       @log.info "Installing VMware tools..."
 
       if @appliance_config.is_development?

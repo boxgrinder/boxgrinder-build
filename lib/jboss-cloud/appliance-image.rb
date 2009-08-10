@@ -80,15 +80,17 @@ module JBossCloud
     def do_post_build_operations
       @log.info "Executing post operations after build..."
 
-      guestfs = GuestFSHelper.new( @raw_disk ).guestfs
+      guestfs_helper  = GuestFSHelper.new( @raw_disk )
+      guestfs         = guestfs_helper.guestfs
 
+      @log.debug "Changing configuration files using augeas..."
       guestfs.aug_init( "/", 0 )
-
       # don't use DNS for SSH
       guestfs.aug_set( "/files/etc/ssh/sshd_config/UseDNS", "no" )
-
       guestfs.aug_save
+      @log.debug "Augeas changes saved."
 
+      @log.debug "Setting up '/etc/motd'..."
       # set nice banner for SSH
       motd_file = "/etc/init.d/motd"
       guestfs.upload( "#{@config.dir.base}/src/motd.init", motd_file )
@@ -98,9 +100,10 @@ module JBossCloud
 
       guestfs.sh( "/bin/chmod +x #{motd_file}" )
       guestfs.sh( "/sbin/chkconfig --add motd" )
+      @log.debug "'/etc/motd' is nice now."
 
-      # before we install anything we need to clean up RPM database...
-      cleanup_rpm_database( guestfs )
+      # before we access RPM database we need to clean it...
+      guestfs_helper.rebuild_rpm_database
 
       # TODO remove this, http://oddthesis.lighthouseapp.com/projects/19748-jboss-cloud/tickets/95
       if guestfs.sh( "rpm -qa | grep httpd | wc -l" ).to_i > 0
@@ -111,21 +114,12 @@ module JBossCloud
         @log.debug "Workaround applied."
 
         # clean RPM database one more time to leave image clean
-        cleanup_rpm_database( guestfs )
+        guestfs_helper.rebuild_rpm_database
       end
 
       guestfs.close
 
       @log.info "Post operations executed."
-    end
-
-    def cleanup_rpm_database( guestfs )
-      # TODO this is shitty, I know... https://bugzilla.redhat.com/show_bug.cgi?id=507188
-      guestfs.sh( "rm /var/lib/rpm/__db.*" )
-
-      @log.debug "Cleaning RPM database..."
-      guestfs.sh( "rpm --rebuilddb" )
-      @log.debug "Cleaning RPM database finished."
     end
   end
 end
