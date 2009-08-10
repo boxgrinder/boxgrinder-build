@@ -38,6 +38,10 @@ repo --cost=20 --name=thincrust --baseurl=http://www.thincrust.net/repo/noarch/
 
 %include base-pkgs.ks
 
+<% for appliance_name in appliance_names %>
+  <%= appliance_name %>
+<% end %>
+
 %end
 %post
 

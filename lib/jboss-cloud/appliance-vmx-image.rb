@@ -171,12 +171,13 @@ module JBossCloud
     end
 
     def convert_to_vmware
-      @log.info "Copying VMware image file, this may take several minutes..."
+      @log.info "Converting image to VMware format..."
+      @log.debug "Copying VMware image file, this may take several minutes..."
 
       FileUtils.cp( @base_raw_file, @base_vmware_raw_file ) if ( !File.exists?( @base_vmware_raw_file ) || File.new( @base_raw_file ).mtime > File.new( @base_vmware_raw_file ).mtime )
 
-      @log.info "VMware image copied."
-      @log.info "Installing VMware tools..."
+      @log.debug "VMware image copied."
+      @log.debug "Installing VMware tools..."
 
       if @appliance_config.is_development?
         rpmfusion_repo_rpm = [ "http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-rawhide.noarch.rpm", "http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-rawhide.noarch.rpm" ]
@@ -193,7 +194,8 @@ module JBossCloud
       @appliance_image_customizer.customize( @base_vmware_raw_file, { :packages => { :yum => [ open_vm_tools ] }, :repos => rpmfusion_repo_rpm } )
       #:rpm => [ "noarch/vm2-support-1.0.0.Beta1-1.noarch.rpm" ]
 
-      @log.info "VMware tools installed."
+      @log.debug "VMware tools installed."
+      @log.info "Image converted to VMware format."
     end
   end
 end
