@@ -106,12 +106,10 @@ module JBossCloud
       guestfs_helper.rebuild_rpm_database
 
       # TODO remove this, http://oddthesis.lighthouseapp.com/projects/19748-jboss-cloud/tickets/95
-      if guestfs.sh( "rpm -qa | grep httpd | wc -l" ).to_i > 0
-        @log.debug "Applying APR/HTTPD workaround..."
-        guestfs.sh( "yum -y remove apr" )
-        guestfs.sh( "yum -y install mod_cluster --disablerepo=updates" )
-        guestfs.sh( "/sbin/chkconfig httpd on" )
-        @log.debug "Workaround applied."
+      if guestfs.sh( "rpm -qa | grep apr | wc -l" ).to_i > 0
+        @log.debug "Upgrading APR..."
+        guestfs.sh( "yum --enablerepo=updates-testing update apr" )
+        @log.debug "APR upgraded."
 
         # clean RPM database one more time to leave image clean
         guestfs_helper.rebuild_rpm_database

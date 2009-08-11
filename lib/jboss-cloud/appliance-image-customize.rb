@@ -125,6 +125,13 @@ module JBossCloud
       guestfs.rm_rf("/tmp/rpms")
       @log.debug "Additional packages installed."
 
+      @log.debug "Changing configuration files using augeas..."
+      guestfs.aug_init( "/", 0 )
+      # disable password authentication
+      guestfs.aug_set( "/files/etc/ssh/sshd_config/PasswordAuthentication", "no" )
+      guestfs.aug_save
+      @log.debug "Augeas changes saved."
+
       guestfs.close
 
       @log.debug "EC2 image prepared!"
