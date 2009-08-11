@@ -108,7 +108,7 @@ module JBossCloud
       # TODO remove this, http://oddthesis.lighthouseapp.com/projects/19748-jboss-cloud/tickets/95
       if guestfs.sh( "rpm -qa | grep apr | wc -l" ).to_i > 0
         @log.debug "Upgrading APR..."
-        guestfs.sh( "yum --enablerepo=updates-testing update apr" )
+        guestfs.sh( "yum -y --enablerepo=updates-testing update apr" )
         @log.debug "APR upgraded."
 
         # clean RPM database one more time to leave image clean

@@ -99,7 +99,7 @@ module JBossCloud
 
       # enable networking on default runlevels
       @log.debug "Enabling networking..."
-      guestfs.sh( "/sbin/chkconfig --level 345 network on" )
+      guestfs.sh( "/sbin/chkconfig network on" )
       guestfs.upload( ifcfg_eth0, "/etc/sysconfig/network-scripts/ifcfg-eth0" )
       @log.debug "Networking enabled."
 
