@@ -6,9 +6,7 @@ ruby-devel
 gcc-c++
 make
 
-# we don't want ACE
--ace
-
+openssh-server
 openssh-clients
 wget
 
