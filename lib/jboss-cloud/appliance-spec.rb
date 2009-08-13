@@ -39,8 +39,9 @@ module JBossCloud
 
       definition             = YAML.load_file( "#{@config.dir_appliances}/#{@appliance_config.name}/#{@appliance_config.name}.appl" )
       definition['name']     = @appliance_config.name
-      definition['version']  = @config.version
-      definition['release']  = @config.release
+      definition['version']  = @config.version.version
+      definition['release']  = @config.version.release
+      definition['version_with_release']  = @config.version_with_release
       definition['packages'] = Array.new if definition['packages'] == nil
       definition['packages'] += @appliance_config.appliances.select {|v| !v.eql?(@appliance_config.name)}
 

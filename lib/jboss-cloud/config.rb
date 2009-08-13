@@ -21,6 +21,7 @@
 require 'jboss-cloud/defaults'
 require 'jboss-cloud/helpers/config-helper'
 require 'ostruct'
+require 'jboss-cloud/model/release'
 
 module JBossCloud
   class ApplianceConfig
@@ -103,8 +104,6 @@ module JBossCloud
   class Config
     def initialize( name, version, release, dir, config_file )
       @name             = name
-      @version          = version
-      @release          = release
       @dir              = dir
       @config_file      = config_file
 
@@ -113,6 +112,10 @@ module JBossCloud
       @dir.tmp          = "#{@dir.build}/tmp"
 
       @files            = OpenStruct.new
+
+      @version          = OpenStruct.new
+      @version.version  = version
+      @version.release  = release
 
       @dir_rpms_cache   = @dir.rpms_cache
       @dir_src_cache    = @dir.src_cache
@@ -135,6 +138,8 @@ module JBossCloud
         @data = YAML.load_file( @config_file )
         @data['gpg_password'].gsub!(/\$/, "\\$") unless @data['gpg_password'].nil? or @data['gpg_password'].length == 0
       end
+
+      @release          = Release.new( self )
 
       @arch             = (-1.size) == 8 ? "x86_64" : "i386"
 
@@ -180,7 +185,7 @@ module JBossCloud
     end
 
     def version_with_release
-      @version + ((@release.nil? or @release.empty?) ? "" : "-" + @release)
+      @version.version + ((@version.release.nil? or @version.release.empty?) ? "" : "-" + @version.release)
     end
   end
 end

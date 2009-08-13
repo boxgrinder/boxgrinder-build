@@ -6,7 +6,7 @@ Release: 	<%= release %>
 Group:  	Applications/Internet
 License: 	LGPLv2+
 URL: 	    http://oddthesis.org/
-Source0: 	<%= name %>-<%= version %>.tar.gz
+Source0: 	<%= name %>-<%= version_with_release %>.tar.gz
 BuildArch: 	noarch
 <% for package in packages %>
 Requires:       <%= package %>
@@ -19,7 +19,7 @@ Requires: 	rsync
 <%= summary %>
 
 %prep
-%setup 
+%setup -n <%= name %>-<%= version_with_release %> 
 
 %install
 rm -rf $RPM_BUILD_ROOT

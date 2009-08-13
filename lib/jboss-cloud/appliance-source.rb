@@ -33,7 +33,7 @@ module JBossCloud
       @appliance_build_dir   = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
 
       @source_files   = FileList.new( "#{@appliance_dir}/*/**" )
-      @source_tar_gz  = "#{@config.dir_top}/#{@appliance_config.os_path}/SOURCES/#{@appliance_config.name}-#{@config.version}.tar.gz"
+      @source_tar_gz  = "#{@config.dir_top}/#{@appliance_config.os_path}/SOURCES/#{@appliance_config.name}-#{@config.version_with_release}.tar.gz"
 
       define_tasks
     end
@@ -50,7 +50,7 @@ module JBossCloud
     end
 
     def compress_appliance_source
-      stage_directory = "#{@appliance_build_dir}/sources/#{@appliance_config.name}-#{@config.version}/appliances"
+      stage_directory = "#{@appliance_build_dir}/sources/#{@appliance_config.name}-#{@config.version_with_release}/appliances"
       FileUtils.rm_rf stage_directory
       FileUtils.mkdir_p stage_directory
       FileUtils.cp_r( "#{@appliance_dir}/", stage_directory  )
@@ -66,7 +66,7 @@ module JBossCloud
       end
 
       Dir.chdir( "#{@appliance_build_dir}/sources" ) do
-        @exec_helper.execute( "tar zcvf #{@config.dir_root}/#{@source_tar_gz} #{@appliance_config.name}-#{@config.version}/" )
+        @exec_helper.execute( "tar zcvf #{@config.dir_root}/#{@source_tar_gz} #{@appliance_config.name}-#{@config.version_with_release}/" )
       end
     end
 

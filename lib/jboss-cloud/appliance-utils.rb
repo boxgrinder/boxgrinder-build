@@ -30,9 +30,9 @@ module JBossCloud
       @appliance_config = appliance_config
 
       @package_dir                  = "#{@config.dir.build}/appliances/#{@config.build_path}/packages/#{@config.arch}"
-      @package_raw                  = "#{@package_dir}/#{@appliance_config.name}-#{@config.version}-raw.tar.gz"
-      @package_vmware_enterprise    = "#{@package_dir}/#{@appliance_config.name}-#{@config.version}-VMware-enterprise.tar.gz"
-      @package_vmware_personal      = "#{@package_dir}/#{@appliance_config.name}-#{@config.version}-VMware-personal.tar.gz"
+      @package_raw                  = "#{@package_dir}/#{@appliance_config.name}-#{@config.version_with_release}-#{@config.arch}-raw.tar.gz"
+      @package_vmware_enterprise    = "#{@package_dir}/#{@appliance_config.name}-#{@config.version_with_release}-#{@config.arch}-VMware-enterprise.tar.gz"
+      @package_vmware_personal      = "#{@package_dir}/#{@appliance_config.name}-#{@config.version_with_release}-#{@config.arch}-VMware-personal.tar.gz"
 
       @appliance_raw_dir                   = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
       @appliance_vmware_personal_dir       = "#{@config.dir_build}/#{@appliance_config.appliance_path}/vmware/personal"
@@ -48,12 +48,12 @@ module JBossCloud
 
       directory @package_dir
 
-      task "appliance:upload:all" => [ "appliance:#{@appliance_config.name}:upload" ]
-
       #desc "Upload #{@appliance_config.simple_name} appliance package to server"
-      task "appliance:#{@appliance_config.name}:upload" => [ @package_raw, @package_vmware_enterprise, @package_vmware_personal ] do
+      task "appliance:#{@appliance_config.name}:upload" => [ "appliance:#{@appliance_config.name}:package" ] do
         upload_packages
       end
+
+      task "appliance:#{@appliance_config.name}:package" => [ @package_raw, @package_vmware_enterprise, @package_vmware_personal ]
 
       desc "Create RAW package for #{@appliance_config.simple_name} appliance"
       task "appliance:#{@appliance_config.name}:package:raw" => [ @package_raw ]
@@ -113,3 +113,4 @@ end
 
 desc "Upload all appliance packages to server"
 task "appliance:upload:all"
+

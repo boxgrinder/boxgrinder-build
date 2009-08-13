@@ -38,6 +38,7 @@ require 'jboss-cloud/validator/appliance-config-parameter-validator'
 require 'jboss-cloud/helpers/appliance-config-helper'
 require 'jboss-cloud/defaults'
 require 'jboss-cloud/helpers/rake-helper'
+require 'jboss-cloud/helpers/release-helper'
 require 'ostruct'
 require 'yaml'
 
@@ -83,6 +84,7 @@ module JBossCloud
       JBossCloudRelease.new( @config )
       RPMUtils.new( @config )
       GPGSign.new( @config )
+      ReleaseHelper.new( @config )
 
       directory @config.dir_build
 
