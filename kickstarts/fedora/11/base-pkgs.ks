@@ -25,6 +25,8 @@ yum
 vim-minimal
 acpid
 
+unzip
+
 #Allow for dhcp access
 dhclient
 iputils
