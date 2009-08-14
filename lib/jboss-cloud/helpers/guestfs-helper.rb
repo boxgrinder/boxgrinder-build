@@ -78,7 +78,7 @@ module JBossCloud
     # TODO this is shitty, I know... https://bugzilla.redhat.com/show_bug.cgi?id=507188
     def rebuild_rpm_database
       @log.debug "Cleaning RPM database..."
-      @guestfs.sh( "rm /var/lib/rpm/__db.*" )
+      @guestfs.sh( "rm -f /var/lib/rpm/__db.*" )
       @guestfs.sh( "rpm --rebuilddb" )
       @log.debug "Cleaning RPM database finished."
     end

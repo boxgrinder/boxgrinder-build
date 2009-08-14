@@ -10,7 +10,7 @@ Source1:        http://rubyforge.org/frs/download.php/52548/mime-types-1.16.gem
 Source2:        http://rubyforge.org/frs/download.php/21724/builder-2.1.2.gem
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
-Requires:        ruby
+Requires:       rubygems
 
 %description
 This package installs additional required gems.

@@ -84,7 +84,8 @@ module JBossCloud
 
       `rm -rf #{mount_dir}`
 
-      guestfs = GuestFSHelper.new( @appliance_ec2_image_file ).guestfs
+      guestfs_helper  = GuestFSHelper.new( @appliance_ec2_image_file )
+      guestfs         = guestfs_helper.guestfs
 
       @log.debug "Creating required devices..."
       guestfs.sh( "/sbin/MAKEDEV -d /dev -x console" )
@@ -112,6 +113,8 @@ module JBossCloud
 
       rc_local.close
       @log.debug "'/etc/rc.local' file uploaded."
+
+      guestfs_helper.rebuild_rpm_database
 
       @log.debug "Installing additional packages (#{rpms.keys.join( ", " )})..."
       guestfs.mkdir_p("/tmp/rpms")

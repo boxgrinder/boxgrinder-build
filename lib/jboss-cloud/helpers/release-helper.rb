@@ -34,7 +34,7 @@ module JBossCloud
         release_thread_group.add Thread.new { Rake::Task[ "appliance:#{appliance}:upload" ].invoke }
       end
 
-      for thread in  release_thread_group.list
+      for thread in release_thread_group.list
         thread.join
       end
 

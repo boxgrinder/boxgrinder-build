@@ -91,7 +91,7 @@ module JBossCloud
 
       validate_packages_upload_config( ssh_config )
 
-      path = "#{DEFAULT_PROJECT_CONFIG[:name].downcase}/#{DEFAULT_PROJECT_CONFIG[:version]}/#{@appliance_config.arch}/#{@appliance_config.name}"
+      path = "#{@config.aws.bucket_prefix}/#{@appliance_config.arch}/#{@appliance_config.name}"
 
       raw_name                = File.basename( @package_raw )
       vmware_personal_name    = File.basename( @package_vmware_personal )
@@ -103,10 +103,12 @@ module JBossCloud
       files["#{path}/#{vmware_personal_name}"]    = @package_vmware_personal
       files["#{path}/#{vmware_enterprise_name}"]  = @package_vmware_enterprise
 
+      @log.info "Uploading #{@appliance_config.name}..."
       ssh_helper = SSHHelper.new( ssh_config.options )
       ssh_helper.connect
       ssh_helper.upload_files( ssh_config.cfg['remote_release_path'], files )
       ssh_helper.disconnect
+      @log.info "#{@appliance_config.name} uploaded."
     end
   end
 end
