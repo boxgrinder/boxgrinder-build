@@ -105,16 +105,6 @@ module JBossCloud
       # before we access RPM database we need to clean it...
       guestfs_helper.rebuild_rpm_database
 
-      # TODO remove this, http://oddthesis.lighthouseapp.com/projects/19748-jboss-cloud/tickets/95
-      if guestfs.sh( "rpm -qa | grep apr | wc -l" ).to_i > 0
-        @log.debug "Upgrading APR..."
-        guestfs.sh( "yum -y --enablerepo=updates-testing update apr" )
-        @log.debug "APR upgraded."
-
-        # clean RPM database one more time to leave image clean
-        guestfs_helper.rebuild_rpm_database
-      end
-
       guestfs.close
 
       @log.info "Post operations executed."
