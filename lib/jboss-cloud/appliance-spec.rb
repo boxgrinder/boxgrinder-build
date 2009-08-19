@@ -56,9 +56,8 @@ module JBossCloud
         File.open( spec_file, 'w' ) {|f| f.write( erb.result( definition.send( :binding ) ) ) }
       end
 
-      for p in definition['packages'] 
+      for p in definition['packages']
         if ( JBossCloud::RPM.provides.keys.include?( p ) )
-
           file "#{@config.dir_top}/#{@appliance_config.os_path}/RPMS/noarch/#{@appliance_config.name}-#{@config.version_with_release}.noarch.rpm"=>[ "rpm:#{p}" ]
         end
       end

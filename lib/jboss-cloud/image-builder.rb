@@ -93,14 +93,22 @@ module JBossCloud
       @log.debug "Current architecture: #{@config.arch}"
       @log.debug "Building architecture: #{@config.build_arch}"
 
+      appliance_configs = {}
+
       Dir[ "#{@config.dir_appliances}/*/*.appl" ].each do |appliance_def|
-        Appliance.new( @config, ApplianceConfigHelper.new.config( appliance_def, @config ), appliance_def )
+        appliance_config = ApplianceConfigHelper.new.config( appliance_def, @config )
+        appliance_configs[appliance_def] = appliance_config
+        JBossCloudUsers.new( @config, appliance_config )
       end
 
       [ "#{@config.dir.base}/specs/*.spec", "#{@config.dir.specs}/*.spec", "#{@config.dir.specs}/*/*.spec", "#{@config.dir.top}/#{@config.os_path}/SPECS/*.spec" ].each do |spec_file_dir|
         Dir[ spec_file_dir ].each do |spec_file|
           RPM.new( @config, spec_file )
         end
+      end
+
+      appliance_configs.keys.each do |appliance_def|
+        Appliance.new( @config, appliance_configs[appliance_def], appliance_def )
       end
     end
   end

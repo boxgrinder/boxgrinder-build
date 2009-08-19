@@ -1,5 +1,5 @@
 Name:           jboss-cloud-gems
-Version:        1.0.0.Beta6
+Version:        1.0.0.Beta7
 Release:        1
 Summary:        JBoss Cloud additional gems
 Group:          System Environment/Base
