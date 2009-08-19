@@ -48,9 +48,14 @@ module JBossCloud
 
       directory @package_dir
 
-      #desc "Upload #{@appliance_config.simple_name} appliance package to server"
-      task "appliance:#{@appliance_config.name}:upload" => [ "appliance:#{@appliance_config.name}:package" ] do
-        upload_packages
+      task "appliance:#{@appliance_config.name}:upload:ssh" => [ "appliance:#{@appliance_config.name}:package" ] do
+        prepare_file_list
+        upload_via_ssh
+      end
+
+      task "appliance:#{@appliance_config.name}:upload:cloudfront" => [ "appliance:#{@appliance_config.name}:package" ] do
+        prepare_file_list
+        upload_to_cloudfront
       end
 
       task "appliance:#{@appliance_config.name}:package" => [ @package_raw, @package_vmware_enterprise, @package_vmware_personal ]
@@ -86,29 +91,57 @@ module JBossCloud
       raise ValidationError, "Remote release packages path (remote_release_path) not specified in ssh section in configuration file '#{@config.config_file}'. #{DEFAULT_HELP_TEXT[:general]}" if ssh_config.cfg['remote_rpm_path'].nil?
     end
 
-    def upload_packages
-      ssh_config = SSHConfig.new( @config )
-
-      validate_packages_upload_config( ssh_config )
-
-      path = "#{@config.aws.bucket_prefix}/#{@appliance_config.arch}/#{@appliance_config.name}"
+    def prepare_file_list
+      path = "#{@config.version_with_release}/#{@appliance_config.arch}"
 
       raw_name                = File.basename( @package_raw )
       vmware_personal_name    = File.basename( @package_vmware_personal )
       vmware_enterprise_name  = File.basename( @package_vmware_enterprise )
 
-      files = {}
+      @files = {}
 
-      files["#{path}/#{raw_name}"]                = @package_raw
-      files["#{path}/#{vmware_personal_name}"]    = @package_vmware_personal
-      files["#{path}/#{vmware_enterprise_name}"]  = @package_vmware_enterprise
+      @files["#{path}/#{raw_name}"]                = @package_raw
+      @files["#{path}/#{vmware_personal_name}"]    = @package_vmware_personal
+      @files["#{path}/#{vmware_enterprise_name}"]  = @package_vmware_enterprise
+    end
 
-      @log.info "Uploading #{@appliance_config.name}..."
+    def upload_via_ssh
+      @log.info "Uploading '#{@appliance_config.name}' via ssh..."
+
+      ssh_config = SSHConfig.new( @config )
+
+      validate_packages_upload_config( ssh_config )
+
       ssh_helper = SSHHelper.new( ssh_config.options )
       ssh_helper.connect
       ssh_helper.upload_files( ssh_config.cfg['remote_release_path'], files )
       ssh_helper.disconnect
-      @log.info "#{@appliance_config.name} uploaded."
+
+      @log.info "Appliance #{@appliance_config.simple_name} uploaded."
+    end
+
+    def upload_to_cloudfront
+
+      bucket = @config.release.cloudfront['bucket_name']
+
+      @log.info "Uploading '#{@appliance_config.name}' to CloudFront bucket '#{bucket}'..."
+
+      AWSSupport.new( @config )
+
+      begin
+        AWS::S3::Bucket.find( bucket )
+      rescue AWS::S3::NoSuchBucket => ex
+        AWS::S3::Bucket.create( bucket )
+        retry
+      end
+
+      for key in @files.keys
+        unless S3Object.exists?( key, bucket )
+          AWS::S3::S3Object.store( key, open( @files[key] ), bucket )
+        end
+
+        @log.info "Appliance #{@appliance_config.simple_name} uploaded."
+      end
     end
   end
 end

@@ -40,7 +40,7 @@ module JBossCloud
     def define_tasks
       desc "Upload all packages."
       task 'rpm:upload:all' => [ 'rpm:sign:all' ] do
-        upload_packages
+        prepare_file_list
       end
     end
 

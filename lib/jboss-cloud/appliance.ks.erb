@@ -18,6 +18,10 @@ services --enabled=network
 rootpw <%= root_password %> 
 part / --size <%= disk_size %> --fstype <%= fstype %> --ondisk sda
 
+<% for user in users %>
+user --name=<%= user['name'] %><% unless user['home'].nil? %> --homedir=<%= user['home'] %><% end %><% unless user['group'].nil? %> --groups=<%= user['group'] %><% end %>
+<% end unless users.nil? %>
+
 <% for local_repo in local_repos %>
 <%= local_repo %>
 <% end %>

@@ -41,6 +41,7 @@ module JBossCloud
     end
 
     def define
+      JBossCloudUsers.new( @config, @appliance_config )
       JBossCloud::ApplianceSource.new( @config, @appliance_config )
       JBossCloud::ApplianceSpec.new( @config, @appliance_config )
       JBossCloud::ApplianceRPM.new( @config, @appliance_config )

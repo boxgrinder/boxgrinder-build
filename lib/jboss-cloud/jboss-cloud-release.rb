@@ -46,6 +46,8 @@ module JBossCloud
       file [ @release_source ] => [ 'rpm:topdir' ] do
         create_source_for_jboss_cloud_release_rpm
       end
+
+      Rake::Task[ @jboss_cloud_spec_file ].invoke
     end
 
     def create_jboss_cloud_release_spec_file

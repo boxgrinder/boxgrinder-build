@@ -39,6 +39,7 @@ require 'jboss-cloud/helpers/appliance-config-helper'
 require 'jboss-cloud/defaults'
 require 'jboss-cloud/helpers/rake-helper'
 require 'jboss-cloud/helpers/release-helper'
+require 'jboss-cloud/jboss-cloud-users'
 require 'ostruct'
 require 'yaml'
 
@@ -82,6 +83,7 @@ module JBossCloud
 
       Topdir.new( @config )
       JBossCloudRelease.new( @config )
+
       RPMUtils.new( @config )
       GPGSign.new( @config )
       ReleaseHelper.new( @config )
@@ -91,16 +93,14 @@ module JBossCloud
       @log.debug "Current architecture: #{@config.arch}"
       @log.debug "Building architecture: #{@config.build_arch}"
 
-      Rake::Task[ "#{@config.dir.top}/#{@config.os_path}/SPECS/jboss-cloud-release.spec" ].invoke
+      Dir[ "#{@config.dir_appliances}/*/*.appl" ].each do |appliance_def|
+        Appliance.new( @config, ApplianceConfigHelper.new.config( appliance_def, @config ), appliance_def )
+      end
 
       [ "#{@config.dir.base}/specs/*.spec", "#{@config.dir.specs}/*.spec", "#{@config.dir.specs}/*/*.spec", "#{@config.dir.top}/#{@config.os_path}/SPECS/*.spec" ].each do |spec_file_dir|
         Dir[ spec_file_dir ].each do |spec_file|
           RPM.new( @config, spec_file )
         end
-      end
-
-      Dir[ "#{@config.dir_appliances}/*/*.appl" ].each do |appliance_def|
-        Appliance.new( @config, ApplianceConfigHelper.new.config( appliance_def, @config ), appliance_def )
       end
     end
   end

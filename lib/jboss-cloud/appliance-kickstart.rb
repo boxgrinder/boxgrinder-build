@@ -75,6 +75,7 @@ module JBossCloud
       #  definition['fstype'] = "ext3"
       #end
 
+      definition['users'] = appliance_definition['users']
       definition['fstype'] = "ext3"
       definition['root_password'] = "oddthesis"
 

@@ -18,7 +18,7 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require 'EC2'
+require 'AWS'
 require 'aws/s3'
 require 'jboss-cloud/defaults'
 
@@ -28,7 +28,7 @@ module JBossCloud
     def initialize( config )
       @config     = config
       @aws_data   = validate_aws_config
-      @ec2        = EC2::Base.new(:access_key_id => @aws_data['access_key'], :secret_access_key => @aws_data['secret_access_key'])
+      @ec2        = AWS::EC2::Base.new(:access_key_id => @aws_data['access_key'], :secret_access_key => @aws_data['secret_access_key'])
       @s3         = AWS::S3::Base.establish_connection!(:access_key_id => @aws_data['access_key'],  :secret_access_key => @aws_data['secret_access_key'] )
     end
 
@@ -80,7 +80,7 @@ module JBossCloud
       raise ValidationError, "Private key file '#{aws_data['key_file']}' specified in aws section in configuration file (#{@config.config_file}) has wrong permissions (#{key_permission}), please correct it, run: 'chmod #{secure_permissions} #{aws_data['key_file']}'." unless key_permission.eql?( secure_permissions )
 
       raise ValidationError, "Please specify account number in aws section in configuration file (#{@config.config_file}). #{more_info}" if aws_data['account_number'].nil?
-      raise ValidationError, "Please specify bucket name in aws section in configuration file (#{@config.config_file}). #{more_info}" if aws_data['bucket_name'].nil?
+      #raise ValidationError, "Please specify bucket name in aws section in configuration file (#{@config.config_file}). #{more_info}" if aws_data['bucket_name'].nil?
       raise ValidationError, "Please specify access key in aws section in configuration file (#{@config.config_file}). #{more_info}" if aws_data['access_key'].nil?
       raise ValidationError, "Please specify secret access key in aws section in configuration file (#{@config.config_file}). #{more_info}" if aws_data['secret_access_key'].nil?
 

@@ -29,20 +29,16 @@ module JBossCloud
 
     def validate
       unless File.exists?( @config.config_file )
-        @log.warn "Specified configuration file (#{@config.config_file}) doesn't exists."
+        #@log.warn "Specified configuration file (#{@config.config_file}) doesn't exists."
         return nil
       end
-
-      #raise ValidationError, "Specified configuration file (#{@config.config_file}) doesn't exists. #{DEFAULT_HELP_TEXT[:general]}" unless File.exists?( @config.config_file )
 
       @release = @config.data['release']
 
       if @release.nil?
-        @log.warn "No 'release' section in configuration file '#{@config.config_file}'."
+        #@log.warn "No 'release' section in configuration file '#{@config.config_file}'."
         return nil
       end
-
-      #raise ValidationError, "No 'release' section in configuration file '#{@config.config_file}'. #{DEFAULT_HELP_TEXT[:general]}" if @release.nil?
 
       @appliances = @release['appliances']
 
@@ -56,11 +52,28 @@ module JBossCloud
         end
       end
 
+      @ssh        = @release['ssh'] unless @release['ssh'].nil?
+      @cloudfront = @release['cloudfront'] unless @release['cloudfront'].nil?
+
+      @default_type = @release['default_type']
+
+      unless @default_type.nil?
+        @connection_data = @release[@default_type]
+        raise ValidationError, "You specified '#{@default_type}' type in release section in your config file, but there is no '#{@default_type}' subsection, please correct this." if @release[@default_type].nil?
+      else
+        @default_type = 'ssh'
+        @connection_data = @ssh
+      end
+
       @log.debug "Added #{@appliances.size} appliances to release list (#{@appliances.join( ", " )})."
     end
 
     attr_reader :release
     attr_reader :appliances
+    attr_reader :default_type
+    attr_reader :ssh
+    attr_reader :cloudfront
+    attr_reader :connection_data
 
   end
 end
