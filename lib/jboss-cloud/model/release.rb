@@ -54,6 +54,7 @@ module JBossCloud
 
       @ssh        = @release['ssh'] unless @release['ssh'].nil?
       @cloudfront = @release['cloudfront'] unless @release['cloudfront'].nil?
+      @s3         = @release['s3'] unless @release['s3'].nil?
 
       @default_type = @release['default_type']
 
@@ -72,6 +73,7 @@ module JBossCloud
     attr_reader :appliances
     attr_reader :default_type
     attr_reader :ssh
+    attr_reader :s3
     attr_reader :cloudfront
     attr_reader :connection_data
 

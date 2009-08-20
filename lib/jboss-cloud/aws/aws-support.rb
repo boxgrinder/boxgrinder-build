@@ -28,6 +28,9 @@ module JBossCloud
     def initialize( config )
       @config     = config
       @aws_data   = validate_aws_config
+
+      validate_release_config
+
       @ec2        = AWS::EC2::Base.new(:access_key_id => @aws_data['access_key'], :secret_access_key => @aws_data['secret_access_key'])
       @s3         = AWS::S3::Base.establish_connection!(:access_key_id => @aws_data['access_key'],  :secret_access_key => @aws_data['secret_access_key'] )
     end
@@ -37,7 +40,7 @@ module JBossCloud
     attr_reader :s3
 
     def bucket_key( appliance_name )
-      "#{@aws_data['bucket_name']}/#{@config.aws.bucket_prefix}/#{@config.build_arch}/#{appliance_name}"
+      "#{@config.release.s3['bucket_name']}/#{@config.aws.bucket_prefix}/#{@config.build_arch}/#{appliance_name}"
     end
 
     def bucket_manifest_key( appliance_name )
@@ -62,6 +65,11 @@ module JBossCloud
       ami_info
     end
 
+    def validate_release_config
+      raise ValidationError, "No 's3' subsection in 'release' section in configuration file (#{@config.config_file})." if @config.release.s3.nil?
+      raise ValidationError, "Please specify bucket name in 's3' subsection in configuration file (#{@config.config_file})." if @config.release.s3['bucket_name'].nil? or @config.release.s3['bucket_name'].length == 0
+    end
+
     def validate_aws_config
       secure_permissions  = "600"
       more_info           = "See http://oddthesis.org/theses/jboss-cloud/projects/jboss-cloud-support/pages/ec2-configuration-file for more info."
@@ -80,7 +88,6 @@ module JBossCloud
       raise ValidationError, "Private key file '#{aws_data['key_file']}' specified in aws section in configuration file (#{@config.config_file}) has wrong permissions (#{key_permission}), please correct it, run: 'chmod #{secure_permissions} #{aws_data['key_file']}'." unless key_permission.eql?( secure_permissions )
 
       raise ValidationError, "Please specify account number in aws section in configuration file (#{@config.config_file}). #{more_info}" if aws_data['account_number'].nil?
-      #raise ValidationError, "Please specify bucket name in aws section in configuration file (#{@config.config_file}). #{more_info}" if aws_data['bucket_name'].nil?
       raise ValidationError, "Please specify access key in aws section in configuration file (#{@config.config_file}). #{more_info}" if aws_data['access_key'].nil?
       raise ValidationError, "Please specify secret access key in aws section in configuration file (#{@config.config_file}). #{more_info}" if aws_data['secret_access_key'].nil?
 

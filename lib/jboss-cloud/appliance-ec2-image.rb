@@ -88,7 +88,7 @@ module JBossCloud
 
     def appliance_already_uploaded?
       begin
-        bucket = Bucket.find( @aws_support.aws_data['bucket_name'] )
+        bucket = Bucket.find( @config.release.s3['bucket_name'] )
       rescue
         return false
       end
@@ -109,7 +109,7 @@ module JBossCloud
         return
       end
 
-      @log.info "Uploading #{@appliance_config.simple_name} AMI to bucket '#{@aws_support.aws_data['bucket_name']}'..."
+      @log.info "Uploading #{@appliance_config.simple_name} AMI to bucket '#{@config.release.s3['bucket_name']}'..."
 
       @exec_helper.execute( "ec2-upload-bundle -b #{@aws_support.bucket_key( @appliance_config.name )} -m #{@appliance_ec2_manifest_file} -a #{@aws_support.aws_data['access_key']} -s #{@aws_support.aws_data['secret_access_key']} --retry" )
     end
