@@ -186,9 +186,9 @@ module JBossCloud
       end
 
       if @appliance_config.is64bit?
-        open_vm_tools = "open-vm-tools"
+        open_vm_tools = "kmod-open-vm-tools"
       else
-        open_vm_tools = "open-vm-tools.i586"
+        open_vm_tools = "kmod-open-vm-tools.i586"
       end
 
       @appliance_image_customizer.customize( @base_vmware_raw_file, { :packages => { :yum => [ open_vm_tools ] }, :repos => rpmfusion_repo_rpm } )
