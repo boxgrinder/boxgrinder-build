@@ -1,6 +1,6 @@
 /dev/sda1  /         ext3    defaults         1 1
-/dev/sda2  /mnt      ext3    defaults         1 2
-/dev/sda3  swap      swap    defaults         0 0
+/dev/sdb   /mnt      ext3    defaults         0 0
+/dev/sdc   /data     ext3    defaults         0 0
 none       /dev/pts  devpts  gid=5,mode=620   0 0
 none       /dev/shm  tmpfs   defaults         0 0
 none       /proc     proc    defaults         0 0
