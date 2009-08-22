@@ -1,0 +1,4 @@
+This package contains JBoss Cloud release for VMware.
+
+For VMware Personal (VMware Fusion, VMware Server, VMware Player) extract .raw file and all files from personal/ directory into one directory.
+For VMware Enterprise (VMware ESX/ESXi/, VMware vSphere) extract .raw file and all files from enterprise/ directory into one directory.
