@@ -37,19 +37,20 @@ module JBossCloud
 
     def validate
       raise ValidationError, "Specified configuration file (#{@config.config_file}) doesn't exists. #{DEFAULT_HELP_TEXT[:general]}" unless File.exists?( @config.config_file )
+      raise ValidationError, "No 'ssh' section in config file in configuration file '#{@config.config_file}'. #{DEFAULT_HELP_TEXT[:general]}" if @config.release.ssh.nil?
 
       # we need only ssh section
-      @cfg = @config.data['ssh']
+      @cfg = @config.release.ssh
 
       raise ValidationError, "Host not specified in configuration file '#{@config.config_file}'. #{DEFAULT_HELP_TEXT[:general]}" if @cfg['host'].nil?
       raise ValidationError, "Username not specified in configuration file '#{@config.config_file}'. #{DEFAULT_HELP_TEXT[:general]}" if @cfg['username'].nil?
 
-      @options['host']      = @cfg['host']
-      @options['username']  = @cfg['username']
-      @options['password']  = @cfg['password']
+      @options['host']      = @config.release.ssh['host']
+      @options['username']  = @config.release.ssh['username']
+      @options['password']  = @config.release.ssh['password']
     end
 
     attr_reader :options
-    attr_reader :cfg
+    attr_reader :cfg 
   end
 end

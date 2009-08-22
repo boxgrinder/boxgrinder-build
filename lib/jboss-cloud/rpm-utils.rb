@@ -40,7 +40,7 @@ module JBossCloud
     def define_tasks
       desc "Upload all packages."
       task 'rpm:upload:all' => [ 'rpm:sign:all' ] do
-        prepare_file_list
+        upload_packages
       end
     end
 
@@ -65,15 +65,13 @@ module JBossCloud
               packages[file[ local_prefix_length, file.length ]] = file
             end
           end
+          dirs.push( "#{os}/#{version}/SRPMS" )
+          Dir[ "#{@config.dir.top}/#{os}/#{version}/SRPMS/*.rpm" ].each do |file|
+            local_prefix_length = "#{@config.dir.top}/".length
+            packages[file[ local_prefix_length, file.length ]] = file
+          end
         end
       end
-
-      Dir[ "#{@config.dir.top}/#{APPLIANCE_DEFAULTS['os_name']}/#{APPLIANCE_DEFAULTS['os_version']}/SRPMS/*.src.rpm" ].each do |file|
-        local_prefix_length = "#{@config.dir.top}/#{APPLIANCE_DEFAULTS['os_name']}/#{APPLIANCE_DEFAULTS['os_version']}/".length
-        packages[file[ local_prefix_length, file.length ]] = file
-      end
-
-      dirs.push( "SRPMS" )
 
       ssh_helper = SSHHelper.new( ssh_config.options )
 

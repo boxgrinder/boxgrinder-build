@@ -17,7 +17,7 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-oddthesis
 [oddthesis-source]
 name=Odd Thesis Source
 failovermethod=priority
-baseurl=http://repo.oddthesis.org/packages/SRPMS/
+baseurl=http://repo.oddthesis.org/packages/#OS_NAME#/#OS_VERSION#/SRPMS/
 enabled=0
 gpgcheck=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-oddthesis
