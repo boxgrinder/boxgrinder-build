@@ -75,7 +75,7 @@ module JBossCloud
         @log.info "Package '#{@rpm_file_basename}' was built successfully."
       end
 
-      task 'rpm:all' => [ @rpm_file ]
+      task 'rpm:all' => [ "rpm:#{@simple_name}" ]
     end
 
     def build_rpm
@@ -133,10 +133,6 @@ module JBossCloud
       source_file     = "#{@config.dir.top}/#{@config.os_path}/SOURCES/#{source_basename}"
 
       file rpm_file => [ source_file ]
-
-      #if ( source_file == APPLIANCE_SOURCE_FILE )
-      #  nothing
-      # else
 
       FileUtils.cp( "#{@config.dir.src}/#{source}", "#{source_file}" ) if File.exists?( "#{@config.dir.src}/#{source}" )
       FileUtils.cp( "#{@config.dir.base}/src/#{source}", "#{source_file}" ) if File.exists?( "#{@config.dir.base}/src/#{source}" )
