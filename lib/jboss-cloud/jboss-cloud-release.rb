@@ -43,7 +43,7 @@ module JBossCloud
         create_jboss_cloud_release_spec_file
       end
 
-      file [ @release_source ] => [ 'rpm:topdir' ] do
+      file @release_source => [ 'rpm:topdir' ] do
         create_source_for_jboss_cloud_release_rpm
       end
 
