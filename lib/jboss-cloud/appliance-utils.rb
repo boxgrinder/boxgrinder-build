@@ -31,12 +31,10 @@ module JBossCloud
 
       @package_dir                  = "#{@config.dir.build}/appliances/#{@config.build_path}/packages/#{@config.arch}"
       @package_raw                  = "#{@package_dir}/#{@appliance_config.name}-#{@config.version_with_release}-#{@config.arch}-raw.tar.gz"
-      @package_vmware_enterprise    = "#{@package_dir}/#{@appliance_config.name}-#{@config.version_with_release}-#{@config.arch}-VMware-enterprise.tar.gz"
-      @package_vmware_personal      = "#{@package_dir}/#{@appliance_config.name}-#{@config.version_with_release}-#{@config.arch}-VMware-personal.tar.gz"
+      @package_vmware               = "#{@package_dir}/#{@appliance_config.name}-#{@config.version_with_release}-#{@config.arch}-VMware.tar.gz"
 
       @appliance_raw_dir                   = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
-      @appliance_vmware_personal_dir       = "#{@config.dir_build}/#{@appliance_config.appliance_path}/vmware/personal"
-      @appliance_vmware_enterprise_dir     = "#{@config.dir_build}/#{@appliance_config.appliance_path}/vmware/enterprise"
+      @appliance_vmware_dir                = "#{@appliance_raw_dir}/vmware"
 
       @exec_helper       = EXEC_HELPER
       @log               = LOG
@@ -58,32 +56,23 @@ module JBossCloud
         upload_to_cloudfront
       end
 
-      task "appliance:#{@appliance_config.name}:package" => [ @package_raw, @package_vmware_enterprise, @package_vmware_personal ]
+      task "appliance:#{@appliance_config.name}:package" => [ @package_raw, @package_vmware ]
 
       desc "Create RAW package for #{@appliance_config.simple_name} appliance"
       task "appliance:#{@appliance_config.name}:package:raw" => [ @package_raw ]
 
-      desc "Create VMware Enterprise package for #{@appliance_config.simple_name} appliance"
-      task "appliance:#{@appliance_config.name}:package:vmware:enterprise" => [ @package_vmware_enterprise ]
-
-      desc "Create Vmware Personal package for #{@appliance_config.simple_name} appliance"
-      task "appliance:#{@appliance_config.name}:package:vmware:personal" => [ @package_vmware_personal ]
+      desc "Create VMware package for #{@appliance_config.simple_name} appliance"
+      task "appliance:#{@appliance_config.name}:package:vmware" => [ @package_vmware ]
 
       file @package_raw => [ @package_dir, "appliance:#{@appliance_config.name}" ] do
         @log.info "Packaging #{@appliance_config.simple_name} appliance RAW image (#{@config.os_name} #{@config.os_version}, #{@config.arch} arch)..."
         @exec_helper.execute "tar -C #{@appliance_raw_dir} -cvzf #{@package_raw} #{@appliance_config.name}-sda.raw #{@appliance_config.name}.xml"
       end
 
-      vmware_files = "#{@appliance_config.name}-sda.raw #{@appliance_config.name}.vmx #{@appliance_config.name}.vmdk"
-
-      file @package_vmware_enterprise => [ @package_dir, "appliance:#{@appliance_config.name}:vmware:enterprise" ] do
-        @log.info "Packaging #{@appliance_config.simple_name} appliance VMware Enterprise image (#{@config.os_name} #{@config.os_version}, #{@config.arch} arch)..."
-        @exec_helper.execute "tar -C #{@appliance_vmware_enterprise_dir} -cvzf '#{@package_vmware_enterprise}' #{vmware_files}"
-      end
-
-      file @package_vmware_personal => [ @package_dir, "appliance:#{@appliance_config.name}:vmware:personal" ] do
-        @log.info "Packaging #{@appliance_config.simple_name} appliance VMware Personal image (#{@config.os_name} #{@config.os_version}, #{@config.arch} arch)..."
-        @exec_helper.execute "tar -C #{@appliance_vmware_personal_dir} -cvzf #{@package_vmware_personal} #{vmware_files}"
+      file @package_vmware => [ @package_dir, "appliance:#{@appliance_config.name}:vmware:enterprise", "appliance:#{@appliance_config.name}:vmware:personal" ] do
+        FileUtils.cp( "#{@config.dir.base}/src/README.vmware", "#{@appliance_vmware_dir}/README" )
+        @log.info "Packaging #{@appliance_config.simple_name} appliance VMware image (#{@config.os_name} #{@config.os_version}, #{@config.arch} arch)..."
+        @exec_helper.execute "tar -C #{@appliance_vmware_dir} -cvzf '#{@package_vmware}' README #{@appliance_config.name}-sda.raw personal/#{@appliance_config.name}.vmx personal/#{@appliance_config.name}.vmdk enterprise/#{@appliance_config.name}.vmx enterprise/#{@appliance_config.name}.vmdk"
       end
     end
 
@@ -95,14 +84,12 @@ module JBossCloud
       path = "#{@config.version_with_release}/#{@appliance_config.arch}"
 
       raw_name                = File.basename( @package_raw )
-      vmware_personal_name    = File.basename( @package_vmware_personal )
-      vmware_enterprise_name  = File.basename( @package_vmware_enterprise )
+      vmware_name             = File.basename( @package_vmware )
 
       @files = {}
 
-      @files["#{path}/#{raw_name}"]                = @package_raw
-      @files["#{path}/#{vmware_personal_name}"]    = @package_vmware_personal
-      @files["#{path}/#{vmware_enterprise_name}"]  = @package_vmware_enterprise
+      @files["#{path}/#{raw_name}"]       = @package_raw
+      @files["#{path}/#{vmware_name}"]    = @package_vmware
     end
 
     def upload_via_ssh
@@ -137,11 +124,11 @@ module JBossCloud
 
       for key in @files.keys
         unless S3Object.exists?( key, bucket )
-          AWS::S3::S3Object.store( key, open( @files[key] ), bucket )
+          AWS::S3::S3Object.store( key, open( @files[key] ), bucket, :access => :public_read )
         end
-
-        @log.info "Appliance #{@appliance_config.simple_name} uploaded."
       end
+
+      @log.info "Appliance #{@appliance_config.simple_name} uploaded."
     end
   end
 end
