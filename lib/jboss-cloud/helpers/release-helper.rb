@@ -56,7 +56,7 @@ module JBossCloud
     end
 
     def upload_release( appliance )
-      case @config.release.type
+      case @config.release.default_type
         when "ssh"
           Rake::Task[ "appliance:#{appliance}:upload:ssh" ].invoke
         when "cloudfront"
