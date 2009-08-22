@@ -1,4 +1,38 @@
-This package contains JBoss Cloud release for VMware.
+#NAME# version #VERSION#
 
-For VMware Personal (VMware Fusion, VMware Server, VMware Player) extract .raw file and all files from personal/ directory into one directory.
-For VMware Enterprise (VMware ESX/ESXi/, VMware vSphere) extract .raw file and all files from enterprise/ directory into one directory.
+This package contains #APPLIANCE_NAME# image for VMware.
+
+VMware Personal (VMware Fusion, VMware Server, VMware Player)
+=============================================================
+
+Required files:
+---------------
+
+#APPLIANCE_NAME#-sda.raw
+personal/#APPLIANCE_NAME#.vmx
+personal/#APPLIANCE_NAME#.vmdk
+
+Required steps:
+---------------
+
+1. Extract #APPLIANCE_NAME#-sda.raw file and all files from personal/ directory into one directory.
+2. Add #APPLIANCE_NAME#.vmx to inventory.
+3. Run appliance.
+
+VMware Enterprise (VMware ESX/ESXi/, VMware vSphere)
+====================================================
+
+Required files:
+---------------
+
+#APPLIANCE_NAME#-sda.raw
+enterprise/#APPLIANCE_NAME#.vmx
+enterprise/#APPLIANCE_NAME#.vmdk
+
+Required steps:
+---------------
+
+1. Extract #APPLIANCE_NAME#-sda.raw file and all files from enterprise/ directory into one directory.
+2. Upload all files to ESX server using vSpehere/VI client.
+3. Add #APPLIANCE_NAME#.vmx to inventory.
+4. Run appliance.

@@ -67,12 +67,22 @@ module JBossCloud
       file @package_raw => [ @package_dir, "appliance:#{@appliance_config.name}" ] do
         @log.info "Packaging #{@appliance_config.simple_name} appliance RAW image (#{@config.os_name} #{@config.os_version}, #{@config.arch} arch)..."
         @exec_helper.execute "tar -C #{@appliance_raw_dir} -cvzf #{@package_raw} #{@appliance_config.name}-sda.raw #{@appliance_config.name}.xml"
+        @log.info "RAW package created."
       end
 
       file @package_vmware => [ @package_dir, "appliance:#{@appliance_config.name}:vmware:enterprise", "appliance:#{@appliance_config.name}:vmware:personal" ] do
-        FileUtils.cp( "#{@config.dir.base}/src/README.vmware", "#{@appliance_vmware_dir}/README" )
         @log.info "Packaging #{@appliance_config.simple_name} appliance VMware image (#{@config.os_name} #{@config.os_version}, #{@config.arch} arch)..."
+
+        readme = File.open( "#{@config.dir.base}/src/README.vmware" ).read
+
+        readme.gsub!( /#APPLIANCE_NAME#/, @appliance_config.name )
+        readme.gsub!( /#NAME#/, @config.name )
+        readme.gsub!( /#VERSION#/, @config.version_with_release )
+
+        File.open( "#{@appliance_vmware_dir}/README", "w") {|f| f.write( readme ) }
+
         @exec_helper.execute "tar -C #{@appliance_vmware_dir} -cvzf '#{@package_vmware}' README #{@appliance_config.name}-sda.raw personal/#{@appliance_config.name}.vmx personal/#{@appliance_config.name}.vmdk enterprise/#{@appliance_config.name}.vmx enterprise/#{@appliance_config.name}.vmdk"
+        @log.info "VMware package created."
       end
     end
 
