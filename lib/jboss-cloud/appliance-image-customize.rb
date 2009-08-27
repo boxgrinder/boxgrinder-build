@@ -98,6 +98,8 @@ module JBossCloud
       guestfs.upload( fstab_file, "/etc/fstab" )
       @log.debug "'/etc/fstab' file uploaded."
 
+      guestfs.mkdir( "/data" ) if @appliance_config.is64bit?
+
       # enable networking on default runlevels
       @log.debug "Enabling networking..."
       guestfs.sh( "/sbin/chkconfig network on" )
