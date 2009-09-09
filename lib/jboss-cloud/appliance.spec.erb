@@ -29,6 +29,7 @@ cp -R * $RPM_BUILD_ROOT/usr/share/%{name}/sources
 
 %post
 /bin/echo "appliance_name: <%= name %>" > /etc/jboss-cloud
+/bin/echo "APPLIANCE_NAME=<%= name %>" >> /etc/sysconfig/jboss-cloud
 
 %clean
 rm -rf $RPM_BUILD_ROOT

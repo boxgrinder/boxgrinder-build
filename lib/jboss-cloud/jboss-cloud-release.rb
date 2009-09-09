@@ -37,32 +37,11 @@ module JBossCloud
     end
 
     def define_tasks
-      task 'rpm:jboss-cloud-release' => [ @release_source, @jboss_cloud_spec_file ]
-
-      file @jboss_cloud_spec_file  => [ 'rpm:topdir' ] do
-        create_jboss_cloud_release_spec_file
-      end
+      task 'rpm:jboss-cloud-release' => [ @release_source ]
 
       file @release_source => [ 'rpm:topdir' ] do
         create_source_for_jboss_cloud_release_rpm
       end
-
-      Rake::Task[ @jboss_cloud_spec_file ].invoke
-    end
-
-    def create_jboss_cloud_release_spec_file
-      spec_data = File.open( @jboss_cloud_spec_base_file ).read
-
-      os_version = @config.os_version
-
-      if @config.os_name.eql?( "fedora" )
-        # next release
-        os_version = STABLE_RELEASES['fedora'].to_i + 1 if @config.os_version.eql?( "rawhide" )
-      end
-
-      spec_data.gsub!( /#OS_VERSION#/, os_version.to_s )
-
-      File.open( @jboss_cloud_spec_file, "w") {|f| f.write( spec_data ) }
     end
 
     def create_source_for_jboss_cloud_release_rpm
