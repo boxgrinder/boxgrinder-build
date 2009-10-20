@@ -42,9 +42,9 @@ rm -rf $RPM_BUILD_ROOT
 /etc/sysconfig/jboss-cloud
 
 %changelog
-* Tue Mar 10 2009 Marek Goldmann <marek.goldmann@gmail.com> jboss-cloud-release-1.0.0.Beta3
+* Tue Mar 10 2009 Marek Goldmann <marek.goldmann@gmail.com> - 1.0.0.Beta8-1
 - Renaming, added Provides, repos and keys from fedora 
 
-* Thu Jan 15 2009 Marek Goldmann <marek.goldmann@gmail.com> oddthesis-repo-1.0
+* Thu Jan 15 2009 Marek Goldmann <marek.goldmann@gmail.com> - 1.0.0.Beta1-1
 - First spec file based upon Gregory R. Kriehn HOWTO
   (http://optics.csufresno.edu/~kriehn/fedora/fedora_files/f8/howto/yum-repository.html).
