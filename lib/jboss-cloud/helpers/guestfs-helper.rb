@@ -24,7 +24,7 @@ module JBossCloud
   class GuestFSHelper
     def initialize( raw_disk )
       @raw_disk = raw_disk
-      @log      = LOG
+      @log = LOG
 
       launch
     end

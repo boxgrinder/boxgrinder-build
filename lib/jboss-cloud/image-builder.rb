@@ -39,7 +39,6 @@ require 'jboss-cloud/helpers/appliance-config-helper'
 require 'jboss-cloud/defaults'
 require 'jboss-cloud/helpers/rake-helper'
 require 'jboss-cloud/helpers/release-helper'
-require 'jboss-cloud/jboss-cloud-users'
 require 'ostruct'
 require 'yaml'
 
@@ -52,24 +51,24 @@ module JBossCloud
       # validates parameters, this is a pre-validation
       ApplianceConfigParameterValidator.new.validate
 
-      name              = project_config[:name]     || DEFAULT_PROJECT_CONFIG[:name]
-      version           = project_config[:version]  || DEFAULT_PROJECT_CONFIG[:version]
-      release           = project_config[:release]  || DEFAULT_PROJECT_CONFIG[:release]
+      name    =   project_config[:name]     || DEFAULT_PROJECT_CONFIG[:name]
+      version =   project_config[:version]  || DEFAULT_PROJECT_CONFIG[:version]
+      release =   project_config[:release]  || DEFAULT_PROJECT_CONFIG[:release]
 
       # dirs
 
-      dir               = OpenStruct.new
-      dir.root          = `pwd`.strip
-      dir.build         = project_config[:dir_build]          || DEFAULT_PROJECT_CONFIG[:dir_build]
-      dir.top           = project_config[:dir_top]            || "#{dir.build}/topdir"
-      dir.src_cache     = project_config[:dir_sources_cache]  || DEFAULT_PROJECT_CONFIG[:dir_sources_cache]
-      dir.rpms_cache    = project_config[:dir_rpms_cache]     || DEFAULT_PROJECT_CONFIG[:dir_rpms_cache]
-      dir.specs         = project_config[:dir_specs]          || DEFAULT_PROJECT_CONFIG[:dir_specs]
-      dir.appliances    = project_config[:dir_appliances]     || DEFAULT_PROJECT_CONFIG[:dir_appliances]
-      dir.src           = project_config[:dir_src]            || DEFAULT_PROJECT_CONFIG[:dir_src]
-      dir.kickstarts    = project_config[:dir_kickstarts]     || DEFAULT_PROJECT_CONFIG[:dir_kickstarts]
+      dir = OpenStruct.new
+      dir.root        = `pwd`.strip
+      dir.build       = project_config[:dir_build]          || DEFAULT_PROJECT_CONFIG[:dir_build]
+      dir.top         = project_config[:dir_top]            || "#{dir.build}/topdir"
+      dir.src_cache   = project_config[:dir_sources_cache]  || DEFAULT_PROJECT_CONFIG[:dir_sources_cache]
+      dir.rpms_cache  = project_config[:dir_rpms_cache]     || DEFAULT_PROJECT_CONFIG[:dir_rpms_cache]
+      dir.specs       = project_config[:dir_specs]          || DEFAULT_PROJECT_CONFIG[:dir_specs]
+      dir.appliances  = project_config[:dir_appliances]     || DEFAULT_PROJECT_CONFIG[:dir_appliances]
+      dir.src         = project_config[:dir_src]            || DEFAULT_PROJECT_CONFIG[:dir_src]
+      dir.kickstarts  = project_config[:dir_kickstarts]     || DEFAULT_PROJECT_CONFIG[:dir_kickstarts]
 
-      config_file       = ENV['JBOSS_CLOUD_CONFIG_FILE']      || "#{ENV['HOME']}/.jboss-cloud/config"
+      config_file = ENV['JBOSS_CLOUD_CONFIG_FILE'] || "#{ENV['HOME']}/.jboss-cloud/config"
 
       @config = Config.new( name, version, release, dir, config_file )
 
@@ -98,7 +97,6 @@ module JBossCloud
       Dir[ "#{@config.dir_appliances}/*/*.appl" ].each do |appliance_def|
         appliance_config = ApplianceConfigHelper.new.config( appliance_def, @config )
         appliance_configs[appliance_def] = appliance_config
-        JBossCloudUsers.new( @config, appliance_config )
       end
 
       [ "#{@config.dir.base}/specs/*.spec", "#{@config.dir.specs}/*.spec", "#{@config.dir.specs}/*/*.spec", "#{@config.dir.top}/#{@config.os_path}/SPECS/*.spec" ].each do |spec_file_dir|
