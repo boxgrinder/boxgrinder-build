@@ -83,12 +83,8 @@ module JBossCloud
         self[ sym.to_s ]
       end
 
-      definition['local_repos'] = [
-              "repo --name=jboss-cloud --cost=10 --baseurl=file://#{@config.dir_root}/#{@config.dir_top}/#{@appliance_config.os_path}/RPMS/noarch",
-              "repo --name=jboss-cloud-#{@appliance_config.arch} --cost=10 --baseurl=file://#{@config.dir_root}/#{@config.dir_top}/#{@appliance_config.os_path}/RPMS/#{@appliance_config.arch}"
-      ]
-
-      definition['local_repos'] << "repo --name=extra-rpms --cost=1 --baseurl=file://#{Dir.pwd}/extra-rpms/noarch" if ( File.exist?( "extra-rpms" ) )
+      definition['repos'] << "repo --name=oddthesis --cost=10 --baseurl=http://repo.oddthesis.org/packages/#{@appliance_config.os_path}/RPMS/noarch"
+      definition['repos'] << "repo --name=oddthesis-#{@appliance_config.arch} --cost=10 --baseurl=http://repo.oddthesis.org/packages/#{@appliance_config.os_path}/RPMS/#{@appliance_config.arch}"
 
       all_excludes = []
 
@@ -107,7 +103,7 @@ module JBossCloud
         repo_def = "repo --name=#{repo[0]} --cost=40 --#{repo[1]}=#{repo[2]}"
         repo_def += " --excludepkgs=#{all_excludes.join(',')}" unless all_excludes.empty?
 
-        definition['repos'] <<  repo_def
+        definition['repos'] << repo_def
       end
 
       #rpmfusion_os_name = @appliance_config.os_name.eql?("rhel") ? "el" : @appliance_config.os_name

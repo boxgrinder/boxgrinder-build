@@ -22,10 +22,6 @@ part / --size <%= disk_size %> --fstype <%= fstype %> --ondisk sda
 user --name=<%= user['name'] %><% unless user['home'].nil? %> --homedir=<%= user['home'] %><% end %><% unless user['group'].nil? %> --groups=<%= user['group'] %><% end %>
 <% end unless users.nil? %>
 
-<% for local_repo in local_repos %>
-<%= local_repo %>
-<% end %>
-repo --cost=20 --name=thincrust --baseurl=http://www.thincrust.net/repo/noarch/
 <% for repo in repos %>
 <%= repo %>
 <% end %>

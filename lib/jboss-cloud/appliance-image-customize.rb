@@ -169,7 +169,7 @@ module JBossCloud
       guestfs_helper  = GuestFSHelper.new( raw_file )
       guestfs         = guestfs_helper.guestfs
 
-      #guestfs_helper.rebuild_rpm_database
+      guestfs_helper.rebuild_rpm_database
 
       for repo in options[:repos]
         @log.debug "Installing repo file '#{repo}'..."

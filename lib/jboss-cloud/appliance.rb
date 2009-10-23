@@ -20,9 +20,6 @@
 
 require 'rake/tasklib'
 
-require 'jboss-cloud/appliance-source.rb'
-require 'jboss-cloud/appliance-spec.rb'
-require 'jboss-cloud/appliance-rpm.rb'
 require 'jboss-cloud/appliance-kickstart.rb'
 require 'jboss-cloud/appliance-image.rb'
 require 'jboss-cloud/appliance-utils'
@@ -41,9 +38,6 @@ module JBossCloud
     end
 
     def define
-      JBossCloud::ApplianceSource.new( @config, @appliance_config )
-      JBossCloud::ApplianceSpec.new( @config, @appliance_config )
-      JBossCloud::ApplianceRPM.new( @config, @appliance_config )
       JBossCloud::ApplianceKickstart.new( @config, @appliance_config )
       JBossCloud::ApplianceDependencyValidator.new( @config, @appliance_config )
       JBossCloud::ApplianceImage.new( @config, @appliance_config )

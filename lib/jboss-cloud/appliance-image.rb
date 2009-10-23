@@ -55,10 +55,6 @@ module JBossCloud
 
       directory @tmp_dir
 
-      for appliance_name in @appliance_config.appliances
-        task "appliance:#{@appliance_config.name}:rpms" => [ "rpm:#{appliance_name}" ]
-      end
-
       file @xml_file => [ @kickstart_file, "appliance:#{@appliance_config.name}:validate:dependencies", @tmp_dir ] do
         build_raw_image
         do_post_build_operations
@@ -103,7 +99,7 @@ module JBossCloud
       @log.debug "'/etc/motd' is nice now."
 
       # before we access RPM database we need to clean it...
-      guestfs_helper.rebuild_rpm_database
+      #guestfs_helper.rebuild_rpm_database
 
       guestfs.close
 
