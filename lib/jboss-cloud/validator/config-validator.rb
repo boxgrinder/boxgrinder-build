@@ -31,7 +31,7 @@ module JBossCloud
     def validate
       validate_common
       validate_arch
-      validate_base_pkgs
+      #validate_base_pkgs
       validate_vmware_files
       validate_appliance_dir
     end

@@ -30,7 +30,7 @@ module JBossCloud
   class ApplianceKickstart < Rake::TaskLib
 
     def initialize( config, appliance_config )
-      @config           = config
+      @config = config
       @appliance_config = appliance_config
 
       define
@@ -41,16 +41,22 @@ module JBossCloud
       #definition['local_repository_url'] = "file://#{@config.dir_top}/RPMS/noarch"
       # 
       # kickstart want to have disk size in MB, we are using GB
-      definition['disk_size']            = @appliance_config.disk_size * 1024
-      definition['appl_name']            = @appliance_config.name
-      definition['arch']                 = @appliance_config.arch
 
-      definition['post_script']          = ''
-      definition['exclude_clause']       = ''
-      definition['appliance_names']      = @appliance_config.appliances
-      definition['repos']                = Array.new
+      definition['partitions'] = []
 
-      appliance_definition               = YAML.load_file( "#{@config.dir_appliances}/#{@appliance_config.name}/#{@appliance_config.name}.appl" )
+      @appliance_config.hardware.partitions.each do |root, partition|
+        definition['partitions'] << partition
+      end
+
+      definition['name'] = @appliance_config.name
+      definition['arch'] = @appliance_config.hardware.arch
+
+      definition['post_script'] = ''
+      definition['exclude_clause'] = ''
+      definition['appliance_names'] = @appliance_config.appliances
+      definition['repos'] = Array.new
+
+      appliance_definition = @appliance_config.definition #YAML.load_file( "#{@config.dir_appliances}/#{@appliance_config.name}/#{@appliance_config.name}.appl" )
 
       if SUPPORTED_DESKTOP_TYPES.include?( appliance_definition['desktop'] )
         definition['graphical'] = true
@@ -77,26 +83,48 @@ module JBossCloud
 
       definition['users'] = appliance_definition['users']
       definition['fstype'] = "ext3"
-      definition['root_password'] = "oddthesis"
+      definition['root_password'] = @appliance_config.os.password
 
       def definition.method_missing(sym, *args)
         self[ sym.to_s ]
       end
 
       definition['repos'] << "repo --name=oddthesis --cost=10 --baseurl=http://repo.oddthesis.org/packages/#{@appliance_config.os_path}/RPMS/noarch"
-      definition['repos'] << "repo --name=oddthesis-#{@appliance_config.arch} --cost=10 --baseurl=http://repo.oddthesis.org/packages/#{@appliance_config.os_path}/RPMS/#{@appliance_config.arch}"
+      definition['repos'] << "repo --name=oddthesis-#{@appliance_config.hardware.arch} --cost=10 --baseurl=http://repo.oddthesis.org/packages/#{@appliance_config.os_path}/RPMS/#{@appliance_config.hardware.arch}"
 
       all_excludes = []
 
-      for appliance_name in @appliance_config.appliances
-        if ( File.exist?( "#{@config.dir_appliances}/#{appliance_name}/#{appliance_name}.post" ) )
-          definition['post_script'] += "\n## #{appliance_name}.post\n"
-          definition['post_script'] += File.read( "#{@config.dir_appliances}/#{appliance_name}/#{appliance_name}.post" )
+      #for repo in @appliance_config.repos
+      #  puts repo
+      #end
+
+#      for appliance_name in @appliance_config.appliances
+#        #TODO remove this
+#        #if ( File.exist?( "#{@config.dir.appliances}/#{appliance_name}/#{appliance_name}.post" ) )
+#        #  definition['post_script'] += "\n## #{appliance_name}.post\n"
+#        #  definition['post_script'] += File.read( "#{@config.dir.appliances}/#{appliance_name}/#{appliance_name}.post" )
+#        #end
+#
+#        repo_lines, repo_excludes = read_repositories( "#{@config.dir.appliances}/#{appliance_name}/#{appliance_name}.appl" )
+#        definition['repos'] += repo_lines
+#        all_excludes += repo_excludes unless repo_excludes.empty?
+#      end
+
+      cost = 40
+
+      for repo in @appliance_config.repos
+        if repo.keys.include?('mirrorlist')
+          urltype = 'mirrorlist'
+        else
+          urltype = 'baseurl'
         end
 
-        repo_lines, repo_excludes = read_repositories( "#{@config.dir_appliances}/#{appliance_name}/#{appliance_name}.appl" )
-        definition['repos'] += repo_lines
-        all_excludes += repo_excludes unless repo_excludes.empty?
+        repo_def = "repo --name=#{repo['name']} --cost=#{cost} --#{urltype}=#{repo[urltype]}"
+        cost += 1
+
+        #repo_def += " --excludepkgs=#{all_excludes.join(',')}" unless all_excludes.empty?
+
+        definition['repos'] << repo_def
       end
 
       for repo in valid_repos
@@ -105,6 +133,11 @@ module JBossCloud
 
         definition['repos'] << repo_def
       end
+
+      definition['packages'] += @appliance_config.packages
+
+      #puts "Aaaaaaaaaaaaaaaa"
+      #puts valid_repos
 
       #rpmfusion_os_name = @appliance_config.os_name.eql?("rhel") ? "el" : @appliance_config.os_name
 
@@ -116,17 +149,17 @@ module JBossCloud
 
     def define
 
-      appliance_build_dir    = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
-      kickstart_file         = "#{appliance_build_dir}/#{@appliance_config.name}.ks"
-      config_file            = "#{appliance_build_dir}/#{@appliance_config.name}.cfg"
+      appliance_build_dir = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
+      kickstart_file = "#{appliance_build_dir}/#{@appliance_config.name}.ks"
+      config_file = "#{appliance_build_dir}/#{@appliance_config.name}.cfg"
 
-      file "#{appliance_build_dir}/base-pkgs.ks" do
-        FileUtils.cp( @config.files.base_pkgs, "#{appliance_build_dir}/base-pkgs.ks" )
-      end
+      #file "#{appliance_build_dir}/base-pkgs.ks" do
+      #  FileUtils.cp( @config.files.base_pkgs, "#{appliance_build_dir}/base-pkgs.ks" )
+      #end
 
-      file config_file => [ "appliance:#{@appliance_config.name}:config" ] do
+      file config_file do
+        FileUtils.mkdir_p appliance_build_dir
         File.open( config_file, "w") {|f| f.write( @appliance_config.to_yaml ) } unless File.exists?( config_file )
-
       end
 
       file "appliance:#{@appliance_config.name}:config" do
@@ -135,28 +168,27 @@ module JBossCloud
             FileUtils.rm_rf appliance_build_dir
           end
         end
-
-        FileUtils.mkdir_p appliance_build_dir
       end
 
-      file kickstart_file => [ config_file, "#{appliance_build_dir}/base-pkgs.ks" ] do
+      file kickstart_file => [ config_file ] do
         template = File.dirname( __FILE__ ) + "/appliance.ks.erb"
 
         kickstart = ERB.new( File.read( template ) ).result( build_definition.send( :binding ) )
 
-        kickstart.gsub!( /#JBOSS_XMX#/, (@appliance_config.mem_size / 4 * 3).to_s )
-        kickstart.gsub!( /#JBOSS_XMS#/, (@appliance_config.mem_size / 4 * 3 / 4).to_s)
+        # TODO: remove this!
+        #kickstart.gsub!( /#JBOSS_XMX#/, (@appliance_config.hardware.memory / 4 * 3).to_s )
+        #kickstart.gsub!( /#JBOSS_XMS#/, (@appliance_config.hardware.memory / 4 * 3 / 4).to_s)
 
         File.open( kickstart_file, 'w' ) {|f| f.write( kickstart ) }
       end
 
       #desc "Build kickstart for #{File.basename( @appliance_config.name, '-appliance' )} appliance"
-      task "appliance:#{@appliance_config.name}:kickstart" => [ kickstart_file ]
+      task "appliance:#{@appliance_config.name}:kickstart" => [ "appliance:#{@appliance_config.name}:config", kickstart_file ]
 
     end
 
     def valid_repos
-      os_repos = REPOS[@appliance_config.os_name][@appliance_config.os_version]
+      os_repos = REPOS[@appliance_config.os.name][@appliance_config.os.version]
 
       repos = Array.new
 
@@ -166,7 +198,7 @@ module JBossCloud
           mirrorlist = os_repos[type]['mirrorlist']
           baseurl = os_repos[type]['baseurl']
 
-          name = "#{@appliance_config.os_name}-#{@appliance_config.os_version}-#{type}"
+          name = "#{@appliance_config.os.name}-#{@appliance_config.os.version}-#{type}"
 
           if mirrorlist.nil?
             repos.push [ name, "baseurl", baseurl ]
@@ -177,19 +209,19 @@ module JBossCloud
       end
 
       for repo in repos
-        repo[2].gsub!( /#ARCH#/, @appliance_config.arch )
+        repo[2].gsub!( /#ARCH#/, @appliance_config.hardware.arch )
       end
 
       repos
     end
 
-    def read_repositories(appliance_definition)
+    def read_repositories( repos )
 
       defs = { }
-      defs['arch']               = @appliance_config.arch
-      defs['os_name']            = @appliance_config.os_name
-      defs['os_version']         = @appliance_config.os_version
-      defs['os_version_stable']  = STABLE_RELEASES[@appliance_config.os_name]
+      defs['arch'] = @appliance_config.hardware.arch
+      defs['os_name'] = @appliance_config.os.name
+      defs['os_version'] = @appliance_config.os.version
+      defs['os_version_stable'] = LATEST_STABLE_RELEASES[@appliance_config.os.name]
 
       def defs.method_missing(sym, *args)
         self[ sym.to_s ]

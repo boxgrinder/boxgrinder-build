@@ -143,6 +143,6 @@ module JBossCloud
   end
 end
 
-desc "Upload all appliance packages to server"
-task "appliance:upload:all"
+#desc "Upload all appliance packages to server"
+#task "appliance:upload:all"
 

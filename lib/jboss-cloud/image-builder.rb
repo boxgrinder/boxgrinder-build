@@ -31,6 +31,7 @@ require 'jboss-cloud/config'
 require 'jboss-cloud/jboss-cloud-release'
 require 'jboss-cloud/validator/validator'
 require 'jboss-cloud/validator/appliance-config-parameter-validator'
+require 'jboss-cloud/validator/appliance-definition-validator'
 require 'jboss-cloud/helpers/appliance-config-helper'
 require 'jboss-cloud/defaults'
 require 'jboss-cloud/helpers/rake-helper'
@@ -84,9 +85,20 @@ module JBossCloud
       @log.debug "Current architecture: #{@config.arch}"
       @log.debug "Building architecture: #{@config.build_arch}"
 
-      Dir[ "#{@config.dir_appliances}/*/*.appl" ].each do |appliance_def|
-        appliance_config = ApplianceConfigHelper.new.config( appliance_def, @config )
-        Appliance.new( @config, appliance_config, appliance_def )
+      appliance_definitions = {}
+
+      Dir[ "#{@config.dir_appliances}/*/*.appl" ].each do |appliance_definition_file|
+        appliance_definition = YAML.load_file( appliance_definition_file )
+
+        ApplianceDefinitionValidator.new( appliance_definition, appliance_definition_file ).validate
+
+        appliance_definitions[appliance_definition['name']] = { :definition =>  appliance_definition, :file => appliance_definition_file } 
+      end
+
+      appliance_config_helper = ApplianceConfigHelper.new( appliance_definitions )
+
+      for appliance_definition in appliance_definitions.values
+        Appliance.new( @config, appliance_config_helper.merge( ApplianceConfig.new( appliance_definition ) ) )
       end
     end
   end

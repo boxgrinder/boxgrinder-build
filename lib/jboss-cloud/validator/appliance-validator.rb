@@ -48,10 +48,10 @@ module JBossCloud
       # check if selected desktop type is supported
       raise ApplianceValidationError, "Selected desktop type ('#{@definition['desktop']}') isn't supported. Supported desktop types: #{SUPPORTED_DESKTOP_TYPES.join( "," )}" if !@definition['desktop'].nil? and !SUPPORTED_DESKTOP_TYPES.include?( @definition['desktop'] )
       # check if all dependent appliances exists
-      appliances, valid = get_appliances(@appliance_name)
-      raise ApplianceValidationError, "Could not find all dependent appliances for multiappliance '#{@appliance_name}'" unless valid
+      #appliances, valid = get_appliances(@appliance_name)
+      #raise ApplianceValidationError, "Could not find all dependent appliances for multiappliance '#{@appliance_name}'" unless valid
       # check appliance count
-      raise ApplianceValidationError, "Invalid appliance count for appliance '#{@appliance_name}'" unless appliances.size >= 1
+      #raise ApplianceValidationError, "Invalid appliance count for appliance '#{@appliance_name}'" unless appliances.size >= 1
     end
 
     protected

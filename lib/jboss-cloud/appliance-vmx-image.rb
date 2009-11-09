@@ -27,26 +27,26 @@ module JBossCloud
   class ApplianceVMXImage < Rake::TaskLib
 
     def initialize( config, appliance_config )
-      @config            = config
-      @appliance_config  = appliance_config
-      @log               = LOG
+      @config = config
+      @appliance_config = appliance_config
+      @log = LOG
 
-      @appliance_build_dir    = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
-      @appliance_xml_file     = "#{@appliance_build_dir}/#{@appliance_config.name}.xml"
-      @base_directory         = File.dirname( @appliance_xml_file )
-      @base_raw_file          = "#{@base_directory}/#{@appliance_config.name}-sda.raw"
-      @vmware_directory       = "#{@base_directory}/vmware"
-      @base_vmware_raw_file   = "#{@vmware_directory}/#{@appliance_config.name}-sda.raw"
+      @appliance_build_dir = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
+      @appliance_xml_file = "#{@appliance_build_dir}/#{@appliance_config.name}.xml"
+      @base_directory = File.dirname( @appliance_xml_file )
+      @base_raw_file = "#{@base_directory}/#{@appliance_config.name}-sda.raw"
+      @vmware_directory = "#{@base_directory}/vmware"
+      @base_vmware_raw_file = "#{@vmware_directory}/#{@appliance_config.name}-sda.raw"
 
-      @super_simple_name                    = File.basename( @appliance_config.name, '-appliance' )
-      @vmware_personal_output_folder        = File.dirname( @appliance_xml_file ) + "/vmware/personal"
-      @vmware_personal_vmx_file             = @vmware_personal_output_folder + "/" + @appliance_config.name + '.vmx'
-      @vmware_personal_vmdk_file            = @vmware_personal_output_folder + "/" + @appliance_config.name + '.vmdk'
-      @vmware_personal_raw_file             = @vmware_personal_output_folder + "/#{@appliance_config.name}-sda.raw"
-      @vmware_enterprise_output_folder      = File.dirname( @appliance_xml_file ) + "/vmware/enterprise"
-      @vmware_enterprise_vmx_file           = @vmware_enterprise_output_folder + "/" + @appliance_config.name + '.vmx'
-      @vmware_enterprise_vmdk_file          = @vmware_enterprise_output_folder + "/" + @appliance_config.name + '.vmdk'
-      @vmware_enterprise_raw_file           = @vmware_enterprise_output_folder + "/#{@appliance_config.name}-sda.raw"
+      @super_simple_name = File.basename( @appliance_config.name, '-appliance' )
+      @vmware_personal_output_folder = File.dirname( @appliance_xml_file ) + "/vmware/personal"
+      @vmware_personal_vmx_file = @vmware_personal_output_folder + "/" + @appliance_config.name + '.vmx'
+      @vmware_personal_vmdk_file = @vmware_personal_output_folder + "/" + @appliance_config.name + '.vmdk'
+      @vmware_personal_raw_file = @vmware_personal_output_folder + "/#{@appliance_config.name}-sda.raw"
+      @vmware_enterprise_output_folder = File.dirname( @appliance_xml_file ) + "/vmware/enterprise"
+      @vmware_enterprise_vmx_file = @vmware_enterprise_output_folder + "/" + @appliance_config.name + '.vmx'
+      @vmware_enterprise_vmdk_file = @vmware_enterprise_output_folder + "/" + @appliance_config.name + '.vmdk'
+      @vmware_enterprise_raw_file = @vmware_enterprise_output_folder + "/#{@appliance_config.name}-sda.raw"
 
       @appliance_image_customizer = ApplianceImageCustomize.new( @config, @appliance_config )
 
@@ -74,7 +74,7 @@ module JBossCloud
     # returns value of cylinders, heads and sector for selected disk size (in GB)
 
     def generate_scsi_chs(disk_size)
-      disk_size =  disk_size * 1024
+      disk_size = disk_size * 1024
 
       gb_sectors = 2097152
 
@@ -95,7 +95,10 @@ module JBossCloud
     def change_vmdk_values( type )
       vmdk_data = File.open( @config.files.base_vmdk ).read
 
-      c, h, s, total_sectors = generate_scsi_chs( @appliance_config.disk_size )
+      disk_size = 0
+      @appliance_config.hardware.partitions.values.each { |part| disk_size += part['size'] }
+
+      c, h, s, total_sectors = generate_scsi_chs( disk_size )
 
       is_enterprise = type.eql?("vmfs")
 
@@ -115,18 +118,20 @@ module JBossCloud
     def change_common_vmx_values
       vmx_data = File.open( @config.files.base_vmx ).read
 
-      # replace version with current jboss cloud version
-      vmx_data.gsub!( /#VERSION#/, @config.version_with_release )
+      # replace version with current appliance version
+      vmx_data.gsub!( /#VERSION#/, "#{@appliance_config.version}.#{@appliance_config.release}" )
+      # replace bui;der with current builder name and version
+      vmx_data.gsub!( /#BUILDER#/, "#{@config.name} #{@config.version_with_release}" )
       # change name
       vmx_data.gsub!( /#NAME#/, @appliance_config.name )
       # and summary
       vmx_data.gsub!( /#SUMMARY#/, @appliance_config.summary )
       # replace guestOS informations to: linux or otherlinux-64, this seems to be the savests values
-      vmx_data.gsub!( /#GUESTOS#/, "#{@appliance_config.arch == "x86_64" ? "otherlinux-64" : "linux"}" )
+      vmx_data.gsub!( /#GUESTOS#/, "#{@appliance_config.hardware.arch == "x86_64" ? "otherlinux-64" : "linux"}" )
       # memory size
-      vmx_data.gsub!( /#MEM_SIZE#/, @appliance_config.mem_size.to_s )
+      vmx_data.gsub!( /#MEM_SIZE#/, @appliance_config.hardware.memory.to_s )
       # memory size
-      vmx_data.gsub!( /#VCPU#/, @appliance_config.vcpu.to_s )
+      vmx_data.gsub!( /#VCPU#/, @appliance_config.hardware.cpus.to_s )
       # network name
       # vmx_data.gsub!( /#NETWORK_NAME#/, @appliance_config.network_name )
 
@@ -158,11 +163,11 @@ module JBossCloud
       create_hardlink_to_disk_image( @vmware_enterprise_raw_file )
 
       # defaults for ESXi (maybe for others too)
-      @appliance_config.network_name = "VM Network" if @appliance_config.network_name.eql?( "NAT" )
+      @appliance_config.hardware.network = "VM Network" if @appliance_config.hardware.network.eql?( "NAT" )
 
       # create .vmx file
       vmx_data = change_common_vmx_values
-      vmx_data += "ethernet0.networkName = \"#{@appliance_config.network_name}\""
+      vmx_data += "ethernet0.networkName = \"#{@appliance_config.hardware.network}\""
 
       File.open( @vmware_enterprise_vmx_file, "w" ) {|f| f.write( vmx_data ) }
 
@@ -179,19 +184,13 @@ module JBossCloud
       @log.debug "VMware image copied."
       @log.debug "Installing VMware tools..."
 
-      if @appliance_config.is_development?
+      if @appliance_config.is_os_version_stable?
         rpmfusion_repo_rpm = [ "http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-rawhide.noarch.rpm", "http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-rawhide.noarch.rpm" ]
       else
         rpmfusion_repo_rpm = [ "http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-stable.noarch.rpm", "http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-stable.noarch.rpm" ]
       end
 
-      if @appliance_config.is64bit?
-        open_vm_tools = "kmod-open-vm-tools"
-      else
-        open_vm_tools = "kmod-open-vm-tools.i586"
-      end
-
-      @appliance_image_customizer.customize( @base_vmware_raw_file, { :packages => { :yum => [ open_vm_tools ] }, :repos => rpmfusion_repo_rpm } )
+      @appliance_image_customizer.customize( @base_vmware_raw_file, { :packages => { :yum => [ "kmod-open-vm-tools" ] }, :repos => rpmfusion_repo_rpm } )
 
       @log.debug "VMware tools installed."
       @log.info "Image converted to VMware format."

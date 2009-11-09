@@ -22,8 +22,8 @@ require 'jboss-cloud/log'
 require 'jboss-cloud/helpers/exec-helper'
 
 module JBossCloud
-  LOG           = Log.new
-  EXEC_HELPER   = ExecHelper.new
+  LOG = Log.new
+  EXEC_HELPER = ExecHelper.new
 
   # here are global variables
   SUPPORTED_ARCHES = [ "i386", "x86_64" ]
@@ -31,19 +31,28 @@ module JBossCloud
           "fedora" => [ "11", "rawhide" ]
   }
 
-  STABLE_RELEASES = {
+  LATEST_STABLE_RELEASES = {
           "fedora" => "11",
           "rhel" => "5"
   }
 
+  DEVELOPMENT_RELEASES = {
+          "fedora" => "rawhide"
+  }
+
   APPLIANCE_DEFAULTS = {
-          "os_name" => "fedora",
-          "os_version" => STABLE_RELEASES['fedora'],
-          "disk_size" => 2,
-          "mem_size" => 1024,
-          "network_name" => "NAT",
-          "vcpu" => 1,
-          "arch" => (-1.size) == 8 ? "x86_64" : "i386"
+          :os => {
+                  :name => "fedora",
+                  :version => LATEST_STABLE_RELEASES['fedora'],
+                  :password => "oddthesis"
+          },
+          :hardware => {
+                  :arch => (-1.size) == 8 ? "x86_64" : "i386",
+                  :partition => 2,
+                  :memory => 64,
+                  :network => "NAT",
+                  :cpus => 1
+          }
   }
 
   SUPPORTED_DESKTOP_TYPES = [ "gnome" ]
@@ -58,7 +67,7 @@ module JBossCloud
                           "updates" => {
                                   "mirrorlist" => "http://mirrors.fedoraproject.org/mirrorlist?repo=updates-released-f11&arch=#ARCH#"
                           }
-                  },         
+                  },
                   "rawhide" => {
                           "base" => {
                                   "mirrorlist" => "http://mirrors.fedoraproject.org/mirrorlist?repo=rawhide&arch=#ARCH#"
@@ -72,23 +81,23 @@ module JBossCloud
   }
 
   DEFAULT_PROJECT_CONFIG = {
-          :name              => 'JBoss Cloud',
-          :version           => '1.0.0.Beta8',
-          :release           => 'SNAPSHOT',
-          :dir_build         => 'build',
+          :name => 'JBoss Cloud',
+          :version => '1.0.0.Beta8',
+          :release => 'SNAPSHOT',
+          :dir_build => 'build',
           #:topdir            => "#{self.} build/topdir",
           :dir_sources_cache => 'sources-cache',
-          :dir_rpms_cache    => 'rpms-cache',
-          :dir_specs         => 'specs',
-          :dir_appliances    => 'appliances',
-          :dir_src           => 'src',
-          :dir_kickstarts    => 'kickstarts'
+          :dir_rpms_cache => 'rpms-cache',
+          :dir_specs => 'specs',
+          :dir_appliances => 'appliances',
+          :dir_src => 'src',
+          :dir_kickstarts => 'kickstarts'
   }
 
   AWS_DEFAULTS = {
-          :bucket_prefix  => "#{DEFAULT_PROJECT_CONFIG[:name].downcase}/#{DEFAULT_PROJECT_CONFIG[:version]}-#{DEFAULT_PROJECT_CONFIG[:release]}",
-          :kernel_id      => { "i386" => "aki-a71cf9ce", "x86_64" => "aki-b51cf9dc" },
-          :ramdisk_id     => { "i386" => "ari-a51cf9cc", "x86_64" => "ari-b31cf9da" },
-          :kernel_rpm     => { "i386" => "http://repo.oddthesis.org/packages/other/kernel-xen-2.6.21.7-2.fc8.i686.rpm", "x86_64" => "http://repo.oddthesis.org/packages/other/kernel-xen-2.6.21.7-2.fc8.x86_64.rpm" }
+          :bucket_prefix => "#{DEFAULT_PROJECT_CONFIG[:name].downcase}/#{DEFAULT_PROJECT_CONFIG[:version]}-#{DEFAULT_PROJECT_CONFIG[:release]}",
+          :kernel_id => { "i386" => "aki-a71cf9ce", "x86_64" => "aki-b51cf9dc" },
+          :ramdisk_id => { "i386" => "ari-a51cf9cc", "x86_64" => "ari-b31cf9da" },
+          :kernel_rpm => { "i386" => "http://repo.oddthesis.org/packages/other/kernel-xen-2.6.21.7-2.fc8.i686.rpm", "x86_64" => "http://repo.oddthesis.org/packages/other/kernel-xen-2.6.21.7-2.fc8.x86_64.rpm" }
   }
 end

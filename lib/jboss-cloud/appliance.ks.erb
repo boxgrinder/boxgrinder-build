@@ -16,15 +16,15 @@ services --enabled=network
 <% end %>
 
 rootpw <%= root_password %> 
-part / --size <%= disk_size %> --fstype <%= fstype %> --ondisk sda
+
+<% for partition in partitions %>
+part <%= partition['root'] %> --size <%= partition['size'] * 1024 %> --fstype <%= fstype %> --ondisk sda<% end %>
 
 <% for user in users %>
-user --name=<%= user['name'] %><% unless user['home'].nil? %> --homedir=<%= user['home'] %><% end %><% unless user['group'].nil? %> --groups=<%= user['group'] %><% end %>
-<% end unless users.nil? %>
+user --name=<%= user['name'] %><% unless user['home'].nil? %> --homedir=<%= user['home'] %><% end %><% unless user['group'].nil? %> --groups=<%= user['group'] %><% end %><% end unless users.nil? %>
 
 <% for repo in repos %>
-<%= repo %>
-<% end %>
+<%= repo %><% end %>
 
 <% if graphical %>
 %packages --excludedocs
@@ -33,15 +33,7 @@ user --name=<%= user['name'] %><% unless user['home'].nil? %> --homedir=<%= user
 <% end %>
 
 <% for package in packages %>
-  <%= package %>
-<% end %>
-
-%include base-pkgs.ks
-
-<% for appliance_name in appliance_names %>
-  <%= appliance_name %>
-<% end %>
-
+  <%= package %><% end %>
 %end
 %post
 

@@ -45,11 +45,11 @@ module JBossCloud
       @kickstart_file = "#{appliance_build_dir}/#{@appliance_config.name}.ks"
       @yum_config_file = "#{appliance_build_dir}/#{@appliance_config.name}.yum.conf"
 
-      @appliance_defs = []
+      #@appliance_defs = []
 
-      for appliance in @appliance_config.appliances do
-        @appliance_defs += [ "#{@config.dir.appliances}/#{appliance}/#{appliance}.appl" ]
-      end
+      #for appliance in @appliance_config.appliances do
+      #  @appliance_defs += [ "#{@config.dir.appliances}/#{appliance}/#{appliance}.appl" ]
+      #end
 
       # Because we're using repoquery command from our building environment, we must ensure, that our repository
       # names are unique
@@ -72,7 +72,7 @@ module JBossCloud
       @log.info "Resolving packages added to #{@appliance_config.simple_name} appliance definition file..."
 
       repos = read_repos_from_kickstart_file
-      package_list = generate_package_list + [ @appliance_config.name ]
+      package_list = generate_package_list
       repo_list = generate_repo_list( repos )
 
       generate_yum_config( repos )
@@ -82,7 +82,8 @@ module JBossCloud
       if invalid_names.size == 0
         @log.info "All additional packages for #{@appliance_config.simple_name} appliance successfully resolved."
       else
-        raise "Package#{invalid_names.size > 1 ? "s" : ""} #{invalid_names.join(', ')} for #{@appliance_config.simple_name} appliance not found in repositories. Please check package name in appliance definition files (#{@appliance_defs.join(', ')})"
+        puts invalid_names.to_yaml
+        raise "Package#{invalid_names.size > 1 ? "s" : ""} #{invalid_names.join(', ')} for #{@appliance_config.simple_name} appliance not found in repositories. Please check package names in appliance definition file (#{@appliance_config.file})"
       end
     end
 
@@ -119,12 +120,9 @@ module JBossCloud
 
     def generate_package_list
       packages = []
-
-      for appliance_def in @appliance_defs do
-        definition = YAML.load_file( appliance_def )
-        packages += definition['packages'] unless definition['packages'].nil?
+      for package in @appliance_config.packages
+        packages << package unless package.match /^\-/
       end
-
       packages
     end
 
@@ -159,7 +157,7 @@ module JBossCloud
     def generate_yum_config( repo_list )
       File.open( @yum_config_file, "w") do |f|
 
-        f.puts( "[main]\r\ncachedir=/tmp/#{@magic_hash}#{@appliance_config.arch}-yum-cache/\r\n" )
+        f.puts( "[main]\r\ncachedir=/tmp/#{@magic_hash}#{@appliance_config.hardware.arch}-yum-cache/\r\n" )
 
         for repo in repo_list
           f.puts( "[#{@magic_hash}#{repo.name}]" )

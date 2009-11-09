@@ -43,8 +43,8 @@ module JBossCloud
       @xml_file                = "#{@appliance_build_dir}/#{@appliance_config.name}.xml"
 
       ApplianceVMXImage.new( @config, @appliance_config )
-      ApplianceEC2Image.new( @config, @appliance_config )
-      AWSInstance.new( @config, @appliance_config )
+      #ApplianceEC2Image.new( @config, @appliance_config )
+      #AWSInstance.new( @config, @appliance_config )
 
       define_tasks
     end
@@ -64,7 +64,7 @@ module JBossCloud
     def build_raw_image
       @log.info "Building #{@appliance_config.simple_name} appliance..."
 
-      @exec_helper.execute "sudo PYTHONUNBUFFERED=1 appliance-creator -d -v -t #{@tmp_dir} --cache=#{@config.dir_rpms_cache}/#{@appliance_config.main_path} --config #{@kickstart_file} -o #{@config.dir_build}/appliances/#{@appliance_config.main_path} --name #{@appliance_config.name} --vmem #{@appliance_config.mem_size} --vcpu #{@appliance_config.vcpu}"
+      @exec_helper.execute "sudo PYTHONUNBUFFERED=1 appliance-creator -d -v -t #{@tmp_dir} --cache=#{@config.dir.rpms_cache}/#{@appliance_config.main_path} --config #{@kickstart_file} -o #{@config.dir.build}/appliances/#{@appliance_config.main_path} --name #{@appliance_config.name} --vmem #{@appliance_config.hardware.memory} --vcpu #{@appliance_config.hardware.cpus}"
 
       # fix permissions
       @exec_helper.execute "sudo chmod 666 #{@raw_disk}"

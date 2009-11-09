@@ -25,61 +25,70 @@ require 'jboss-cloud/model/release'
 
 module JBossCloud
   class ApplianceConfig
-    def initialize( name, arch, os_name, os_version )
-      @name = name
-      @arch = arch
-      @os_name = os_name
-      @os_version = os_version
+    def initialize( definition )
+      @definition = definition[:definition]
+      @file = definition[:file]
 
-      @packages   = []
-      @gems       = []
-      @repos      = {}
+      @name = @definition['name']
+      @summary = @definition['summary']
 
-      @appliances = Array.new
+      @os           = OpenStruct.new
+      @os.name      = APPLIANCE_DEFAULTS[:os][:name]
+      @os.version   = APPLIANCE_DEFAULTS[:os][:version]
+      @os.password  = APPLIANCE_DEFAULTS[:os][:password]
 
-      @path       = OpenStruct.new
+      @hardware = OpenStruct.new
 
-      @path.dir   = OpenStruct.new
-      @path.file  = OpenStruct.new
+      @hardware.arch = APPLIANCE_DEFAULTS[:hardware][:arch]
+      @hardware.cpus = APPLIANCE_DEFAULTS[:hardware][:cpus]
+      @hardware.memory = APPLIANCE_DEFAULTS[:hardware][:memory]
+      @hardware.network = APPLIANCE_DEFAULTS[:hardware][:network]
 
-      @path.file.xml    = "build/#{appliance_path}/#{@name}.xml"
-      @path.file.raw    = "build/#{appliance_path}/#{@name}-sda.raw"
-      @path.file.ec2    = "build/#{appliance_path}/#{@name}.ec2"
+      @appliances = []
+      @repos = []
+      @packages = []
+      @version = 1
+      @release = 0
+
+      @path = OpenStruct.new
+
+      @path.dir = OpenStruct.new
+      @path.file = OpenStruct.new
+
+      @path.file.xml = "build/#{appliance_path}/#{@name}.xml"
+      @path.file.raw = "build/#{appliance_path}/#{@name}-sda.raw"
+      @path.file.ec2 = "build/#{appliance_path}/#{@name}.ec2"
     end
 
+    attr_reader :definition
     attr_reader :name
-    attr_reader :arch
-    attr_reader :os_name
-    attr_reader :os_version
+    attr_reader :summary
+    attr_reader :appliances
+    attr_reader :os
+    attr_reader :hardware
+    attr_reader :repos
+    attr_reader :packages
     attr_reader :path
+    attr_reader :file
 
-    attr_accessor :vcpu
-    attr_accessor :mem_size
-    attr_accessor :disk_size
-    attr_accessor :network_name
-    attr_accessor :output_format
-    attr_accessor :appliances
-    attr_accessor :summary
-    attr_accessor :packages
-    attr_accessor :repos
+    attr_accessor :version
+    attr_accessor :release
 
     # used to checking if configuration diffiers from previous in appliance-kickstart
-
     def hash
-      # without output_format!
-      "#{@name}-#{@arch}-#{@os_name}-#{@os_version}-#{@vcpu}-#{@mem_size}-#{@disk_size}-#{@network_name}-#{@appliances.join("-")}-#{@summary}".hash
+      "#{@name}-#{@summary}-#{@version}-#{@release}-#{@os.name}-#{@os.version}-#{@os.password}-#{@hardware.cpus}-#{@hardware.memory}-#{@hardware.partitions}-#{@appliances.join("-")}".hash
     end
 
     def simple_name
-      File.basename( @name, '-appliance' )
+      @name
     end
 
     def os_path
-      "#{@os_name}/#{@os_version}"
+      "#{@os.name}/#{@os.version}"
     end
 
     def main_path
-      "#{@arch}/#{os_path}"
+      "#{@hardware.arch}/#{os_path}"
     end
 
     def appliance_path
@@ -87,50 +96,48 @@ module JBossCloud
     end
 
     def eql?(other)
-      hash == other.hash
+      hash.eql?(other.hash)
     end
 
     def is64bit?
-      @arch.eql?("x86_64")
+      @hardware.arch.eql?("x86_64")
     end
 
-    def is_development?
-      return true if @os_name.eql?("fedora") and @os_version.eql?("rawhide")
-
-      false
+    def is_os_version_stable?
+      !DEVELOPMENT_RELEASES[@os.name].eql?(@os.version)
     end
-
   end
+
   class Config
     def initialize( name, version, release, dir, config_file )
-      @name             = name
-      @dir              = dir
-      @config_file      = config_file
+      @name = name
+      @dir = dir
+      @config_file = config_file
 
       # TODO better way to get this directory
-      @dir.base         = "#{File.dirname( __FILE__ )}/../.."
-      @dir.tmp          = "#{@dir.build}/tmp"
+      @dir.base = "#{File.dirname( __FILE__ )}/../.."
+      @dir.tmp = "#{@dir.build}/tmp"
 
-      @files            = OpenStruct.new
+      @files = OpenStruct.new
 
-      @version          = OpenStruct.new
-      @version.version  = version
-      @version.release  = release
+      @version = OpenStruct.new
+      @version.version = version
+      @version.release = release
 
-      @dir_rpms_cache   = @dir.rpms_cache
-      @dir_src_cache    = @dir.src_cache
-      @dir_root         = @dir.root
-      @dir_top          = @dir.top
-      @dir_build        = @dir.build
-      @dir_specs        = @dir.specs
-      @dir_appliances   = @dir.appliances
-      @dir_src          = @dir.src
-      @dir_kickstarts   = @dir.kickstarts
+      @dir_rpms_cache = @dir.rpms_cache
+      @dir_src_cache = @dir.src_cache
+      @dir_root = @dir.root
+      @dir_top = @dir.top
+      @dir_build = @dir.build
+      @dir_specs = @dir.specs
+      @dir_appliances = @dir.appliances
+      @dir_src = @dir.src
+      @dir_kickstarts = @dir.kickstarts
 
-      @aws                = OpenStruct.new
-      @aws.bucket_prefix  = "#{@name.downcase.gsub!(" ", "-")}/#{version_with_release}"
+      @aws = OpenStruct.new
+      @aws.bucket_prefix = "#{@name.downcase.gsub!(" ", "-")}/#{version_with_release}"
 
-      @dir_base         = @dir.base
+      @dir_base = @dir.base
 
       @data = {}
 
@@ -139,16 +146,16 @@ module JBossCloud
         @data['gpg_password'].gsub!(/\$/, "\\$") unless @data['gpg_password'].nil? or @data['gpg_password'].length == 0
       end
 
-      @release          = Release.new( self )
+      @release = Release.new( self )
 
-      @arch             = (-1.size) == 8 ? "x86_64" : "i386"
+      @arch = (-1.size) == 8 ? "x86_64" : "i386"
 
       # it's save, we have validated it before
-      @build_arch       = ENV['JBOSS_CLOUD_ARCH'].nil? ? @arch : ENV['JBOSS_CLOUD_ARCH']
-      @os_name          = ENV['JBOSS_CLOUD_OS_NAME'].nil? ? APPLIANCE_DEFAULTS['os_name'] : ENV['JBOSS_CLOUD_OS_NAME']
-      @os_version       = ENV['JBOSS_CLOUD_OS_VERSION'].nil? ? APPLIANCE_DEFAULTS['os_version'] : ENV['JBOSS_CLOUD_OS_VERSION']
+      @build_arch = ENV['JBOSS_CLOUD_ARCH'].nil? ? @arch : ENV['JBOSS_CLOUD_ARCH']
+      @os_name = ENV['JBOSS_CLOUD_OS_NAME'].nil? ? APPLIANCE_DEFAULTS['os_name'] : ENV['JBOSS_CLOUD_OS_NAME']
+      @os_version = ENV['JBOSS_CLOUD_OS_VERSION'].nil? ? APPLIANCE_DEFAULTS['os_version'] : ENV['JBOSS_CLOUD_OS_VERSION']
 
-      @helper           = JBossCloud::ConfigHelper.new( self )
+      @helper = JBossCloud::ConfigHelper.new( self )
     end
 
     attr_reader :name
