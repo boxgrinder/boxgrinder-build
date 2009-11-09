@@ -48,7 +48,7 @@ module JBossCloud
           },
           :hardware => {
                   :arch => (-1.size) == 8 ? "x86_64" : "i386",
-                  :partition => 2,
+                  :partition => 1,
                   :memory => 64,
                   :network => "NAT",
                   :cpus => 1

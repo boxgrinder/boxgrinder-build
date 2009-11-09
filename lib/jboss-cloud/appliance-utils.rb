@@ -91,7 +91,7 @@ module JBossCloud
     end
 
     def prepare_file_list
-      path = "#{@config.version_with_release}/#{@appliance_config.arch}"
+      path = "#{@config.version_with_release}/#{@appliance_config.hardware.arch}"
 
       raw_name                = File.basename( @package_raw )
       vmware_name             = File.basename( @package_vmware )

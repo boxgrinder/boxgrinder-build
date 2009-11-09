@@ -52,7 +52,7 @@ module JBossCloud
       rc_local_file   = "#{@config.dir.base}/src/ec2/rc_local"
 
       rpms = {
-              AWS_DEFAULTS[:kernel_rpm][@appliance_config.arch].split("/").last => AWS_DEFAULTS[:kernel_rpm][@appliance_config.arch],
+              AWS_DEFAULTS[:kernel_rpm][@appliance_config.hardware.arch].split("/").last => AWS_DEFAULTS[:kernel_rpm][@appliance_config.hardware.arch],
               "ec2-ami-tools.noarch.rpm" => "http://s3.amazonaws.com/ec2-downloads/ec2-ami-tools.noarch.rpm"
       }
 

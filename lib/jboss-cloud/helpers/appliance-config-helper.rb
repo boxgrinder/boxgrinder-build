@@ -166,7 +166,6 @@ module JBossCloud
           @appliance_config.repos << repo
         end unless definition['repos'].nil?
       end
-
     end
 
     def merge_packages

@@ -38,10 +38,7 @@ user --name=<%= user['name'] %><% unless user['home'].nil? %> --homedir=<%= user
 %post
 
 <% if graphical %>
-chkconfig --level 345 firstboot off 2>/dev/null
-<% end %>
-
-<%= post_script %>
+chkconfig --level 345 firstboot off 2>/dev/null<% end %>
 
 %end
 
