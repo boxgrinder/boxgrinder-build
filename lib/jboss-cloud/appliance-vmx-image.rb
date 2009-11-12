@@ -26,10 +26,12 @@ module JBossCloud
 
   class ApplianceVMXImage < Rake::TaskLib
 
-    def initialize( config, appliance_config )
+    def initialize( config, appliance_config, options = {} )
       @config = config
       @appliance_config = appliance_config
-      @log = LOG
+
+      @log          = options[:log]         || LOG
+      @exec_helper  = options[:exec_helper] || EXEC_HELPER
 
       @appliance_build_dir = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
       @appliance_xml_file = "#{@appliance_build_dir}/#{@appliance_config.name}.xml"
@@ -179,7 +181,7 @@ module JBossCloud
       @log.info "Converting image to VMware format..."
       @log.debug "Copying VMware image file, this may take several minutes..."
 
-      FileUtils.cp( @base_raw_file, @base_vmware_raw_file ) if ( !File.exists?( @base_vmware_raw_file ) || File.new( @base_raw_file ).mtime > File.new( @base_vmware_raw_file ).mtime )
+      @exec_helper.execute "cp #{@base_raw_file} #{@base_vmware_raw_file}" if ( !File.exists?( @base_vmware_raw_file ) || File.new( @base_raw_file ).mtime > File.new( @base_vmware_raw_file ).mtime )
 
       @log.debug "VMware image copied."
       @log.debug "Installing VMware tools..."
@@ -190,6 +192,7 @@ module JBossCloud
         rpmfusion_repo_rpm = [ "http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-stable.noarch.rpm", "http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-stable.noarch.rpm" ]
       end
 
+      #TODO this takes about 11 minutes, need to find a quicker way to install kmod-open-vm-tools package
       @appliance_image_customizer.customize( @base_vmware_raw_file, { :packages => { :yum => [ "kmod-open-vm-tools" ] }, :repos => rpmfusion_repo_rpm } )
 
       @log.debug "VMware tools installed."

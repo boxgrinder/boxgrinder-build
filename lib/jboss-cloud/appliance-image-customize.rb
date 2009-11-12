@@ -26,30 +26,24 @@ require 'tempfile'
 module JBossCloud
   class ApplianceImageCustomize < Rake::TaskLib
 
-    def initialize( config, appliance_config, options = {}  )
-      @config            = config
-      @appliance_config  = appliance_config
+    def initialize( config, appliance_config, options = {} )
+      @config = config
+      @appliance_config = appliance_config
 
-      @log          = options[:log]         || LOG
-      @exec_helper  = options[:exec_helper] || EXEC_HELPER
+      @log = options[:log] || LOG
+      @exec_helper = options[:exec_helper] || EXEC_HELPER
 
-      @appliance_build_dir          = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
-      @bundle_dir                   = "#{@appliance_build_dir}/ec2/bundle"
-      @appliance_xml_file           = "#{@appliance_build_dir}/#{@appliance_config.name}.xml"
-      @appliance_ec2_image_file     = "#{@appliance_build_dir}/#{@appliance_config.name}.ec2"
-      @appliance_raw_image          = "#{@appliance_build_dir}/#{@appliance_config.name}-sda.raw"
-
-      @mount_directory              = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/customize-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
+      @raw_file_mount_directory = "#{@config.dir.build}/#{@appliance_config.appliance_path}/tmp/raw-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
 
     end
 
     def convert_to_ami
-      mount_dir = "#{@config.dir.build}/appliances/#{@config.build_path}/tmp/ec2-image-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
+      ec2_mount_dir = "#{@config.dir.build}/#{@appliance_config.appliance_path}/tmp/ec2-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
 
-      fstab_64bit     = "#{@config.dir.base}/src/ec2/fstab_64bit"
-      fstab_32bit     = "#{@config.dir.base}/src/ec2/fstab_32bit"
-      ifcfg_eth0      = "#{@config.dir.base}/src/ec2/ifcfg-eth0"
-      rc_local_file   = "#{@config.dir.base}/src/ec2/rc_local"
+      fstab_64bit = "#{@config.dir.base}/src/ec2/fstab_64bit"
+      fstab_32bit = "#{@config.dir.base}/src/ec2/fstab_32bit"
+      ifcfg_eth0 = "#{@config.dir.base}/src/ec2/ifcfg-eth0"
+      rc_local_file = "#{@config.dir.base}/src/ec2/rc_local"
 
       rpms = {
               AWS_DEFAULTS[:kernel_rpm][@appliance_config.hardware.arch].split("/").last => AWS_DEFAULTS[:kernel_rpm][@appliance_config.hardware.arch],
@@ -60,32 +54,45 @@ module JBossCloud
 
       # TODO add progress bar?
       @log.debug "Preparing disk for EC2 image..."
-      @exec_helper.execute "dd if=/dev/zero of=#{@appliance_ec2_image_file} bs=1M count=#{10 * 1024}"
+      @exec_helper.execute "dd if=/dev/zero of=#{@appliance_config.path.file.ec2} bs=1 count=0 seek=#{10 * 1024}M"
       @log.debug "Disk for EC2 image prepared"
 
       @log.debug "Creating filesystem..."
-      @exec_helper.execute "mke2fs -Fj #{@appliance_ec2_image_file}"
+      @exec_helper.execute "mke2fs -Fj #{@appliance_config.path.file.ec2}"
       @log.debug "Filesystem created"
 
-      `mkdir -p #{mount_dir}`
+      `mkdir -p #{ec2_mount_dir}`
 
-      @exec_helper.execute "sudo mount -o loop #{@appliance_ec2_image_file} #{mount_dir}"
+      @exec_helper.execute "sudo mount -o loop #{@appliance_config.path.file.ec2} #{ec2_mount_dir}"
+
+      disk_size = 0
+
+      for part in @appliance_config.hardware.partitions.values
+        disk_size += part['size']
+      end
+
+      # TODO is this really true? Need source
+      if disk_size > 2
+        offset = 32256
+      else
+        offset = 512
+      end
 
       loop_device = get_loop_device
-      mount_image( loop_device, @appliance_raw_image )
+      mount_image( loop_device, @appliance_config.path.file.raw, offset )
 
       @log.debug "Syncing files between RAW and EC2 file..."
-      @exec_helper.execute "sudo rsync -u -r -a  #{@mount_directory}/* #{mount_dir}"
+      @exec_helper.execute "sudo rsync -u -r -a  #{@raw_file_mount_directory}/* #{ec2_mount_dir}"
       @log.debug "Syncing finished"
 
-      umount_image( loop_device, @appliance_raw_image )
+      umount_image( loop_device, @appliance_config.path.file.raw )
 
-      @exec_helper.execute "sudo umount -d #{mount_dir}"
+      @exec_helper.execute "sudo umount -d #{ec2_mount_dir}"
 
-      `rm -rf #{mount_dir}`
+      `rm -rf #{ec2_mount_dir}`
 
-      guestfs_helper  = GuestFSHelper.new( @appliance_ec2_image_file )
-      guestfs         = guestfs_helper.guestfs
+      guestfs_helper = GuestFSHelper.new( @appliance_config.path.file.ec2 )
+      guestfs = guestfs_helper.guestfs
 
       @log.debug "Creating required devices..."
       guestfs.sh( "/sbin/MAKEDEV -d /dev -x console" )
@@ -126,7 +133,7 @@ module JBossCloud
         guestfs.upload( cache_file, "/tmp/rpms/#{name}" )
       end
 
-      guestfs.sh( "rpm -Uvh /tmp/rpms/*.rpm" )
+      guestfs.sh( "yum -y --nogpgcheck localinstall /tmp/rpms/*.rpm" )
       guestfs.rm_rf("/tmp/rpms")
       @log.debug "Additional packages installed."
 
@@ -148,9 +155,9 @@ module JBossCloud
               :repos => []
       }.merge(options)
 
-      options[:packages][:yum]          = options[:packages][:yum]        || []
-      options[:packages][:yum_local]    = options[:packages][:yum_local]  || []
-      options[:packages][:rpm]          = options[:packages][:rpm]        || []
+      options[:packages][:yum] = options[:packages][:yum] || []
+      options[:packages][:yum_local] = options[:packages][:yum_local] || []
+      options[:packages][:rpm] = options[:packages][:rpm] || []
 
       if ( options[:packages][:yum_local].size == 0 and options[:packages][:rpm].size == 0 and options[:packages][:yum].size == 0 and options[:repos].size == 0)
         @log.debug "No additional local or remote packages or gems to install, skipping..."
@@ -166,8 +173,8 @@ module JBossCloud
 
       raise ValidationError, "Raw file '#{raw_file}' doesn't exists, please specify valid raw file" if !File.exists?( raw_file )
 
-      guestfs_helper  = GuestFSHelper.new( raw_file )
-      guestfs         = guestfs_helper.guestfs
+      guestfs_helper = GuestFSHelper.new( raw_file )
+      guestfs = guestfs_helper.guestfs
 
       guestfs_helper.rebuild_rpm_database
 
@@ -217,19 +224,19 @@ module JBossCloud
 
     def mount_image( loop_device, raw_file, offset = 32256 )
       @log.debug "Mounting image #{File.basename( raw_file )}"
-      FileUtils.mkdir_p( @mount_directory )
+      FileUtils.mkdir_p( @raw_file_mount_directory )
 
-      `sudo losetup -o #{offset.to_s} #{loop_device} #{raw_file}`
-      `sudo mount #{loop_device} -t ext3 #{@mount_directory}`
+      @exec_helper.execute( "sudo losetup -o #{offset.to_s} #{loop_device} #{raw_file}" )
+      @exec_helper.execute( "sudo mount #{loop_device} -t ext3 #{@raw_file_mount_directory}")
     end
 
     def umount_image( loop_device, raw_file )
       @log.debug "Unmounting image #{File.basename( raw_file )}"
 
-      `sudo umount -d #{@mount_directory}`
-      `sudo losetup -d #{loop_device}`
+      @exec_helper.execute( "sudo umount -d #{@raw_file_mount_directory}" )
+      #@exec_helper.execute( "sudo losetup -d #{loop_device}" )
 
-      FileUtils.rm_rf( @mount_directory )
+      FileUtils.rm_rf( @raw_file_mount_directory )
     end
   end
 end

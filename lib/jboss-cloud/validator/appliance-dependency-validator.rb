@@ -157,7 +157,7 @@ module JBossCloud
     def generate_yum_config( repo_list )
       File.open( @yum_config_file, "w") do |f|
 
-        f.puts( "[main]\r\ncachedir=/tmp/#{@magic_hash}#{@appliance_config.hardware.arch}-yum-cache/\r\n" )
+        f.puts( "[main]\r\ncachedir=/tmp/#{@magic_hash}#{@appliance_config.hardware.arch}-yum-cache/\r\n\r\n" )
 
         for repo in repo_list
           f.puts( "[#{@magic_hash}#{repo.name}]" )

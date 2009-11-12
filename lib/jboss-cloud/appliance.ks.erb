@@ -18,7 +18,7 @@ services --enabled=network
 rootpw <%= root_password %> 
 
 <% for partition in partitions %>
-part <%= partition['root'] %> --size <%= partition['size'] * 1024 %> --fstype <%= fstype %> --ondisk sda<% end %>
+part <%= partition['root'] %> --size <%= partition['size'].to_i * 1024 %> --fstype <%= fstype %> --ondisk sda<% end %>
 
 <% for user in users %>
 user --name=<%= user['name'] %><% unless user['home'].nil? %> --homedir=<%= user['home'] %><% end %><% unless user['group'].nil? %> --groups=<%= user['group'] %><% end %><% end unless users.nil? %>

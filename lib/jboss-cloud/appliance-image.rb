@@ -43,7 +43,7 @@ module JBossCloud
       @xml_file                = "#{@appliance_build_dir}/#{@appliance_config.name}.xml"
 
       ApplianceVMXImage.new( @config, @appliance_config )
-      #ApplianceEC2Image.new( @config, @appliance_config )
+      ApplianceEC2Image.new( @config, @appliance_config )
       #AWSInstance.new( @config, @appliance_config )
 
       define_tasks

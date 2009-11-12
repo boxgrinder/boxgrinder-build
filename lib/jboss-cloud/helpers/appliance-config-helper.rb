@@ -30,6 +30,7 @@ module JBossCloud
 
     def merge( appliance_config )
       @appliance_config = appliance_config
+      @current_appliances = get_appliances( @appliance_config.name )
 
       prepare_os
       prepare_appliances
@@ -45,18 +46,9 @@ module JBossCloud
     protected
 
     def merge_hardware
-      merge_partitions
       merge_cpus
+      merge_partitions
       merge_memory
-    end
-
-    def hardware( field )
-      for appliance_name in @appliance_config.definition['appliances']
-        appliance_definition = @appliance_definitions[appliance_name][:definition]
-        next if appliance_definition['hardware'].nil? or appliance_definition['hardware'][field].nil?
-        val = appliance_definition['hardware'][field]
-        yield val
-      end unless @appliance_config.definition['appliances'].nil?
     end
 
     def merge_cpus
@@ -64,17 +56,7 @@ module JBossCloud
         @appliance_config.hardware.cpus = @appliance_config.definition['hardware']['cpus']
       end
 
-      hardware('cpus'){ |cpus| @appliance_config.hardware.cpus = cpus if cpus > @appliance_config.hardware.cpus }
-
-#      for appliance_name in @appliance_config.definition['appliances']
-#        # TODO move this to validator
-#        #raise "Appliance '#{appliance_name}' not found. Please make sure you specified correct appliance name in config file for appliance '#{@appliance_config.name}'" unless @appliance_definitions.has_key?( appliance_name )
-#
-#        appliance_definition = @appliance_definitions[appliance_name][:definition]
-#        next if appliance_definition['hardware'].nil? or appliance_definition['hardware']['cpus'].nil?
-#        cpus = appliance_definition['hardware']['cpus']
-#        @appliance_config.hardware.cpus = cpus if cpus > @appliance_config.hardware.cpus
-#      end unless @appliance_config.definition['appliances'].nil?
+      hardware('cpus'){ |cpus| puts cpus, @appliance_config.hardware.cpus = cpus if cpus > @appliance_config.hardware.cpus }
     end
 
     # This will merge partitions from multiple appliances.
@@ -89,25 +71,15 @@ module JBossCloud
 
       partitions['/'] = { 'root' => '/', 'size' => APPLIANCE_DEFAULTS[:hardware][:partition] } unless partitions.keys.include?('/')
 
-      hardware('partitions') do |partition|
+      hardware('partitions') do |parts|
+
+
         if partitions.keys.include?(partition['root'])
           partitions[partition['root']]['size'] = partition['size'] if partitions[partition['root']]['size'] < partition['size']
         else
           partitions[partition['root']] = partition
         end
       end
-
-#      for appliance_name in @appliance_config.definition['appliances']
-#        appliance_definition = @appliance_definitions[appliance_name][:definition]
-#
-#        for partition in appliance_definition['hardware']['partitions']
-#          if partitions.keys.include?(partition['root'])
-#            partitions[partition['root']]['size'] = partition['size'] if partitions[partition['root']]['size'] < partition['size']
-#          else
-#            partitions[partition['root']] = partition
-#          end
-#        end unless appliance_definition['hardware'].nil? or appliance_definition['hardware']['partitions'].nil?
-#      end unless @appliance_config.definition['appliances'].nil?
 
       @appliance_config.hardware.partitions = partitions
     end
@@ -116,16 +88,6 @@ module JBossCloud
       @appliance_config.hardware.memory = @appliance_config.definition['hardware']['memory'] unless @appliance_config.definition['hardware'].nil? or @appliance_config.definition['hardware']['memory'].nil?
 
       hardware('memory') { |memory| @appliance_config.hardware.memory = memory if memory > @appliance_config.hardware.memory }
-
-#      for appliance_name in @appliance_config.definition['appliances']
-#        # TODO move this to validator
-#        #raise "Appliance '#{appliance_name}' not found. Please make sure you specified correct appliance name in config file for appliance '#{@appliance_config.name}'" unless @appliance_definitions.has_key?( appliance_name )
-#
-#        appliance_definition = @appliance_definitions[appliance_name][:definition]
-#        next if appliance_definition['hardware'].nil? or appliance_definition['hardware']['memory'].nil?
-#        memory = appliance_definition['hardware']['memory']
-#        @appliance_config.hardware.memory = memory if memory > @appliance_config.hardware.memory
-#      end unless @appliance_config.definition['appliances'].nil?
     end
 
     def prepare_os
@@ -137,9 +99,9 @@ module JBossCloud
     end
 
     def prepare_appliances
-      for appliance in @appliance_config.definition['appliances']
+      for appliance in @current_appliances
         @appliance_config.appliances << appliance
-      end unless @appliance_config.definition['appliances'].nil?
+      end
     end
 
     def prepare_version_and_release
@@ -153,13 +115,7 @@ module JBossCloud
     end
 
     def merge_repos
-      unless @appliance_config.definition['repos'].nil?
-        for repo in @appliance_config.definition['repos']
-          @appliance_config.repos << repo
-        end
-      end
-
-      for appliance_name in @appliance_config.appliances
+      for appliance_name in @current_appliances
         definition = @appliance_definitions[appliance_name][:definition]
 
         for repo in definition['repos']
@@ -169,18 +125,7 @@ module JBossCloud
     end
 
     def merge_packages
-      unless @appliance_config.definition['packages'].nil?
-        for package in @appliance_config.definition['packages']['includes']
-          @appliance_config.packages << package
-        end unless @appliance_config.definition['packages']['includes'].nil?
-
-        for package in @appliance_config.definition['packages']['excludes']
-          @appliance_config.packages << "-#{package}"
-        end unless @appliance_config.definition['packages']['excludes'].nil?
-      end
-
-
-      for appliance_name in @appliance_config.appliances
+      for appliance_name in @current_appliances
         definition = @appliance_definitions[appliance_name][:definition]
 
         unless definition['packages'].nil?
@@ -195,19 +140,27 @@ module JBossCloud
       end
     end
 
+    def hardware( field )
+      for appliance_name in @current_appliances
+        appliance_definition = @appliance_definitions[appliance_name][:definition]
+        next if appliance_definition['hardware'].nil? or appliance_definition['hardware'][field].nil?
+        val = appliance_definition['hardware'][field]
+        yield val
+      end unless @appliance_config.definition['appliances'].nil?
+    end
+
     def get_appliances( appliance_name )
-      appliances = Array.new
+      appliances = []
 
-      appliance_def = "#{@global_config.dir_appliances}/#{appliance_name}/#{appliance_name}.appl"
+      if @appliance_definitions.has_key?( appliance_name )
+        appliance = @appliance_definitions[appliance_name]
+        # add current appliance name
+        appliances << appliance[:definition]['name']
 
-      unless  File.exists?( appliance_def )
-        raise ValidationError, "Appliance configuration file for #{appliance_name} doesn't exists, please check your config files"
+        appliance[:definition]['appliances'].each do |appl|
+          appliances += get_appliances( appl ) unless appliances.include?( appl )
+        end unless appliance[:definition]['appliances'].nil? or appliance[:definition]['appliances'].empty?
       end
-
-      appliances_read = YAML.load_file( appliance_def )['appliances']
-      appliances_read.each { |appl| appliances += get_appliances( appl ) } unless appliances_read.nil? or appliances_read.empty?
-      appliances.push( appliance_name )
-
       appliances
     end
 

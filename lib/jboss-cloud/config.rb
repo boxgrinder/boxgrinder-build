@@ -104,7 +104,7 @@ module JBossCloud
     end
 
     def is_os_version_stable?
-      !DEVELOPMENT_RELEASES[@os.name].eql?(@os.version)
+      DEVELOPMENT_RELEASES[@os.name].eql?(@os.version)
     end
   end
 
