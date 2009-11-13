@@ -44,7 +44,7 @@ module JBossCloud
           :os => {
                   :name => "fedora",
                   :version => LATEST_STABLE_RELEASES['fedora'],
-                  :password => "oddthesis"
+                  :password => "stormgrind"
           },
           :hardware => {
                   :arch => (-1.size) == 8 ? "x86_64" : "i386",
@@ -81,7 +81,7 @@ module JBossCloud
   }
 
   DEFAULT_PROJECT_CONFIG = {
-          :name => 'JBoss Cloud',
+          :name => 'StormGrind',
           :version => '1.0.0.Beta8',
           :release => 'SNAPSHOT',
           :dir_build => 'build',
