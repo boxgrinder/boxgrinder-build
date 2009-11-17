@@ -65,13 +65,13 @@ module BoxGrinder
       task "appliance:#{@appliance_config.name}:package:vmware" => [ @package_vmware ]
 
       file @package_raw => [ @package_dir, "appliance:#{@appliance_config.name}" ] do
-        @log.info "Packaging #{@appliance_config.simple_name} appliance RAW image (#{@config.os_name} #{@config.os_version}, #{@config.arch} arch)..."
+        @log.info "Packaging #{@appliance_config.simple_name} appliance RAW image (#{@config.os.name} #{@config.os.version}, #{@config.arch} arch)..."
         @exec_helper.execute "tar -C #{@appliance_raw_dir} -cvzf #{@package_raw} #{@appliance_config.name}-sda.raw #{@appliance_config.name}.xml"
         @log.info "RAW package created."
       end
 
       file @package_vmware => [ @package_dir, "appliance:#{@appliance_config.name}:vmware:enterprise", "appliance:#{@appliance_config.name}:vmware:personal" ] do
-        @log.info "Packaging #{@appliance_config.simple_name} appliance VMware image (#{@config.os_name} #{@config.os_version}, #{@config.arch} arch)..."
+        @log.info "Packaging #{@appliance_config.simple_name} appliance VMware image (#{@config.os.name} #{@config.os.version}, #{@config.arch} arch)..."
 
         readme = File.open( "#{@config.dir.base}/src/README.vmware" ).read
 

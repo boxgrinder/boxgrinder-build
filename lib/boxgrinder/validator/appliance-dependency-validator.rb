@@ -88,7 +88,7 @@ module BoxGrinder
     end
 
     def invalid_names( repo_list, package_list )
-      @log.debug "Quering package database..."
+      @log.debug "Querying package database..."
 
       unless @appliance_config.is64bit?
         arches = "i386,i486,i586,i686"

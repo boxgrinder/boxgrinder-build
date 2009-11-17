@@ -20,12 +20,12 @@
 
 require 'jboss-cloud/exec'
 require 'jboss-cloud/config'
-require 'jboss-cloud-wizard/step_appliance'
-require 'jboss-cloud-wizard/step_disk'
-require 'jboss-cloud-wizard/step_memory'
-require 'jboss-cloud-wizard/step_output_format'
-require 'jboss-cloud-wizard/step_ec2'
-require 'jboss-cloud-wizard/build-helper'
+require 'boxgrinder-build-wizard/step_appliance'
+require 'boxgrinder-build-wizard/step_disk'
+require 'boxgrinder-build-wizard/step_memory'
+require 'boxgrinder-build-wizard/step_output_format'
+require 'boxgrinder-build-wizard/step_ec2'
+require 'boxgrinder-build-wizard/build-helper'
 require 'yaml'
 require 'fileutils'
 
@@ -39,7 +39,7 @@ module JBossCloudWizard
       @options     = options
       @appliances  = Array.new
       @configs     = Hash.new
-      @dir_config  = ENV['JBOSS_CLOUD_CONFIG_DIR'] || "#{ENV['HOME']}/.jboss-cloud/wizard_configs"
+      @dir_config  = ENV['BOXGRINDER_CONFIG_DIR'] || "#{ENV['HOME']}/.jboss-cloud/wizard_configs"
 
       if !File.exists?(@dir_config) && !File.directory?(@dir_config)
         puts "Wizard config directory doesn't exists. Creating new one." if @options.verbose

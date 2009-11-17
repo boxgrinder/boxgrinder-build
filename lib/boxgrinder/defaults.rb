@@ -49,7 +49,7 @@ module BoxGrinder
           :hardware => {
                   :arch => (-1.size) == 8 ? "x86_64" : "i386",
                   :partition => 1,
-                  :memory => 64,
+                  :memory => 256,
                   :network => "NAT",
                   :cpus => 1
           }
@@ -82,7 +82,7 @@ module BoxGrinder
 
   DEFAULT_PROJECT_CONFIG = {
           :name => 'BoxGrinder',
-          :version => '1.0.0.Beta8',
+          :version => '1.0.0.Beta1',
           :release => 'SNAPSHOT',
           :dir_build => 'build',
           #:topdir            => "#{self.} build/topdir",

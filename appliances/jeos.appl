@@ -1,0 +1,42 @@
+name: jeos
+summary: Just Enough Operating System based on latest Fedora
+packages:
+  includes:
+    - bash
+    - kernel
+    - grub
+    - e2fsprogs
+    - passwd
+    - policycoreutils
+    - chkconfig
+    - rootfiles
+    - yum
+    - vim-minimal
+    - acpid
+    - dhclient
+    - iputils
+    - generic-logos
+    - openssh-server
+  excludes:
+    - kudzu
+    - prelink
+    - setserial
+    - ed
+    - authconfig
+    - rhpl
+    - wireless-tools
+    - kbd
+    - usermode
+    - mkinitrd
+    - kpartx
+    - dmraid
+    - mdadm
+    - lvm2
+    - tar
+    - policycoreutils
+    - checkpolicy
+    - selinux-policy*
+    - libselinux-python
+    - libselinux
+    - fedora-logos
+    - fedora-release-notes

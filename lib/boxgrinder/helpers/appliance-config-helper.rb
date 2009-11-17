@@ -57,6 +57,8 @@ module BoxGrinder
       end
 
       hardware('cpus'){ |cpus| puts cpus, @appliance_config.hardware.cpus = cpus if cpus > @appliance_config.hardware.cpus }
+
+      @appliance_config.hardware.cpus = APPLIANCE_DEFAULTS[:hardware][:cpus] if @appliance_config.hardware.cpus == 0
     end
 
     # This will merge partitions from multiple appliances.
@@ -88,6 +90,8 @@ module BoxGrinder
       @appliance_config.hardware.memory = @appliance_config.definition['hardware']['memory'] unless @appliance_config.definition['hardware'].nil? or @appliance_config.definition['hardware']['memory'].nil?
 
       hardware('memory') { |memory| @appliance_config.hardware.memory = memory if memory > @appliance_config.hardware.memory }
+
+      @appliance_config.hardware.memory = APPLIANCE_DEFAULTS[:hardware][:memory] if @appliance_config.hardware.memory == 0 
     end
 
     def prepare_os
@@ -160,7 +164,10 @@ module BoxGrinder
         appliance[:definition]['appliances'].each do |appl|
           appliances += get_appliances( appl ) unless appliances.include?( appl )
         end unless appliance[:definition]['appliances'].nil? or appliance[:definition]['appliances'].empty?
+      else
+        raise ApplianceValidationError, "Not valid partition appliance name: Specified appliance name '#{appliance_name}' could not be found in appliance list. Please correct your definition file '#{@appliance_config.file}', thanks"
       end
+
       appliances
     end
 

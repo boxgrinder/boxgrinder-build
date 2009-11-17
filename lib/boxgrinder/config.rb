@@ -40,8 +40,8 @@ module BoxGrinder
       @hardware = OpenStruct.new
 
       @hardware.arch = APPLIANCE_DEFAULTS[:hardware][:arch]
-      @hardware.cpus = APPLIANCE_DEFAULTS[:hardware][:cpus]
-      @hardware.memory = APPLIANCE_DEFAULTS[:hardware][:memory]
+      @hardware.cpus = 0
+      @hardware.memory = 0
       @hardware.network = APPLIANCE_DEFAULTS[:hardware][:network]
 
       @appliances = []

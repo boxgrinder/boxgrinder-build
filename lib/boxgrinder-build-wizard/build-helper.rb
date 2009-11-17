@@ -23,7 +23,7 @@ module JBossCloudWizard
     def initialize( appliance_config, options )
       @appliance_config    = appliance_config
       @options             = options
-      @dir_logs            = ENV['JBOSS_CLOUD_LOGS_DIR'] || "#{ENV['HOME']}/.jboss-cloud/wizard_logs"
+      @dir_logs            = ENV['BOXGRINDER_LOGS_DIR'] || "#{ENV['HOME']}/.boxgrinder/wizard_logs"
     end
 
     def build( rake_task, msg_before, msg_success, msg_fail )
@@ -32,7 +32,7 @@ module JBossCloudWizard
 
       puts "\n    #{msg_before}"
 
-      command = "JBOSS_CLOUD_DISK_SIZE=\"#{@appliance_config.disk_size}\" JBOSS_CLOUD_NETWORK_NAME=\"#{@appliance_config.network_name}\" JBOSS_CLOUD_ARCH=\"#{@appliance_config.arch}\" JBOSS_CLOUD_OS_NAME=\"#{@appliance_config.os_name}\" JBOSS_CLOUD_OS_VERSION=\"#{@appliance_config.os_version}\" JBOSS_CLOUD_VCPU=\"#{@appliance_config.vcpu}\" JBOSS_CLOUD_MEM_SIZE=\"#{@appliance_config.mem_size}\" #{rake_task}"
+      command = "BOXGRINDER_DISK_SIZE=\"#{@appliance_config.disk_size}\" BOXGRINDER_NETWORK_NAME=\"#{@appliance_config.network_name}\" BOXGRINDER_ARCH=\"#{@appliance_config.arch}\" BOXGRINDER_OS_NAME=\"#{@appliance_config.os_name}\" BOXGRINDER_OS_VERSION=\"#{@appliance_config.os_version}\" BOXGRINDER_CPUS=\"#{@appliance_config.vcpu}\" BOXGRINDER_MEM_SIZE=\"#{@appliance_config.mem_size}\" #{rake_task}"
 
       unless execute( "#{command}", @options.verbose, log_file_name )
         puts "\n    #{msg_fail} Check log file: '#{log_file_name}'"

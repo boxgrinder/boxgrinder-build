@@ -21,7 +21,7 @@
 require 'optparse' 
 require 'ostruct'
 require 'yaml'
-require 'jboss-cloud-wizard/wizard'
+require 'boxgrinder-build-wizard/wizard'
 
 module JBossCloudWizard
   class App
