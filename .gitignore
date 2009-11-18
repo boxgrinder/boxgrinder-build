@@ -1,5 +1,4 @@
 pkg
-Rakefile
 build
 *.swp
 rpms-cache
