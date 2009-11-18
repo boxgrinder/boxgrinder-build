@@ -1,0 +1,37 @@
+name: meta
+summary: Environment for building new appliances using BoxGrinder
+hardware:
+  partitions:
+    - root: "/"
+      size: 10
+appliances:
+  - jeos
+packages:
+  includes:
+    - git
+    - wget
+    - gnupg2
+    - make
+    - gcc-c++
+    - expect
+    - rpmdevtools
+    - java-1.6.0-openjdk-devel
+    - autoconf
+    - createrepo
+    - appliance-tools
+    - yum-utils
+    - libdnet-devel
+    - libdnet
+    - libicu-devel
+    - httpd-devel
+    - jboss-cloud-environment
+    - glib2-devel
+    - ruby-devel
+    - ruby-libguestfs
+    - gdb
+    - qemu-stable
+    - zlib-devel
+    - SDL-devel
+    - rubygem-rake
+    - which
+    - sudo
