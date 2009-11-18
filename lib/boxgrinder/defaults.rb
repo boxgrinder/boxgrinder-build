@@ -28,7 +28,7 @@ module BoxGrinder
   # here are global variables
   SUPPORTED_ARCHES = [ "i386", "x86_64" ]
   SUPPORTED_OSES = {
-          "fedora" => [ "11", "rawhide" ]
+          "fedora" => [ "12", "11", "rawhide" ]
   }
 
   LATEST_STABLE_RELEASES = {
@@ -60,6 +60,14 @@ module BoxGrinder
   # you can use #ARCH# variable to specify build arch
   REPOS = {
           "fedora" => {
+                  "12" => {
+                          "base" => {
+                                  "mirrorlist" => "http://mirrors.fedoraproject.org/mirrorlist?repo=fedora-12&arch=#ARCH#"
+                          },
+                          "updates" => {
+                                  "mirrorlist" => "http://mirrors.fedoraproject.org/mirrorlist?repo=updates-released-f12&arch=#ARCH#"
+                          }
+                  },
                   "11" => {
                           "base" => {
                                   "mirrorlist" => "http://mirrors.fedoraproject.org/mirrorlist?repo=fedora-11&arch=#ARCH#"

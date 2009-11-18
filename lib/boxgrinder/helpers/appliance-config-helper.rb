@@ -74,12 +74,12 @@ module BoxGrinder
       partitions['/'] = { 'root' => '/', 'size' => APPLIANCE_DEFAULTS[:hardware][:partition] } unless partitions.keys.include?('/')
 
       hardware('partitions') do |parts|
-
-
-        if partitions.keys.include?(partition['root'])
-          partitions[partition['root']]['size'] = partition['size'] if partitions[partition['root']]['size'] < partition['size']
-        else
-          partitions[partition['root']] = partition
+        for partition in parts
+          if partitions.keys.include?(partition['root'])
+            partitions[partition['root']]['size'] = partition['size'] if partitions[partition['root']]['size'] < partition['size']
+          else
+            partitions[partition['root']] = partition
+          end
         end
       end
 
@@ -91,7 +91,7 @@ module BoxGrinder
 
       hardware('memory') { |memory| @appliance_config.hardware.memory = memory if memory > @appliance_config.hardware.memory }
 
-      @appliance_config.hardware.memory = APPLIANCE_DEFAULTS[:hardware][:memory] if @appliance_config.hardware.memory == 0 
+      @appliance_config.hardware.memory = APPLIANCE_DEFAULTS[:hardware][:memory] if @appliance_config.hardware.memory == 0
     end
 
     def prepare_os
