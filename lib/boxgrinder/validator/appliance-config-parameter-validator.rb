@@ -24,15 +24,15 @@ require 'boxgrinder/validator/errors'
 module BoxGrinder
   class ApplianceConfigParameterValidator
     def validate
-      raise ValidationError, "'#{ENV['BOXGRINDER_ARCH']}' is not a valid build architecture. Available architectures: #{SUPPORTED_ARCHES.join(", ")}." if (!ENV['BOXGRINDER_ARCH'].nil? and !SUPPORTED_ARCHES.include?( ENV['BOXGRINDER_ARCH']))
-      raise ValidationError, "'#{ENV['BOXGRINDER_OS_NAME']}' is not a valid OS name. Please enter valid name." if !ENV['BOXGRINDER_OS_NAME'].nil? && !SUPPORTED_OSES.keys.include?( ENV['BOXGRINDER_OS_NAME'] )
+      raise ValidationError, "'#{ENV['BG_HARDWARE_ARCH']}' is not a valid build architecture. Available architectures: #{SUPPORTED_ARCHES.join(", ")}." if (!ENV['BG_HARDWARE_ARCH'].nil? and !SUPPORTED_ARCHES.include?( ENV['BG_HARDWARE_ARCH']))
+      raise ValidationError, "'#{ENV['BG_OS_NAME']}' is not a valid OS name. Please enter valid name." if !ENV['BG_OS_NAME'].nil? && !SUPPORTED_OSES.keys.include?( ENV['BG_OS_NAME'] )
       
-      os_name = ENV['BOXGRINDER_OS_NAME'].nil? ? APPLIANCE_DEFAULTS['os_name'] : ENV['BOXGRINDER_OS_NAME']
+      os_name = ENV['BG_OS_NAME'].nil? ? APPLIANCE_DEFAULTS[:os][:name] : ENV['BG_OS_NAME']
       
-      raise ValidationError, "'#{ENV['BOXGRINDER_OS_VERSION']}' is not a valid OS version for #{os_name}. Please enter valid version." if !ENV['BOXGRINDER_OS_VERSION'].nil? && !SUPPORTED_OSES[os_name].include?( ENV['BOXGRINDER_OS_VERSION'] )
-      raise ValidationError, "'#{ENV['BOXGRINDER_DISK_SIZE']}' is not a valid disk size. Please enter valid size in GB." if !ENV['BOXGRINDER_DISK_SIZE'].nil? && ENV['BOXGRINDER_DISK_SIZE'].to_i == 0
-      raise ValidationError, "'#{ENV['BOXGRINDER_MEM_SIZE']}' is not a valid memory size. Please enter valid size in MB." if !ENV['BOXGRINDER_MEM_SIZE'].nil? && ENV['BOXGRINDER_MEM_SIZE'].to_i == 0
-      raise ValidationError, "'#{ENV['BOXGRINDER_CPUS']}' is not a valid virtual cpu amount. Please enter valid amount." if !ENV['BOXGRINDER_CPUS'].nil? && ENV['BOXGRINDER_CPUS'].to_i == 0
+      raise ValidationError, "'#{ENV['BG_OS_VERSION']}' is not a valid OS version for #{os_name}. Please enter valid version." if !ENV['BG_OS_VERSION'].nil? && !SUPPORTED_OSES[os_name].include?( ENV['BG_OS_VERSION'] )
+      raise ValidationError, "'#{ENV['BG_HARDWARE_DISK_SIZE']}' is not a valid disk size. Please enter valid size in GB." if !ENV['BG_HARDWARE_DISK_SIZE'].nil? && ENV['BG_HARDWARE_DISK_SIZE'].to_i == 0
+      raise ValidationError, "'#{ENV['BG_HARDWARE_MEM_SIZE']}' is not a valid memory size. Please enter valid size in MB." if !ENV['BG_HARDWARE_MEM_SIZE'].nil? && ENV['BG_HARDWARE_MEM_SIZE'].to_i == 0
+      raise ValidationError, "'#{ENV['BG_HARDWARE_CPUS']}' is not a valid virtual cpu amount. Please enter valid amount." if !ENV['BG_HARDWARE_CPUS'].nil? && ENV['BG_HARDWARE_CPUS'].to_i == 0
     end
   end
 end

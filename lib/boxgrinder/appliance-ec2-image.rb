@@ -81,7 +81,7 @@ module BoxGrinder
     def bundle_image
       @log.info "Bundling AMI..."
 
-      @exec_helper.execute( "ec2-bundle-image -i #{@appliance_ec2_image_file} --kernel #{AWS_DEFAULTS[:kernel_id][@appliance_config.hardware.arch]} --ramdisk #{AWS_DEFAULTS[:ramdisk_id][@appliance_config.hardware.arch]} -c #{@aws_support.aws_data['cert_file']} -k #{@aws_support.aws_data['key_file']} -u #{@aws_support.aws_data['account_number']} -r #{@config.build_arch} -d #{@bundle_dir}" )
+      @exec_helper.execute( "ec2-bundle-image -i #{@appliance_ec2_image_file} --kernel #{AWS_DEFAULTS[:kernel_id][@appliance_config.hardware.arch]} --ramdisk #{AWS_DEFAULTS[:ramdisk_id][@appliance_config.hardware.arch]} -c #{@aws_support.aws_data['cert_file']} -k #{@aws_support.aws_data['key_file']} -u #{@aws_support.aws_data['account_number']} -r #{@appliance_config.hardware.arch} -d #{@bundle_dir}" )
 
       @log.info "Bundling AMI finished."
     end

@@ -32,15 +32,15 @@ module BoxGrinder
       @name = @definition['name']
       @summary = @definition['summary']
 
-      @os           = OpenStruct.new
-      @os.name      = APPLIANCE_DEFAULTS[:os][:name]
-      @os.version   = APPLIANCE_DEFAULTS[:os][:version]
-      @os.password  = APPLIANCE_DEFAULTS[:os][:password]
+      @os = OpenStruct.new
+      @os.name = ENV['BG_OS_NAME'].nil? ? APPLIANCE_DEFAULTS[:os][:name] : ENV['BG_OS_NAME']
+      @os.version = ENV['BG_OS_VERSION'].nil? ? APPLIANCE_DEFAULTS[:os][:version] : ENV['BG_OS_VERSION']
+      @os.password = ENV['BG_OS_PASSWORD'].nil? ? APPLIANCE_DEFAULTS[:os][:password] : ENV['BG_OS_PASSWORD']
 
       @hardware = OpenStruct.new
 
       @hardware.arch = APPLIANCE_DEFAULTS[:hardware][:arch]
-      @hardware.cpus = 0
+      @hardware.cpus = ENV['BG_HARDWARE_CPUS'].nil? ? 0 : ENV['BG_HARDWARE_CPUS'].to_i
       @hardware.memory = 0
       @hardware.network = APPLIANCE_DEFAULTS[:hardware][:network]
 
@@ -151,9 +151,9 @@ module BoxGrinder
       @arch = (-1.size) == 8 ? "x86_64" : "i386"
 
       # it's save, we have validated it before
-      @build_arch = ENV['BOXGRINDER_ARCH'].nil? ? @arch : ENV['BOXGRINDER_ARCH']
-      @os_name = ENV['BOXGRINDER_OS_NAME'].nil? ? APPLIANCE_DEFAULTS['os_name'] : ENV['BOXGRINDER_OS_NAME']
-      @os_version = ENV['BOXGRINDER_OS_VERSION'].nil? ? APPLIANCE_DEFAULTS['os_version'] : ENV['BOXGRINDER_OS_VERSION']
+      @build_arch = ENV['BG_HARDWARE_ARCH'].nil? ? @arch : ENV['BG_HARDWARE_ARCH']
+      @os_name = ENV['BG_OS_NAME'].nil? ? APPLIANCE_DEFAULTS[:os][:name] : ENV['BG_OS_NAME']
+      @os_version = ENV['BG_OS_VERSION'].nil? ? APPLIANCE_DEFAULTS[:os][:version] : ENV['BG_OS_VERSION']
 
       @helper = BoxGrinder::ConfigHelper.new( self )
     end

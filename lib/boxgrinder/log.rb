@@ -23,7 +23,7 @@ require 'logger'
 module BoxGrinder
   class Log
     def initialize
-      treshold = ENV['BOXGRINDER_LOG_THRESHOLD']
+      treshold = ENV['BG_LOG_THRESHOLD']
 
       unless treshold.nil?
         case treshold

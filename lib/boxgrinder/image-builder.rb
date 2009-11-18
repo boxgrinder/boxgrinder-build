@@ -65,7 +65,7 @@ module BoxGrinder
       dir.src         = project_config[:dir_src]            || DEFAULT_PROJECT_CONFIG[:dir_src]
       dir.kickstarts  = project_config[:dir_kickstarts]     || DEFAULT_PROJECT_CONFIG[:dir_kickstarts]
 
-      config_file = ENV['BOXGRINDER_CONFIG_FILE'] || "#{ENV['HOME']}/.boxgrinder/config"
+      config_file = ENV['BG_CONFIG_FILE'] || "#{ENV['HOME']}/.boxgrinder/config"
 
       @config = Config.new( name, version, release, dir, config_file )
 
@@ -82,8 +82,8 @@ module BoxGrinder
 
       directory @config.dir.build
 
-      @log.debug "Current architecture: #{@config.arch}"
-      @log.debug "Building architecture: #{@config.build_arch}"
+      #@log.debug "Current architecture: #{@config.hardware.arch}"
+      #@log.debug "Building architecture: #{@config.build_arch}"
 
       appliance_definitions = {}
 

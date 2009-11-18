@@ -71,7 +71,7 @@ module BoxGrinder
         end
       end
 
-      partitions['/'] = { 'root' => '/', 'size' => APPLIANCE_DEFAULTS[:hardware][:partition] } unless partitions.keys.include?('/')
+      partitions['/'] = { 'root' => '/', 'size' => ENV['BG_HARDWARE_DISK_SIZE'].nil? ? APPLIANCE_DEFAULTS[:hardware][:partition] : ENV['BG_HARDWARE_DISK_SIZE'].to_i } unless partitions.keys.include?('/')
 
       hardware('partitions') do |parts|
         for partition in parts
