@@ -155,7 +155,7 @@ module BoxGrinder
       @os_name = ENV['BG_OS_NAME'].nil? ? APPLIANCE_DEFAULTS[:os][:name] : ENV['BG_OS_NAME']
       @os_version = ENV['BG_OS_VERSION'].nil? ? APPLIANCE_DEFAULTS[:os][:version] : ENV['BG_OS_VERSION']
 
-      @helper = BoxGrinder::ConfigHelper.new( self )
+      @helper = ConfigHelper.new( self )
     end
 
     attr_reader :name

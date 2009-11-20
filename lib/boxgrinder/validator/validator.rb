@@ -51,7 +51,7 @@ module BoxGrinder
     end
 
     def validate_definitions
-      @log.info "Validating appliance definitions..." if BoxGrinder.validation_task?
+      @log.debug "Validating appliance definitions..."
 
       begin
         raise ValidationError, "Appliance directory '#{@config.dir.appliances}' doesn't exists, please check your Rakefile" if @config.dir.appliances.nil? or !File.exists?(File.dirname( @config.dir.appliances )) or !File.directory?(File.dirname( @config.dir.appliances ))
@@ -63,9 +63,9 @@ module BoxGrinder
         end
 
         if appliances.size == 0
-          @log.info "No appliance definitions found in '#{@config.dir.appliances}' directory" if BoxGrinder.validation_task?
+          @log.debug "No appliance definitions found in '#{@config.dir.appliances}' directory"
         else
-          @log.info "All #{appliances.size} appliances definitions are valid" if BoxGrinder.validation_task?
+          @log.debug "All #{appliances.size} appliances definitions are valid"
         end
       rescue ApplianceValidationError => appliance_validation_error
         raise "Error while validating appliance definition: #{appliance_validation_error}"
@@ -77,7 +77,7 @@ module BoxGrinder
     end
 
     def validate_configuration
-      @log.info "Validating configuration..." if BoxGrinder.validation_task?
+      @log.debug "Validating configuration..."
       begin
         ConfigValidator.new( @config ).validate
       rescue ValidationError => validation_error
@@ -86,7 +86,7 @@ module BoxGrinder
         raise "Something went wrong: #{exception}"
       end
 
-      @log.info "Configuration is valid" if BoxGrinder.validation_task?
+      @log.debug "Configuration is valid"
     end
   end
 end

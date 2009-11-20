@@ -42,7 +42,7 @@ require 'yaml'
 $stderr.reopen("/dev/null")
 
 module BoxGrinder
-  class ImageBuilder
+  class BoxGrinder
     def initialize( project_config = Hash.new )
       @log = LOG
       # validates parameters, this is a pre-validation
@@ -101,5 +101,6 @@ module BoxGrinder
         Appliance.new( @config, appliance_config_helper.merge( ApplianceConfig.new( appliance_definition ) ) )
       end
     end
+    attr_reader :config
   end
 end
