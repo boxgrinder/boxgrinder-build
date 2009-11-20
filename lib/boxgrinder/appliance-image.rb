@@ -30,17 +30,17 @@ module BoxGrinder
   class ApplianceImage < Rake::TaskLib
 
     def initialize( config, appliance_config, options = {} )
-      @config                  = config
-      @appliance_config        = appliance_config
+      @config = config
+      @appliance_config = appliance_config
 
-      @log          = options[:log]         || LOG
-      @exec_helper  = options[:exec_helper] || EXEC_HELPER
+      @log = options[:log] || LOG
+      @exec_helper = options[:exec_helper] || EXEC_HELPER
 
-      @appliance_build_dir     = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
-      @raw_disk                = "#{@appliance_build_dir}/#{@appliance_config.name}-sda.raw"
-      @kickstart_file          = "#{@appliance_build_dir}/#{@appliance_config.name}.ks"
-      @tmp_dir                 = "#{@config.dir_root}/#{@config.dir_build}/tmp"
-      @xml_file                = "#{@appliance_build_dir}/#{@appliance_config.name}.xml"
+      @appliance_build_dir = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
+      @raw_disk = "#{@appliance_build_dir}/#{@appliance_config.name}-sda.raw"
+      @kickstart_file = "#{@appliance_build_dir}/#{@appliance_config.name}.ks"
+      @tmp_dir = "#{@config.dir_root}/#{@config.dir_build}/tmp"
+      @xml_file = "#{@appliance_build_dir}/#{@appliance_config.name}.xml"
 
       ApplianceVMXImage.new( @config, @appliance_config )
       ApplianceEC2Image.new( @config, @appliance_config )
@@ -76,8 +76,8 @@ module BoxGrinder
     def do_post_build_operations
       @log.info "Executing post operations after build..."
 
-      guestfs_helper  = GuestFSHelper.new( @raw_disk )
-      guestfs         = guestfs_helper.guestfs
+      guestfs_helper = GuestFSHelper.new( @raw_disk )
+      guestfs = guestfs_helper.guestfs
 
       @log.debug "Changing configuration files using augeas..."
       guestfs.aug_init( "/", 0 )
@@ -90,9 +90,8 @@ module BoxGrinder
       # set nice banner for SSH
       motd_file = "/etc/init.d/motd"
       guestfs.upload( "#{@config.dir.base}/src/motd.init", motd_file )
-      guestfs.sh( "sed -i s/#NAME#/'#{@config.name}'/ #{motd_file}" )
-      guestfs.sh( "sed -i s/#VERSION#/'#{@config.version_with_release}'/ #{motd_file}" )
-      guestfs.sh( "sed -i s/#APPLIANCE#/'#{@appliance_config.simple_name} appliance'/ #{motd_file}" )
+      guestfs.sh( "sed -i s/#VERSION#/'#{@appliance_config.version}.#{@appliance_config.release}'/ #{motd_file}" )
+      guestfs.sh( "sed -i s/#APPLIANCE#/'#{@appliance_config.name} appliance'/ #{motd_file}" )
 
       guestfs.sh( "/bin/chmod +x #{motd_file}" )
       guestfs.sh( "/sbin/chkconfig --add motd" )
@@ -106,8 +105,9 @@ module BoxGrinder
       guestfs.upload( "#{@config.dir.base}/src/oddthesis/RPM-GPG-KEY-oddthesis", oddthesis_gpg_key_file )
       @log.debug "Repository installed."
 
-      # before we access RPM database we need to clean it...
-      #guestfs_helper.rebuild_rpm_database
+      @log.debug "Installing BoxGrinder version files..."
+      guestfs.sh( "echo 'BOXGRINDER_VERSION=#{@config.version_with_release}' > /etc/sysconfig/boxgrinder" )
+      @log.debug "Version files installed."
 
       guestfs.close
 
