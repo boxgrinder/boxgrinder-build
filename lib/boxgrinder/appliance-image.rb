@@ -102,6 +102,8 @@ module BoxGrinder
 
       @log.debug "Installing oddthesis repository and GPG keys..."
       guestfs.upload( "#{@config.dir.base}/src/oddthesis/oddthesis.repo", oddthesis_repo_file )
+      guestfs.sh( "sed -i s/#OS_NAME#/'#{@appliance_config.os.name}'/ #{oddthesis_repo_file}" )
+      guestfs.sh( "sed -i s/#OS_VERSION#/'#{@appliance_config.os.version}'/ #{oddthesis_repo_file}" )
       guestfs.upload( "#{@config.dir.base}/src/oddthesis/RPM-GPG-KEY-oddthesis", oddthesis_gpg_key_file )
       @log.debug "Repository installed."
 
