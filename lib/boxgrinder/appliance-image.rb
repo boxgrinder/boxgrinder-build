@@ -98,6 +98,14 @@ module BoxGrinder
       guestfs.sh( "/sbin/chkconfig --add motd" )
       @log.debug "'/etc/motd' is nice now."
 
+      oddthesis_repo_file = "/etc/yum.repos.d/oddthesis.repo"
+      oddthesis_gpg_key_file = "/etc/pki/rpm-gpg/RPM-GPG-KEY-oddthesis"
+
+      @log.debug "Installing oddthesis repository and GPG keys..."
+      guestfs.upload( "#{@config.dir.base}/src/oddthesis/oddthesis.repo", oddthesis_repo_file )
+      guestfs.upload( "#{@config.dir.base}/src/oddthesis/RPM-GPG-KEY-oddthesis", oddthesis_gpg_key_file )
+      @log.debug "Repository installed."
+
       # before we access RPM database we need to clean it...
       #guestfs_helper.rebuild_rpm_database
 

@@ -22,11 +22,11 @@ require 'boxgrinder/image-builder'
 
 module Rake
   class Task
-    alias_method :execute_original, :execute
+    alias_method :execute_original_boxgrinder, :execute
 
     def execute( args=nil )
       begin
-        execute_original( args )
+        execute_original_boxgrinder( args )
       rescue => e
         BoxGrinder::LOG.fatal e
         BoxGrinder::LOG.fatal e.message
