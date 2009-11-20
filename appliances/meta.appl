@@ -34,3 +34,6 @@ packages:
     - rubygem-rake
     - which
     - sudo
+    - zlib-devel
+    - SDL-devel
+    - boxgrinder-environment
