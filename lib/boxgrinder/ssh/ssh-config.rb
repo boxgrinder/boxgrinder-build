@@ -37,10 +37,10 @@ module BoxGrinder
 
     def validate
       raise ValidationError, "Specified configuration file (#{@config.config_file}) doesn't exists. #{DEFAULT_HELP_TEXT[:general]}" unless File.exists?( @config.config_file )
-      raise ValidationError, "No 'ssh' section in config file in configuration file '#{@config.config_file}'. #{DEFAULT_HELP_TEXT[:general]}" if @config.release.ssh.nil?
+      raise ValidationError, "No 'ssh' section in config file in configuration file '#{@config.config_file}'. #{DEFAULT_HELP_TEXT[:general]}" if @config.data['ssh'].nil?
 
       # we need only ssh section
-      @cfg = @config.release.ssh
+      @cfg = @config.data['ssh']
 
       raise ValidationError, "Host not specified in configuration file '#{@config.config_file}'. #{DEFAULT_HELP_TEXT[:general]}" if @cfg['host'].nil?
       raise ValidationError, "Username not specified in configuration file '#{@config.config_file}'. #{DEFAULT_HELP_TEXT[:general]}" if @cfg['username'].nil?
@@ -51,6 +51,6 @@ module BoxGrinder
     end
 
     attr_reader :options
-    attr_reader :cfg 
+    attr_reader :cfg
   end
 end
