@@ -63,6 +63,11 @@ module BoxGrinder
 
       definition['packages'] += @appliance_config.packages
 
+      # fix for F12; this is needed because of selinux management in appliance-creator
+      if @appliance_config.os.name.eql?("fedora") and @appliance_config.os.version.to_s.eql?("12")
+        definition['packages'].push "system-config-firewall-base"
+      end
+
       #definition['users'] = appliance_definition['users']
       definition['fstype'] = "ext3"
       definition['root_password'] = @appliance_config.os.password
