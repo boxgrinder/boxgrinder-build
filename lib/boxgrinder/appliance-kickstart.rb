@@ -64,8 +64,9 @@ module BoxGrinder
       definition['packages'] += @appliance_config.packages
 
       # fix for F12; this is needed because of selinux management in appliance-creator
-      if @appliance_config.os.name.eql?("fedora") and @appliance_config.os.version.to_s.eql?("12")
-        definition['packages'].push "system-config-firewall-base"
+      if @appliance_config.os.name.eql?("fedora")
+        definition['packages'].push "system-config-firewall-base" if @appliance_config.os.version.to_s.eql?("12")
+        definition['packages'].push "lokkit" if @appliance_config.os.version.to_s.eql?("11")
       end
 
       #definition['users'] = appliance_definition['users']
@@ -90,7 +91,7 @@ module BoxGrinder
         end
 
         url = repo[urltype].gsub( /#ARCH#/, @appliance_config.hardware.arch )
-        
+
         repo_def = "repo --name=#{repo['name']} --cost=#{cost} --#{urltype}=#{url}"
         repo_def += " --excludepkgs=#{repo['excludes'].join(',')}" unless repo['excludes'].nil? or repo['excludes'].empty?
 
