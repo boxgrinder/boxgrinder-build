@@ -72,7 +72,7 @@ module BoxGrinder
 
     def validate_aws_config
       secure_permissions  = "600"
-      more_info           = "See http://oddthesis.org/theses/boxgrinder/projects/boxgrinder-support/pages/ec2-configuration-file for more info."
+      more_info           = ""
       aws_data            = @config.data['aws']
 
       raise ValidationError, "Please specify aws section in configuration file (#{@config.config_file}). #{more_info}" if aws_data.nil?

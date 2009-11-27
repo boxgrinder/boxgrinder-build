@@ -126,6 +126,10 @@ module BoxGrinder
 
       guestfs_helper.rebuild_rpm_database
 
+      @log.debug "Installing Xen kernel (#{rpm_kernel})..."
+      guestfs.sh( "rpm -Uvh #{rpm_kernel}" )
+      @log.debug "Xen kernel installed."
+
       @log.debug "Installing additional packages (#{rpm_other.keys.join( ", " )})..."
       guestfs.mkdir_p("/tmp/rpms")
 
@@ -134,7 +138,6 @@ module BoxGrinder
         guestfs.upload( cache_file, "/tmp/rpms/#{name}" )
       end
 
-      guestfs.sh( "rpm -Uvh #{rpm_kernel}" )
       guestfs.sh( "yum -y --nogpgcheck localinstall /tmp/rpms/*.rpm" )
       guestfs.rm_rf("/tmp/rpms")
       @log.debug "Additional packages installed."
