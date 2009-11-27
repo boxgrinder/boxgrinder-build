@@ -45,12 +45,13 @@ module BoxGrinder
       ifcfg_eth0 = "#{@config.dir.base}/src/ec2/ifcfg-eth0"
       rc_local_file = "#{@config.dir.base}/src/ec2/rc_local"
 
-      rpms = {
-              AWS_DEFAULTS[:kernel_rpm][@appliance_config.hardware.arch].split("/").last => AWS_DEFAULTS[:kernel_rpm][@appliance_config.hardware.arch],
+      rpm_kernel = AWS_DEFAULTS[:kernel_rpm][@appliance_config.hardware.arch]
+
+      rpm_other = {
               "ec2-ami-tools.noarch.rpm" => "http://s3.amazonaws.com/ec2-downloads/ec2-ami-tools.noarch.rpm"
       }
 
-      cache_rpms( rpms )
+      cache_rpms( rpm_other )
 
       # TODO add progress bar?
       @log.debug "Preparing disk for EC2 image..."
@@ -125,14 +126,15 @@ module BoxGrinder
 
       guestfs_helper.rebuild_rpm_database
 
-      @log.debug "Installing additional packages (#{rpms.keys.join( ", " )})..."
+      @log.debug "Installing additional packages (#{rpm_other.keys.join( ", " )})..."
       guestfs.mkdir_p("/tmp/rpms")
 
-      for name in rpms.keys
+      for name in rpm_other.keys
         cache_file = "#{@config.dir_src_cache}/#{name}"
         guestfs.upload( cache_file, "/tmp/rpms/#{name}" )
       end
 
+      guestfs.sh( "rpm -Uvh #{rpm_kernel}" )
       guestfs.sh( "yum -y --nogpgcheck localinstall /tmp/rpms/*.rpm" )
       guestfs.rm_rf("/tmp/rpms")
       @log.debug "Additional packages installed."
