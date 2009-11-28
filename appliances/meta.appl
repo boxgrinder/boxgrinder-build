@@ -27,6 +27,7 @@ packages:
     - glib2-devel
     - ruby-devel
     - ruby-libguestfs
+    - guestfish
     - gdb
     - qemu-stable
     - zlib-devel

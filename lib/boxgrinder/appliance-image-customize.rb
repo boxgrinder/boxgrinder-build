@@ -149,6 +149,13 @@ module BoxGrinder
       guestfs.aug_save
       @log.debug "Augeas changes saved."
 
+      if @appliance_config.os.name.eql?("fedora") and @appliance_config.os.version.to_s.eql?("12")
+        @log.debug "Downgrading udev package to use in EC2 environment..."
+        guestfs.sh( "yum -y downgrade udev-142" )
+        guestfs.upload( "#{@config.dir.base}/src/f12/yum.conf", "/etc/yum.conf" )
+        @log.debug "Package udev downgraded."
+      end
+
       guestfs.close
 
       @log.debug "EC2 image prepared!"
