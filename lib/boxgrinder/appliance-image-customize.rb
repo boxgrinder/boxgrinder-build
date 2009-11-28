@@ -154,6 +154,11 @@ module BoxGrinder
         guestfs.sh( "yum -y downgrade udev-142" )
         guestfs.upload( "#{@config.dir.base}/src/f12/yum.conf", "/etc/yum.conf" )
         @log.debug "Package udev downgraded."
+
+        @log.debug "Disabling unnecessary services..."
+        guestfs.sh( "/sbin/chkconfig ksm off" )
+        guestfs.sh( "/sbin/chkconfig ksmtuned off" )
+        @log.debug "Services disabled."
       end
 
       guestfs.close
