@@ -73,7 +73,7 @@ module BoxGrinder
       end
 
       # TODO is this really true? Need source
-      if disk_size > 2
+      if disk_size >= 2
         offset = 32256
       else
         offset = 512

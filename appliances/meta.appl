@@ -1,6 +1,7 @@
 name: meta
 summary: Environment for building new appliances using BoxGrinder
 hardware:
+  memory: 1024  
   partitions:
     - root: "/"
       size: 10
