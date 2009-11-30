@@ -156,8 +156,8 @@ module BoxGrinder
         @log.debug "Package udev downgraded."
 
         @log.debug "Disabling unnecessary services..."
-        guestfs.sh( "/sbin/chkconfig ksm off" )
-        guestfs.sh( "/sbin/chkconfig ksmtuned off" )
+        guestfs.sh( "/sbin/chkconfig ksm off" ) if guestfs.exists( "/etc/init.d/ksm" )
+        guestfs.sh( "/sbin/chkconfig ksmtuned off" ) if guestfs.exists( "/etc/init.d/ksmtuned" )
         @log.debug "Services disabled."
       end
 
