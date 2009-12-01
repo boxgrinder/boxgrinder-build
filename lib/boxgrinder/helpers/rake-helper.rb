@@ -38,11 +38,11 @@ end
 
 module BoxGrinder
   class RakeHelper
-    def initialize
+    def initialize(project_config = {})
       begin
         LOG.debug "Running new Rake session..."
 
-        @config = BoxGrinder.new.config
+        @config = BoxGrinder.new( project_config ).config
       rescue ValidationError => e
         LOG.fatal "ValidationError: #{e.message}."
         abort
