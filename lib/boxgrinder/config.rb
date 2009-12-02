@@ -44,6 +44,12 @@ module BoxGrinder
       @hardware.memory = 0
       @hardware.network = APPLIANCE_DEFAULTS[:hardware][:network]
 
+      @post = OpenStruct.new
+
+      @post.base = []
+      @post.ec2 = []
+      @post.vmware = []
+
       @appliances = []
       @repos = []
       @packages = []
@@ -73,6 +79,7 @@ module BoxGrinder
 
     attr_accessor :version
     attr_accessor :release
+    attr_accessor :post
 
     # used to checking if configuration diffiers from previous in appliance-kickstart
     def hash
@@ -154,7 +161,7 @@ module BoxGrinder
       @build_arch = ENV['BG_HARDWARE_ARCH'].nil? ? @arch : ENV['BG_HARDWARE_ARCH']
       @os_name = ENV['BG_OS_NAME'].nil? ? APPLIANCE_DEFAULTS[:os][:name] : ENV['BG_OS_NAME']
       @os_version = ENV['BG_OS_VERSION'].nil? ? APPLIANCE_DEFAULTS[:os][:version] : ENV['BG_OS_VERSION']
-      
+
       @helper = ConfigHelper.new( self )
     end
 

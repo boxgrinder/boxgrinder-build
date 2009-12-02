@@ -39,6 +39,7 @@ module BoxGrinder
       merge_hardware
       merge_repos
       merge_packages
+      merge_post_operations
 
       @appliance_config
     end
@@ -141,6 +142,27 @@ module BoxGrinder
             @appliance_config.packages << "-#{package}"
           end unless definition['packages']['excludes'].nil?
         end
+      end
+    end
+
+    def merge_post_operations
+      for appliance_name in @current_appliances
+        definition = @appliance_definitions[appliance_name][:definition]
+
+        unless definition['post'].nil?
+          for cmd in definition['post']['base']
+            @appliance_config.post.base << cmd
+          end unless definition['post']['base'].nil?
+
+          for cmd in definition['post']['ec2']
+            @appliance_config.post.ec2 << cmd
+          end unless definition['post']['ec2'].nil?
+
+          for cmd in definition['post']['vmware']
+            @appliance_config.post.vmware << cmd
+          end unless definition['post']['vmware'].nil?
+        end
+
       end
     end
 
