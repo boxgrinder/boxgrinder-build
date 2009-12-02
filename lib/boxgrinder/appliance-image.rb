@@ -112,6 +112,13 @@ module BoxGrinder
       guestfs.sh( "echo '#{{ "appliance_name" => @appliance_config.name}.to_yaml}' > /etc/boxgrinder" )
       @log.debug "Version files installed."
 
+      @log.debug "Executing post commands..."
+      for cmd in @appliance_config.post.base
+        @log.debug "Executing #{cmd}"
+        guestfs.sh( cmd )
+      end
+      @log.debug "Post commands executed."
+
       guestfs.close
 
       @log.info "Post operations executed."
