@@ -109,6 +109,7 @@ module BoxGrinder
 
       @log.debug "Installing BoxGrinder version files..."
       guestfs.sh( "echo 'BOXGRINDER_VERSION=#{@config.version_with_release}' > /etc/sysconfig/boxgrinder" )
+      guestfs.sh( "echo 'APPLIANCE_NAME=#{@appliance_config.name}' >> /etc/sysconfig/boxgrinder" )
       guestfs.sh( "echo '#{{ "appliance_name" => @appliance_config.name}.to_yaml}' > /etc/boxgrinder" )
       @log.debug "Version files installed."
 
