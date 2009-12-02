@@ -30,7 +30,7 @@ module BoxGrinder
 
     def merge( appliance_config )
       @appliance_config = appliance_config
-      @current_appliances = get_appliances( @appliance_config.name )
+      @current_appliances = get_appliances( @appliance_config.name ).reverse
 
       prepare_os
       prepare_appliances
