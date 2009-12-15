@@ -104,9 +104,9 @@ module BoxGrinder
     end
 
     def define_tasks
-      directory @appliance_config.path.dir.build.raw
+      directory @appliance_config.path.dir.raw.build
 
-      file @appliance_config.path.file.raw.config => @appliance_config.path.dir.build.raw do
+      file @appliance_config.path.file.raw.config => @appliance_config.path.dir.raw.build do
         File.open( @appliance_config.path.file.raw.config, "w") {|f| f.write( @appliance_config.to_yaml ) } unless File.exists?( @appliance_config.path.file.raw.config )
       end
 

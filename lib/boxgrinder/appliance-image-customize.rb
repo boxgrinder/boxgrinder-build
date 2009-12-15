@@ -34,7 +34,6 @@ module BoxGrinder
       @exec_helper = options[:exec_helper] || EXEC_HELPER
 
       @raw_file_mount_directory = "#{@config.dir.build}/#{@appliance_config.appliance_path}/tmp/raw-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
-
     end
 
     def convert_to_ami
@@ -55,16 +54,16 @@ module BoxGrinder
 
       # TODO add progress bar?
       @log.debug "Preparing disk for EC2 image..."
-      @exec_helper.execute "dd if=/dev/zero of=#{@appliance_config.path.file.ec2} bs=1 count=0 seek=#{10 * 1024}M"
+      @exec_helper.execute "dd if=/dev/zero of=#{@appliance_config.path.file.ec2.disk} bs=1 count=0 seek=#{10 * 1024}M"
       @log.debug "Disk for EC2 image prepared"
 
       @log.debug "Creating filesystem..."
-      @exec_helper.execute "mke2fs -Fj #{@appliance_config.path.file.ec2}"
+      @exec_helper.execute "mke2fs -Fj #{@appliance_config.path.file.ec2.disk}"
       @log.debug "Filesystem created"
 
       `mkdir -p #{ec2_mount_dir}`
 
-      @exec_helper.execute "sudo mount -o loop #{@appliance_config.path.file.ec2} #{ec2_mount_dir}"
+      @exec_helper.execute "sudo mount -o loop #{@appliance_config.path.file.ec2.disk} #{ec2_mount_dir}"
 
       disk_size = 0
 
@@ -92,7 +91,7 @@ module BoxGrinder
 
       `rm -rf #{ec2_mount_dir}`
 
-      guestfs_helper = GuestFSHelper.new( @appliance_config.path.file.ec2 )
+      guestfs_helper = GuestFSHelper.new( @appliance_config.path.file.ec2.disk )
       guestfs = guestfs_helper.guestfs
 
       @log.debug "Creating required devices..."

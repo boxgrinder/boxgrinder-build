@@ -59,21 +59,27 @@ module BoxGrinder
       @path = OpenStruct.new
 
       @path.dir = OpenStruct.new
+      @path.dir.raw = OpenStruct.new
+      @path.dir.ec2 = OpenStruct.new
+      
       @path.file = OpenStruct.new
       @path.file.raw = OpenStruct.new
+      @path.file.ec2 = OpenStruct.new
 
-      @path.dir.build = OpenStruct.new
 
-      @path.dir.build.raw = "build/#{appliance_path}/raw"
-      @path.dir.build.ec2 = "build/#{appliance_path}/ec2"
+      @path.dir.raw.build = "build/#{appliance_path}/raw"
+      
+      @path.dir.ec2.build = "build/#{appliance_path}/ec2"
+      @path.dir.ec2.bundle = "#{@path.dir.ec2.build}/bundle"
 
-      @path.file.raw.kickstart = "#{@path.dir.build.raw}/#{@name}.ks"
-      @path.file.raw.config = "#{@path.dir.build.raw}/#{@name}.cfg"
-      @path.file.raw.yum = "#{@path.dir.build.raw}/#{@name}.yum.conf"
-      @path.file.raw.disk = "#{@path.dir.build.raw}/#{@name}/#{@name}-sda.raw"
-      @path.file.raw.xml = "#{@path.dir.build.raw}/#{@name}/#{@name}.xml"
+      @path.file.raw.kickstart = "#{@path.dir.raw.build}/#{@name}.ks"
+      @path.file.raw.config = "#{@path.dir.raw.build}/#{@name}.cfg"
+      @path.file.raw.yum = "#{@path.dir.raw.build}/#{@name}.yum.conf"
+      @path.file.raw.disk = "#{@path.dir.raw.build}/#{@name}/#{@name}-sda.raw"
+      @path.file.raw.xml = "#{@path.dir.raw.build}/#{@name}/#{@name}.xml"
 
-      @path.file.ec2 = "#{@path.dir.build.ec2}/#{@name}.ec2"
+      @path.file.ec2.disk = "#{@path.dir.ec2.build}/#{@name}.ec2"
+      @path.file.ec2.manifest = "#{@path.dir.ec2.bundle}/#{@name}.ec2.manifest.xml"
     end
 
     attr_reader :definition

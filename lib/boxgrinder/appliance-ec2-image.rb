@@ -38,33 +38,26 @@ module BoxGrinder
       @exec_helper       = EXEC_HELPER
       @log               = LOG
 
-      @appliance_build_dir          = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
-      @bundle_dir                   = "#{@appliance_build_dir}/ec2/bundle"
-      @appliance_xml_file           = "#{@appliance_build_dir}/#{@appliance_config.name}.xml"
-      @appliance_raw_image          = "#{@appliance_build_dir}/#{@appliance_config.name}-sda.raw"
-
-      @appliance_ec2_image_file     = "#{@appliance_build_dir}/#{@appliance_config.name}.ec2"
-      @appliance_ec2_manifest_file  = "#{@bundle_dir}/#{@appliance_config.name}.ec2.manifest.xml"
-      @appliance_ec2_register_file  = "#{@appliance_build_dir}/ec2/register"
-
-      @appliance_image_customizer   = ApplianceImageCustomize.new( @config, @appliance_config )
+      @appliance_image_customizer = ApplianceImageCustomize.new( @config, @appliance_config )
 
       define_tasks
     end
 
     def define_tasks
-      directory @bundle_dir
+      directory @appliance_config.path.dir.ec2.build
+      directory @appliance_config.path.dir.ec2.bundle
 
-      file @appliance_ec2_image_file  => [ @appliance_xml_file ] do
+      # TODO we should depend on actual disk file, not xml I think
+      file @appliance_config.path.file.ec2.disk  => [ @appliance_config.path.file.raw.xml, @appliance_config.path.dir.ec2.build ] do
         convert_image_to_ec2_format
       end
 
-      file @appliance_ec2_manifest_file => [ @appliance_ec2_image_file, @bundle_dir ] do
+      file @appliance_config.path.file.ec2.manifest => [ @appliance_config.path.file.ec2.disk, @appliance_config.path.dir.ec2.bundle ] do
         @aws_support = AWSSupport.new( @config )
         bundle_image
       end
 
-      task "appliance:#{@appliance_config.name}:ec2:upload" => [ @appliance_ec2_manifest_file ] do
+      task "appliance:#{@appliance_config.name}:ec2:upload" => [ @appliance_config.path.file.ec2.manifest ] do
         @aws_support = AWSSupport.new( @config )
         upload_image
       end
@@ -75,13 +68,13 @@ module BoxGrinder
       end
 
       desc "Build #{@appliance_config.simple_name} appliance for Amazon EC2"
-      task "appliance:#{@appliance_config.name}:ec2" => [ @appliance_ec2_image_file ]
+      task "appliance:#{@appliance_config.name}:ec2" => [ @appliance_config.path.file.ec2.disk ]
     end
 
     def bundle_image
       @log.info "Bundling AMI..."
 
-      @exec_helper.execute( "ec2-bundle-image -i #{@appliance_ec2_image_file} --kernel #{AWS_DEFAULTS[:kernel_id][@appliance_config.hardware.arch]} --ramdisk #{AWS_DEFAULTS[:ramdisk_id][@appliance_config.hardware.arch]} -c #{@aws_support.aws_data['cert_file']} -k #{@aws_support.aws_data['key_file']} -u #{@aws_support.aws_data['account_number']} -r #{@appliance_config.hardware.arch} -d #{@bundle_dir}" )
+      @exec_helper.execute( "ec2-bundle-image -i #{@appliance_config.path.file.ec2.disk} --kernel #{AWS_DEFAULTS[:kernel_id][@appliance_config.hardware.arch]} --ramdisk #{AWS_DEFAULTS[:ramdisk_id][@appliance_config.hardware.arch]} -c #{@aws_support.aws_data['cert_file']} -k #{@aws_support.aws_data['key_file']} -u #{@aws_support.aws_data['account_number']} -r #{@appliance_config.hardware.arch} -d #{@appliance_config.path.dir.ec2.bundle}" )
 
       @log.info "Bundling AMI finished."
     end
@@ -111,7 +104,7 @@ module BoxGrinder
 
       @log.info "Uploading #{@appliance_config.simple_name} AMI to bucket '#{@config.release.s3['bucket_name']}'..."
 
-      @exec_helper.execute( "ec2-upload-bundle -b #{@aws_support.bucket_key( @appliance_config.name )} -m #{@appliance_ec2_manifest_file} -a #{@aws_support.aws_data['access_key']} -s #{@aws_support.aws_data['secret_access_key']} --retry" )
+      @exec_helper.execute( "ec2-upload-bundle -b #{@aws_support.bucket_key( @appliance_config.name )} -m #{@appliance_config.path.file.ec2.manifest} -a #{@aws_support.aws_data['access_key']} -s #{@aws_support.aws_data['secret_access_key']} --retry" )
     end
 
     def register_image
