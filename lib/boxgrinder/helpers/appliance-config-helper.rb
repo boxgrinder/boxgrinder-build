@@ -187,7 +187,7 @@ module BoxGrinder
           appliances += get_appliances( appl ) unless appliances.include?( appl )
         end unless appliance[:definition]['appliances'].nil? or appliance[:definition]['appliances'].empty?
       else
-        raise ApplianceValidationError, "Not valid partition appliance name: Specified appliance name '#{appliance_name}' could not be found in appliance list. Please correct your definition file '#{@appliance_config.file}', thanks"
+        raise ApplianceValidationError, "Not valid appliance name: Specified appliance name '#{appliance_name}' could not be found in appliance list. Please correct your definition file '#{@appliance_config.file}', thanks"
       end
 
       appliances
