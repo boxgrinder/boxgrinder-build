@@ -69,8 +69,12 @@ module BoxGrinder
       @path.file.vmware = OpenStruct.new
       @path.file.vmware.personal = OpenStruct.new
       @path.file.vmware.enterprise = OpenStruct.new
+      @path.file.package = OpenStruct.new
+
+      @path.dir.packages = "build/#{appliance_path}/packages"
 
       @path.dir.raw.build = "build/#{appliance_path}/raw"
+      @path.dir.raw.build_full = "build/#{appliance_path}/raw/#{@name}"
 
       @path.dir.ec2.build = "build/#{appliance_path}/ec2"
       @path.dir.ec2.bundle = "#{@path.dir.ec2.build}/bundle"
@@ -82,8 +86,8 @@ module BoxGrinder
       @path.file.raw.kickstart = "#{@path.dir.raw.build}/#{@name}.ks"
       @path.file.raw.config = "#{@path.dir.raw.build}/#{@name}.cfg"
       @path.file.raw.yum = "#{@path.dir.raw.build}/#{@name}.yum.conf"
-      @path.file.raw.disk = "#{@path.dir.raw.build}/#{@name}/#{@name}-sda.raw"
-      @path.file.raw.xml = "#{@path.dir.raw.build}/#{@name}/#{@name}.xml"
+      @path.file.raw.disk = "#{@path.dir.raw.build_full}/#{@name}-sda.raw"
+      @path.file.raw.xml = "#{@path.dir.raw.build_full}/#{@name}.xml"
 
       @path.file.ec2.disk = "#{@path.dir.ec2.build}/#{@name}.ec2"
       @path.file.ec2.manifest = "#{@path.dir.ec2.bundle}/#{@name}.ec2.manifest.xml"
@@ -96,6 +100,8 @@ module BoxGrinder
       @path.file.vmware.enterprise.vmdk = "#{@path.dir.vmware.enterprise}/#{@name}.vmdk"
       @path.file.vmware.enterprise.disk = "#{@path.dir.vmware.enterprise}/#{@name}-sda.raw"
 
+      @path.file.package.raw = "#{@path.dir.packages}/#{@name}-#{@version}.#{@release}-#{@hardware.arch}-raw.tar.gz"
+      @path.file.package.vmware = "#{@path.dir.packages}/#{@name}-#{@version}.#{@release}-#{@hardware.arch}-VMware.tar.gz"
     end
 
     attr_reader :definition

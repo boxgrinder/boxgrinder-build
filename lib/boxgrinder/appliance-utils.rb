@@ -29,13 +29,6 @@ module BoxGrinder
       @config           = config
       @appliance_config = appliance_config
 
-      @package_dir                  = "#{@config.dir.build}/appliances/#{@config.build_path}/packages/#{@config.arch}"
-      @package_raw                  = "#{@package_dir}/#{@appliance_config.name}-#{@config.version_with_release}-#{@config.arch}-raw.tar.gz"
-      @package_vmware               = "#{@package_dir}/#{@appliance_config.name}-#{@config.version_with_release}-#{@config.arch}-VMware.tar.gz"
-
-      @appliance_raw_dir                   = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
-      @appliance_vmware_dir                = "#{@appliance_raw_dir}/vmware"
-
       @exec_helper       = EXEC_HELPER
       @log               = LOG
 
@@ -44,7 +37,7 @@ module BoxGrinder
 
     def define_tasks
 
-      directory @package_dir
+      directory @appliance_config.path.dir.packages
 
       task "appliance:#{@appliance_config.name}:upload:ssh" => [ "appliance:#{@appliance_config.name}:package" ] do
         prepare_file_list
@@ -56,22 +49,22 @@ module BoxGrinder
         upload_to_cloudfront
       end
 
-      task "appliance:#{@appliance_config.name}:package" => [ @package_raw, @package_vmware ]
+      task "appliance:#{@appliance_config.name}:package" => [ @appliance_config.path.file.package.raw, @appliance_config.path.file.package.vmware ]
 
       desc "Create RAW package for #{@appliance_config.simple_name} appliance"
-      task "appliance:#{@appliance_config.name}:package:raw" => [ @package_raw ]
+      task "appliance:#{@appliance_config.name}:package:raw" => [ @appliance_config.path.file.package.raw ]
 
       desc "Create VMware package for #{@appliance_config.simple_name} appliance"
-      task "appliance:#{@appliance_config.name}:package:vmware" => [ @package_vmware ]
+      task "appliance:#{@appliance_config.name}:package:vmware" => [ @appliance_config.path.file.package.vmware ]
 
-      file @package_raw => [ @package_dir, "appliance:#{@appliance_config.name}" ] do
-        @log.info "Packaging #{@appliance_config.simple_name} appliance RAW image (#{@config.os.name} #{@config.os.version}, #{@config.arch} arch)..."
-        @exec_helper.execute "tar -C #{@appliance_raw_dir} -cvzf #{@package_raw} #{@appliance_config.name}-sda.raw #{@appliance_config.name}.xml"
+      file @appliance_config.path.file.package.raw => [ @appliance_config.path.dir.packages, "appliance:#{@appliance_config.name}" ] do
+        @log.info "Packaging #{@appliance_config.name} appliance RAW image (#{@appliance_config.os.name} #{@appliance_config.os.version}, #{@appliance_config.hardware.arch} arch)..."
+        @exec_helper.execute "tar -C #{@appliance_config.path.dir.raw.build_full} -cvzf #{@appliance_config.path.file.package.raw} #{@appliance_config.name}-sda.raw #{@appliance_config.name}.xml"
         @log.info "RAW package created."
       end
 
-      file @package_vmware => [ @package_dir, "appliance:#{@appliance_config.name}:vmware:enterprise", "appliance:#{@appliance_config.name}:vmware:personal" ] do
-        @log.info "Packaging #{@appliance_config.simple_name} appliance VMware image (#{@config.os.name} #{@config.os.version}, #{@config.arch} arch)..."
+      file @appliance_config.path.file.package.vmware => [ @appliance_config.path.dir.packages, "appliance:#{@appliance_config.name}:vmware:enterprise", "appliance:#{@appliance_config.name}:vmware:personal" ] do
+        @log.info "Packaging #{@appliance_config.name} appliance VMware image (#{@appliance_config.os.name} #{@appliance_config.os.version}, #{@appliance_config.hardware.arch} arch)..."
 
         readme = File.open( "#{@config.dir.base}/src/README.vmware" ).read
 
@@ -79,9 +72,9 @@ module BoxGrinder
         readme.gsub!( /#NAME#/, @config.name )
         readme.gsub!( /#VERSION#/, @config.version_with_release )
 
-        File.open( "#{@appliance_vmware_dir}/README", "w") {|f| f.write( readme ) }
+        File.open( "#{@appliance_config.path.dir.vmware.build}/README", "w") {|f| f.write( readme ) }
 
-        @exec_helper.execute "tar -C #{@appliance_vmware_dir} -cvzf '#{@package_vmware}' README #{@appliance_config.name}-sda.raw personal/#{@appliance_config.name}.vmx personal/#{@appliance_config.name}.vmdk enterprise/#{@appliance_config.name}.vmx enterprise/#{@appliance_config.name}.vmdk"
+        @exec_helper.execute "tar -C #{@appliance_config.path.dir.vmware.build} -cvzf '#{@appliance_config.path.file.package.vmware}' README #{@appliance_config.name}-sda.raw personal/#{@appliance_config.name}.vmx personal/#{@appliance_config.name}.vmdk enterprise/#{@appliance_config.name}.vmx enterprise/#{@appliance_config.name}.vmdk"
         @log.info "VMware package created."
       end
     end
@@ -93,13 +86,13 @@ module BoxGrinder
     def prepare_file_list
       path = "#{@config.version_with_release}/#{@appliance_config.hardware.arch}"
 
-      raw_name                = File.basename( @package_raw )
-      vmware_name             = File.basename( @package_vmware )
+      raw_name                = File.basename( @appliance_config.path.file.package.raw )
+      vmware_name             = File.basename( @appliance_config.path.file.package.vmware )
 
       @files = {}
 
-      @files["#{path}/#{raw_name}"]       = @package_raw
-      @files["#{path}/#{vmware_name}"]    = @package_vmware
+      @files["#{path}/#{raw_name}"]       = @appliance_config.path.file.package.raw
+      @files["#{path}/#{vmware_name}"]    = @appliance_config.path.file.package.vmware
     end
 
     def upload_via_ssh
