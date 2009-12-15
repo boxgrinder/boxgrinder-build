@@ -61,16 +61,23 @@ module BoxGrinder
       @path.dir = OpenStruct.new
       @path.dir.raw = OpenStruct.new
       @path.dir.ec2 = OpenStruct.new
-      
+      @path.dir.vmware = OpenStruct.new
+
       @path.file = OpenStruct.new
       @path.file.raw = OpenStruct.new
       @path.file.ec2 = OpenStruct.new
-
+      @path.file.vmware = OpenStruct.new
+      @path.file.vmware.personal = OpenStruct.new
+      @path.file.vmware.enterprise = OpenStruct.new
 
       @path.dir.raw.build = "build/#{appliance_path}/raw"
-      
+
       @path.dir.ec2.build = "build/#{appliance_path}/ec2"
       @path.dir.ec2.bundle = "#{@path.dir.ec2.build}/bundle"
+
+      @path.dir.vmware.build = "build/#{appliance_path}/vmware"
+      @path.dir.vmware.personal = "#{@path.dir.vmware.build}/personal"
+      @path.dir.vmware.enterprise = "#{@path.dir.vmware.build}/enterprise"
 
       @path.file.raw.kickstart = "#{@path.dir.raw.build}/#{@name}.ks"
       @path.file.raw.config = "#{@path.dir.raw.build}/#{@name}.cfg"
@@ -80,6 +87,15 @@ module BoxGrinder
 
       @path.file.ec2.disk = "#{@path.dir.ec2.build}/#{@name}.ec2"
       @path.file.ec2.manifest = "#{@path.dir.ec2.bundle}/#{@name}.ec2.manifest.xml"
+
+      @path.file.vmware.disk = "#{@path.dir.vmware.build}/#{@name}-sda.raw"
+      @path.file.vmware.personal.vmx = "#{@path.dir.vmware.personal}/#{@name}.vmx"
+      @path.file.vmware.personal.vmdk = "#{@path.dir.vmware.personal}/#{@name}.vmdk"
+      @path.file.vmware.personal.disk = "#{@path.dir.vmware.personal}/#{@name}-sda.raw"
+      @path.file.vmware.enterprise.vmx = "#{@path.dir.vmware.enterprise}/#{@name}.vmx"
+      @path.file.vmware.enterprise.vmdk = "#{@path.dir.vmware.enterprise}/#{@name}.vmdk"
+      @path.file.vmware.enterprise.disk = "#{@path.dir.vmware.enterprise}/#{@name}-sda.raw"
+
     end
 
     attr_reader :definition

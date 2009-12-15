@@ -30,25 +30,8 @@ module BoxGrinder
       @config = config
       @appliance_config = appliance_config
 
-      @log          = options[:log]         || LOG
-      @exec_helper  = options[:exec_helper] || EXEC_HELPER
-
-      @appliance_build_dir = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
-      @appliance_xml_file = "#{@appliance_build_dir}/#{@appliance_config.name}.xml"
-      @base_directory = File.dirname( @appliance_xml_file )
-      @base_raw_file = "#{@base_directory}/#{@appliance_config.name}-sda.raw"
-      @vmware_directory = "#{@base_directory}/vmware"
-      @base_vmware_raw_file = "#{@vmware_directory}/#{@appliance_config.name}-sda.raw"
-
-      @super_simple_name = File.basename( @appliance_config.name, '-appliance' )
-      @vmware_personal_output_folder = File.dirname( @appliance_xml_file ) + "/vmware/personal"
-      @vmware_personal_vmx_file = @vmware_personal_output_folder + "/" + @appliance_config.name + '.vmx'
-      @vmware_personal_vmdk_file = @vmware_personal_output_folder + "/" + @appliance_config.name + '.vmdk'
-      @vmware_personal_raw_file = @vmware_personal_output_folder + "/#{@appliance_config.name}-sda.raw"
-      @vmware_enterprise_output_folder = File.dirname( @appliance_xml_file ) + "/vmware/enterprise"
-      @vmware_enterprise_vmx_file = @vmware_enterprise_output_folder + "/" + @appliance_config.name + '.vmx'
-      @vmware_enterprise_vmdk_file = @vmware_enterprise_output_folder + "/" + @appliance_config.name + '.vmdk'
-      @vmware_enterprise_raw_file = @vmware_enterprise_output_folder + "/#{@appliance_config.name}-sda.raw"
+      @log = options[:log] || LOG
+      @exec_helper = options[:exec_helper] || EXEC_HELPER
 
       @appliance_image_customizer = ApplianceImageCustomize.new( @config, @appliance_config )
 
@@ -56,19 +39,21 @@ module BoxGrinder
     end
 
     def define_tasks
-      directory @vmware_directory
+      directory @appliance_config.path.dir.vmware.build
+      directory @appliance_config.path.dir.vmware.personal
+      directory @appliance_config.path.dir.vmware.enterprise
 
-      desc "Build #{@super_simple_name} appliance for VMware personal environments (Server/Workstation/Fusion)"
-      task "appliance:#{@appliance_config.name}:vmware:personal" => [ @base_vmware_raw_file ] do
+      desc "Build #{@appliance_config.name} appliance for VMware personal environments (Server/Workstation/Fusion)"
+      task "appliance:#{@appliance_config.name}:vmware:personal" => [ @appliance_config.path.file.vmware.disk, @appliance_config.path.dir.vmware.personal ] do
         build_vmware_personal
       end
 
-      desc "Build #{@super_simple_name} appliance for VMware enterprise environments (ESX/ESXi)"
-      task "appliance:#{@appliance_config.name}:vmware:enterprise" => [ @base_vmware_raw_file ] do
+      desc "Build #{@appliance_config.name} appliance for VMware enterprise environments (ESX/ESXi)"
+      task "appliance:#{@appliance_config.name}:vmware:enterprise" => [ @appliance_config.path.file.vmware.disk, @appliance_config.path.dir.vmware.enterprise ] do
         build_vmware_enterprise
       end
 
-      file @base_vmware_raw_file => [ @vmware_directory, @appliance_xml_file ] do
+      file @appliance_config.path.file.vmware.disk => [ @appliance_config.path.dir.vmware.build, @appliance_config.path.file.raw.xml ] do
         convert_to_vmware
       end
     end
@@ -122,7 +107,7 @@ module BoxGrinder
 
       # replace version with current appliance version
       vmx_data.gsub!( /#VERSION#/, "#{@appliance_config.version}.#{@appliance_config.release}" )
-      # replace bui;der with current builder name and version
+      # replace builder with current builder name and version
       vmx_data.gsub!( /#BUILDER#/, "#{@config.name} #{@config.version_with_release}" )
       # change name
       vmx_data.gsub!( /#NAME#/, @appliance_config.name )
@@ -142,27 +127,29 @@ module BoxGrinder
 
     def create_hardlink_to_disk_image( vmware_raw_file )
       # Hard link RAW disk to VMware destination folder
-      FileUtils.ln( @base_vmware_raw_file, vmware_raw_file ) if ( !File.exists?( vmware_raw_file ) || File.new( @base_raw_file ).mtime > File.new( vmware_raw_file ).mtime )
+      FileUtils.ln( @appliance_config.path.file.vmware.disk, vmware_raw_file ) if ( !File.exists?( vmware_raw_file ) || File.new( @appliance_config.path.file.raw.disk ).mtime > File.new( vmware_raw_file ).mtime )
     end
 
     def build_vmware_personal
-      FileUtils.mkdir_p @vmware_personal_output_folder
+      @log.debug "Building VMware personal image."
 
       # link disk image
-      create_hardlink_to_disk_image( @vmware_personal_raw_file )
+      create_hardlink_to_disk_image( @appliance_config.path.file.vmware.personal.disk )
 
       # create .vmx file
-      File.open( @vmware_personal_vmx_file, "w" ) {|f| f.write( change_common_vmx_values ) }
+      File.open( @appliance_config.path.file.vmware.personal.vmx, "w" ) {|f| f.write( change_common_vmx_values ) }
 
       # create disk descriptor file
-      File.open( @vmware_personal_vmdk_file, "w" ) {|f| f.write( change_vmdk_values( "monolithicFlat" ) ) }
+      File.open( @appliance_config.path.file.vmware.personal.vmdk, "w" ) {|f| f.write( change_vmdk_values( "monolithicFlat" ) ) }
+
+      @log.debug "VMware personal image was built."
     end
 
     def build_vmware_enterprise
-      FileUtils.mkdir_p @vmware_enterprise_output_folder
+      @log.debug "Building VMware enterprise image."
 
       # link disk image
-      create_hardlink_to_disk_image( @vmware_enterprise_raw_file )
+      create_hardlink_to_disk_image( @appliance_config.path.file.vmware.enterprise.disk )
 
       # defaults for ESXi (maybe for others too)
       @appliance_config.hardware.network = "VM Network" if @appliance_config.hardware.network.eql?( "NAT" )
@@ -171,17 +158,19 @@ module BoxGrinder
       vmx_data = change_common_vmx_values
       vmx_data += "ethernet0.networkName = \"#{@appliance_config.hardware.network}\""
 
-      File.open( @vmware_enterprise_vmx_file, "w" ) {|f| f.write( vmx_data ) }
+      File.open( @appliance_config.path.file.vmware.enterprise.vmx, "w" ) {|f| f.write( vmx_data ) }
 
       # create disk descriptor file
-      File.open( @vmware_enterprise_vmdk_file, "w" ) {|f| f.write( change_vmdk_values( "vmfs" ) ) }
+      File.open( @appliance_config.path.file.vmware.enterprise.vmdk, "w" ) {|f| f.write( change_vmdk_values( "vmfs" ) ) }
+
+      @log.debug "VMware enterprise image was built."
     end
 
     def convert_to_vmware
       @log.info "Converting image to VMware format..."
       @log.debug "Copying VMware image file, this may take several minutes..."
 
-      @exec_helper.execute "cp #{@base_raw_file} #{@base_vmware_raw_file}" if ( !File.exists?( @base_vmware_raw_file ) || File.new( @base_raw_file ).mtime > File.new( @base_vmware_raw_file ).mtime )
+      @exec_helper.execute "cp #{@appliance_config.path.file.raw.disk} #{@appliance_config.path.file.vmware.disk}" if ( !File.exists?( @appliance_config.path.file.vmware.disk ) || File.new( @appliance_config.path.file.raw.disk ).mtime > File.new( @appliance_config.path.file.vmware.disk ).mtime )
 
       @log.debug "VMware image copied."
       @log.debug "Installing VMware tools..."
@@ -193,7 +182,7 @@ module BoxGrinder
       end
 
       #TODO this takes about 11 minutes, need to find a quicker way to install kmod-open-vm-tools package
-      @appliance_image_customizer.customize( @base_vmware_raw_file, { :packages => { :yum => [ "kmod-open-vm-tools" ] }, :repos => rpmfusion_repo_rpm } )
+      @appliance_image_customizer.customize( @appliance_config.path.file.vmware.disk, { :packages => { :yum => [ "kmod-open-vm-tools" ] }, :repos => rpmfusion_repo_rpm } )
 
       @log.debug "VMware tools installed."
       @log.info "Image converted to VMware format."
