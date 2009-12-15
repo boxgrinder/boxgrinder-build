@@ -41,16 +41,6 @@ module BoxGrinder
       @log = options[:log] || LOG
       @exec_helper = options[:exec_helper] || EXEC_HELPER
 
-      appliance_build_dir = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
-      @kickstart_file = "#{appliance_build_dir}/#{@appliance_config.name}.ks"
-      @yum_config_file = "#{appliance_build_dir}/#{@appliance_config.name}.yum.conf"
-
-      #@appliance_defs = []
-
-      #for appliance in @appliance_config.appliances do
-      #  @appliance_defs += [ "#{@config.dir.appliances}/#{appliance}/#{appliance}.appl" ]
-      #end
-
       # Because we're using repoquery command from our building environment, we must ensure, that our repository
       # names are unique
       @magic_hash = "#{@config.name.downcase.gsub(" ", "_")}-"
@@ -60,9 +50,9 @@ module BoxGrinder
 
     def define_tasks
       desc "Validate packages dependencies for #{@appliance_config.simple_name} appliance"
-      task "appliance:#{@appliance_config.name}:validate:dependencies" => [ @kickstart_file ] do
+      task "appliance:#{@appliance_config.name}:validate:dependencies" => [ @appliance_config.path.file.raw.kickstart ] do
         # if RAW file is already built, don't check for dependencies
-        resolve_packages unless File.exists?( @appliance_config.path.file.raw )
+        resolve_packages unless File.exists?( @appliance_config.path.file.raw.disk )
       end
 
       task "appliance:all:validate:dependencies" => [ "appliance:#{@appliance_config.name}:validate:dependencies" ]
@@ -96,7 +86,7 @@ module BoxGrinder
         arches = "x86_64"
       end
 
-      repoquery_output = @exec_helper.execute( "sudo repoquery --quiet --disablerepo=* --enablerepo=#{repo_list} -c #{@yum_config_file} list available #{package_list.join( ' ' )} --nevra --archlist=#{arches},noarch" )
+      repoquery_output = @exec_helper.execute( "sudo repoquery --quiet --disablerepo=* --enablerepo=#{repo_list} -c #{@appliance_config.path.file.raw.yum} list available #{package_list.join( ' ' )} --nevra --archlist=#{arches},noarch" )
       invalid_names = []
 
       for name in package_list
@@ -137,7 +127,7 @@ module BoxGrinder
     end
 
     def read_repos_from_kickstart_file
-      repos = `grep -e "^repo" #{@kickstart_file}`
+      repos = `grep -e "^repo" #{@appliance_config.path.file.raw.kickstart}`
       repo_list = []
 
       repos.each do |repo_line|
@@ -155,7 +145,7 @@ module BoxGrinder
     end
 
     def generate_yum_config( repo_list )
-      File.open( @yum_config_file, "w") do |f|
+      File.open( @appliance_config.path.file.raw.yum, "w") do |f|
 
         f.puts( "[main]\r\ncachedir=/tmp/#{@magic_hash}#{@appliance_config.hardware.arch}-yum-cache/\r\n\r\n" )
 

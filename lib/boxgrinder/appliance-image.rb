@@ -36,11 +36,7 @@ module BoxGrinder
       @log = options[:log] || LOG
       @exec_helper = options[:exec_helper] || EXEC_HELPER
 
-      @appliance_build_dir = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
-      @raw_disk = "#{@appliance_build_dir}/#{@appliance_config.name}-sda.raw"
-      @kickstart_file = "#{@appliance_build_dir}/#{@appliance_config.name}.ks"
-      @tmp_dir = "#{@config.dir_root}/#{@config.dir_build}/tmp"
-      @xml_file = "#{@appliance_build_dir}/#{@appliance_config.name}.xml"
+      @tmp_dir = "#{@config.dir.root}/#{@config.dir.build}/tmp"
 
       ApplianceVMXImage.new( @config, @appliance_config )
       ApplianceEC2Image.new( @config, @appliance_config )
@@ -51,11 +47,11 @@ module BoxGrinder
 
     def define_tasks
       desc "Build #{@appliance_config.simple_name} appliance."
-      task "appliance:#{@appliance_config.name}" => [ @xml_file, "appliance:#{@appliance_config.name}:validate:dependencies" ]
+      task "appliance:#{@appliance_config.name}" => [ @appliance_config.path.file.raw.xml, "appliance:#{@appliance_config.name}:validate:dependencies" ]
 
       directory @tmp_dir
 
-      file @xml_file => [ @kickstart_file, "appliance:#{@appliance_config.name}:validate:dependencies", @tmp_dir ] do
+      file @appliance_config.path.file.raw.xml => [ @appliance_config.path.file.raw.kickstart, "appliance:#{@appliance_config.name}:validate:dependencies", @tmp_dir ] do
         build_raw_image
         do_post_build_operations
       end
@@ -64,11 +60,11 @@ module BoxGrinder
     def build_raw_image
       @log.info "Building #{@appliance_config.simple_name} appliance..."
 
-      @exec_helper.execute "sudo PYTHONUNBUFFERED=1 appliance-creator -d -v -t #{@tmp_dir} --cache=#{@config.dir.rpms_cache}/#{@appliance_config.main_path} --config #{@kickstart_file} -o #{@config.dir.build}/appliances/#{@appliance_config.main_path} --name #{@appliance_config.name} --vmem #{@appliance_config.hardware.memory} --vcpu #{@appliance_config.hardware.cpus}"
+      @exec_helper.execute "sudo PYTHONUNBUFFERED=1 appliance-creator -d -v -t #{@tmp_dir} --cache=#{@config.dir.rpms_cache}/#{@appliance_config.main_path} --config #{@appliance_config.path.file.raw.kickstart} -o #{@appliance_config.path.dir.build.raw} --name #{@appliance_config.name} --vmem #{@appliance_config.hardware.memory} --vcpu #{@appliance_config.hardware.cpus}"
 
       # fix permissions
-      @exec_helper.execute "sudo chmod 666 #{@raw_disk}"
-      @exec_helper.execute "sudo chmod 666 #{@xml_file}"
+      @exec_helper.execute "sudo chmod 666 #{@appliance_config.path.file.raw.disk}"
+      @exec_helper.execute "sudo chmod 666 #{@appliance_config.path.file.raw.xml}"
 
       @log.info "Appliance #{@appliance_config.simple_name} was built successfully."
     end
@@ -76,7 +72,7 @@ module BoxGrinder
     def do_post_build_operations
       @log.info "Executing post operations after build..."
 
-      guestfs_helper = GuestFSHelper.new( @raw_disk )
+      guestfs_helper = GuestFSHelper.new( @appliance_config.path.file.raw.disk )
       guestfs = guestfs_helper.guestfs
 
       @log.debug "Changing configuration files using augeas..."

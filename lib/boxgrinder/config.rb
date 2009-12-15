@@ -60,10 +60,20 @@ module BoxGrinder
 
       @path.dir = OpenStruct.new
       @path.file = OpenStruct.new
+      @path.file.raw = OpenStruct.new
 
-      @path.file.xml = "build/#{appliance_path}/#{@name}.xml"
-      @path.file.raw = "build/#{appliance_path}/#{@name}-sda.raw"
-      @path.file.ec2 = "build/#{appliance_path}/#{@name}.ec2"
+      @path.dir.build = OpenStruct.new
+
+      @path.dir.build.raw = "build/#{appliance_path}/raw"
+      @path.dir.build.ec2 = "build/#{appliance_path}/ec2"
+
+      @path.file.raw.kickstart = "#{@path.dir.build.raw}/#{@name}.ks"
+      @path.file.raw.config = "#{@path.dir.build.raw}/#{@name}.cfg"
+      @path.file.raw.yum = "#{@path.dir.build.raw}/#{@name}.yum.conf"
+      @path.file.raw.disk = "#{@path.dir.build.raw}/#{@name}/#{@name}-sda.raw"
+      @path.file.raw.xml = "#{@path.dir.build.raw}/#{@name}/#{@name}.xml"
+
+      @path.file.ec2 = "#{@path.dir.build.ec2}/#{@name}.ec2"
     end
 
     attr_reader :definition

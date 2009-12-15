@@ -104,31 +104,28 @@ module BoxGrinder
     end
 
     def define_tasks
-      appliance_build_dir = "#{@config.dir_build}/#{@appliance_config.appliance_path}"
-      kickstart_file = "#{appliance_build_dir}/#{@appliance_config.name}.ks"
-      config_file = "#{appliance_build_dir}/#{@appliance_config.name}.cfg"
+      directory @appliance_config.path.dir.build.raw
 
-      file config_file do
-        FileUtils.mkdir_p appliance_build_dir
-        File.open( config_file, "w") {|f| f.write( @appliance_config.to_yaml ) } unless File.exists?( config_file )
+      file @appliance_config.path.file.raw.config => @appliance_config.path.dir.build.raw do
+        File.open( @appliance_config.path.file.raw.config, "w") {|f| f.write( @appliance_config.to_yaml ) } unless File.exists?( @appliance_config.path.file.raw.config )
       end
 
-      file "appliance:#{@appliance_config.name}:config" do
-        if File.exists?( config_file )
-          unless @appliance_config.eql?( YAML.load_file( config_file ) )
+      task "appliance:#{@appliance_config.name}:config" do
+        if File.exists?( @appliance_config.path.file.raw.config )
+          unless @appliance_config.eql?( YAML.load_file( @appliance_config.path.file.raw.config ) )
             FileUtils.rm_rf appliance_build_dir
           end
         end
       end
 
-      file kickstart_file => [ config_file ] do
+      file @appliance_config.path.file.raw.kickstart => [ @appliance_config.path.file.raw.config ] do
         template = File.dirname( __FILE__ ) + "/appliance.ks.erb"
         kickstart = ERB.new( File.read( template ) ).result( build_definition.send( :binding ) )
-        File.open( kickstart_file, 'w' ) {|f| f.write( kickstart ) }
+        File.open( @appliance_config.path.file.raw.kickstart, 'w' ) {|f| f.write( kickstart ) }
       end
 
       #desc "Build kickstart for #{File.basename( @appliance_config.name, '-appliance' )} appliance"
-      task "appliance:#{@appliance_config.name}:kickstart" => [ "appliance:#{@appliance_config.name}:config", kickstart_file ]
+      task "appliance:#{@appliance_config.name}:kickstart" => [ "appliance:#{@appliance_config.name}:config", @appliance_config.path.file.raw.kickstart ]
 
     end
 

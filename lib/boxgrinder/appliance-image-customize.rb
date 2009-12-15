@@ -80,13 +80,13 @@ module BoxGrinder
       end
 
       loop_device = get_loop_device
-      mount_image( loop_device, @appliance_config.path.file.raw, offset )
+      mount_image( loop_device, @appliance_config.path.file.raw.disk, offset )
 
       @log.debug "Syncing files between RAW and EC2 file..."
       @exec_helper.execute "sudo rsync -u -r -a  #{@raw_file_mount_directory}/* #{ec2_mount_dir}"
       @log.debug "Syncing finished"
 
-      umount_image( loop_device, @appliance_config.path.file.raw )
+      umount_image( loop_device, @appliance_config.path.file.raw.disk )
 
       @exec_helper.execute "sudo umount -d #{ec2_mount_dir}"
 
