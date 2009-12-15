@@ -57,7 +57,7 @@ module BoxGrinder
         @appliance_config.hardware.cpus = @appliance_config.definition['hardware']['cpus']
       end
 
-      hardware('cpus'){ |cpus| puts cpus, @appliance_config.hardware.cpus = cpus if cpus > @appliance_config.hardware.cpus }
+      hardware('cpus'){ |cpus| @appliance_config.hardware.cpus = cpus if cpus > @appliance_config.hardware.cpus }
 
       @appliance_config.hardware.cpus = APPLIANCE_DEFAULTS[:hardware][:cpus] if @appliance_config.hardware.cpus == 0
     end
