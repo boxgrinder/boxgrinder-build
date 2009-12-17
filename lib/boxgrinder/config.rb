@@ -194,7 +194,7 @@ module BoxGrinder
 
       @release = Release.new( self )
 
-      @arch = Config::CONFIG['host_cpu']
+      @arch = RbConfig::CONFIG['host_cpu']
 
       # it's save, we have validated it before
       @build_arch = ENV['BG_HARDWARE_ARCH'].nil? ? @arch : ENV['BG_HARDWARE_ARCH']

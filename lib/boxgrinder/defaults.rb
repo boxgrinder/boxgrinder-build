@@ -48,7 +48,7 @@ module BoxGrinder
                   :password => "boxgrinder"
           },
           :hardware => {
-                  :arch => Config::CONFIG['host_cpu'],
+                  :arch => RbConfig::CONFIG['host_cpu'],
                   :partition => 1,
                   :memory => 256,
                   :network => "NAT",
