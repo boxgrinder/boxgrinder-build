@@ -22,6 +22,7 @@ require 'boxgrinder/defaults'
 require 'boxgrinder/helpers/config-helper'
 require 'ostruct'
 require 'boxgrinder/model/release'
+require 'rbconfig'
 
 module BoxGrinder
   class ApplianceConfig
@@ -193,7 +194,7 @@ module BoxGrinder
 
       @release = Release.new( self )
 
-      @arch = (-1.size) == 8 ? "x86_64" : "i386"
+      @arch = Config::CONFIG['host_cpu']
 
       # it's save, we have validated it before
       @build_arch = ENV['BG_HARDWARE_ARCH'].nil? ? @arch : ENV['BG_HARDWARE_ARCH']

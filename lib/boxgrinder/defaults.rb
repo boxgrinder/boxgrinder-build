@@ -20,6 +20,7 @@
 
 require 'boxgrinder/log'
 require 'boxgrinder/helpers/exec-helper'
+require 'rbconfig'
 
 module BoxGrinder
   LOG = Log.new
@@ -47,7 +48,7 @@ module BoxGrinder
                   :password => "boxgrinder"
           },
           :hardware => {
-                  :arch => (-1.size) == 8 ? "x86_64" : "i386",
+                  :arch => Config::CONFIG['host_cpu'],
                   :partition => 1,
                   :memory => 256,
                   :network => "NAT",
