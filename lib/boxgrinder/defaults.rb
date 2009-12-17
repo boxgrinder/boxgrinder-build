@@ -92,7 +92,7 @@ module BoxGrinder
   DEFAULT_PROJECT_CONFIG = {
           :name => 'BoxGrinder',
           :version => '1.0.0.Beta1',
-          :release => 'SNAPSHOT',
+          :release => '',
           :dir_build => 'build',
           #:topdir            => "#{self.} build/topdir",
           :dir_sources_cache => 'sources-cache',
