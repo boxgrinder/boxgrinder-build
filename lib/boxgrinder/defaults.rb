@@ -105,8 +105,8 @@ module BoxGrinder
 
   AWS_DEFAULTS = {
           :bucket_prefix => "#{DEFAULT_PROJECT_CONFIG[:name].downcase}/#{DEFAULT_PROJECT_CONFIG[:version]}-#{DEFAULT_PROJECT_CONFIG[:release]}",
-          :kernel_id => { "i386" => "aki-a71cf9ce", "x86_64" => "aki-b51cf9dc" },
-          :ramdisk_id => { "i386" => "ari-a51cf9cc", "x86_64" => "ari-b31cf9da" },
+          :kernel_id => { "i386" => "aki-a71cf9ce", "x86_64" => "aki-b51cf9dc" }, # EU: :kernel_id => { "i386" => "aki-61022915", "x86_64" => "aki-6d022919" },
+          :ramdisk_id => { "i386" => "ari-a51cf9cc", "x86_64" => "ari-b31cf9da" }, # EU: :ramdisk_id => { "i386" => "ari-63022917", "x86_64" => "ari-37022943" },
           :kernel_rpm => { "i386" => "http://repo.oddthesis.org/packages/other/kernel-xen-2.6.21.7-2.fc8.i686.rpm", "x86_64" => "http://repo.oddthesis.org/packages/other/kernel-xen-2.6.21.7-2.fc8.x86_64.rpm" }
   }
 end
