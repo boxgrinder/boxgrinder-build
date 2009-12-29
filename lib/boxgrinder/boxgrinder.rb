@@ -99,7 +99,7 @@ module BoxGrinder
       appliance_config_helper = ApplianceConfigHelper.new( appliance_definitions )
 
       for appliance_definition in appliance_definitions.values
-        Appliance.new( @config, appliance_config_helper.merge( ApplianceConfig.new( appliance_definition ) ) )
+        Appliance.new( @config, appliance_config_helper.merge( ApplianceConfig.new( appliance_definition ) ).initialize_paths )
       end
     end
     attr_reader :config

@@ -173,6 +173,13 @@ module BoxGrinder
       @exec_helper.execute "cp #{@appliance_config.path.file.raw.disk} #{@appliance_config.path.file.vmware.disk}" if ( !File.exists?( @appliance_config.path.file.vmware.disk ) || File.new( @appliance_config.path.file.raw.disk ).mtime > File.new( @appliance_config.path.file.vmware.disk ).mtime )
 
       @log.debug "VMware image copied."
+
+      # install_vmware_tools
+
+      @log.info "Image converted to VMware format."
+    end
+
+    def install_vmware_tools
       @log.debug "Installing VMware tools..."
 
       if @appliance_config.is_os_version_stable?
@@ -185,7 +192,7 @@ module BoxGrinder
       @appliance_image_customizer.customize( @appliance_config.path.file.vmware.disk, { :packages => { :yum => [ "kmod-open-vm-tools" ] }, :repos => rpmfusion_repo_rpm } )
 
       @log.debug "VMware tools installed."
-      @log.info "Image converted to VMware format."
     end
+
   end
 end

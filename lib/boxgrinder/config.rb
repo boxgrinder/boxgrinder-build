@@ -34,14 +34,14 @@ module BoxGrinder
       @summary = @definition['summary']
 
       @os = OpenStruct.new
-      @os.name = ENV['BG_OS_NAME'].nil? ? APPLIANCE_DEFAULTS[:os][:name] : ENV['BG_OS_NAME']
-      @os.version = ENV['BG_OS_VERSION'].nil? ? APPLIANCE_DEFAULTS[:os][:version] : ENV['BG_OS_VERSION']
-      @os.password = ENV['BG_OS_PASSWORD'].nil? ? APPLIANCE_DEFAULTS[:os][:password] : ENV['BG_OS_PASSWORD']
+      @os.name = APPLIANCE_DEFAULTS[:os][:name]
+      @os.version = APPLIANCE_DEFAULTS[:os][:version]
+      @os.password = APPLIANCE_DEFAULTS[:os][:password]
 
       @hardware = OpenStruct.new
 
       @hardware.arch = APPLIANCE_DEFAULTS[:hardware][:arch]
-      @hardware.cpus = ENV['BG_HARDWARE_CPUS'].nil? ? 0 : ENV['BG_HARDWARE_CPUS'].to_i
+      @hardware.cpus = 0
       @hardware.memory = 0
       @hardware.network = APPLIANCE_DEFAULTS[:hardware][:network]
 
@@ -57,6 +57,25 @@ module BoxGrinder
       @version = 1
       @release = 0
 
+      initialize_paths
+    end
+
+    attr_reader :definition
+    attr_reader :name
+    attr_reader :summary
+    attr_reader :appliances
+    attr_reader :os
+    attr_reader :hardware
+    attr_reader :repos
+    attr_reader :packages
+    attr_reader :path
+    attr_reader :file
+
+    attr_accessor :version
+    attr_accessor :release
+    attr_accessor :post
+
+    def initialize_paths
       @path = OpenStruct.new
 
       @path.dir = OpenStruct.new
@@ -103,22 +122,9 @@ module BoxGrinder
 
       @path.file.package.raw = "#{@path.dir.packages}/#{@name}-#{@version}.#{@release}-#{@hardware.arch}-raw.tar.gz"
       @path.file.package.vmware = "#{@path.dir.packages}/#{@name}-#{@version}.#{@release}-#{@hardware.arch}-VMware.tar.gz"
+
+      self
     end
-
-    attr_reader :definition
-    attr_reader :name
-    attr_reader :summary
-    attr_reader :appliances
-    attr_reader :os
-    attr_reader :hardware
-    attr_reader :repos
-    attr_reader :packages
-    attr_reader :path
-    attr_reader :file
-
-    attr_accessor :version
-    attr_accessor :release
-    attr_accessor :post
 
     # used to checking if configuration diffiers from previous in appliance-kickstart
     def hash
