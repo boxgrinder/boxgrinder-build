@@ -200,17 +200,19 @@ module BoxGrinder
         @log.debug "Repo file '#{repo}' installed."
       end unless options[:repos].nil?
 
-      for yum_package in options[:packages][:yum]
-        @log.debug "Installing package '#{yum_package}'..."
-        guestfs.sh( "yum -y install #{yum_package}" )
-        @log.debug "Package '#{yum_package}' installed."
-      end unless options[:packages][:yum].nil?
+      unless options[:packages].nil?
+        for yum_package in options[:packages][:yum]
+          @log.debug "Installing package '#{yum_package}'..."
+          guestfs.sh( "yum -y install #{yum_package}" )
+          @log.debug "Package '#{yum_package}' installed."
+        end unless options[:packages][:yum].nil?
 
-      for package in options[:packages][:rpm]
-        @log.debug "Installing package '#{package}'..."
-        guestfs.sh( "rpm -Uvh --force #{package}" )
-        @log.debug "Package '#{package}' installed."
-      end unless options[:packages][:rpm].nil?
+        for package in options[:packages][:rpm]
+          @log.debug "Installing package '#{package}'..."
+          guestfs.sh( "rpm -Uvh --force #{package}" )
+          @log.debug "Package '#{package}' installed."
+        end unless options[:packages][:rpm].nil?
+      end
 
       guestfs.close
     end
