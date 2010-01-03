@@ -110,6 +110,12 @@ module BoxGrinder
       guestfs.sh( "echo '#{{ "appliance_name" => @appliance_config.name}.to_yaml}' > /etc/boxgrinder" )
       @log.debug "Version files installed."
 
+      # TODO: remove after https://bugzilla.redhat.com/show_bug.cgi?id=551469 is fixed
+      @log.debug "Fixing appliance-creator bug: https://bugzilla.redhat.com/show_bug.cgi?id=551469"
+      initrd = `ls /boot/initramfs* 2> /dev/null | wc -l`.to_i > 0 ? "initrams" : "initrd"
+      guestfs.sh( "sed s/'initrd \\/boot\\/initrd'/'initrd \\/boot\\/#{initrd}'/ /boot/grub/grub.conf" )
+      @log.debug "Hack applied."
+
       @log.debug "Executing post commands..."
       for cmd in @appliance_config.post.base
         @log.debug "Executing #{cmd}"
