@@ -39,23 +39,23 @@ module BoxGrinder
 
       directory @appliance_config.path.dir.packages
 
-      task "appliance:#{@appliance_config.name}:upload:ssh" => [ "appliance:#{@appliance_config.name}:package" ] do
+      task "appliance:#{@appliance_config.name}:upload:ssh" => [ "appliance:#{@appliance_config.name}:package:targz" ] do
         prepare_file_list
         upload_via_ssh
       end
 
-      task "appliance:#{@appliance_config.name}:upload:cloudfront" => [ "appliance:#{@appliance_config.name}:package" ] do
+      task "appliance:#{@appliance_config.name}:upload:cloudfront" => [ "appliance:#{@appliance_config.name}:package:targz" ] do
         prepare_file_list
         upload_to_cloudfront
       end
 
-      task "appliance:#{@appliance_config.name}:package" => [ @appliance_config.path.file.package.raw, @appliance_config.path.file.package.vmware ]
+      task "appliance:#{@appliance_config.name}:package:targz" => [ @appliance_config.path.file.package.raw, @appliance_config.path.file.package.vmware ]
 
       desc "Create RAW package for #{@appliance_config.simple_name} appliance"
-      task "appliance:#{@appliance_config.name}:package:raw" => [ @appliance_config.path.file.package.raw ]
+      task "appliance:#{@appliance_config.name}:package:raw:targz" => [ @appliance_config.path.file.package.raw ]
 
       desc "Create VMware package for #{@appliance_config.simple_name} appliance"
-      task "appliance:#{@appliance_config.name}:package:vmware" => [ @appliance_config.path.file.package.vmware ]
+      task "appliance:#{@appliance_config.name}:package:vmware:targz" => [ @appliance_config.path.file.package.vmware ]
 
       file @appliance_config.path.file.package.raw => [ @appliance_config.path.dir.packages, "appliance:#{@appliance_config.name}" ] do
         @log.info "Packaging #{@appliance_config.name} appliance RAW image (#{@appliance_config.os.name} #{@appliance_config.os.version}, #{@appliance_config.hardware.arch} arch)..."
