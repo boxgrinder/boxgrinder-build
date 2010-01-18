@@ -44,13 +44,12 @@ module BoxGrinder
       ifcfg_eth0 = "#{@config.dir.base}/src/ec2/ifcfg-eth0"
       rc_local_file = "#{@config.dir.base}/src/ec2/rc_local"
 
-      rpm_kernel = AWS_DEFAULTS[:kernel_rpm][@appliance_config.hardware.arch]
-
-      rpm_other = {
+      rpms = {
+              File.basename(AWS_DEFAULTS[:kernel_rpm][@appliance_config.hardware.arch]) => AWS_DEFAULTS[:kernel_rpm][@appliance_config.hardware.arch],
               "ec2-ami-tools.noarch.rpm" => "http://s3.amazonaws.com/ec2-downloads/ec2-ami-tools.noarch.rpm"
       }
 
-      cache_rpms( rpm_other )
+      cache_rpms( rpms )
 
       # TODO add progress bar?
       @log.debug "Preparing disk for EC2 image..."
@@ -58,34 +57,28 @@ module BoxGrinder
       @log.debug "Disk for EC2 image prepared"
 
       @log.debug "Creating filesystem..."
-      @exec_helper.execute "mke2fs -Fj #{@appliance_config.path.file.ec2.disk}"
+      @exec_helper.execute "mkfs.ext3 -F #{@appliance_config.path.file.ec2.disk}"
       @log.debug "Filesystem created"
 
       `mkdir -p #{ec2_mount_dir}`
 
       @exec_helper.execute "sudo mount -o loop #{@appliance_config.path.file.ec2.disk} #{ec2_mount_dir}"
 
-      disk_size = 0
+      loop_device = get_loop_device
 
-      for part in @appliance_config.hardware.partitions.values
-        disk_size += part['size']
-      end
-
-      # TODO is this really true? Need source
-      if disk_size >= 2
-        offset = 32256
-      else
-        offset = 512
-      end
+      @exec_helper.execute( "sudo losetup #{loop_device} #{@appliance_config.path.file.raw.disk}" )
+      offset = @exec_helper.execute("sudo parted -m #{loop_device} 'unit B print' | grep '^1' | awk -F: '{ print $2 }'").strip.chop
+      @exec_helper.execute( "sudo losetup -d #{loop_device}" )
 
       loop_device = get_loop_device
+
       mount_image( loop_device, @appliance_config.path.file.raw.disk, offset )
 
       @log.debug "Syncing files between RAW and EC2 file..."
       @exec_helper.execute "sudo rsync -u -r -a  #{@raw_file_mount_directory}/* #{ec2_mount_dir}"
       @log.debug "Syncing finished"
 
-      umount_image( loop_device, @appliance_config.path.file.raw.disk )
+      umount_image( @appliance_config.path.file.raw.disk )
 
       @exec_helper.execute "sudo umount -d #{ec2_mount_dir}"
 
@@ -125,14 +118,10 @@ module BoxGrinder
 
       guestfs_helper.rebuild_rpm_database
 
-      @log.debug "Installing Xen kernel (#{rpm_kernel})..."
-      guestfs.sh( "rpm -Uvh #{rpm_kernel}" )
-      @log.debug "Xen kernel installed."
-
-      @log.debug "Installing additional packages (#{rpm_other.keys.join( ", " )})..."
+      @log.debug "Installing additional packages (#{rpms.keys.join( ", " )})..."
       guestfs.mkdir_p("/tmp/rpms")
 
-      for name in rpm_other.keys
+      for name in rpms.keys
         cache_file = "#{@config.dir_src_cache}/#{name}"
         guestfs.upload( cache_file, "/tmp/rpms/#{name}" )
       end
@@ -154,10 +143,10 @@ module BoxGrinder
         guestfs.upload( "#{@config.dir.base}/src/f12/yum.conf", "/etc/yum.conf" )
         @log.debug "Package udev downgraded."
 
-        @log.debug "Disabling unnecessary services..."
-        guestfs.sh( "/sbin/chkconfig ksm off" ) if guestfs.exists( "/etc/init.d/ksm" )
-        guestfs.sh( "/sbin/chkconfig ksmtuned off" ) if guestfs.exists( "/etc/init.d/ksmtuned" )
-        @log.debug "Services disabled."
+        #@log.debug "Disabling unnecessary services..."
+        #guestfs.sh( "/sbin/chkconfig ksm off" ) if guestfs.exists( "/etc/init.d/ksm" )
+        #guestfs.sh( "/sbin/chkconfig ksmtuned off" ) if guestfs.exists( "/etc/init.d/ksmtuned" )
+        #@log.debug "Services disabled."
       end
 
       guestfs.close
@@ -241,18 +230,17 @@ module BoxGrinder
     end
 
     def mount_image( loop_device, raw_file, offset = 32256 )
-      @log.debug "Mounting image #{File.basename( raw_file )}"
+      @log.debug "Mounting image #{File.basename( raw_file )} on #{loop_device} with offset #{offset}"
       FileUtils.mkdir_p( @raw_file_mount_directory )
 
       @exec_helper.execute( "sudo losetup -o #{offset.to_s} #{loop_device} #{raw_file}" )
       @exec_helper.execute( "sudo mount #{loop_device} -t ext3 #{@raw_file_mount_directory}")
     end
 
-    def umount_image( loop_device, raw_file )
+    def umount_image( raw_file )
       @log.debug "Unmounting image #{File.basename( raw_file )}"
 
       @exec_helper.execute( "sudo umount -d #{@raw_file_mount_directory}" )
-      #@exec_helper.execute( "sudo losetup -d #{loop_device}" )
 
       FileUtils.rm_rf( @raw_file_mount_directory )
     end
