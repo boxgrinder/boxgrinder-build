@@ -89,7 +89,6 @@ module BoxGrinder
       @path.file.vmware = OpenStruct.new
       @path.file.vmware.personal = OpenStruct.new
       @path.file.vmware.enterprise = OpenStruct.new
-      @path.file.package = OpenStruct.new
 
       @path.dir.packages = "build/#{appliance_path}/packages"
 
@@ -120,13 +119,21 @@ module BoxGrinder
       @path.file.vmware.enterprise.vmdk = "#{@path.dir.vmware.enterprise}/#{@name}.vmdk"
       @path.file.vmware.enterprise.disk = "#{@path.dir.vmware.enterprise}/#{@name}-sda.raw"
 
-      @path.file.package.raw = "#{@path.dir.packages}/#{@name}-#{@version}.#{@release}-#{@hardware.arch}-raw.tar.gz"
-      @path.file.package.vmware = "#{@path.dir.packages}/#{@name}-#{@version}.#{@release}-#{@hardware.arch}-VMware.tar.gz"
+      @path.file.package = {
+              :raw => {
+                      :tgz => "#{@path.dir.packages}/#{@name}-#{@version}.#{@release}-#{@hardware.arch}-raw.tgz",
+                      :zip => "#{@path.dir.packages}/#{@name}-#{@version}.#{@release}-#{@hardware.arch}-raw.zip"
+              },
+              :vmware => {
+                      :tgz => "#{@path.dir.packages}/#{@name}-#{@version}.#{@release}-#{@hardware.arch}-VMware.tgz",
+                      :zip => "#{@path.dir.packages}/#{@name}-#{@version}.#{@release}-#{@hardware.arch}-VMware.zip"
+              }
+      }
 
       self
     end
 
-    # used to checking if configuration diffiers from previous in appliance-kickstart
+    # used to checking if configuration differs from previous in appliance-kickstart
     def hash
       "#{@name}-#{@summary}-#{@version}-#{@release}-#{@os.name}-#{@os.version}-#{@os.password}-#{@hardware.cpus}-#{@hardware.memory}-#{@hardware.partitions}-#{@appliances.join("-")}".hash
     end
