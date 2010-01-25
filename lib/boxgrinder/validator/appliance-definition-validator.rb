@@ -46,10 +46,10 @@ module BoxGrinder
 
       raise ApplianceValidationError, "Unsupported OS: operating system '#{@appliance_definition['os']['name']}' is not supported. Supported OS types: #{SUPPORTED_OSES.keys.join(", ")}. Please correct your definition file '#{@appliance_definition_file}', thanks" if !@appliance_definition['os']['name'].nil? and !SUPPORTED_OSES.keys.include?( @appliance_definition['os']['name'] )
 
-      unless @appliance_definition['os']['version'].nil?
-        @appliance_definition['os']['version'] = @appliance_definition['os']['version'].to_s
-        raise ApplianceValidationError, "Not valid OS version: operating system version '#{@appliance_definition['os']['version']}' is not supported for OS type '#{@appliance_definition['os']['name']}'. Supported OS versions for this OS type are: #{SUPPORTED_OSES[@appliance_definition['os']['name']].join(", ")}. Please correct your definition file '#{@appliance_definition_file}', thanks" if !SUPPORTED_OSES[@appliance_definition['os']['name'].nil? ? APPLIANCE_DEFAULTS[:os][:name] : @appliance_definition['os']['name']].include?( @appliance_definition['os']['version'] )
-      end
+      #unless @appliance_definition['os']['version'].nil?
+        #@appliance_definition['os']['version'] = @appliance_definition['os']['version'].to_s
+        #raise ApplianceValidationError, "Not valid OS version: operating system version '#{@appliance_definition['os']['version']}' is not supported for OS type '#{@appliance_definition['os']['name']}'. Supported OS versions for this OS type are: #{SUPPORTED_OSES[@appliance_definition['os']['name']].join(", ")}. Please correct your definition file '#{@appliance_definition_file}', thanks" if !SUPPORTED_OSES[@appliance_definition['os']['name'].nil? ? APPLIANCE_DEFAULTS[:os][:name] : @appliance_definition['os']['name']].include?( @appliance_definition['os']['version'] )
+      #end
     end
 
     def validate_hardware

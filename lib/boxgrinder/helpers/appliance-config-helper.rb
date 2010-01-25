@@ -57,7 +57,7 @@ module BoxGrinder
         @appliance_config.hardware.cpus = @appliance_config.definition['hardware']['cpus']
       end
 
-      hardware('cpus'){ |cpus| @appliance_config.hardware.cpus = cpus if cpus > @appliance_config.hardware.cpus }
+      merge_field('cpus', 'hardware'){ |cpus| @appliance_config.hardware.cpus = cpus if cpus > @appliance_config.hardware.cpus }
 
       @appliance_config.hardware.cpus = APPLIANCE_DEFAULTS[:hardware][:cpus] if @appliance_config.hardware.cpus == 0
     end
@@ -74,7 +74,7 @@ module BoxGrinder
 
       partitions['/'] = { 'root' => '/', 'size' => ENV['BG_HARDWARE_DISK_SIZE'].nil? ? APPLIANCE_DEFAULTS[:hardware][:partition] : ENV['BG_HARDWARE_DISK_SIZE'].to_i } unless partitions.keys.include?('/')
 
-      hardware('partitions') do |parts|
+      merge_field('partitions', 'hardware') do |parts|
         for partition in parts
           if partitions.keys.include?(partition['root'])
             partitions[partition['root']]['size'] = partition['size'] if partitions[partition['root']]['size'] < partition['size']
@@ -90,17 +90,15 @@ module BoxGrinder
     def merge_memory
       @appliance_config.hardware.memory = @appliance_config.definition['hardware']['memory'] unless @appliance_config.definition['hardware'].nil? or @appliance_config.definition['hardware']['memory'].nil?
 
-      hardware('memory') { |memory| @appliance_config.hardware.memory = memory if memory > @appliance_config.hardware.memory }
+      merge_field('memory', 'hardware') { |memory| @appliance_config.hardware.memory = memory if memory > @appliance_config.hardware.memory }
 
       @appliance_config.hardware.memory = APPLIANCE_DEFAULTS[:hardware][:memory] if @appliance_config.hardware.memory == 0
     end
 
     def prepare_os
-      unless @appliance_config.definition['os'].nil?
-        @appliance_config.os.name = @appliance_config.definition['os']['name'] unless @appliance_config.definition['os']['name'].nil?
-        @appliance_config.os.version = @appliance_config.definition['os']['version'] unless @appliance_config.definition['os']['version'].nil?
-        @appliance_config.os.password = @appliance_config.definition['os']['password'] unless @appliance_config.definition['os']['password'].nil?
-      end
+      merge_field( 'name', 'os' ) { |name| @appliance_config.os.name = name.to_s }
+      merge_field( 'version', 'os' ) { |version| @appliance_config.os.version = version.to_s }
+      merge_field( 'password', 'os' ) { |password| @appliance_config.os.password = password.to_s }
     end
 
     def prepare_appliances
@@ -166,11 +164,11 @@ module BoxGrinder
       end
     end
 
-    def hardware( field )
+    def merge_field( field, section )
       for appliance_name in @current_appliances
         appliance_definition = @appliance_definitions[appliance_name][:definition]
-        next if appliance_definition['hardware'].nil? or appliance_definition['hardware'][field].nil?
-        val = appliance_definition['hardware'][field]
+        next if appliance_definition[section].nil? or appliance_definition[section][field].nil?
+        val = appliance_definition[section][field]
         yield val
       end unless @appliance_config.definition['appliances'].nil?
     end
