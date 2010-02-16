@@ -33,10 +33,10 @@ module BoxGrinder
 
       if $?.to_i != 0
         @log.error formatted_output
-        raise "An error occured executing commad: '#{command}'"
+        raise "An error occurred executing command: '#{command}'"
       else
         @log.debug formatted_output unless out.strip.length == 0
-        @log.debug "Command '#{command}' executed successfuly"
+        @log.debug "Command '#{command}' executed successfully"
         return out
       end
     end
