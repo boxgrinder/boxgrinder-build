@@ -81,7 +81,7 @@ module BoxGrinder
         end
       end
 
-      file "#{@appliance_config.path.dir.vmware.build}/README" do
+      file "#{@appliance_config.path.dir.vmware.build}/README" => [ "appliance:#{@appliance_config.name}:vmware:personal", "appliance:#{@appliance_config.name}:vmware:enterprise" ] do
         readme = File.open( "#{@config.dir.base}/src/README.vmware" ).read
 
         readme.gsub!( /#APPLIANCE_NAME#/, @appliance_config.name )
