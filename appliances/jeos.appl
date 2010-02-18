@@ -17,5 +17,6 @@ packages:
     - iputils
     - generic-logos
     - openssh-server
+    - openssh-clients
     - mkinitrd
 
