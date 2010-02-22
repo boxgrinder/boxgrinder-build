@@ -13,6 +13,3 @@
 [submodule "lib/htauth"]
 	path = lib/htauth
 	url = git://github.com/copiousfreetime/htauth.git
-[submodule "lib/highline"]
-	path = lib/highline
-	url = git://github.com/elliottcable/highline.git
