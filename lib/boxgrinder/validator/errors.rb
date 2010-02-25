@@ -20,6 +20,7 @@
 
 module BoxGrinder
   class ValidationError < StandardError
+   
   end
   
   class ApplianceValidationError < ValidationError

@@ -28,7 +28,6 @@ require 'rake'
 require 'boxgrinder/exec'
 require 'boxgrinder/appliance'
 require 'boxgrinder/config'
-#require 'boxgrinder/boxgrinder-release'
 require 'boxgrinder/validator/validator'
 require 'boxgrinder/validator/appliance-config-parameter-validator'
 require 'boxgrinder/validator/appliance-definition-validator'
@@ -72,7 +71,7 @@ module BoxGrinder
     end
 
     def define_rules
-      Validator.new( @config )
+      Validator.new( @config, :log => @log )
 
       Rake::Task[ 'validate:all' ].invoke
 
@@ -86,7 +85,7 @@ module BoxGrinder
 
         ApplianceDefinitionValidator.new( appliance_definition, appliance_definition_file ).validate
 
-        appliance_definitions[appliance_definition['name']] = { :definition =>  appliance_definition, :file => appliance_definition_file } 
+        appliance_definitions[appliance_definition['name']] = { :definition =>  appliance_definition, :file => appliance_definition_file }
       end
 
       appliance_config_helper = ApplianceConfigHelper.new( appliance_definitions )
@@ -95,6 +94,7 @@ module BoxGrinder
         Appliance.new( @config, appliance_config_helper.merge( ApplianceConfig.new( appliance_definition ) ).initialize_paths )
       end
     end
+
     attr_reader :config
   end
 end

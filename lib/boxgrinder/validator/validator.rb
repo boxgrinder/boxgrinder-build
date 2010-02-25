@@ -27,9 +27,9 @@ require 'rake/tasklib'
 module BoxGrinder
   class Validator < Rake::TaskLib
 
-    def initialize( config )
-      @config = config
-      @log    = LOG
+    def initialize( config, options = {} )
+      @config         = config
+      @log            = options[:log] || Logger.new(STDOUT)
 
       define_tasks
     end
@@ -79,7 +79,7 @@ module BoxGrinder
     def validate_configuration
       @log.debug "Validating configuration..."
       begin
-        ConfigValidator.new( @config ).validate
+        ConfigValidator.new( @config, :log => @log).validate
       rescue ValidationError => validation_error
         raise "Error while validating configuration: #{validation_error}"
       rescue => exception

@@ -19,17 +19,19 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder/boxgrinder'
+require 'boxgrinder/helpers/log-helper'
 
 module Rake
   class Task
     alias_method :execute_original_boxgrinder, :execute
 
-    def execute( args=nil )
+    def execute( args = nil )
       begin
         execute_original_boxgrinder( args )
       rescue => e
-        BoxGrinder::LOG.fatal e
-        BoxGrinder::LOG.fatal e.message
+        log = LogHelper.new
+        log.fatal e
+        log.fatal "Aborting: #{e.message}. See previous errors for more information."
         abort
       end
     end
@@ -38,17 +40,19 @@ end
 
 module BoxGrinder
   class RakeHelper
-    def initialize(project_config = {})
+    def initialize( project_config = {} )
+      log = LogHelper.new
+
       begin
-        LOG.debug "Running new Rake session..."
+        log.debug "Running new Rake session..."
 
         @config = BoxGrinder.new( project_config ).config
       rescue ValidationError => e
-        LOG.fatal "ValidationError: #{e.message}."
+        log.fatal "ValidationError: #{e.message}."
         abort
       rescue => e
-        LOG.fatal e
-        LOG.fatal "Aborting: #{e.message}. See previous errors for more information."
+        log.fatal e
+        log.fatal "Aborting: #{e.message}. See previous errors for more information."
         abort
       end
     end
