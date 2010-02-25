@@ -21,19 +21,20 @@
 require 'net/ssh'
 require 'net/sftp'
 require 'progressbar/progressbar'
+require 'boxgrinder/helpers/exec-helper'
 
 module BoxGrinder
   class SSHHelper
-    def initialize( options )
-      @options = options
+    def initialize( ssh_options, options = {} )
+      @ssh_options    = ssh_options
 
-      @exec_helper       = EXEC_HELPER
-      @log               = LOG
+      @log            = options[:log]         || Logger.new(STDOUT)
+      @exec_helper    = options[:exec_helper] || ExecHelper.new( :log => @log )
     end
 
     def connect
-      @log.info "Connecting to #{@options['host']}..."
-      @ssh = Net::SSH.start( @options['host'], @options['username'], { :password => @options['password'] } )
+      @log.info "Connecting to #{@ssh_options['host']}..."
+      @ssh = Net::SSH.start( @ssh_options['host'], @ssh_options['username'], { :password => @ssh_options['password'] } )
     end
 
     def connected?
@@ -42,7 +43,7 @@ module BoxGrinder
     end
 
     def disconnect
-      @log.info "Disconnecting from #{@options['host']}..."
+      @log.info "Disconnecting from #{@ssh_options['host']}..."
       @ssh.close if connected?
       @ssh = nil
     end
@@ -70,7 +71,7 @@ module BoxGrinder
           sftp.stat!( path )
         rescue Net::SFTP::StatusException => e
           raise unless e.code == 2
-          if @options['sftp_create_path']
+          if @ssh_options['sftp_create_path']
             @ssh.exec!( "mkdir -p #{path}" )
           else
             raise
@@ -89,7 +90,7 @@ module BoxGrinder
           begin
             sftp.stat!( remote )
 
-            unless @options['sftp_overwrite']
+            unless @ssh_options['sftp_overwrite']
 
               local_md5_sum   = `md5sum #{local} | awk '{ print $1 }'`.strip
               remote_md5_sum  = @ssh.exec!( "md5sum #{remote} | awk '{ print $1 }'" ).strip
@@ -121,7 +122,7 @@ module BoxGrinder
             end
           end
 
-          sftp.setstat(remote, :permissions => @options['sftp_default_permissions'])
+          sftp.setstat(remote, :permissions => @ssh_options['sftp_default_permissions'])
 
         end
       end

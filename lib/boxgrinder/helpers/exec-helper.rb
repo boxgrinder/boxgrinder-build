@@ -20,8 +20,8 @@
 
 module BoxGrinder
   class ExecHelper
-    def initialize
-      @log = LOG
+    def initialize( options = {} )
+      @log = options[:log] || Logger.new(STDOUT)
     end
 
     def execute( command, file = nil )

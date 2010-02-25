@@ -21,7 +21,6 @@
 require 'boxgrinder/defaults'
 require 'boxgrinder/helpers/config-helper'
 require 'ostruct'
-require 'boxgrinder/model/release'
 require 'rbconfig'
 
 module BoxGrinder
@@ -204,8 +203,6 @@ module BoxGrinder
         @data = YAML.load_file( @config_file )
         @data['gpg_password'].gsub!(/\$/, "\\$") unless @data['gpg_password'].nil? or @data['gpg_password'].length == 0
       end
-
-      @release = Release.new( self )
 
       @arch = RbConfig::CONFIG['host_cpu']
 

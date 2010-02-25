@@ -35,7 +35,6 @@ require 'boxgrinder/validator/appliance-definition-validator'
 require 'boxgrinder/helpers/appliance-config-helper'
 require 'boxgrinder/defaults'
 require 'boxgrinder/helpers/rake-helper'
-require 'boxgrinder/helpers/release-helper'
 require 'ostruct'
 require 'yaml'
 
@@ -77,13 +76,7 @@ module BoxGrinder
 
       Rake::Task[ 'validate:all' ].invoke
 
-      #BoxGrinderRelease.new( @config )
-      ReleaseHelper.new( @config )
-
       directory @config.dir.build
-
-      #@log.debug "Current architecture: #{@config.hardware.arch}"
-      #@log.debug "Building architecture: #{@config.build_arch}"
 
       appliance_definitions = {}
 

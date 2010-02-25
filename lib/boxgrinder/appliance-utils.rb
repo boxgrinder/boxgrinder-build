@@ -100,7 +100,7 @@ module BoxGrinder
 
       raise ValidationError, "Remote release packages path (remote_release_path) not specified in ssh section in configuration file '#{@config.config_file}'. #{DEFAULT_HELP_TEXT[:general]}" if ssh_config.cfg['remote_rpm_path'].nil?
 
-      ssh_helper = SSHHelper.new( ssh_config.options )
+      ssh_helper = SSHHelper.new( ssh_config.options, { :log => @log } )
       ssh_helper.connect
       ssh_helper.upload_files( ssh_config.cfg['remote_release_path'], files )
       ssh_helper.disconnect
