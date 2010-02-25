@@ -18,12 +18,12 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require 'boxgrinder/log'
+require 'boxgrinder/helpers/log-helper'
 require 'boxgrinder/helpers/exec-helper'
 require 'rbconfig'
 
 module BoxGrinder
-  LOG = Log.new
+  LOG = LogHelper.new
   EXEC_HELPER = ExecHelper.new
 
   # here are global variables
