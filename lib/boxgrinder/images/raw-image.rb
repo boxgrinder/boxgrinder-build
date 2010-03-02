@@ -19,27 +19,22 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'rake/tasklib'
-require 'boxgrinder/appliance-vmx-image'
-require 'boxgrinder/appliance-ec2-image'
 require 'yaml'
 require 'boxgrinder/aws/instance'
 require 'boxgrinder/appliance-image-customize'
 require 'boxgrinder/helpers/guestfs-helper'
 
 module BoxGrinder
-  class ApplianceImage < Rake::TaskLib
+  class RAWImage < Rake::TaskLib
 
     def initialize( config, appliance_config, options = {} )
       @config = config
       @appliance_config = appliance_config
 
-      @log = options[:log] || LOG
-      @exec_helper = options[:exec_helper] || EXEC_HELPER
+      @log          = options[:log]         || Logger.new(STDOUT)
+      @exec_helper  = options[:exec_helper] || ExecHelper.new( { :log => @log } )
 
       @tmp_dir = "#{@config.dir.root}/#{@config.dir.build}/tmp"
-
-      ApplianceVMXImage.new( @config, @appliance_config )
-      ApplianceEC2Image.new( @config, @appliance_config )
       #AWSInstance.new( @config, @appliance_config )
 
       define_tasks

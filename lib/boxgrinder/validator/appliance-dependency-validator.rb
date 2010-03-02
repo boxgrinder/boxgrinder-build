@@ -38,8 +38,8 @@ module BoxGrinder
       @config = config
       @appliance_config = appliance_config
 
-      @log = options[:log] || LOG
-      @exec_helper = options[:exec_helper] || EXEC_HELPER
+      @log          = options[:log]         || Logger.new(STDOUT)
+      @exec_helper  = options[:exec_helper] || ExecHelper.new( { :log => @log } )
 
       # Because we're using repoquery command from our building environment, we must ensure, that our repository
       # names are unique

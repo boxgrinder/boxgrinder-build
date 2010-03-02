@@ -24,14 +24,14 @@ require 'boxgrinder/appliance-image-customize'
 
 module BoxGrinder
 
-  class ApplianceVMXImage < Rake::TaskLib
+  class VMwareImage < Rake::TaskLib
 
     def initialize( config, appliance_config, options = {} )
-      @config = config
+      @config           = config
       @appliance_config = appliance_config
 
-      @log = options[:log] || LOG
-      @exec_helper = options[:exec_helper] || EXEC_HELPER
+      @log          = options[:log]         || Logger.new(STDOUT)
+      @exec_helper  = options[:exec_helper] || ExecHelper.new( { :log => @log } )
 
       @appliance_image_customizer = ApplianceImageCustomize.new( @config, @appliance_config )
 

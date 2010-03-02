@@ -22,9 +22,9 @@ require 'guestfs'
 
 module BoxGrinder
   class GuestFSHelper
-    def initialize( raw_disk )
+    def initialize( raw_disk, options = {} )
       @raw_disk = raw_disk
-      @log = LOG
+      @log      = options[:log] || Logger.new(STDOUT)
 
       launch
     end
@@ -69,7 +69,7 @@ module BoxGrinder
 
       # TODO is this really needed?
       @log.debug "Uploading '/etc/resolv.conf'..."
-      @guestfs.upload( "/etc/resolv.conf",  "/etc/resolv.conf" )
+      @guestfs.upload( "/etc/resolv.conf", "/etc/resolv.conf" )
       @log.debug "'/etc/resolv.conf' uploaded."
 
       @log.debug "Guestfs launched."

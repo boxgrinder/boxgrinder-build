@@ -29,14 +29,14 @@ require 'boxgrinder/appliance-image-customize'
 include AWS::S3
 
 module BoxGrinder
-  class ApplianceEC2Image < Rake::TaskLib
+  class EC2Image < Rake::TaskLib
 
-    def initialize( config, appliance_config )
+    def initialize( config, appliance_config, options = {} )
       @config            = config
       @appliance_config  = appliance_config
 
-      @exec_helper       = EXEC_HELPER
-      @log               = LOG
+      @log          = options[:log]         || Logger.new(STDOUT)
+      @exec_helper  = options[:exec_helper] || ExecHelper.new( { :log => @log } )
 
       @appliance_image_customizer = ApplianceImageCustomize.new( @config, @appliance_config )
 

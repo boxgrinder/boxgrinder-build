@@ -23,9 +23,6 @@ require 'boxgrinder/helpers/exec-helper'
 require 'rbconfig'
 
 module BoxGrinder
-  LOG = LogHelper.new
-  EXEC_HELPER = ExecHelper.new
-
   # here are global variables
   SUPPORTED_ARCHES = [ "i386", "x86_64" ]
   SUPPORTED_OSES = {

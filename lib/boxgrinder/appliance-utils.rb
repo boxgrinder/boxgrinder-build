@@ -25,12 +25,12 @@ require 'boxgrinder/helpers/ssh-helper'
 
 module BoxGrinder
   class ApplianceUtils < Rake::TaskLib
-    def initialize( config, appliance_config )
+    def initialize( config, appliance_config, options = {} )
       @config = config
       @appliance_config = appliance_config
 
-      @exec_helper = EXEC_HELPER
-      @log = LOG
+      @log          = options[:log]         || Logger.new(STDOUT)
+      @exec_helper  = options[:exec_helper] || ExecHelper.new( { :log => @log } )
 
       @package_build_commands = {
               :raw => {
@@ -94,7 +94,7 @@ module BoxGrinder
     end
 
     def upload_via_ssh( files )
-      @log.info "Uploading '#{@appliance_config.name}' via ssh..."
+      @log.info "Uploading #{@appliance_config.name} appliance via SSH..."
 
       ssh_config = SSHConfig.new( @config )
 
@@ -112,7 +112,7 @@ module BoxGrinder
 
       bucket = @config.release.cloudfront['bucket_name']
 
-      @log.info "Uploading '#{@appliance_config.name}' to CloudFront bucket '#{bucket}'..."
+      @log.info "Uploading #{@appliance_config.name} appliance to CloudFront bucket '#{bucket}'..."
 
       AWSSupport.new( @config )
 

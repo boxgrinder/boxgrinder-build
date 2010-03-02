@@ -27,8 +27,8 @@ module BoxGrinder
     def initialize( dir_appliances, appliance_def, options = {} )
       @dir_appliances = dir_appliances
 
-      @log          = options[:log]         || LOG
-      @exec_helper  = options[:exec_helper] || EXEC_HELPER
+      @log          = options[:log]         || Logger.new(STDOUT)
+      @exec_helper  = options[:exec_helper] || ExecHelper.new( { :log => @log } )
 
       #check if appliance_def is nil
       raise ApplianceValidationError, "Appliance definition file must be specified" if appliance_def.nil? or appliance_def.length == 0

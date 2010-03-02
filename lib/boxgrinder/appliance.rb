@@ -21,7 +21,9 @@
 require 'rake/tasklib'
 
 require 'boxgrinder/appliance-kickstart.rb'
-require 'boxgrinder/appliance-image.rb'
+require 'boxgrinder/images/raw-image.rb'
+require 'boxgrinder/images/vmware-image'
+require 'boxgrinder/images/ec2-image'
 require 'boxgrinder/appliance-utils'
 require 'boxgrinder/validator/appliance-dependency-validator'
 
@@ -38,7 +40,11 @@ module BoxGrinder
     def define
       ApplianceKickstart.new( @config, @appliance_config )
       ApplianceDependencyValidator.new( @config, @appliance_config )
-      ApplianceImage.new( @config, @appliance_config )
+
+      RAWImage.new( @config, @appliance_config )
+      VMwareImage.new( @config, @appliance_config )
+      EC2Image.new( @config, @appliance_config )
+
       ApplianceUtils.new( @config, @appliance_config  )
     end
   end

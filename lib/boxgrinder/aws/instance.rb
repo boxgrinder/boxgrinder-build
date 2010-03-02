@@ -27,14 +27,14 @@ require 'fileutils'
 
 module BoxGrinder
   class AWSInstance < Rake::TaskLib
-    def initialize( config, appliance_config )
+    def initialize( config, appliance_config, options = {} )
       @config            = config
       @appliance_config  = appliance_config
       @instances_dir     = "#{ENV['HOME']}/.boxgrinder/instances"
       @ec2_run_file      = "#{@instances_dir}/#{@appliance_config.name}.run"
 
-      @exec_helper       = EXEC_HELPER
-      @log               = LOG
+      @log          = options[:log]         || Logger.new(STDOUT)
+      @exec_helper  = options[:exec_helper] || ExecHelper.new( { :log => @log } )
 
       define_tasks
     end

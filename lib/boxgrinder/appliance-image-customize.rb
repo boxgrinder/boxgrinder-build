@@ -30,8 +30,8 @@ module BoxGrinder
       @config = config
       @appliance_config = appliance_config
 
-      @log = options[:log] || LOG
-      @exec_helper = options[:exec_helper] || EXEC_HELPER
+      @log          = options[:log]         || Logger.new(STDOUT)
+      @exec_helper  = options[:exec_helper] || ExecHelper.new( { :log => @log } )
 
       @raw_file_mount_directory = "#{@config.dir.build}/#{@appliance_config.appliance_path}/tmp/raw-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
     end

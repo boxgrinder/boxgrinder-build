@@ -42,7 +42,7 @@ $stderr.reopen("/dev/null")
 module BoxGrinder
   class BoxGrinder
     def initialize( project_config = Hash.new )
-      @log = LOG
+      @log = LogHelper.new
       # validates parameters, this is a pre-validation
       ApplianceConfigParameterValidator.new.validate
 
@@ -77,21 +77,18 @@ module BoxGrinder
 
       directory @config.dir.build
 
-      appliance_definitions = {}
+      definitions = {}
 
-      Dir[ "#{@config.dir.appliances}/**/*.appl", "#{@config.dir.base}/appliances/*.appl" ].each do |appliance_definition_file|
-        appliance_definition = YAML.load_file( appliance_definition_file )
+      Dir[ "#{@config.dir.appliances}/**/*.appl", "#{@config.dir.base}/appliances/*.appl" ].each do |file|
+        definition = YAML.load_file( file )
 
+        ApplianceDefinitionValidator.new( definition, file ).validate
 
-        ApplianceDefinitionValidator.new( appliance_definition, appliance_definition_file ).validate
-
-        appliance_definitions[appliance_definition['name']] = { :definition =>  appliance_definition, :file => appliance_definition_file }
+        definitions[definition['name']] = { :definition =>  definition, :file => file }
       end
 
-      appliance_config_helper = ApplianceConfigHelper.new( appliance_definitions )
-
-      for appliance_definition in appliance_definitions.values
-        Appliance.new( @config, appliance_config_helper.merge( ApplianceConfig.new( appliance_definition ) ).initialize_paths )
+      for definition in definitions.values
+        Appliance.new( @config, ApplianceConfigHelper.new( definitions ).merge( ApplianceConfig.new( definition ) ).initialize_paths )
       end
     end
 
