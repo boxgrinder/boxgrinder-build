@@ -110,9 +110,9 @@ module BoxGrinder
       # replace builder with current builder name and version
       vmx_data.gsub!( /#BUILDER#/, "#{@config.name} #{@config.version_with_release}" )
       # change name
-      vmx_data.gsub!( /#NAME#/, @appliance_config.name )
+      vmx_data.gsub!( /#NAME#/, @appliance_config.name.to_s )
       # and summary
-      vmx_data.gsub!( /#SUMMARY#/, @appliance_config.summary )
+      vmx_data.gsub!( /#SUMMARY#/, @appliance_config.summary.to_s )
       # replace guestOS informations to: linux or otherlinux-64, this seems to be the savests values
       vmx_data.gsub!( /#GUESTOS#/, "#{@appliance_config.hardware.arch == "x86_64" ? "otherlinux-64" : "linux"}" )
       # memory size
