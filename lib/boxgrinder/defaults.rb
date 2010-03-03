@@ -20,7 +20,6 @@
 
 require 'boxgrinder/helpers/log-helper'
 require 'boxgrinder/helpers/exec-helper'
-require 'rbconfig'
 
 module BoxGrinder
   # here are global variables
@@ -45,7 +44,6 @@ module BoxGrinder
                   :password => "boxgrinder"
           },
           :hardware => {
-                  :arch => RbConfig::CONFIG['host_cpu'],
                   :partition => 1,
                   :memory => 256,
                   :network => "NAT",

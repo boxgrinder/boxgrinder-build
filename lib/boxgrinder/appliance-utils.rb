@@ -114,11 +114,9 @@ module BoxGrinder
 
       @log.info "Uploading #{@appliance_config.name} appliance to CloudFront bucket '#{bucket}'..."
 
-      AWSSupport.new( @config )
-
       begin
         AWS::S3::Bucket.find( bucket )
-      rescue AWS::S3::NoSuchBucket => ex
+      rescue AWS::S3::NoSuchBucket
         AWS::S3::Bucket.create( bucket )
         retry
       end

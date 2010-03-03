@@ -25,8 +25,9 @@ require 'boxgrinder/validators/aws-validator'
 
 module BoxGrinder
   class AWSSupport
-    def initialize( config )
-      @config = config
+    def initialize( config, appliance_config )
+      @config           = config
+      @appliance_config = appliance_config
 
       aws_validator = AWSValidator.new( @config )
       aws_validator.validate_aws_config( @config.data['aws'] )
@@ -46,7 +47,7 @@ module BoxGrinder
     attr_reader :s3
 
     def bucket_key( appliance_name )
-      "#{@config.release.s3['bucket_name']}/#{@config.aws.bucket_prefix}/#{@config.build_arch}/#{appliance_name}"
+      "#{@config.release.s3['bucket_name']}/#{@config.version_with_release}/#{@appliance_config.hardware.arch}/#{appliance_name}"
     end
 
     def bucket_manifest_key( appliance_name )

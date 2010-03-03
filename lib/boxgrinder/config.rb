@@ -31,17 +31,17 @@ module BoxGrinder
       @name = @definition['name']
       @summary = @definition['summary']
 
-      @os = OpenStruct.new
-      @os.name = APPLIANCE_DEFAULTS[:os][:name]
-      @os.version = APPLIANCE_DEFAULTS[:os][:version]
-      @os.password = APPLIANCE_DEFAULTS[:os][:password]
+      @os           = OpenStruct.new
+      @os.name      = APPLIANCE_DEFAULTS[:os][:name]
+      @os.version   = APPLIANCE_DEFAULTS[:os][:version]
+      @os.password  = APPLIANCE_DEFAULTS[:os][:password]
 
       @hardware = OpenStruct.new
 
-      @hardware.arch = APPLIANCE_DEFAULTS[:hardware][:arch]
-      @hardware.cpus = 0
-      @hardware.memory = 0
-      @hardware.network = APPLIANCE_DEFAULTS[:hardware][:network]
+      @hardware.arch      = RbConfig::CONFIG['host_cpu']
+      @hardware.cpus      = 0
+      @hardware.memory    = 0
+      @hardware.network   = APPLIANCE_DEFAULTS[:hardware][:network]
 
       @post = OpenStruct.new
 
@@ -167,9 +167,9 @@ module BoxGrinder
 
   class Config
     def initialize( name, version, release, dir, config_file )
-      @name = name
-      @dir = dir
-      @config_file = config_file
+      @name         = name
+      @dir          = dir
+      @config_file  = config_file
 
       # TODO better way to get this directory
       @dir.base = "#{File.dirname( __FILE__ )}/../.."
@@ -181,45 +181,21 @@ module BoxGrinder
       @version.version = version
       @version.release = release
 
-      @aws = OpenStruct.new
-      @aws.bucket_prefix = version_with_release
-
       @data = {}
 
       if File.exists?( @config_file )
         @data = YAML.load_file( @config_file )
         @data['gpg_password'].gsub!(/\$/, "\\$") unless @data['gpg_password'].nil? or @data['gpg_password'].length == 0
       end
-
-      @arch = RbConfig::CONFIG['host_cpu']
-
-      # it's save, we have validated it before
-      @build_arch = ENV['BG_HARDWARE_ARCH'].nil? ? @arch : ENV['BG_HARDWARE_ARCH']
-      @os_name = ENV['BG_OS_NAME'].nil? ? APPLIANCE_DEFAULTS[:os][:name] : ENV['BG_OS_NAME']
-      @os_version = ENV['BG_OS_VERSION'].nil? ? APPLIANCE_DEFAULTS[:os][:version] : ENV['BG_OS_VERSION']
     end
 
     attr_reader :name
     attr_reader :version
     attr_reader :release
-    attr_reader :build_arch
-    attr_reader :arch
-    attr_reader :os_name
-    attr_reader :os_version
     attr_reader :data
     attr_reader :config_file
-    attr_reader :aws
-
     attr_reader :dir
     attr_reader :files
-
-    def os_path
-      "#{@os_name}/#{@os_version}"
-    end
-
-    def build_path
-      "#{@arch}/#{os_path}"
-    end
 
     def version_with_release
       @version.version + ((@version.release.nil? or @version.release.empty?) ? "" : "-" + @version.release)

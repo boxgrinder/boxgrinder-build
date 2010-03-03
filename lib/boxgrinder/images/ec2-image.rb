@@ -51,19 +51,19 @@ module BoxGrinder
       end
 
       file @appliance_config.path.file.ec2.manifest => [ @appliance_config.path.file.ec2.disk, @appliance_config.path.dir.ec2.bundle ] do
-        @aws_support = AWSSupport.new( @config )
+        @aws_support = AWSSupport.new( @config, @appliance_config )
         bundle_image
       end
 
       task "appliance:#{@appliance_config.name}:ec2:bundle" => [ @appliance_config.path.file.ec2.manifest ]
 
       task "appliance:#{@appliance_config.name}:ec2:upload" => [ "appliance:#{@appliance_config.name}:ec2:bundle" ] do
-        @aws_support = AWSSupport.new( @config )
+        @aws_support = AWSSupport.new( @config, @appliance_config )
         upload_image
       end
 
       task "appliance:#{@appliance_config.name}:ec2:register" => [ "appliance:#{@appliance_config.name}:ec2:upload" ] do
-        @aws_support = AWSSupport.new( @config )
+        @aws_support = AWSSupport.new( @config, @appliance_config )
         register_image
       end
 

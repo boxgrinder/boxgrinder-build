@@ -30,7 +30,6 @@ module BoxGrinder
 
     def validate
       validate_common
-      validate_arch
       validate_vmware_files
       validate_appliance_dir
     end
@@ -42,10 +41,6 @@ module BoxGrinder
         conf_file_permissions = sprintf( "%o", File.stat( @config.config_file ).mode )[ 3, 5 ]
         raise ValidationError, "Configuration file (#{@config.config_file}) has wrong permissions (#{conf_file_permissions}), please correct it, run: 'chmod #{secure_permissions} #{@config.config_file}'." unless conf_file_permissions.eql?( secure_permissions )
       end
-    end
-
-    def validate_arch
-      raise ValidationError, "Building x86_64 images from i386 system isn't possible" if @config.arch == "i386" and @config.build_arch == "x86_64"
     end
 
     def validate_appliance_dir
