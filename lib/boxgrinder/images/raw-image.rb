@@ -20,7 +20,6 @@
 
 require 'rake/tasklib'
 require 'yaml'
-require 'boxgrinder/aws/instance'
 require 'boxgrinder/appliance-image-customize'
 require 'boxgrinder/helpers/guestfs-helper'
 
@@ -35,7 +34,6 @@ module BoxGrinder
       @exec_helper  = options[:exec_helper] || ExecHelper.new( { :log => @log } )
 
       @tmp_dir = "#{@config.dir.root}/#{@config.dir.build}/tmp"
-      #AWSInstance.new( @config, @appliance_config )
 
       define_tasks
     end
