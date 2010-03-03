@@ -18,15 +18,10 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-additional_libs = [ "amazon-ec2", "aws-s3", "net-ssh", "net-sftp", "highline", "htauth" ]
-
-additional_libs.each do |lib|
-  $LOAD_PATH.unshift( "#{File.dirname( __FILE__ )}/../#{lib}/lib" )
-end
-
 require 'rake'
 require 'boxgrinder/appliance'
-require 'boxgrinder/config'
+require 'boxgrinder/models/config'
+require 'boxgrinder/models/appliance-config'
 require 'boxgrinder/validators/validator'
 require 'boxgrinder/validators/appliance-config-parameter-validator'
 require 'boxgrinder/validators/appliance-definition-validator'

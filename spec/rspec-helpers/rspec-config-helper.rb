@@ -1,4 +1,5 @@
-require 'boxgrinder/config'
+require 'boxgrinder/models/config'
+require 'boxgrinder/models/appliance-config'
 require 'boxgrinder/helpers/appliance-config-helper'
 
 module RSpecConfigHelper

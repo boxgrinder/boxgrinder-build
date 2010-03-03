@@ -19,7 +19,6 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require "fileutils"
-require 'boxgrinder/config'
 require 'rake/tasklib'
 require 'yaml'
 require 'erb'

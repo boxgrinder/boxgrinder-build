@@ -31,7 +31,8 @@ module BoxGrinder
       @name = @definition['name']
       @summary = @definition['summary']
 
-      @os           = OpenStruct.new
+      @os = OpenStruct.new
+
       @os.name      = APPLIANCE_DEFAULTS[:os][:name]
       @os.version   = APPLIANCE_DEFAULTS[:os][:version]
       @os.password  = APPLIANCE_DEFAULTS[:os][:password]
@@ -45,15 +46,15 @@ module BoxGrinder
 
       @post = OpenStruct.new
 
-      @post.base = []
-      @post.ec2 = []
-      @post.vmware = []
+      @post.base    = []
+      @post.ec2     = []
+      @post.vmware  = []
 
-      @appliances = []
-      @repos = []
-      @packages = []
-      @version = 1
-      @release = 0
+      @appliances   = []
+      @repos        = []
+      @packages     = []
+      @version      = 1
+      @release      = 0
 
       initialize_paths
     end
@@ -162,43 +163,6 @@ module BoxGrinder
 
     def is_os_version_stable?
       DEVELOPMENT_RELEASES[@os.name].eql?(@os.version)
-    end
-  end
-
-  class Config
-    def initialize( name, version, release, dir, config_file )
-      @name         = name
-      @dir          = dir
-      @config_file  = config_file
-
-      # TODO better way to get this directory
-      @dir.base = "#{File.dirname( __FILE__ )}/../.."
-      @dir.tmp = "#{@dir.build}/tmp"
-
-      @files = OpenStruct.new
-
-      @version = OpenStruct.new
-      @version.version = version
-      @version.release = release
-
-      @data = {}
-
-      if File.exists?( @config_file )
-        @data = YAML.load_file( @config_file )
-        @data['gpg_password'].gsub!(/\$/, "\\$") unless @data['gpg_password'].nil? or @data['gpg_password'].length == 0
-      end
-    end
-
-    attr_reader :name
-    attr_reader :version
-    attr_reader :release
-    attr_reader :data
-    attr_reader :config_file
-    attr_reader :dir
-    attr_reader :files
-
-    def version_with_release
-      @version.version + ((@version.release.nil? or @version.release.empty?) ? "" : "-" + @version.release)
     end
   end
 end
