@@ -30,7 +30,7 @@ module BoxGrinder
   }
 
   LATEST_STABLE_RELEASES = {
-          "fedora" => "11",
+          "fedora" => "12",
           "rhel" => "5"
   }
 
@@ -87,16 +87,16 @@ module BoxGrinder
   }
 
   DEFAULT_PROJECT_CONFIG = {
-          :name => 'BoxGrinder',
-          :version => '1.0.0.Beta1',
-          :release => '',
-          :dir_build => 'build',
+          :name           => 'BoxGrinder',
+          :version        => '1.0.0.Beta2',
+          :release        => 'SNAPSHOT',
+          :dir_build      => 'build',
           #:topdir            => "#{self.} build/topdir",
-          :dir_sources_cache => 'sources-cache',
+          :dir_src_cache  => 'sources-cache',
           :dir_rpms_cache => 'rpms-cache',
-          :dir_specs => 'specs',
+          :dir_specs      => 'specs',
           :dir_appliances => 'appliances',
-          :dir_src => 'src',
+          :dir_src        => 'src',
           :dir_kickstarts => 'kickstarts'
   }
 

@@ -6,6 +6,7 @@ module RSpecConfigHelper
 
     dir = OpenStruct.new
 
+    dir.src_cache    = params.dir_src_cache  || "sources_cache"
     dir.rpms_cache   = params.dir_rpms_cache || "rpms_cache"
     dir.root         = params.dir_root       || "/tmp/dir_root"
     dir.top          = params.dir_top        || "topdir"

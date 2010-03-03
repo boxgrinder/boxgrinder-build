@@ -43,15 +43,16 @@ module BoxGrinder
       directory @appliance_config.path.dir.vmware.personal
       directory @appliance_config.path.dir.vmware.enterprise
 
-      desc "Build #{@appliance_config.name} appliance for VMware personal environments (Server/Workstation/Fusion)"
       task "appliance:#{@appliance_config.name}:vmware:personal" => [ @appliance_config.path.file.vmware.disk, @appliance_config.path.dir.vmware.personal ] do
         build_vmware_personal
       end
 
-      desc "Build #{@appliance_config.name} appliance for VMware enterprise environments (ESX/ESXi)"
       task "appliance:#{@appliance_config.name}:vmware:enterprise" => [ @appliance_config.path.file.vmware.disk, @appliance_config.path.dir.vmware.enterprise ] do
         build_vmware_enterprise
       end
+
+      desc "Build #{@appliance_config.name} appliance for VMware"
+      task "appliance:#{@appliance_config.name}:vmware" => [ "appliance:#{@appliance_config.name}:vmware:personal", "appliance:#{@appliance_config.name}:vmware:enterprise" ]
 
       file @appliance_config.path.file.vmware.disk => [ @appliance_config.path.dir.vmware.build, @appliance_config.path.file.raw.xml ] do
         convert_to_vmware

@@ -6,15 +6,12 @@ module BoxGrinder
   describe VMwareImage do
     include RSpecConfigHelper
 
-    before(:each) do
-    end
-
     def prepare_image
       params = OpenStruct.new
       params.base_vmdk = "../src/base.vmdk"
       params.base_vmx  = "../src/base.vmx"
 
-      @image = VMwareImage.new( generate_config( params ), generate_appliance_config )
+      @image = VMwareImage.new( generate_config( params ), generate_appliance_config, :log => Logger.new('/dev/null') )
     end
 
     it "should calculate good CHS value for 1GB disk" do

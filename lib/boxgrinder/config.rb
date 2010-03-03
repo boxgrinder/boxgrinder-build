@@ -182,20 +182,8 @@ module BoxGrinder
       @version.version = version
       @version.release = release
 
-      @dir_rpms_cache = @dir.rpms_cache
-      @dir_src_cache = @dir.src_cache
-      @dir_root = @dir.root
-      @dir_top = @dir.top
-      @dir_build = @dir.build
-      @dir_specs = @dir.specs
-      @dir_appliances = @dir.appliances
-      @dir_src = @dir.src
-      @dir_kickstarts = @dir.kickstarts
-
       @aws = OpenStruct.new
       @aws.bucket_prefix = version_with_release
-
-      @dir_base = @dir.base
 
       @data = {}
 
@@ -219,18 +207,8 @@ module BoxGrinder
     attr_reader :release
     attr_reader :build_arch
     attr_reader :arch
-    attr_reader :dir_rpms_cache
-    attr_reader :dir_src_cache
-    attr_reader :dir_root
-    attr_reader :dir_top
-    attr_reader :dir_build
-    attr_reader :dir_specs
-    attr_reader :dir_appliances
-    attr_reader :dir_src
-    attr_reader :dir_base
     attr_reader :os_name
     attr_reader :os_version
-    attr_reader :dir_kickstarts
     attr_reader :data
     attr_reader :helper
     attr_reader :config_file

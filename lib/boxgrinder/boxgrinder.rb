@@ -56,7 +56,7 @@ module BoxGrinder
       dir.root        = `pwd`.strip
       dir.build       = project_config[:dir_build]          || DEFAULT_PROJECT_CONFIG[:dir_build]
       dir.top         = project_config[:dir_top]            || "#{dir.build}/topdir"
-      dir.src_cache   = project_config[:dir_sources_cache]  || DEFAULT_PROJECT_CONFIG[:dir_sources_cache]
+      dir.src_cache   = project_config[:dir_src_cache]      || DEFAULT_PROJECT_CONFIG[:dir_src_cache]
       dir.rpms_cache  = project_config[:dir_rpms_cache]     || DEFAULT_PROJECT_CONFIG[:dir_rpms_cache]
       dir.specs       = project_config[:dir_specs]          || DEFAULT_PROJECT_CONFIG[:dir_specs]
       dir.appliances  = project_config[:dir_appliances]     || DEFAULT_PROJECT_CONFIG[:dir_appliances]
