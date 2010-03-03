@@ -19,7 +19,6 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder/defaults'
-require 'boxgrinder/helpers/config-helper'
 require 'ostruct'
 require 'rbconfig'
 
@@ -198,8 +197,6 @@ module BoxGrinder
       @build_arch = ENV['BG_HARDWARE_ARCH'].nil? ? @arch : ENV['BG_HARDWARE_ARCH']
       @os_name = ENV['BG_OS_NAME'].nil? ? APPLIANCE_DEFAULTS[:os][:name] : ENV['BG_OS_NAME']
       @os_version = ENV['BG_OS_VERSION'].nil? ? APPLIANCE_DEFAULTS[:os][:version] : ENV['BG_OS_VERSION']
-
-      @helper = ConfigHelper.new( self )
     end
 
     attr_reader :name
@@ -210,7 +207,6 @@ module BoxGrinder
     attr_reader :os_name
     attr_reader :os_version
     attr_reader :data
-    attr_reader :helper
     attr_reader :config_file
     attr_reader :aws
 
