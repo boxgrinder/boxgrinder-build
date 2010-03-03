@@ -46,7 +46,7 @@ module BoxGrinder
       definition['appliance_names'] = @appliance_config.appliances
       definition['repos'] = Array.new
 
-      appliance_definition = @appliance_config.definition #YAML.load_file( "#{@config.dir_appliances}/#{@appliance_config.name}/#{@appliance_config.name}.appl" )
+      appliance_definition = @appliance_config.definition
 
       if SUPPORTED_DESKTOP_TYPES.include?( appliance_definition['desktop'] )
         definition['graphical'] = true

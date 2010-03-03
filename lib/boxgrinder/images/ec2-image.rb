@@ -140,20 +140,21 @@ module BoxGrinder
       ec2_prepare_disk
       ec2_create_filesystem
 
-      FileUtils.mkdir_p(  ec2_disk_mount_dir )
-      @exec_helper.execute "sudo mount -o loop #{@appliance_config.path.file.ec2.disk} #{ec2_disk_mount_dir}"
+#      FileUtils.mkdir_p(  ec2_disk_mount_dir )
+#      @exec_helper.execute "sudo mount -o loop #{@appliance_config.path.file.ec2.disk} #{ec2_disk_mount_dir}"
 
-      loop_device = get_loop_device
-      offset = calculate_disk_offset( loop_device, @appliance_config.path.file.raw.disk )
+      raw_disk_offset = calculate_disk_offset( @appliance_config.path.file.raw.disk )
 
-      loop_device = get_loop_device
+      ec2_loop_device = get_loop_device
+      mount_image(@appliance_config.path.file.ec2.disk, ec2_disk_mount_dir, ec2_loop_device )
 
-      mount_image(@appliance_config.path.file.raw.disk, raw_disk_mount_dir, loop_device, offset )
+      raw_loop_device = get_loop_device
+      mount_image(@appliance_config.path.file.raw.disk, raw_disk_mount_dir, raw_loop_device, raw_disk_offset )
 
       sync_files( raw_disk_mount_dir, ec2_disk_mount_dir )
 
-      umount_image( @appliance_config.path.file.raw.disk, raw_disk_mount_dir )
-      umount_image( @appliance_config.path.file.ec2.disk, ec2_disk_mount_dir )
+      umount_image( @appliance_config.path.file.raw.disk, raw_disk_mount_dir, raw_loop_device )
+      umount_image( @appliance_config.path.file.ec2.disk, ec2_disk_mount_dir, ec2_loop_device )
 
       guestfs_helper = GuestFSHelper.new( @appliance_config.path.file.ec2.disk )
       guestfs = guestfs_helper.guestfs
@@ -193,7 +194,7 @@ module BoxGrinder
       guestfs.mkdir_p("/tmp/rpms")
 
       for name in rpms.keys
-        cache_file = "#{@config.dir_src_cache}/#{name}"
+        cache_file = "#{@config.dir.src_cache}/#{name}"
         guestfs.upload( cache_file, "/tmp/rpms/#{name}" )
       end
 
@@ -240,7 +241,9 @@ module BoxGrinder
       @log.debug "Filesystem created"
     end
 
-    def calculate_disk_offset( loop_device, disk )
+    def calculate_disk_offset( disk )
+      loop_device = get_loop_device
+
       @exec_helper.execute( "sudo losetup #{loop_device} #{disk}" )
       offset = @exec_helper.execute("sudo parted -m #{loop_device} 'unit B print' | grep '^1' | awk -F: '{ print $2 }'").strip.chop
       @exec_helper.execute( "sudo losetup -d #{loop_device}" )
@@ -248,23 +251,23 @@ module BoxGrinder
       offset
     end
 
-    def mount_image( disk, mount_dir, loop_device, offset )
+    def mount_image( disk, mount_dir, loop_device, offset = 0 )
       @log.debug "Mounting image #{File.basename( disk )} in #{mount_dir} using #{loop_device} with offset #{offset}"
-      FileUtils.mkdir_p(  mount_dir )
+      FileUtils.mkdir_p( mount_dir )
       @exec_helper.execute( "sudo losetup -o #{offset.to_s} #{loop_device} #{disk}" )
       @exec_helper.execute( "sudo mount #{loop_device} -t ext3 #{ mount_dir}")
     end
 
-    def umount_image( disk, mount_dir )
+    def umount_image( disk, mount_dir, loop_device )
       @log.debug "Unmounting image #{File.basename( disk )}"
-      @exec_helper.execute( "sudo umount -d #{ mount_dir}" )
-      FileUtils.rm_rf(  mount_dir )
+      @exec_helper.execute( "sudo umount -d #{loop_device}" )
+      FileUtils.rm_rf( mount_dir )
     end
 
 
     def sync_files( from_dir, to_dir )
       @log.debug "Syncing files between #{from_dir} and #{to_dir}..."
-      @exec_helper.execute "sudo rsync -u -r -a  #{ from_dir}/* #{to_dir}"
+      @exec_helper.execute "sudo rsync -u -r -a  #{from_dir}/* #{to_dir}"
       @log.debug "Sync finished."
     end
 

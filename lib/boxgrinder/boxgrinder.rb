@@ -25,7 +25,6 @@ additional_libs.each do |lib|
 end
 
 require 'rake'
-require 'boxgrinder/exec'
 require 'boxgrinder/appliance'
 require 'boxgrinder/config'
 require 'boxgrinder/validators/validator'
