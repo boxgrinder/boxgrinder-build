@@ -19,7 +19,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder/config'
-require 'boxgrinder/validator/errors'
+require 'boxgrinder/validators/errors'
 
 module BoxGrinder
   class ConfigValidator

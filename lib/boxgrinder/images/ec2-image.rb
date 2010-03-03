@@ -20,7 +20,7 @@
 
 require 'rake/tasklib'
 require 'fileutils'
-require 'boxgrinder/validator/errors'
+require 'boxgrinder/validators/errors'
 require 'yaml'
 require 'AWS'
 require 'aws/s3'
@@ -36,9 +36,7 @@ module BoxGrinder
       @appliance_config  = appliance_config
 
       @log          = options[:log]         || Logger.new(STDOUT)
-      @exec_helper  = options[:exec_helper] || ExecHelper.new( { :log => @log } )
-
-      @appliance_image_customizer = ApplianceImageCustomize.new( @config, @appliance_config )
+      @exec_helper  = options[:exec_helper] || ExecHelper.new( :log => @log )
 
       define_tasks
     end
@@ -57,7 +55,9 @@ module BoxGrinder
         bundle_image
       end
 
-      task "appliance:#{@appliance_config.name}:ec2:upload" => [ @appliance_config.path.file.ec2.manifest ] do
+      task "appliance:#{@appliance_config.name}:ec2:bundle" => [ @appliance_config.path.file.ec2.manifest ]
+
+      task "appliance:#{@appliance_config.name}:ec2:upload" => [ "appliance:#{@appliance_config.name}:ec2:bundle" ] do
         @aws_support = AWSSupport.new( @config )
         upload_image
       end

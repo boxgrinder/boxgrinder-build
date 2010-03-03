@@ -82,8 +82,12 @@ module BoxGrinder
           }
   }
 
+  DEFAULT_LOCATION = {
+          :log => 'log/boxgridner.log'
+  }
+
   DEFAULT_HELP_TEXT = {
-          :general => "See http://oddthesis.org/ for more info."
+          :general => "See documentation: http://community.jboss.org/docs/DOC-14358."
   }
 
   DEFAULT_PROJECT_CONFIG = {

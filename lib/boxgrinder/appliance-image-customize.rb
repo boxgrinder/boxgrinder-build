@@ -19,7 +19,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'rake/tasklib'
-require 'boxgrinder/validator/errors'
+require 'boxgrinder/validators/errors'
 require 'boxgrinder/helpers/guestfs-helper'
 require 'tempfile'
 

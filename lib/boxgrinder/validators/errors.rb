@@ -20,10 +20,16 @@
 
 module BoxGrinder
   class ValidationError < StandardError
-   
+
   end
-  
+
   class ApplianceValidationError < ValidationError
-    
+
+  end
+end
+
+class StandardError
+  def info
+    "#{self.class}: #{message}#$/#{backtrace.join($/)}"
   end
 end

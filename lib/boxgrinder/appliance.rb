@@ -25,14 +25,16 @@ require 'boxgrinder/images/raw-image.rb'
 require 'boxgrinder/images/vmware-image'
 require 'boxgrinder/images/ec2-image'
 require 'boxgrinder/appliance-utils'
-require 'boxgrinder/validator/appliance-dependency-validator'
+require 'boxgrinder/validators/appliance-dependency-validator'
 
 module BoxGrinder
   class Appliance < Rake::TaskLib
 
-    def initialize( config, appliance_config )
+    def initialize( config, appliance_config, options = {} )
       @config            = config
       @appliance_config  = appliance_config
+      
+      @log               = options[:log] || Logger.new(STDOUT)
 
       define
     end
@@ -41,9 +43,9 @@ module BoxGrinder
       ApplianceKickstart.new( @config, @appliance_config )
       ApplianceDependencyValidator.new( @config, @appliance_config )
 
-      RAWImage.new( @config, @appliance_config )
-      VMwareImage.new( @config, @appliance_config )
-      EC2Image.new( @config, @appliance_config )
+      RAWImage.new( @config, @appliance_config, :log => @log  )
+      VMwareImage.new( @config, @appliance_config, :log => @log  )
+      EC2Image.new( @config, @appliance_config, :log => @log )
 
       ApplianceUtils.new( @config, @appliance_config  )
     end

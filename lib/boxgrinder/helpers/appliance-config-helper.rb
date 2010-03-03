@@ -19,7 +19,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder/config'
-require 'boxgrinder/validator/errors'
+require 'boxgrinder/validators/errors'
 
 module BoxGrinder
   class ApplianceConfigHelper
@@ -72,7 +72,7 @@ module BoxGrinder
         end
       end
 
-      partitions['/'] = { 'root' => '/', 'size' => ENV['BG_HARDWARE_DISK_SIZE'].nil? ? APPLIANCE_DEFAULTS[:hardware][:partition] : ENV['BG_HARDWARE_DISK_SIZE'].to_i } unless partitions.keys.include?('/')
+      partitions['/'] = { 'root' => '/', 'size' => APPLIANCE_DEFAULTS[:hardware][:partition] } unless partitions.keys.include?('/')
 
       merge_field('partitions', 'hardware') do |parts|
         for partition in parts

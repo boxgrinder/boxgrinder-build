@@ -21,18 +21,24 @@
 require 'AWS'
 require 'aws/s3'
 require 'boxgrinder/defaults'
+require 'boxgrinder/validators/aws-validator'
 
 module BoxGrinder
   class AWSSupport
-
     def initialize( config )
-      @config     = config
-      @aws_data   = validate_aws_config
+      @config = config
 
-      validate_release_config
+      aws_validator = AWSValidator.new( @config )
+      aws_validator.validate_aws_config( @config.data['aws'] )
+      aws_validator.validate_aws_release_config( @config.data['release'] )
+
+      @aws_data   = @config.data['aws']
+
+      # remove dashes from account number
+      @aws_data['account_number'] = @aws_data['account_number'].to_s.gsub(/-/, '')
 
       @ec2        = AWS::EC2::Base.new(:access_key_id => @aws_data['access_key'], :secret_access_key => @aws_data['secret_access_key'])
-      @s3         = AWS::S3::Base.establish_connection!(:access_key_id => @aws_data['access_key'],  :secret_access_key => @aws_data['secret_access_key'] )
+      @s3         = AWS::S3::Base.establish_connection!(:access_key_id => @aws_data['access_key'], :secret_access_key => @aws_data['secret_access_key'] )
     end
 
     attr_reader :aws_data
@@ -63,38 +69,6 @@ module BoxGrinder
       end
 
       ami_info
-    end
-
-    def validate_release_config
-      raise ValidationError, "No 's3' subsection in 'release' section in configuration file (#{@config.config_file})." if @config.release.s3.nil?
-      raise ValidationError, "Please specify bucket name in 's3' subsection in configuration file (#{@config.config_file})." if @config.release.s3['bucket_name'].nil? or @config.release.s3['bucket_name'].length == 0
-    end
-
-    def validate_aws_config
-      secure_permissions  = "600"
-      more_info           = ""
-      aws_data            = @config.data['aws']
-
-      raise ValidationError, "Please specify aws section in configuration file (#{@config.config_file}). #{more_info}" if aws_data.nil?
-
-      raise ValidationError, "Please specify path to cert in aws section in configuration file (#{@config.config_file}). #{more_info}" if aws_data['cert_file'].nil?
-      raise ValidationError, "Certificate file '#{aws_data['cert_file']}' specified in configuration file (#{@config.config_file}) doesn't exists. Please check your path." unless File.exists?( aws_data['cert_file'] )
-      cert_permission = sprintf( "%o", File.stat( aws_data['cert_file'] ).mode )[ 3, 5 ]
-      raise ValidationError, "Certificate file '#{aws_data['cert_file']}' specified in aws section in configuration file (#{@config.config_file}) has wrong permissions (#{cert_permission}), please correct it, run: 'chmod #{secure_permissions} #{aws_data['cert_file']}'." unless cert_permission.eql?( secure_permissions )
-
-      raise ValidationError, "Please specify path to private key in aws section in configuration file (#{@config.config_file}). #{more_info}" if aws_data['key_file'].nil?
-      raise ValidationError, "Private key file '#{aws_data['key_file']}' specified in aws section in configuration file (#{@config.config_file}) doesn't exists. Please check your path." unless File.exists?( aws_data['key_file'] )
-      key_permission = sprintf( "%o", File.stat( aws_data['key_file'] ).mode )[ 3, 5 ]
-      raise ValidationError, "Private key file '#{aws_data['key_file']}' specified in aws section in configuration file (#{@config.config_file}) has wrong permissions (#{key_permission}), please correct it, run: 'chmod #{secure_permissions} #{aws_data['key_file']}'." unless key_permission.eql?( secure_permissions )
-
-      raise ValidationError, "Please specify account number in aws section in configuration file (#{@config.config_file}). #{more_info}" if aws_data['account_number'].nil?
-      raise ValidationError, "Please specify access key in aws section in configuration file (#{@config.config_file}). #{more_info}" if aws_data['access_key'].nil?
-      raise ValidationError, "Please specify secret access key in aws section in configuration file (#{@config.config_file}). #{more_info}" if aws_data['secret_access_key'].nil?
-
-      # remove dashes from account number
-      aws_data['account_number'] = aws_data['account_number'].to_s.gsub(/-/, '')
-
-      aws_data
     end
   end
 end

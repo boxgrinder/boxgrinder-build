@@ -19,9 +19,11 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'logger'
+require 'boxgrinder/defaults'
 
 module BoxGrinder
   class LogHelper
+
     THRESHOLDS = {
             :fatal  => Logger::FATAL,
             :debug  => Logger::DEBUG,
@@ -31,23 +33,30 @@ module BoxGrinder
     }
 
     def initialize
-      threshold = ENV['BG_LOG_THRESHOLD']
+      threshold     = ENV['BG_LOG_THRESHOLD']
+      log_location  = ENV['BG_LOG_LOCATION'].nil? ? DEFAULT_LOCATION[:log] : ENV['BG_LOG_LOCATION']
+
+      unless File.directory?(File.dirname(log_location))
+        FileUtils.mkdir_p(File.dirname(log_location))
+      end
+
       threshold = THRESHOLDS[threshold.to_sym] unless threshold.nil?
 
       @stdout_log         = Logger.new(STDOUT)
       @stdout_log.level   = threshold || Logger::INFO
 
-      @file_log           = Logger.new('boxgrinder.log') # , 10, 1024000
+      @file_log           = Logger.new( log_location, 10, 1024000 )
       @file_log.level     = Logger::DEBUG
     end
 
     def method_missing( method_name, *args )
       if THRESHOLDS.keys.include?( method_name )
-        @stdout_log.send( method_name, args )
-        @file_log.send( method_name, args )
+        @stdout_log.send( method_name, *args )
+        @file_log.send( method_name, *args )
       else
         raise NoMethodError
       end
     end
+
   end
 end

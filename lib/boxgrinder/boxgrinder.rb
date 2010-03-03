@@ -28,9 +28,9 @@ require 'rake'
 require 'boxgrinder/exec'
 require 'boxgrinder/appliance'
 require 'boxgrinder/config'
-require 'boxgrinder/validator/validator'
-require 'boxgrinder/validator/appliance-config-parameter-validator'
-require 'boxgrinder/validator/appliance-definition-validator'
+require 'boxgrinder/validators/validator'
+require 'boxgrinder/validators/appliance-config-parameter-validator'
+require 'boxgrinder/validators/appliance-definition-validator'
 require 'boxgrinder/helpers/appliance-config-helper'
 require 'boxgrinder/defaults'
 require 'boxgrinder/helpers/rake-helper'
@@ -42,7 +42,7 @@ $stderr.reopen("/dev/null")
 module BoxGrinder
   class BoxGrinder
     def initialize( project_config = Hash.new )
-      @log = LogHelper.new
+      @log = LOG
       # validates parameters, this is a pre-validation
       ApplianceConfigParameterValidator.new.validate
 
@@ -88,7 +88,7 @@ module BoxGrinder
       end
 
       for definition in definitions.values
-        Appliance.new( @config, ApplianceConfigHelper.new( definitions ).merge( ApplianceConfig.new( definition ) ).initialize_paths )
+        Appliance.new( @config, ApplianceConfigHelper.new( definitions ).merge( ApplianceConfig.new( definition ) ).initialize_paths, :log => @log )
       end
     end
 

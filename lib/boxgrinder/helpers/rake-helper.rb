@@ -29,8 +29,8 @@ module Rake
       begin
         execute_original_boxgrinder( args )
       rescue => e
-        log = LogHelper.new
-        log.fatal e
+        log = BoxGrinder::LOG
+        log.fatal e.info
         log.fatal "Aborting: #{e.message}. See previous errors for more information."
         abort
       end
@@ -39,10 +39,12 @@ module Rake
 end
 
 module BoxGrinder
+
+  LOG = LogHelper.new
+
   class RakeHelper
     def initialize( project_config = {} )
-      log = LogHelper.new
-
+      log = LOG
       begin
         log.debug "Running new Rake session..."
 

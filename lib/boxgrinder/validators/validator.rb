@@ -19,9 +19,9 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder/config'
-require 'boxgrinder/validator/errors'
-require 'boxgrinder/validator/appliance-validator'
-require 'boxgrinder/validator/config-validator'
+require 'boxgrinder/validators/errors'
+require 'boxgrinder/validators/appliance-validator'
+require 'boxgrinder/validators/config-validator'
 require 'rake/tasklib'
 
 module BoxGrinder
