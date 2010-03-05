@@ -118,7 +118,7 @@ module BoxGrinder
       end
 
       file @appliance_config.path.file.raw.kickstart => [ @appliance_config.path.file.raw.config ] do
-        template = File.dirname( __FILE__ ) + "/appliance.ks.erb"
+        template = File.dirname( __FILE__ ) + "/erb/appliance.ks.erb"
         kickstart = ERB.new( File.read( template ) ).result( build_definition.send( :binding ) )
         File.open( @appliance_config.path.file.raw.kickstart, 'w' ) {|f| f.write( kickstart ) }
       end
