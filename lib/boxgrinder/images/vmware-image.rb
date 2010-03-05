@@ -33,8 +33,6 @@ module BoxGrinder
       @log          = options[:log]         || Logger.new(STDOUT)
       @exec_helper  = options[:exec_helper] || ExecHelper.new( { :log => @log } )
 
-      @appliance_image_customizer = ApplianceCustomizeHelper.new( @config, @appliance_config )
-
       define_tasks
     end
 
@@ -175,9 +173,20 @@ module BoxGrinder
 
       @log.debug "VMware image copied."
 
+      execute_post_operations
+
       # install_vmware_tools
 
       @log.info "Image converted to VMware format."
+    end
+
+    def execute_post_operations
+      @log.debug "Executing post commands..."
+      for cmd in @appliance_config.post.vmware
+        @log.debug "Executing #{cmd}"
+        guestfs.sh( cmd )
+      end
+      @log.debug "Post commands executed."
     end
 
     def install_vmware_tools
@@ -190,7 +199,9 @@ module BoxGrinder
       end
 
       #TODO this takes about 11 minutes, need to find a quicker way to install kmod-open-vm-tools package
-      @appliance_image_customizer.install_packages( @appliance_config.path.file.vmware.disk, { :packages => { :yum => [ "kmod-open-vm-tools" ] }, :repos => rpmfusion_repo_rpm } )
+      ApplianceCustomizeHelper.new( @config, @appliance_config, @appliance_config.path.file.vmware.disk ).customize do |customizer|
+        customizer.install_packages( @appliance_config.path.file.vmware.disk, { :packages => { :yum => [ "kmod-open-vm-tools" ] }, :repos => rpmfusion_repo_rpm } )
+      end
 
       @log.debug "VMware tools installed."
     end

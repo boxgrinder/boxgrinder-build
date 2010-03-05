@@ -26,12 +26,22 @@ require 'tempfile'
 module BoxGrinder
   class ApplianceCustomizeHelper < Rake::TaskLib
 
-    def initialize( config, appliance_config, options = {} )
-      @config = config
+    def initialize( config, appliance_config, disk, options = {} )
+      @config           = config
       @appliance_config = appliance_config
+      @disk             = disk
 
       @log          = options[:log]         || Logger.new(STDOUT)
       @exec_helper  = options[:exec_helper] || ExecHelper.new( { :log => @log } )
+    end
+
+    def customize
+      @guestfs_helper = GuestFSHelper.new( @disk )
+      @guestfs = @guestfs_helper.guestfs
+
+      yield self
+
+      @guestfs.close
     end
 
     def validate_options( options )
@@ -52,38 +62,31 @@ module BoxGrinder
       true
     end
 
-    def install_packages( raw_file, options = {} )
+    def install_packages( options = {} )
       # silent return, we don't have any packages to install
       return unless validate_options( options )
 
-      raise ValidationError, "Raw file '#{raw_file}' doesn't exists, please specify valid raw file" if !File.exists?( raw_file )
-
-      guestfs_helper = GuestFSHelper.new( raw_file )
-      guestfs = guestfs_helper.guestfs
-
-      guestfs_helper.rebuild_rpm_database
+      @guestfs_helper.rebuild_rpm_database
 
       for repo in options[:repos]
         @log.debug "Installing repo file '#{repo}'..."
-        guestfs.sh( "rpm -Uvh #{repo}" )
+        @guestfs.sh( "rpm -Uvh #{repo}" )
         @log.debug "Repo file '#{repo}' installed."
       end unless options[:repos].nil?
 
       unless options[:packages].nil?
         for yum_package in options[:packages][:yum]
           @log.debug "Installing package '#{yum_package}'..."
-          guestfs.sh( "yum -y install #{yum_package}" )
+          @guestfs.sh( "yum -y install #{yum_package}" )
           @log.debug "Package '#{yum_package}' installed."
         end unless options[:packages][:yum].nil?
 
         for package in options[:packages][:rpm]
           @log.debug "Installing package '#{package}'..."
-          guestfs.sh( "rpm -Uvh --force #{package}" )
+          @guestfs.sh( "rpm -Uvh --force #{package}" )
           @log.debug "Package '#{package}' installed."
         end unless options[:packages][:rpm].nil?
       end
-
-      guestfs.close
     end
   end
 end
