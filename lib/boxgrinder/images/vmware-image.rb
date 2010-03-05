@@ -181,7 +181,7 @@ module BoxGrinder
     def customize
       @log.debug "Customizing VMware image..."
       ApplianceCustomizeHelper.new( @config, @appliance_config, @appliance_config.path.file.vmware.disk ).customize do |customizer, guestfs|
-        install_vmware_tools( customizer )
+        # install_vmware_tools( customizer )
         execute_post_operations( guestfs )
       end
       @log.debug "Image customized."
