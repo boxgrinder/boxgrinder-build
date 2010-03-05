@@ -39,7 +39,7 @@ module BoxGrinder
       @guestfs_helper = GuestFSHelper.new( @disk )
       @guestfs = @guestfs_helper.guestfs
 
-      yield self
+      yield self, @guestfs
 
       @guestfs.close
     end
