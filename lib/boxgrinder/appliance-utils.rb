@@ -20,7 +20,8 @@
 
 require 'rake/tasklib'
 require 'boxgrinder/validators/errors'
-require 'boxgrinder/ssh/ssh-config'
+require 'boxgrinder/validators/ssh-validator'
+require 'boxgrinder/models/ssh-config'
 require 'boxgrinder/helpers/ssh-helper'
 
 module BoxGrinder
@@ -96,9 +97,9 @@ module BoxGrinder
     def upload_via_ssh( files )
       @log.info "Uploading #{@appliance_config.name} appliance via SSH..."
 
-      ssh_config = SSHConfig.new( @config )
+      SSHValidator.new( @config ).validate
 
-      raise ValidationError, "Remote release packages path (remote_release_path) not specified in ssh section in configuration file '#{@config.config_file}'. #{DEFAULT_HELP_TEXT[:general]}" if ssh_config.cfg['remote_rpm_path'].nil?
+      ssh_config = SSHConfig.new( @config )
 
       ssh_helper = SSHHelper.new( ssh_config.options, { :log => @log } )
       ssh_helper.connect

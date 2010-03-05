@@ -24,30 +24,18 @@ require 'yaml'
 module BoxGrinder
   class SSHConfig
     def initialize( config )
-      @config = config
-      @options = {}
+      @config   = config
+      @cfg      = @config.data['ssh']
+      @options  = {}
 
       # defaults
       @options['sftp_create_path']          = true
       @options['sftp_overwrite']            = false
       @options['sftp_default_permissions']  = 0644
 
-      validate
-    end
-
-    def validate
-      raise ValidationError, "Specified configuration file (#{@config.config_file}) doesn't exists. #{DEFAULT_HELP_TEXT[:general]}" unless File.exists?( @config.config_file )
-      raise ValidationError, "No 'ssh' section in config file in configuration file '#{@config.config_file}'. #{DEFAULT_HELP_TEXT[:general]}" if @config.data['ssh'].nil?
-
-      # we need only ssh section
-      @cfg = @config.data['ssh']
-
-      raise ValidationError, "Host not specified in configuration file '#{@config.config_file}'. #{DEFAULT_HELP_TEXT[:general]}" if @cfg['host'].nil?
-      raise ValidationError, "Username not specified in configuration file '#{@config.config_file}'. #{DEFAULT_HELP_TEXT[:general]}" if @cfg['username'].nil?
-
-      @options['host']      = @config.release.ssh['host']
-      @options['username']  = @config.release.ssh['username']
-      @options['password']  = @config.release.ssh['password']
+      @options['host']                      = @config.release.ssh['host']
+      @options['username']                  = @config.release.ssh['username']
+      @options['password']                  = @config.release.ssh['password']
     end
 
     attr_reader :options
