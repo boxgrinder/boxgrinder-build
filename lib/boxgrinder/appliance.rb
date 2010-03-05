@@ -24,7 +24,7 @@ require 'boxgrinder/appliance-kickstart.rb'
 require 'boxgrinder/images/raw-image.rb'
 require 'boxgrinder/images/vmware-image'
 require 'boxgrinder/images/ec2-image'
-require 'boxgrinder/appliance-utils'
+require 'boxgrinder/helpers/release-helper'
 require 'boxgrinder/validators/appliance-dependency-validator'
 
 module BoxGrinder
@@ -47,7 +47,7 @@ module BoxGrinder
       VMwareImage.new( @config, @appliance_config, :log => @log  )
       EC2Image.new( @config, @appliance_config, :log => @log )
 
-      ApplianceUtils.new( @config, @appliance_config  )
+      ReleaseHelper.new( @config, @appliance_config  )
     end
   end
 end

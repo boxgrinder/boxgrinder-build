@@ -25,7 +25,7 @@ require 'boxgrinder/models/ssh-config'
 require 'boxgrinder/helpers/ssh-helper'
 
 module BoxGrinder
-  class ApplianceUtils < Rake::TaskLib
+  class ReleaseHelper < Rake::TaskLib
     def initialize( config, appliance_config, options = {} )
       @config = config
       @appliance_config = appliance_config
