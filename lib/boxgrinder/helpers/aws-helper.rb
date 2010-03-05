@@ -24,7 +24,7 @@ require 'boxgrinder/defaults'
 require 'boxgrinder/validators/aws-validator'
 
 module BoxGrinder
-  class AWSSupport
+  class AWSHelper
     def initialize( config, appliance_config )
       @config           = config
       @appliance_config = appliance_config

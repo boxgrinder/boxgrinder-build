@@ -24,7 +24,7 @@ require 'boxgrinder/validators/errors'
 require 'yaml'
 require 'AWS'
 require 'aws/s3'
-require 'boxgrinder/aws/aws-support'
+require 'boxgrinder/helpers/aws-helper'
 require 'boxgrinder/appliance-image-customize'
 include AWS::S3
 
@@ -51,19 +51,19 @@ module BoxGrinder
       end
 
       file @appliance_config.path.file.ec2.manifest => [ @appliance_config.path.file.ec2.disk, @appliance_config.path.dir.ec2.bundle ] do
-        @aws_support = AWSSupport.new( @config, @appliance_config )
+        @aws_helper = AWSHelper.new( @config, @appliance_config )
         bundle_image
       end
 
       task "appliance:#{@appliance_config.name}:ec2:bundle" => [ @appliance_config.path.file.ec2.manifest ]
 
       task "appliance:#{@appliance_config.name}:ec2:upload" => [ "appliance:#{@appliance_config.name}:ec2:bundle" ] do
-        @aws_support = AWSSupport.new( @config, @appliance_config )
+        @aws_helper = AWSHelper.new( @config, @appliance_config )
         upload_image
       end
 
       task "appliance:#{@appliance_config.name}:ec2:register" => [ "appliance:#{@appliance_config.name}:ec2:upload" ] do
-        @aws_support = AWSSupport.new( @config, @appliance_config )
+        @aws_helper = AWSHelper.new( @config, @appliance_config )
         register_image
       end
 
@@ -74,7 +74,7 @@ module BoxGrinder
     def bundle_image
       @log.info "Bundling AMI..."
 
-      @exec_helper.execute( "ec2-bundle-image -i #{@appliance_config.path.file.ec2.disk} --kernel #{AWS_DEFAULTS[:kernel_id][@appliance_config.hardware.arch]} --ramdisk #{AWS_DEFAULTS[:ramdisk_id][@appliance_config.hardware.arch]} -c #{@aws_support.aws_data['cert_file']} -k #{@aws_support.aws_data['key_file']} -u #{@aws_support.aws_data['account_number']} -r #{@appliance_config.hardware.arch} -d #{@appliance_config.path.dir.ec2.bundle}" )
+      @exec_helper.execute( "ec2-bundle-image -i #{@appliance_config.path.file.ec2.disk} --kernel #{AWS_DEFAULTS[:kernel_id][@appliance_config.hardware.arch]} --ramdisk #{AWS_DEFAULTS[:ramdisk_id][@appliance_config.hardware.arch]} -c #{@aws_helper.aws_data['cert_file']} -k #{@aws_helper.aws_data['key_file']} -u #{@aws_helper.aws_data['account_number']} -r #{@appliance_config.hardware.arch} -d #{@appliance_config.path.dir.ec2.bundle}" )
 
       @log.info "Bundling AMI finished."
     end
@@ -86,7 +86,7 @@ module BoxGrinder
         return false
       end
 
-      manifest_location = @aws_support.bucket_manifest_key( @appliance_config.name )
+      manifest_location = @aws_helper.bucket_manifest_key( @appliance_config.name )
       manifest_location = manifest_location[ manifest_location.index( "/" ) + 1, manifest_location.length ]
 
       for object in bucket.objects do
@@ -104,17 +104,17 @@ module BoxGrinder
 
       @log.info "Uploading #{@appliance_config.simple_name} AMI to bucket '#{@config.release.s3['bucket_name']}'..."
 
-      @exec_helper.execute( "ec2-upload-bundle -b #{@aws_support.bucket_key( @appliance_config.name )} -m #{@appliance_config.path.file.ec2.manifest} -a #{@aws_support.aws_data['access_key']} -s #{@aws_support.aws_data['secret_access_key']} --retry" )
+      @exec_helper.execute( "ec2-upload-bundle -b #{@aws_helper.bucket_key( @appliance_config.name )} -m #{@appliance_config.path.file.ec2.manifest} -a #{@aws_helper.aws_data['access_key']} -s #{@aws_helper.aws_data['secret_access_key']} --retry" )
     end
 
     def register_image
-      ami_info    = @aws_support.ami_info( @appliance_config.name )
+      ami_info    = @aws_helper.ami_info( @appliance_config.name )
 
       if ami_info
         @log.info "Image is registered under id: #{ami_info.imageId}"
         return
       else
-        ami_info = @aws_support.ec2.register_image( :image_location => @aws_support.bucket_manifest_key( @appliance_config.name ) )
+        ami_info = @aws_helper.ec2.register_image( :image_location => @aws_helper.bucket_manifest_key( @appliance_config.name ) )
         @log.info "Image successfully registered under id: #{ami_info.imageId}."
       end
     end
