@@ -20,7 +20,6 @@
 
 require 'rake/tasklib'
 require 'yaml'
-require 'boxgrinder/appliance-image-customize'
 require 'boxgrinder/helpers/guestfs-helper'
 
 module BoxGrinder

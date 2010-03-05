@@ -24,7 +24,7 @@ require 'boxgrinder/helpers/guestfs-helper'
 require 'tempfile'
 
 module BoxGrinder
-  class ApplianceImageCustomize < Rake::TaskLib
+  class ApplianceCustomizeHelper < Rake::TaskLib
 
     def initialize( config, appliance_config, options = {} )
       @config = config
@@ -52,7 +52,7 @@ module BoxGrinder
       true
     end
 
-    def customize( raw_file, options = {} )
+    def install_packages( raw_file, options = {} )
       # silent return, we don't have any packages to install
       return unless validate_options( options )
 

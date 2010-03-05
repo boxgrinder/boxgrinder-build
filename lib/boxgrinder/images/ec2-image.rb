@@ -25,7 +25,6 @@ require 'yaml'
 require 'AWS'
 require 'aws/s3'
 require 'boxgrinder/helpers/aws-helper'
-require 'boxgrinder/appliance-image-customize'
 include AWS::S3
 
 module BoxGrinder

@@ -20,7 +20,7 @@
 
 require 'rake/tasklib'
 require 'rexml/document'
-require 'boxgrinder/appliance-image-customize'
+require 'boxgrinder/helpers/appliance-customize-helper'
 
 module BoxGrinder
 
@@ -33,7 +33,7 @@ module BoxGrinder
       @log          = options[:log]         || Logger.new(STDOUT)
       @exec_helper  = options[:exec_helper] || ExecHelper.new( { :log => @log } )
 
-      @appliance_image_customizer = ApplianceImageCustomize.new( @config, @appliance_config )
+      @appliance_image_customizer = ApplianceCustomizeHelper.new( @config, @appliance_config )
 
       define_tasks
     end
@@ -190,7 +190,7 @@ module BoxGrinder
       end
 
       #TODO this takes about 11 minutes, need to find a quicker way to install kmod-open-vm-tools package
-      @appliance_image_customizer.customize( @appliance_config.path.file.vmware.disk, { :packages => { :yum => [ "kmod-open-vm-tools" ] }, :repos => rpmfusion_repo_rpm } )
+      @appliance_image_customizer.install_packages( @appliance_config.path.file.vmware.disk, { :packages => { :yum => [ "kmod-open-vm-tools" ] }, :repos => rpmfusion_repo_rpm } )
 
       @log.debug "VMware tools installed."
     end
