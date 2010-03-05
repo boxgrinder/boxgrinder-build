@@ -1,0 +1,17 @@
+name: repo
+summary: A dummy repo appliance
+os:
+  name: fedora
+  version: 12
+hardware:
+  memory: 256
+  partitions:
+    - root: "/"
+      size: 1
+packages:
+  includes:
+    - gcc-c++
+    - wget
+repos:
+  - name: "cirras"
+    baseurl: "http://repo.boxgrinder.org/packages/#OS_NAME#/#OS_VERSION#/RPMS/#ARCH#"

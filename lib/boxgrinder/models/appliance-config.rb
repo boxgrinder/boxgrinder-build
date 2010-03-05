@@ -26,10 +26,10 @@ module BoxGrinder
   class ApplianceConfig
     def initialize( definition )
       @definition = definition[:definition]
-      @file = definition[:file]
+      @file       = definition[:file]
 
-      @name = @definition['name']
-      @summary = @definition['summary']
+      @name     = @definition['name']
+      @summary  = @definition['summary']
 
       @os = OpenStruct.new
 
@@ -128,8 +128,6 @@ module BoxGrinder
                       :zip => "#{@path.dir.packages}/#{@name}-#{@version}.#{@release}-#{@hardware.arch}-VMware.zip"
               }
       }
-
-      self
     end
 
     # used to checking if configuration differs from previous in appliance-kickstart

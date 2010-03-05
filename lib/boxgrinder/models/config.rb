@@ -30,7 +30,7 @@ module BoxGrinder
       @config_file  = config_file
 
       # TODO better way to get this directory
-      @dir.base = "#{File.dirname( __FILE__ )}/../.."
+      @dir.base = "#{File.dirname( __FILE__ )}/../../../"
 
       @version = OpenStruct.new
       @version.version = version

@@ -113,5 +113,17 @@ module BoxGrinder
 
       @log.info "Post operations executed."
     end
+
+    def install_repos( guestfs )
+      @appliance_config.repos.each do |repo|
+        repo_file = File.read( "#{@config.dir.base}/src/base.repo").gsub( /#NAME#/, repo['name'] )
+
+        ['baseurl', 'mirrorlist'].each  do |type|
+          repo_file << ("#{type}=#{repo[type]}") unless repo[type].nil?
+        end
+
+        guestfs.sh("echo #{repo_file} > /etc/yum.repos.d/#{repo['name']}.repo")
+      end
+    end
   end
 end

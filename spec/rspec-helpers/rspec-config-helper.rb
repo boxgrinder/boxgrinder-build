@@ -25,20 +25,24 @@ module RSpecConfigHelper
     config
   end
 
-  def generate_appliance_config( os_version = "12" )
+  def generate_appliance_config( appliance_definition_file = nil )
     definitions = {}
 
-    definitions["valid-appliance"] =
-            {
-                    :definition => {
-                            'name'    => "valid-appliance",
-                            'summary' => "This is a summary"
-                    }
-            }
+    if appliance_definition_file.nil?
+      definitions["valid-appliance"] =
+              {
+                      :definition => {
+                              'name'    => "valid-appliance",
+                              'summary' => "This is a summary"
+                      }
+              }
 
-    appliance_config = BoxGrinder::ApplianceConfigHelper.new(definitions).merge(BoxGrinder::ApplianceConfig.new( definitions["valid-appliance"] )).initialize_paths
+    else
+      definition = YAML.load_file( appliance_definition_file )
+      definitions[definition['name']] = { :definition => definition, :file => appliance_definition_file }
+    end
 
-    appliance_config
+    BoxGrinder::ApplianceConfigHelper.new(definitions).merge(BoxGrinder::ApplianceConfig.new( definitions.values.first ))
   end
 
   def generate_appliance_config_gnome( os_version = "11" )

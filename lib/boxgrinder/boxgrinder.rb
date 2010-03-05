@@ -82,7 +82,7 @@ module BoxGrinder
       end
 
       for definition in definitions.values
-        Appliance.new( @config, ApplianceConfigHelper.new( definitions ).merge( ApplianceConfig.new( definition ) ).initialize_paths, :log => @log )
+        Appliance.new( @config, ApplianceConfigHelper.new( definitions ).merge( ApplianceConfig.new( definition ) ), :log => @log )
       end
     end
 
