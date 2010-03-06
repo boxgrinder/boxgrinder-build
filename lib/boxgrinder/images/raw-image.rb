@@ -115,7 +115,7 @@ module BoxGrinder
     def install_repos( guestfs )
       @log.debug "Installing repositories from appliance definition file..."
       @appliance_config.repos.each do |repo|
-        @log.debig "Installing #{repo['name']} repo..."
+        @log.debug "Installing #{repo['name']} repo..."
         repo_file = File.read( "#{@config.dir.base}/src/base.repo").gsub( /#NAME#/, repo['name'] )
 
         ['baseurl', 'mirrorlist'].each  do |type|
