@@ -123,6 +123,7 @@ module BoxGrinder
         definition = @appliance_definitions[appliance_name][:definition]
 
         for repo in definition['repos']
+          repo['name'] = substitute_repo_parameters( repo['name'] )
           ['baseurl', 'mirrorlist'].each  do |type|
             repo[type] = substitute_repo_parameters( repo[type] ) unless repo[type].nil?
           end
@@ -132,9 +133,9 @@ module BoxGrinder
       end
     end
 
-    def substitute_repo_parameters( url )
-      return if url.nil?
-      url.gsub( /#OS_NAME#/, @appliance_config.os.name ).gsub( /#OS_VERSION#/, @appliance_config.os.version ).gsub( /#ARCH#/, @appliance_config.hardware.arch )
+    def substitute_repo_parameters( str )
+      return if str.nil?
+      str.gsub( /#OS_NAME#/, @appliance_config.os.name ).gsub( /#OS_VERSION#/, @appliance_config.os.version ).gsub( /#ARCH#/, @appliance_config.hardware.arch )
     end
 
     def merge_packages
