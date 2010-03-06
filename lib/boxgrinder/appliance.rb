@@ -33,21 +33,20 @@ module BoxGrinder
     def initialize( config, appliance_config, options = {} )
       @config            = config
       @appliance_config  = appliance_config
-      
       @log               = options[:log] || Logger.new(STDOUT)
 
       define
     end
 
     def define
-      ApplianceKickstart.new( @config, @appliance_config )
-      ApplianceDependencyValidator.new( @config, @appliance_config, {:log => @log} )
+      ApplianceKickstart.new( @config, @appliance_config, :log => @log )
+      ApplianceDependencyValidator.new( @config, @appliance_config, :log => @log )
 
       RAWImage.new( @config, @appliance_config, :log => @log  )
       VMwareImage.new( @config, @appliance_config, :log => @log  )
       EC2Image.new( @config, @appliance_config, :log => @log )
 
-      ReleaseHelper.new( @config, @appliance_config  )
+      ReleaseHelper.new( @config, @appliance_config, :log => @log )
     end
   end
 end

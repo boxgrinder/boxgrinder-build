@@ -27,9 +27,10 @@ module BoxGrinder
 
   class ApplianceKickstart < Rake::TaskLib
 
-    def initialize( config, appliance_config )
-      @config = config
+    def initialize( config, appliance_config, options = {} )
+      @config           = config
       @appliance_config = appliance_config
+      @log              = options[:log] || Logger.new(STDOUT)
 
       define_tasks
     end
