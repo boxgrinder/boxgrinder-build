@@ -76,9 +76,6 @@ module BoxGrinder
         self[ sym.to_s ]
       end
 
-      definition['repos'] << "repo --name=oddthesis --cost=10 --baseurl=http://repo.oddthesis.org/packages/#{@appliance_config.os_path}/RPMS/noarch"
-      definition['repos'] << "repo --name=oddthesis-#{@appliance_config.hardware.arch} --cost=10 --baseurl=http://repo.oddthesis.org/packages/#{@appliance_config.os_path}/RPMS/#{@appliance_config.hardware.arch}"
-
       cost = 40
 
       for repo in valid_repos + @appliance_config.repos
