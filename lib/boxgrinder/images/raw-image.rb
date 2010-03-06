@@ -86,28 +86,26 @@ module BoxGrinder
       guestfs.sh( "/sbin/chkconfig --add motd" )
       @log.debug "'/etc/motd' is nice now."
 
-      oddthesis_repo_file = "/etc/yum.repos.d/oddthesis.repo"
-      oddthesis_gpg_key_file = "/etc/pki/rpm-gpg/RPM-GPG-KEY-oddthesis"
-
-      @log.debug "Installing oddthesis repository and GPG keys..."
-      guestfs.upload( "#{@config.dir.base}/src/oddthesis/oddthesis.repo", oddthesis_repo_file )
-      guestfs.sh( "sed -i s/#OS_NAME#/'#{@appliance_config.os.name}'/ #{oddthesis_repo_file}" )
-      guestfs.sh( "sed -i s/#OS_VERSION#/'#{@appliance_config.os.version}'/ #{oddthesis_repo_file}" )
-      guestfs.upload( "#{@config.dir.base}/src/oddthesis/RPM-GPG-KEY-oddthesis", oddthesis_gpg_key_file )
-      @log.debug "Repository installed."
-
       @log.debug "Installing BoxGrinder version files..."
       guestfs.sh( "echo 'BOXGRINDER_VERSION=#{@config.version_with_release}' > /etc/sysconfig/boxgrinder" )
       guestfs.sh( "echo 'APPLIANCE_NAME=#{@appliance_config.name}' >> /etc/sysconfig/boxgrinder" )
       guestfs.sh( "echo '#{{ "appliance_name" => @appliance_config.name}.to_yaml}' > /etc/boxgrinder" )
       @log.debug "Version files installed."
 
-      @log.debug "Executing post commands..."
-      for cmd in @appliance_config.post.base
-        @log.debug "Executing #{cmd}"
-        guestfs.sh( cmd )
+      install_repos( guestfs )
+
+      @log.debug "Executing post commands from appliance definition file..."
+      if @appliance_config.post.base.size > 0
+
+
+        for cmd in @appliance_config.post.base
+          @log.debug "Executing #{cmd}"
+          guestfs.sh( cmd )
+        end
+        @log.debug "Post commands from appliance definition file executed."
+      else
+        @log.debug "No commands specified, skipping."
       end
-      @log.debug "Post commands executed."
 
       guestfs.close
 
@@ -115,7 +113,9 @@ module BoxGrinder
     end
 
     def install_repos( guestfs )
+      @log.debug "Installing repositories from appliance definition file..."
       @appliance_config.repos.each do |repo|
+        @log.debig "Installing #{repo['name']} repo..."
         repo_file = File.read( "#{@config.dir.base}/src/base.repo").gsub( /#NAME#/, repo['name'] )
 
         ['baseurl', 'mirrorlist'].each  do |type|
@@ -124,6 +124,7 @@ module BoxGrinder
 
         guestfs.sh("echo #{repo_file} > /etc/yum.repos.d/#{repo['name']}.repo")
       end
+      @log.debug "Repositories installed."
     end
   end
 end

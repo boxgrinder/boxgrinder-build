@@ -41,7 +41,7 @@ module BoxGrinder
 
     def define
       ApplianceKickstart.new( @config, @appliance_config )
-      ApplianceDependencyValidator.new( @config, @appliance_config )
+      ApplianceDependencyValidator.new( @config, @appliance_config, {:log => @log} )
 
       RAWImage.new( @config, @appliance_config, :log => @log  )
       VMwareImage.new( @config, @appliance_config, :log => @log  )
