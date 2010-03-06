@@ -68,36 +68,13 @@ module BoxGrinder
       guestfs_helper = GuestFSHelper.new( @appliance_config.path.file.raw.disk )
       guestfs = guestfs_helper.guestfs
 
-      @log.debug "Changing configuration files using augeas..."
-      guestfs.aug_init( "/", 0 )
-      # don't use DNS for SSH
-      guestfs.aug_set( "/files/etc/ssh/sshd_config/UseDNS", "no" )
-      guestfs.aug_save
-      @log.debug "Augeas changes saved."
-
-      @log.debug "Setting up '/etc/motd'..."
-      # set nice banner for SSH
-      motd_file = "/etc/init.d/motd"
-      guestfs.upload( "#{@config.dir.base}/src/motd.init", motd_file )
-      guestfs.sh( "sed -i s/#VERSION#/'#{@appliance_config.version}.#{@appliance_config.release}'/ #{motd_file}" )
-      guestfs.sh( "sed -i s/#APPLIANCE#/'#{@appliance_config.name} appliance'/ #{motd_file}" )
-
-      guestfs.sh( "/bin/chmod +x #{motd_file}" )
-      guestfs.sh( "/sbin/chkconfig --add motd" )
-      @log.debug "'/etc/motd' is nice now."
-
-      @log.debug "Installing BoxGrinder version files..."
-      guestfs.sh( "echo 'BOXGRINDER_VERSION=#{@config.version_with_release}' > /etc/sysconfig/boxgrinder" )
-      guestfs.sh( "echo 'APPLIANCE_NAME=#{@appliance_config.name}' >> /etc/sysconfig/boxgrinder" )
-      guestfs.sh( "echo '#{{ "appliance_name" => @appliance_config.name}.to_yaml}' > /etc/boxgrinder" )
-      @log.debug "Version files installed."
-
+      change_configuration( guestfs )
+      set_motd( guestfs )
+      install_version_files( guestfs )
       install_repos( guestfs )
 
       @log.debug "Executing post commands from appliance definition file..."
       if @appliance_config.post.base.size > 0
-
-
         for cmd in @appliance_config.post.base
           @log.debug "Executing #{cmd}"
           guestfs.sh( cmd )
@@ -110,6 +87,35 @@ module BoxGrinder
       guestfs.close
 
       @log.info "Post operations executed."
+    end
+
+    def change_configuration( guestfs )
+      @log.debug "Changing configuration files using augeas..."
+      guestfs.aug_init( "/", 0 )
+      # don't use DNS for SSH
+      guestfs.aug_set( "/files/etc/ssh/sshd_config/UseDNS", "no" )
+      guestfs.aug_save
+      @log.debug "Augeas changes saved."
+    end
+
+    def set_motd( guestfs )
+      @log.debug "Setting up '/etc/motd'..."
+      # set nice banner for SSH
+      motd_file = "/etc/init.d/motd"
+      guestfs.upload( "#{@config.dir.base}/src/motd.init", motd_file )
+      guestfs.sh( "sed -i s/#VERSION#/'#{@appliance_config.version}.#{@appliance_config.release}'/ #{motd_file}" )
+      guestfs.sh( "sed -i s/#APPLIANCE#/'#{@appliance_config.name} appliance'/ #{motd_file}" )
+
+      guestfs.sh( "/bin/chmod +x #{motd_file}" )
+      guestfs.sh( "/sbin/chkconfig --add motd" )
+      @log.debug "'/etc/motd' is nice now."
+    end
+
+    def install_version_files( guestfs )
+      @log.debug "Installing BoxGrinder version files..."
+      guestfs.sh( "echo 'BOXGRINDER_VERSION=#{@config.version_with_release}' > /etc/sysconfig/boxgrinder" )
+      guestfs.sh( "echo 'APPLIANCE_NAME=#{@appliance_config.name}' >> /etc/sysconfig/boxgrinder" )
+      @log.debug "Version files installed."
     end
 
     def install_repos( guestfs )
