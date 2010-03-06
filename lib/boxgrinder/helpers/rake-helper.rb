@@ -18,8 +18,14 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
+require 'rubygems'
 require 'boxgrinder/boxgrinder'
 require 'boxgrinder/helpers/log-helper'
+
+gem 'amazon-ec2', '>= 0.9.6'
+gem 'aws-s3', '>= 0.6.2'
+gem 'net-sftp', '>= 2.0.4'
+gem 'net-ssh', '>= 2.0.20'
 
 module Rake
   class Task
@@ -47,7 +53,6 @@ module BoxGrinder
       log = LOG
       begin
         log.debug "Running new Rake session..."
-
         @config = BoxGrinder.new( project_config ).config
       rescue ValidationError => e
         log.fatal "ValidationError: #{e.message}."

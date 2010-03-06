@@ -22,7 +22,6 @@ require "fileutils"
 require 'rake/tasklib'
 require 'yaml'
 require 'erb'
-require 'htauth'
 
 module BoxGrinder
 
