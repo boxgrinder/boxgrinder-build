@@ -65,7 +65,7 @@ module BoxGrinder
     def do_post_build_operations
       @log.info "Executing post operations after build..."
 
-      guestfs_helper = GuestFSHelper.new( @appliance_config.path.file.raw.disk )
+      guestfs_helper = GuestFSHelper.new( @appliance_config.path.file.raw.disk, :log => @log )
       guestfs = guestfs_helper.guestfs
 
       change_configuration( guestfs )

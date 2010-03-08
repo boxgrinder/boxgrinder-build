@@ -137,7 +137,7 @@ module BoxGrinder
       umount_image( @appliance_config.path.file.raw.disk, raw_disk_mount_dir, raw_loop_device )
       umount_image( @appliance_config.path.file.ec2.disk, ec2_disk_mount_dir, ec2_loop_device )
 
-      guestfs_helper = GuestFSHelper.new( @appliance_config.path.file.ec2.disk )
+      guestfs_helper = GuestFSHelper.new( @appliance_config.path.file.ec2.disk, :log => @log )
       guestfs = guestfs_helper.guestfs
 
       create_devices( guestfs )

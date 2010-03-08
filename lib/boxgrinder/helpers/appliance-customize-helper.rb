@@ -36,7 +36,7 @@ module BoxGrinder
     end
 
     def customize
-      @guestfs_helper = GuestFSHelper.new( @disk )
+      @guestfs_helper = GuestFSHelper.new( @disk, :log => @log )
       @guestfs = @guestfs_helper.guestfs
 
       yield self, @guestfs

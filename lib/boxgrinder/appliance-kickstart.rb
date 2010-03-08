@@ -38,14 +38,13 @@ module BoxGrinder
     def build_definition
       definition = { }
 
-      definition['partitions'] = @appliance_config.hardware.partitions.values
-      definition['name'] = @appliance_config.name
-      definition['arch'] = @appliance_config.hardware.arch
-
+      definition['partitions']      = @appliance_config.hardware.partitions.values
+      definition['name']            = @appliance_config.name
+      definition['arch']            = @appliance_config.hardware.arch
       definition['appliance_names'] = @appliance_config.appliances
-      definition['repos'] = Array.new
+      definition['repos']           = []
 
-      appliance_definition = @appliance_config.definition
+      appliance_definition          = @appliance_config.definition
 
       if SUPPORTED_DESKTOP_TYPES.include?( appliance_definition['desktop'] )
         definition['graphical'] = true
@@ -57,19 +56,26 @@ module BoxGrinder
         definition['packages'] += [ "@#{appliance_definition['desktop']}-desktop" ]
       else
         definition['graphical'] = false
-        definition['packages'] = Array.new
+        definition['packages']  = []
       end
 
       definition['packages'] += @appliance_config.packages
 
+      # defautlt filesystem
+      definition['fstype'] = "ext3"
+
       # fix for F12; this is needed because of selinux management in appliance-creator
       if @appliance_config.os.name.eql?("fedora")
-        definition['packages'].push "system-config-firewall-base" if @appliance_config.os.version.to_s.eql?("12")
-        definition['packages'].push "lokkit" if @appliance_config.os.version.to_s.eql?("11")
+        case @appliance_config.os.version.to_s
+          when "12" then
+            definition['packages'].push "system-config-firewall-base"
+            # default filesystem for fedora 12
+            definition['fstype'] = "ext4"
+          when "11" then
+            definition['packages'].push "lokkit"
+        end
       end
 
-      #definition['users'] = appliance_definition['users']
-      definition['fstype'] = "ext3"
       definition['root_password'] = @appliance_config.os.password
 
       def definition.method_missing(sym, *args)
