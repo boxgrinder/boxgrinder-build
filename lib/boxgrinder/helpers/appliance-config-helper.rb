@@ -120,7 +120,7 @@ module BoxGrinder
 
     def merge_repos
       for appliance_name in @current_appliances
-        definition = @appliance_definitions[appliance_name][:definition]
+        definition = @appliance_definitions[appliance_name]
 
         for repo in definition['repos']
           repo['name'] = substitute_repo_parameters( repo['name'] )
@@ -140,7 +140,7 @@ module BoxGrinder
 
     def merge_packages
       for appliance_name in @current_appliances
-        definition = @appliance_definitions[appliance_name][:definition]
+        definition = @appliance_definitions[appliance_name]
 
         unless definition['packages'].nil?
           for package in definition['packages']['includes']
@@ -156,7 +156,7 @@ module BoxGrinder
 
     def merge_post_operations
       for appliance_name in @current_appliances
-        definition = @appliance_definitions[appliance_name][:definition]
+        definition = @appliance_definitions[appliance_name]
 
         unless definition['post'].nil?
           for cmd in definition['post']['base']
@@ -177,7 +177,7 @@ module BoxGrinder
 
     def merge_field( field, section )
       for appliance_name in @current_appliances
-        appliance_definition = @appliance_definitions[appliance_name][:definition]
+        appliance_definition = @appliance_definitions[appliance_name]
         next if appliance_definition[section].nil? or appliance_definition[section][field].nil?
         val = appliance_definition[section][field]
         yield val
@@ -188,15 +188,15 @@ module BoxGrinder
       appliances = []
 
       if @appliance_definitions.has_key?( appliance_name )
-        appliance = @appliance_definitions[appliance_name]
+        definition = @appliance_definitions[appliance_name]
         # add current appliance name
-        appliances << appliance[:definition]['name']
+        appliances << definition['name']
 
-        appliance[:definition]['appliances'].each do |appl|
+        definition['appliances'].each do |appl|
           appliances += get_appliances( appl ) unless appliances.include?( appl )
-        end unless appliance[:definition]['appliances'].nil? or appliance[:definition]['appliances'].empty?
+        end unless definition['appliances'].nil? or definition['appliances'].empty?
       else
-        raise ApplianceValidationError, "Not valid appliance name: Specified appliance name '#{appliance_name}' could not be found in appliance list. Please correct your definition file '#{@appliance_config.file}', thanks"
+        raise ApplianceValidationError, "Not valid appliance name: Specified appliance name '#{appliance_name}' could not be found in appliance list. Please correct your definition file."
       end
 
       appliances

@@ -31,15 +31,15 @@ module RSpecConfigHelper
     if appliance_definition_file.nil?
       definitions["valid-appliance"] =
               {
-                      :definition => {
-                              'name'    => "valid-appliance",
-                              'summary' => "This is a summary"
-                      }
+
+                      'name'    => "valid-appliance",
+                      'summary' => "This is a summary"
+
               }
 
     else
       definition = YAML.load_file( appliance_definition_file )
-      definitions[definition['name']] = { :definition => definition, :file => appliance_definition_file }
+      definitions[definition['name']] = definition
     end
 
     BoxGrinder::ApplianceConfigHelper.new(definitions).merge(BoxGrinder::ApplianceConfig.new( definitions.values.first ))

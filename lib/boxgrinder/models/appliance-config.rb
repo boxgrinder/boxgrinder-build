@@ -25,8 +25,7 @@ require 'rbconfig'
 module BoxGrinder
   class ApplianceConfig
     def initialize( definition )
-      @definition = definition[:definition]
-      @file       = definition[:file]
+      @definition = definition
 
       @name     = @definition['name']
       @summary  = @definition['summary']

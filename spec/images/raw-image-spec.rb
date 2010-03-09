@@ -63,7 +63,7 @@ module BoxGrinder
       guestfs_helper_mock = mock("GuestFSHelper")
       guestfs_mock = mock("GuestFS")
 
-      GuestFSHelper.should_receive(:new).with("build/appliances/#{@arch}/fedora/12/valid-appliance/raw/valid-appliance/valid-appliance-sda.raw").and_return(guestfs_helper_mock)
+      GuestFSHelper.should_receive(:new).with("build/appliances/#{@arch}/fedora/12/valid-appliance/raw/valid-appliance/valid-appliance-sda.raw", :log => @log ).and_return(guestfs_helper_mock)
       guestfs_helper_mock.should_receive(:guestfs).once.and_return(guestfs_mock)
 
       @image.should_receive(:change_configuration).once.ordered.with(guestfs_mock)

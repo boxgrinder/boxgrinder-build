@@ -78,7 +78,7 @@ module BoxGrinder
 
         ApplianceDefinitionValidator.new( definition, file ).validate
 
-        definitions[definition['name']] = { :definition =>  definition, :file => file }
+        definitions[definition['name']] = definition
       end
 
       for definition in definitions.values
