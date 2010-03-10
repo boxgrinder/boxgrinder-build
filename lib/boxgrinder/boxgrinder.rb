@@ -76,7 +76,7 @@ module BoxGrinder
       Dir[ "#{@config.dir.appliances}/**/*.appl", "#{@config.dir.base}/appliances/*.appl" ].each do |file|
         definition = YAML.load_file( file )
 
-        ApplianceDefinitionValidator.new( definition, file ).validate
+        ApplianceDefinitionValidator.new( definition ).validate
 
         definitions[definition['name']] = definition
       end

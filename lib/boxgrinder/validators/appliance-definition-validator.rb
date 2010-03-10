@@ -22,9 +22,8 @@ require 'boxgrinder/validators/errors'
 
 module BoxGrinder
   class ApplianceDefinitionValidator
-    def initialize( appliance_definition, appliance_definition_file )
+    def initialize( appliance_definition )
       @appliance_definition = appliance_definition
-      @appliance_definition_file = appliance_definition_file
     end
 
     def validate
@@ -38,13 +37,13 @@ module BoxGrinder
     protected
 
     def check_for_missing_field( name )
-      raise ApplianceValidationError, "Missing field: appliance definition file ('#{@appliance_definition_file}) should have field '#{name}'" if @appliance_definition[name].nil?
+      raise ApplianceValidationError, "Missing field: appliance definition file should have field '#{name}'" if @appliance_definition[name].nil?
     end
 
     def validate_os
       return if @appliance_definition['os'].nil?
 
-      raise ApplianceValidationError, "Unsupported OS: operating system '#{@appliance_definition['os']['name']}' is not supported. Supported OS types: #{SUPPORTED_OSES.keys.join(", ")}. Please correct your definition file '#{@appliance_definition_file}', thanks" if !@appliance_definition['os']['name'].nil? and !SUPPORTED_OSES.keys.include?( @appliance_definition['os']['name'] )
+      raise ApplianceValidationError, "Unsupported OS: operating system '#{@appliance_definition['os']['name']}' is not supported. Supported OS types: #{SUPPORTED_OSES.keys.join(", ")}. Please correct your appliance definition file, thanks." if !@appliance_definition['os']['name'].nil? and !SUPPORTED_OSES.keys.include?( @appliance_definition['os']['name'] )
 
       #unless @appliance_definition['os']['version'].nil?
         #@appliance_definition['os']['version'] = @appliance_definition['os']['version'].to_s
@@ -56,34 +55,34 @@ module BoxGrinder
       return if @appliance_definition['hardware'].nil?
 
       unless @appliance_definition['hardware']['cpus'].nil?
-        raise ApplianceValidationError, "Not valid CPU amount: '#{@appliance_definition['hardware']['cpus']}' is not allowed here. Please correct your definition file '#{@appliance_definition_file}', thanks" if @appliance_definition['hardware']['cpus'] =~ /\d/
-        raise ApplianceValidationError, "Not valid CPU amount: Too many or too less CPU's: '#{@appliance_definition['hardware']['cpus']}'. Please choose from 1-4. Please correct your definition file '#{@appliance_definition_file}', thanks" unless @appliance_definition['hardware']['cpus'] >= 1 and @appliance_definition['hardware']['cpus'] <= 4
+        raise ApplianceValidationError, "Not valid CPU amount: '#{@appliance_definition['hardware']['cpus']}' is not allowed here. Please correct your appliance definition file, thanks." if @appliance_definition['hardware']['cpus'] =~ /\d/
+        raise ApplianceValidationError, "Not valid CPU amount: Too many or too less CPU's: '#{@appliance_definition['hardware']['cpus']}'. Please choose from 1-4. Please correct your appliance definition file, thanks." unless @appliance_definition['hardware']['cpus'] >= 1 and @appliance_definition['hardware']['cpus'] <= 4
       end
 
       unless @appliance_definition['hardware']['memory'].nil?
-        raise ApplianceValidationError, "Not valid memory amount: '#{@appliance_definition['hardware']['memory']}' is wrong value. Please correct your definition file '#{@appliance_definition_file}', thanks" if @appliance_definition['hardware']['memory'] =~ /\d/
-        raise ApplianceValidationError, "Not valid memory amount: '#{@appliance_definition['hardware']['memory']}' is not allowed here. Memory should be a multiplicity of 64. Please correct your definition file '#{@appliance_definition_file}', thanks" if (@appliance_definition['hardware']['memory'].to_i % 64 > 0)
+        raise ApplianceValidationError, "Not valid memory amount: '#{@appliance_definition['hardware']['memory']}' is wrong value. Please correct your appliance definition file, thanks." if @appliance_definition['hardware']['memory'] =~ /\d/
+        raise ApplianceValidationError, "Not valid memory amount: '#{@appliance_definition['hardware']['memory']}' is not allowed here. Memory should be a multiplicity of 64. Please correct your appliance definition file, thanks." if (@appliance_definition['hardware']['memory'].to_i % 64 > 0)
       end
 
       unless @appliance_definition['hardware']['partitions'].nil?
-        raise ApplianceValidationError, "Not valid partitions format: Please correct your definition file '#{@appliance_definition_file}', thanks" unless @appliance_definition['hardware']['partitions'].class.eql?(Array)
+        raise ApplianceValidationError, "Not valid partitions format: Please correct your appliance definition file, thanks." unless @appliance_definition['hardware']['partitions'].class.eql?(Array)
 
         for partition in @appliance_definition['hardware']['partitions']
-          raise ApplianceValidationError, "Not valid partition format: '#{partition}' is wrong value. Please correct your definition file '#{@appliance_definition_file}', thanks" unless partition.class.eql?(Hash)
-          raise ApplianceValidationError, "Not valid partition format: Keys 'root' and 'size' should be specified for every partition. Please correct your definition file '#{@appliance_definition_file}', thanks" if !partition.keys.include?("root") or !partition.keys.include?("size")
-          raise ApplianceValidationError, "Not valid partition size: '#{partition['size']}' is not a valid value. Please correct your definition file '#{@appliance_definition_file}', thanks" if partition['size'] =~ /\d/ or partition['size'].to_i < 1
+          raise ApplianceValidationError, "Not valid partition format: '#{partition}' is wrong value. Please correct your appliance definition file, thanks." unless partition.class.eql?(Hash)
+          raise ApplianceValidationError, "Not valid partition format: Keys 'root' and 'size' should be specified for every partition. Please correct your appliance definition file, thanks." if !partition.keys.include?("root") or !partition.keys.include?("size")
+          raise ApplianceValidationError, "Not valid partition size: '#{partition['size']}' is not a valid value. Please correct your appliance definition file, thanks." if partition['size'] =~ /\d/ or partition['size'].to_i < 1
         end
       end
     end
 
     def validate_repos
       return if @appliance_definition['repos'].nil?
-      raise ApplianceValidationError, "Not valid repos format: Please correct your definition file '#{@appliance_definition_file}', thanks" unless @appliance_definition['repos'].class.eql?(Array)
+      raise ApplianceValidationError, "Not valid repos format: Please correct your appliance definition file, thanks." unless @appliance_definition['repos'].class.eql?(Array)
 
       for repo in @appliance_definition['repos']
-        raise ApplianceValidationError, "Not valid repo format: '#{repo}' is wrong value. Please correct your definition file '#{@appliance_definition_file}', thanks" unless repo.class.eql?(Hash)
-        raise ApplianceValidationError, "Not valid repo format: Please specify name for repository. Please correct your definition file '#{@appliance_definition_file}', thanks" unless repo.keys.include?('name')
-        raise ApplianceValidationError, "Not valid repo format: There is no 'mirrorlist' or 'baseurl' specified for '#{repo['name']}' repository. Please correct your definition file '#{@appliance_definition_file}', thanks" unless repo.keys.include?('mirrorlist') or repo.keys.include?('baseurl')
+        raise ApplianceValidationError, "Not valid repo format: '#{repo}' is wrong value. Please correct your appliance definition file, thanks." unless repo.class.eql?(Hash)
+        raise ApplianceValidationError, "Not valid repo format: Please specify name for repository. Please correct your appliance definition file, thanks." unless repo.keys.include?('name')
+        raise ApplianceValidationError, "Not valid repo format: There is no 'mirrorlist' or 'baseurl' specified for '#{repo['name']}' repository. Please correct your appliance definition file, thanks." unless repo.keys.include?('mirrorlist') or repo.keys.include?('baseurl')
       end
     end
   end
