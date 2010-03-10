@@ -70,7 +70,7 @@ module BoxGrinder
           when "12" then
             definition['packages'].push "system-config-firewall-base"
             # default filesystem for fedora 12
-            definition['fstype'] = "ext4"
+            #definition['fstype'] = "ext4"
           when "11" then
             definition['packages'].push "lokkit"
         end
