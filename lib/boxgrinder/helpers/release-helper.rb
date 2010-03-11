@@ -19,7 +19,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'rake/tasklib'
-require 'boxgrinder/validators/errors'
+require 'boxgrinder-core/validators/errors'
 require 'boxgrinder/validators/ssh-validator'
 require 'boxgrinder/models/ssh-config'
 require 'boxgrinder/helpers/ssh-helper'

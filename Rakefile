@@ -1,4 +1,5 @@
 $: << 'lib'
+$: << 'lib/boxgrinder-core/lib'
 
 require 'boxgrinder/helpers/rake-helper'
 

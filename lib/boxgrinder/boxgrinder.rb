@@ -19,14 +19,14 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'rake'
+require 'boxgrinder-core/defaults'
+require 'boxgrinder-core/models/config'
+require 'boxgrinder-core/models/appliance-config'
 require 'boxgrinder/appliance'
-require 'boxgrinder/models/config'
-require 'boxgrinder/models/appliance-config'
 require 'boxgrinder/validators/validator'
 require 'boxgrinder/validators/appliance-config-parameter-validator'
 require 'boxgrinder/validators/appliance-definition-validator'
 require 'boxgrinder/helpers/appliance-config-helper'
-require 'boxgrinder/defaults'
 require 'boxgrinder/helpers/rake-helper'
 require 'ostruct'
 require 'yaml'
@@ -77,12 +77,12 @@ module BoxGrinder
         definition = YAML.load_file( file )
 
         ApplianceDefinitionValidator.new( definition ).validate
-
+        
         definitions[definition['name']] = definition
       end
 
       for definition in definitions.values
-        Appliance.new( @config, ApplianceConfigHelper.new( definitions ).merge( ApplianceConfig.new( definition ) ), :log => @log )
+        Appliance.new( @config, ApplianceConfigHelper.new( definitions ).merge( ApplianceConfig.new( definition ) ).init, :log => @log )
       end
     end
 

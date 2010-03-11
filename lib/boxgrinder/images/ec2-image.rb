@@ -20,7 +20,7 @@
 
 require 'rake/tasklib'
 require 'fileutils'
-require 'boxgrinder/validators/errors'
+require 'boxgrinder-core/validators/errors'
 require 'yaml'
 require 'AWS'
 require 'aws/s3'
