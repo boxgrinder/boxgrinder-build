@@ -48,6 +48,7 @@ module BoxGrinder
 
       dir = OpenStruct.new
       dir.root        = `pwd`.strip
+      dir.base        = "#{File.dirname( __FILE__ )}/../../"
       dir.build       = project_config[:dir_build]          || DEFAULT_PROJECT_CONFIG[:dir_build]
       dir.top         = project_config[:dir_top]            || "#{dir.build}/topdir"
       dir.src_cache   = project_config[:dir_src_cache]      || DEFAULT_PROJECT_CONFIG[:dir_src_cache]
