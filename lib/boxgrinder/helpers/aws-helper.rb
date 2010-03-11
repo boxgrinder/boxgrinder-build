@@ -47,7 +47,7 @@ module BoxGrinder
     attr_reader :s3
 
     def bucket_key( appliance_name )
-      "#{@config.release.s3['bucket_name']}/#{@config.version_with_release}/#{@appliance_config.hardware.arch}/#{appliance_name}"
+      "#{@aws_data['bucket_name']}/#{@config.version_with_release}/#{@appliance_config.hardware.arch}/#{appliance_name}"
     end
 
     def bucket_manifest_key( appliance_name )
