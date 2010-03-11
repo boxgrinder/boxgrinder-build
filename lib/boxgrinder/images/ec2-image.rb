@@ -80,7 +80,7 @@ module BoxGrinder
 
     def appliance_already_uploaded?
       begin
-        bucket = Bucket.find( @config.release.s3['bucket_name'] )
+        bucket = Bucket.find( @aws_helper.aws_data['bucket_name'] )
       rescue
         return false
       end
@@ -101,7 +101,7 @@ module BoxGrinder
         return
       end
 
-      @log.info "Uploading #{@appliance_config.simple_name} AMI to bucket '#{@config.release.s3['bucket_name']}'..."
+      @log.info "Uploading #{@appliance_config.simple_name} AMI to bucket '#{@aws_helper.aws_data['bucket_name']}'..."
 
       @exec_helper.execute( "ec2-upload-bundle -b #{@aws_helper.bucket_key( @appliance_config.name )} -m #{@appliance_config.path.file.ec2.manifest} -a #{@aws_helper.aws_data['access_key']} -s #{@aws_helper.aws_data['secret_access_key']} --retry" )
     end
