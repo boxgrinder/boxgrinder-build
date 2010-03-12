@@ -22,11 +22,11 @@ require 'rake'
 require 'boxgrinder-core/defaults'
 require 'boxgrinder-core/models/config'
 require 'boxgrinder-core/models/appliance-config'
+require 'boxgrinder-core/helpers/appliance-config-helper'
 require 'boxgrinder-build/appliance'
 require 'boxgrinder-build/validators/validator'
 require 'boxgrinder-build/validators/appliance-config-parameter-validator'
 require 'boxgrinder-build/validators/appliance-definition-validator'
-require 'boxgrinder-build/helpers/appliance-config-helper'
 require 'boxgrinder-build/helpers/rake-helper'
 require 'ostruct'
 require 'yaml'
@@ -83,7 +83,7 @@ module BoxGrinder
       end
 
       for definition in definitions.values
-        Appliance.new( @config, ApplianceConfigHelper.new( definitions ).merge( ApplianceConfig.new( definition ) ).init, :log => @log )
+        Appliance.new( @config, ApplianceConfigHelper.new( definitions ).merge( ApplianceConfig.new( definition ).init_arch ).initialize_paths, :log => @log )
       end
     end
 
