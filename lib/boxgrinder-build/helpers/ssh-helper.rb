@@ -21,7 +21,7 @@
 require 'net/ssh'
 require 'net/sftp'
 require 'progressbar/progressbar'
-require 'boxgrinder-build/helpers/exec-helper'
+require 'boxgrinder-core/helpers/exec-helper'
 
 module BoxGrinder
   class SSHHelper
