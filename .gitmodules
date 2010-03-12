@@ -1,3 +1,0 @@
-[submodule "lib/boxgrinder-core"]
-	path = lib/boxgrinder-core
-	url = git://github.com/stormgrind/boxgrinder-core.git
