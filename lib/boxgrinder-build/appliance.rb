@@ -20,12 +20,12 @@
 
 require 'rake/tasklib'
 
-require 'boxgrinder/appliance-kickstart.rb'
-require 'boxgrinder/images/raw-image.rb'
-require 'boxgrinder/images/vmware-image'
-require 'boxgrinder/images/ec2-image'
-require 'boxgrinder/helpers/release-helper'
-require 'boxgrinder/validators/appliance-dependency-validator'
+require 'boxgrinder-build/appliance-kickstart.rb'
+require 'boxgrinder-build/images/raw-image.rb'
+require 'boxgrinder-build/images/vmware-image'
+require 'boxgrinder-build/images/ec2-image'
+require 'boxgrinder-build/helpers/release-helper'
+require 'boxgrinder-build/validators/appliance-dependency-validator'
 
 module BoxGrinder
   class Appliance < Rake::TaskLib

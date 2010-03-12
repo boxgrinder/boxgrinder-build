@@ -20,7 +20,7 @@
 
 require 'rake/tasklib'
 require 'boxgrinder-core/validators/errors'
-require 'boxgrinder/helpers/guestfs-helper'
+require 'boxgrinder-build/helpers/guestfs-helper'
 require 'tempfile'
 
 module BoxGrinder

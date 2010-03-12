@@ -24,7 +24,7 @@ require 'boxgrinder-core/validators/errors'
 require 'yaml'
 require 'AWS'
 require 'aws/s3'
-require 'boxgrinder/helpers/aws-helper'
+require 'boxgrinder-build/helpers/aws-helper'
 include AWS::S3
 
 module BoxGrinder

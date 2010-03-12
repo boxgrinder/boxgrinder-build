@@ -21,7 +21,7 @@
 require 'AWS'
 require 'aws/s3'
 require 'boxgrinder-core/defaults'
-require 'boxgrinder/validators/aws-validator'
+require 'boxgrinder-build/validators/aws-validator'
 
 module BoxGrinder
   class AWSHelper

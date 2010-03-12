@@ -20,7 +20,7 @@
 
 require 'rake/tasklib'
 require 'rexml/document'
-require 'boxgrinder/helpers/appliance-customize-helper'
+require 'boxgrinder-build/helpers/appliance-customize-helper'
 
 module BoxGrinder
 

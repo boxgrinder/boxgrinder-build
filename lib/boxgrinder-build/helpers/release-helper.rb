@@ -20,9 +20,9 @@
 
 require 'rake/tasklib'
 require 'boxgrinder-core/validators/errors'
-require 'boxgrinder/validators/ssh-validator'
-require 'boxgrinder/models/ssh-config'
-require 'boxgrinder/helpers/ssh-helper'
+require 'boxgrinder-build/validators/ssh-validator'
+require 'boxgrinder-build/models/ssh-config'
+require 'boxgrinder-build/helpers/ssh-helper'
 
 module BoxGrinder
   class ReleaseHelper < Rake::TaskLib

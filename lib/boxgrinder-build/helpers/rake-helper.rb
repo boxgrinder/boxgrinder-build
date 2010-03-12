@@ -19,8 +19,8 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'rubygems'
-require 'boxgrinder/boxgrinder'
-require 'boxgrinder/helpers/log-helper'
+require 'boxgrinder-build/boxgrinder'
+require 'boxgrinder-core/helpers/log-helper'
 
 gem 'amazon-ec2', '>= 0.9.6'
 gem 'aws-s3', '>= 0.6.2'

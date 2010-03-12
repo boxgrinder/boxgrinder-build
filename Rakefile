@@ -1,6 +1,6 @@
 $: << 'lib'
 $: << 'lib/boxgrinder-core/lib'
 
-require 'boxgrinder/helpers/rake-helper'
+require 'boxgrinder-build/helpers/rake-helper'
 
 BoxGrinder::RakeHelper.new
