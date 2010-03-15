@@ -20,4 +20,29 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require 'boxgrinder-build'
+require 'rubygems'
+
+gem 'boxgrinder-core', '>= 0.1.0'
+gem 'aws-s3', '>= 0.6.2'
+gem 'amazon-ec2', '>= 0.9.6'
+gem 'net-sftp', '>= 2.0.4'
+gem 'net-ssh', '>= 2.0.20'
+gem 'rake', '>= 0.8.7'
+
+require 'boxgrinder-build/helpers/rake-helper'
+
+begin
+  require 'rake'
+rescue LoadError
+  require 'rubygems'
+  require 'rake'
+end
+
+task :default do
+    puts "Run '#{Rake.application.name} -T' to get list of all available commands."
+end
+
+BoxGrinder::RakeHelper.new
+
+Rake.application.init('boxgrinder')
+Rake.application.top_level
