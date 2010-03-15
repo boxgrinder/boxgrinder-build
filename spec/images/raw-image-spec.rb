@@ -1,5 +1,6 @@
-require 'boxgrinder/images/raw-image'
+require 'boxgrinder-build/images/raw-image'
 require 'rspec-helpers/rspec-config-helper'
+require 'logger'
 require 'rbconfig'
 
 module BoxGrinder
@@ -12,7 +13,7 @@ module BoxGrinder
     end
 
     before(:each) do
-      @image  = RAWImage.new( generate_config, generate_appliance_config, { :log => @log })
+      @image  = RAWImage.new( generate_config, generate_appliance_config, { :log => @log } )
 
       @config       = @image.instance_variable_get(:@config)
       @exec_helper  = @image.instance_variable_get(:@exec_helper)

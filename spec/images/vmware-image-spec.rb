@@ -1,4 +1,4 @@
-require 'boxgrinder/images/vmware-image'
+require 'boxgrinder-build/images/vmware-image'
 require 'rspec-helpers/rspec-config-helper'
 require 'rbconfig'
 

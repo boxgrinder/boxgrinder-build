@@ -1,6 +1,6 @@
-require 'boxgrinder/models/config'
-require 'boxgrinder/models/appliance-config'
-require 'boxgrinder/helpers/appliance-config-helper'
+require 'boxgrinder-core/models/config'
+require 'boxgrinder-core/models/appliance-config'
+require 'boxgrinder-core/helpers/appliance-config-helper'
 
 module RSpecConfigHelper
   def generate_config( params = OpenStruct.new )
@@ -15,6 +15,7 @@ module RSpecConfigHelper
     dir.specs        = params.dir_specs      || "specs"
     dir.appliances   = params.dir_appliances || "../../../appliances"
     dir.src          = params.dir_src        || "../../../src"
+    dir.base         = params.dir_src        || ".."
 
     config = BoxGrinder::Config.new( params.name || "BoxGrinder", params.version || "1.0.0", params.release, dir, params.config_file.nil? ? "" : "src/#{params.config_file}" )
 
@@ -42,7 +43,7 @@ module RSpecConfigHelper
       definitions[definition['name']] = definition
     end
 
-    BoxGrinder::ApplianceConfigHelper.new(definitions).merge(BoxGrinder::ApplianceConfig.new( definitions.values.first ))
+    BoxGrinder::ApplianceConfigHelper.new(definitions).merge(BoxGrinder::ApplianceConfig.new( definitions.values.first ).init_arch).initialize_paths
   end
 
   def generate_appliance_config_gnome( os_version = "11" )

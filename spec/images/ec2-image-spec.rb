@@ -1,4 +1,4 @@
-require 'boxgrinder/images/ec2-image'
+require 'boxgrinder-build/images/ec2-image'
 require 'rspec-helpers/rspec-config-helper'
 require 'rbconfig'
 

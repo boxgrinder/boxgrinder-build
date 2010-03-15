@@ -21,6 +21,7 @@
 require 'rake/tasklib'
 require 'yaml'
 require 'boxgrinder-build/helpers/guestfs-helper'
+require 'boxgrinder-core/helpers/exec-helper'
 
 module BoxGrinder
   class RAWImage < Rake::TaskLib
