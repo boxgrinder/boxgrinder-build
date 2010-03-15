@@ -11,3 +11,4 @@ wizard
 .settings
 *.log*
 .idea
+*.gem
