@@ -45,14 +45,7 @@ module BoxGrinder
       raise ValidationError, "Please specify account number in aws section in configuration file (#{@config.config_file}). #{DEFAULT_HELP_TEXT[:general]}" if config['account_number'].nil?
       raise ValidationError, "Please specify access key in aws section in configuration file (#{@config.config_file}). #{DEFAULT_HELP_TEXT[:general]}" if config['access_key'].nil?
       raise ValidationError, "Please specify secret access key in aws section in configuration file (#{@config.config_file}). #{DEFAULT_HELP_TEXT[:general]}" if config['secret_access_key'].nil?
-    end
-
-    # TODO we're using this?
-    def validate_aws_release_config( config )
-      return if config.nil?
-
-      raise ValidationError, "No 's3' subsection in 'release' section in configuration file (#{@config.config_file})." if config['s3'].nil?
-      raise ValidationError, "Please specify bucket name in 's3' subsection in configuration file (#{@config.config_file})." if config['s3']['bucket_name'].nil? or config['s3']['bucket_name'].length == 0
+      raise ValidationError, "Please specify bucket name in in aws section in configuration file (#{@config.config_file})." if config['bucket_name'].nil? or config['bucket_name'].length == 0
     end
   end
 end
