@@ -42,7 +42,7 @@ task :default do
     puts "Run '#{Rake.application.name} -T' to get list of all available commands."
 end
 
-BoxGrinder::RakeHelper.new
+BoxGrinder::RakeHelper.new( :version => "1.0.0.Beta3-SNAPSHOT" )
 
 Rake.application.init('boxgrinder')
 Rake.application.top_level
