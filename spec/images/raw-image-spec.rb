@@ -54,6 +54,7 @@ module BoxGrinder
       guestfs_mock = mock("GuestFS")
 
       guestfs_mock.should_receive(:aug_init).with("/", 0)
+      guestfs_mock.should_receive(:exists).with("/etc/ssh/sshd_config").and_return(true)
       guestfs_mock.should_receive(:aug_set).with("/files/etc/ssh/sshd_config/UseDNS", "no")
       guestfs_mock.should_receive(:aug_save).with(no_args())
 

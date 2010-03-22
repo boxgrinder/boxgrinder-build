@@ -94,7 +94,7 @@ module BoxGrinder
       @log.debug "Changing configuration files using augeas..."
       guestfs.aug_init( "/", 0 )
       # don't use DNS for SSH
-      guestfs.aug_set( "/files/etc/ssh/sshd_config/UseDNS", "no" )
+      guestfs.aug_set( "/files/etc/ssh/sshd_config/UseDNS", "no" ) if guestfs.exists( '/etc/ssh/sshd_config' )
       guestfs.aug_save
       @log.debug "Augeas changes saved."
     end
