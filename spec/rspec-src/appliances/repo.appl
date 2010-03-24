@@ -15,3 +15,6 @@ packages:
 repos:
   - name: "cirras"
     baseurl: "http://repo.boxgrinder.org/packages/#OS_NAME#/#OS_VERSION#/RPMS/#ARCH#"
+  - name: "abc"
+    baseurl: "http://abc"
+    mirrorlist: "http://repo.boxgrinder.org/packages/#OS_NAME#/#OS_VERSION#/RPMS/#ARCH#"

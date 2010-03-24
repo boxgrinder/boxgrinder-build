@@ -126,10 +126,10 @@ module BoxGrinder
         repo_file = File.read( "#{@config.dir.base}/src/base.repo").gsub( /#NAME#/, repo['name'] )
 
         ['baseurl', 'mirrorlist'].each  do |type|
-          repo_file << ("#{type}=#{repo[type]}") unless repo[type].nil?
+          repo_file << ("#{type}=#{repo[type]}\n") unless repo[type].nil?
         end
 
-        guestfs.sh("echo '#{repo_file}' > /etc/yum.repos.d/#{repo['name']}.repo")
+        guestfs.sh("echo -e '#{repo_file}' > /etc/yum.repos.d/#{repo['name']}.repo")
       end
       @log.debug "Repositories installed."
     end
