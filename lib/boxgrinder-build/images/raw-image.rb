@@ -129,7 +129,7 @@ module BoxGrinder
           repo_file << ("#{type}=#{repo[type]}\n") unless repo[type].nil?
         end
 
-        guestfs.sh("echo -e '#{repo_file}' > /etc/yum.repos.d/#{repo['name']}.repo")
+        guestfs.write_file( "/etc/yum.repos.d/#{repo['name']}.repo", repo_file, 0 )
       end
       @log.debug "Repositories installed."
     end

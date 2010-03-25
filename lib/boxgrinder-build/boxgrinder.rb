@@ -31,7 +31,7 @@ require 'boxgrinder-build/helpers/rake-helper'
 require 'ostruct'
 require 'yaml'
 
-$stderr.reopen($stdout)
+$stderr.reopen('/dev/null')
 
 module BoxGrinder
   class BoxGrinder

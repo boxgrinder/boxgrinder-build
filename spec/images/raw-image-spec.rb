@@ -24,8 +24,9 @@ module BoxGrinder
       image = RAWImage.new( generate_config, generate_appliance_config( "#{RSPEC_BASE_LOCATION}/rspec-src/appliances/repo.appl" ), { :log => @log })
 
       guestfs_mock = mock("GuestFS")
-      guestfs_mock.should_receive(:sh).ordered.with("echo -e '[cirras]\nname=cirras\nenabled=1\ngpgcheck=0\nbaseurl=http://repo.boxgrinder.org/packages/fedora/12/RPMS/#{@arch}\n' > /etc/yum.repos.d/cirras.repo")
-      guestfs_mock.should_receive(:sh).ordered.with("echo -e '[abc]\nname=abc\nenabled=1\ngpgcheck=0\nbaseurl=http://abc\nmirrorlist=http://repo.boxgrinder.org/packages/fedora/12/RPMS/#{@arch}\n' > /etc/yum.repos.d/abc.repo")
+      guestfs_mock.should_receive(:write_file).ordered.with( "/etc/yum.repos.d/cirras.repo", "[cirras]\nname=cirras\nenabled=1\ngpgcheck=0\nbaseurl=http://repo.boxgrinder.org/packages/fedora/12/RPMS/#{@arch}\n", 0)
+      guestfs_mock.should_receive(:write_file).ordered.with( "/etc/yum.repos.d/abc.repo", "[abc]\nname=abc\nenabled=1\ngpgcheck=0\nbaseurl=http://abc\nmirrorlist=http://repo.boxgrinder.org/packages/fedora/12/RPMS/#{@arch}\n", 0)
+      guestfs_mock.should_receive(:write_file).ordered.with( "/etc/yum.repos.d/boxgrinder-f12-testing-i386.repo", "[boxgrinder-f12-testing-i386]\nname=boxgrinder-f12-testing-i386\nenabled=1\ngpgcheck=0\nmirrorlist=https://mirrors.fedoraproject.org/metalink?repo=updates-testing-f12&arch=#{@arch}\n", 0 )
 
       image.install_repos( guestfs_mock )
     end
