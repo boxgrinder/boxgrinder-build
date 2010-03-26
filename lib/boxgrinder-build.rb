@@ -22,7 +22,7 @@
 
 require 'rubygems'
 
-gem 'boxgrinder-core', '>= 0.0.3'
+gem 'boxgrinder-core', '>= 0.0.4'
 gem 'aws-s3', '>= 0.6.2'
 gem 'amazon-ec2', '>= 0.9.6'
 gem 'net-sftp', '>= 2.0.4'
