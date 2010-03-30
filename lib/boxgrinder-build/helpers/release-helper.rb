@@ -110,6 +110,7 @@ module BoxGrinder
     end
 
     def upload_to_cloudfront( files )
+      AWSHelper.new( @config, @appliance_config )
 
       bucket = @config.data['release']['cloudfront']['bucket_name']
 
