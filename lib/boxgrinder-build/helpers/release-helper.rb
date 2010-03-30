@@ -58,7 +58,7 @@ module BoxGrinder
 
         [ :vmware, :raw ].each do |image_format|
           basename = File.basename( @appliance_config.path.file.package[image_format][package_format] )
-          files_to_upload = { basename => @appliance_config.path.file.package[image_format][package_format] }
+          files_to_upload = { "#{@appliance_config.name}/#{@appliance_config.version}.#{@appliance_config.release}/#{@appliance_config.hardware.arch}/#{basename}" => @appliance_config.path.file.package[image_format][package_format] }
 
           desc "Create #{image_format.to_s.upcase} #{package_format.to_s.upcase} package for #{@appliance_config.simple_name} appliance"
           task "appliance:#{@appliance_config.name}:package:#{image_format}:#{package_format}" => [ @appliance_config.path.file.package[image_format][package_format] ]
