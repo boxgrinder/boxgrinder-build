@@ -111,7 +111,7 @@ module BoxGrinder
 
     def upload_to_cloudfront( files )
 
-      bucket = @config.release.cloudfront['bucket_name']
+      bucket = @config.data['release']['cloudfront']['bucket_name']
 
       @log.info "Uploading #{@appliance_config.name} appliance to CloudFront bucket '#{bucket}'..."
 
