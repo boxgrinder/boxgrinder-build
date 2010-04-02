@@ -20,8 +20,6 @@
 
 require 'rake/tasklib'
 
-require 'boxgrinder-build/appliance-kickstart.rb'
-require 'boxgrinder-build/images/raw-image.rb'
 require 'boxgrinder-build/images/vmware-image'
 require 'boxgrinder-build/images/ec2-image'
 require 'boxgrinder-build/helpers/release-helper'
@@ -39,14 +37,26 @@ module BoxGrinder
     end
 
     def define
-      ApplianceKickstart.new( @config, @appliance_config, :log => @log )
-      ApplianceDependencyValidator.new( @config, @appliance_config, :log => @log )
+      #ApplianceKickstart.new( @config, @appliance_config, :log => @log )
 
-      RAWImage.new( @config, @appliance_config, :log => @log  )
-      VMwareImage.new( @config, @appliance_config, :log => @log  )
-      EC2Image.new( @config, @appliance_config, :log => @log )
+      # TODO this needs to be rewritten
+      #ApplianceDependencyValidator.new( @config, @appliance_config, :log => @log )
 
-      ReleaseHelper.new( @config, @appliance_config, :log => @log )
+      desc "Build #{@appliance_config.simple_name} appliance."
+      task "appliance:#{@appliance_config.name}" => [ @appliance_config.path.file.raw.xml ]
+
+      # "appliance:#{@appliance_config.name}:validate:dependencies"
+
+      file @appliance_config.path.file.raw.xml do
+        OperatingSystemPluginManager.instance.plugins[@appliance_config.os.name.to_sym].build( @config, @appliance_config, :log => @log )
+      end
+
+
+      #RAWImage.new( @config, @appliance_config, :log => @log  )
+      #VMwareImage.new( @config, @appliance_config, :log => @log  )
+      #EC2Image.new( @config, @appliance_config, :log => @log )
+
+      #ReleaseHelper.new( @config, @appliance_config, :log => @log )
     end
   end
 end

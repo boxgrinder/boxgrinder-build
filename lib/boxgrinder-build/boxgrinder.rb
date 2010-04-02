@@ -25,14 +25,17 @@ require 'boxgrinder-core/models/appliance-config'
 require 'boxgrinder-core/helpers/appliance-config-helper'
 require 'boxgrinder-build/defaults'
 require 'boxgrinder-build/appliance'
+require 'boxgrinder-build/managers/operating-system-plugin-manager'
 require 'boxgrinder-build/validators/validator'
 require 'boxgrinder-build/validators/appliance-config-parameter-validator'
-require 'boxgrinder-build/validators/appliance-definition-validator'
+#require 'boxgrinder-build/validators/appliance-definition-validator'
 require 'boxgrinder-build/helpers/rake-helper'
 require 'ostruct'
 require 'yaml'
 
-$stderr.reopen('/dev/null')
+Dir["#{File.dirname( __FILE__ )}/../plugins/**/*-plugin.rb"].each {|file| require file }
+
+#$stderr.reopen('/dev/null')
 
 module BoxGrinder
   class BoxGrinder
@@ -73,13 +76,27 @@ module BoxGrinder
 
       directory @config.dir.build
 
+      # loading plugins
+      Dir["#{File.dirname( __FILE__ )}/plugins/**/*.rb"].each {|file| require file }
+
+      os_plugin_manager = OperatingSystemPluginManager.instance
+      os_plugin_manager.initialize_plugins
+      os_plugins = os_plugin_manager.plugins
+
+      @log.debug "We have #{os_plugins.size} operating system plugin(s) registered"
+
+      os_plugins.each_value do |plugin|
+        @log.debug "- plugin for #{plugin.os[:full_name]} #{plugin.os[:versions].join(', ')}."
+      end
+
       definitions = {}
 
       Dir[ "#{@config.dir.appliances}/**/*.appl", "#{@config.dir.base}/appliances/*.appl" ].each do |file|
         definition = YAML.load_file( file )
 
-        ApplianceDefinitionValidator.new( definition ).validate
-        
+        #TODO validate this AFTER it's converted to a object
+        #ApplianceDefinitionValidator.new( definition ).validate
+
         definitions[definition['name']] = definition
       end
 

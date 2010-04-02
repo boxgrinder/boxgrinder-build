@@ -24,6 +24,8 @@ module BoxGrinder
   class ApplianceDefinitionValidator
     def initialize( appliance_definition )
       @appliance_definition = appliance_definition
+
+      @os_plugin_manager    = OperatingSystemPluginManager.instance
     end
 
     def validate
@@ -43,12 +45,12 @@ module BoxGrinder
     def validate_os
       return if @appliance_definition['os'].nil?
 
-      raise ApplianceValidationError, "Unsupported OS: operating system '#{@appliance_definition['os']['name']}' is not supported. Supported OS types: #{SUPPORTED_OSES.keys.join(", ")}. Please correct your appliance definition file, thanks." if !@appliance_definition['os']['name'].nil? and !SUPPORTED_OSES.keys.include?( @appliance_definition['os']['name'] )
+      raise ApplianceValidationError, "Unsupported OS: operating system '#{@appliance_definition['os']['name']}' is not supported. Supported OS types: #{SUPPORTED_OSES.keys.join(", ")}. Please correct your appliance definition file, thanks." if !@appliance_definition['os']['name'].nil? and !@os_plugin_manager.plugins.keys.include?( @appliance_definition['os']['name'].to_sym )
 
-      #unless @appliance_definition['os']['version'].nil?
-        #@appliance_definition['os']['version'] = @appliance_definition['os']['version'].to_s
-        #raise ApplianceValidationError, "Not valid OS version: operating system version '#{@appliance_definition['os']['version']}' is not supported for OS type '#{@appliance_definition['os']['name']}'. Supported OS versions for this OS type are: #{SUPPORTED_OSES[@appliance_definition['os']['name']].join(", ")}. Please correct your definition file '#{@appliance_definition_file}', thanks" if !SUPPORTED_OSES[@appliance_definition['os']['name'].nil? ? APPLIANCE_DEFAULTS[:os][:name] : @appliance_definition['os']['name']].include?( @appliance_definition['os']['version'] )
-      #end
+      unless @appliance_definition['os']['version'].nil?
+        @appliance_definition['os']['version'] = @appliance_definition['os']['version'].to_s
+        raise ApplianceValidationError, "Not valid OS version: operating system version '#{@appliance_definition['os']['version']}' is not supported for OS type '#{@appliance_definition['os']['name']}'. Supported OS versions for this OS type are: #{@os_plugin_manager.plugins[@appliance_definition['os']['name'].to_sym].os[:versions].join(", ")}. Please correct your definition file, thanks" if !@os_plugin_manager.plugins[@appliance_definition['os']['name'].to_sym].os[:versions].include?( @appliance_definition['os']['version'] )
+      end
     end
 
     def validate_hardware
