@@ -6,10 +6,6 @@ module BoxGrinder
      OperatingSystemPluginManager.instance << klass
     end
 
-    def os
-      {}
-    end
-
     def build
       raise "Not implemented!"
     end

@@ -2,7 +2,7 @@ require 'boxgrinder-build/plugins/os/base-operating-system-plugin'
 
 module BoxGrinder
   class RHELPlugin < BaseOperatingSystemPlugin
-    def os
+    def info
       {
               :name       => :rhel,
               :full_name  => "Red Hat Enterprise Linux",

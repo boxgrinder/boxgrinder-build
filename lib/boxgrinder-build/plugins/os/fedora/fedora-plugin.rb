@@ -2,7 +2,7 @@ require 'boxgrinder-build/plugins/os/base-operating-system-plugin'
 
 module BoxGrinder
   class FedoraPlugin < BaseOperatingSystemPlugin
-    def os
+    def info
       {
               :name       => :fedora,
               :full_name  => "Fedora",

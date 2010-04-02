@@ -20,12 +20,13 @@ module BoxGrinder
           raise "Error while initializing #{plugin_class} plugin.", e
         end
 
-        if @plugins[plugin.os[:name]].nil?
-          @plugins[plugin.os[:name]] = plugin
+        if @plugins[plugin.info[:name]].nil?
+          @plugins[plugin.info[:name]] = plugin
         else
-          raise "We already have registered plugin for #{plugin.name} OS."
+          raise "We already have registered plugin for #{plugin.info[:name]} OS."
         end
       end
+      self
     end
 
     attr_reader :plugins

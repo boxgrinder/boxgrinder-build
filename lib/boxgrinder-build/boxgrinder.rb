@@ -26,6 +26,7 @@ require 'boxgrinder-core/helpers/appliance-config-helper'
 require 'boxgrinder-build/defaults'
 require 'boxgrinder-build/appliance'
 require 'boxgrinder-build/managers/operating-system-plugin-manager'
+require 'boxgrinder-build/managers/platform-plugin-manager'
 require 'boxgrinder-build/validators/validator'
 require 'boxgrinder-build/validators/appliance-config-parameter-validator'
 #require 'boxgrinder-build/validators/appliance-definition-validator'
@@ -76,18 +77,11 @@ module BoxGrinder
 
       directory @config.dir.build
 
-      # loading plugins
+      # load all plugins (os an platform)
       Dir["#{File.dirname( __FILE__ )}/plugins/**/*.rb"].each {|file| require file }
 
-      os_plugin_manager = OperatingSystemPluginManager.instance
-      os_plugin_manager.initialize_plugins
-      os_plugins = os_plugin_manager.plugins
-
-      @log.debug "We have #{os_plugins.size} operating system plugin(s) registered"
-
-      os_plugins.each_value do |plugin|
-        @log.debug "- plugin for #{plugin.os[:full_name]} #{plugin.os[:versions].join(', ')}."
-      end
+      load_os_plugins
+      load_platform_plugins
 
       definitions = {}
 
@@ -103,6 +97,34 @@ module BoxGrinder
       for definition in definitions.values
         Appliance.new( @config, ApplianceConfigHelper.new( definitions ).merge( ApplianceConfig.new( definition ).init_arch ).initialize_paths, :log => @log )
       end
+    end
+
+    def load_os_plugins
+      @log.debug "Loading operating system plugins..."
+
+      plugins = OperatingSystemPluginManager.instance.initialize_plugins.plugins
+
+      @log.debug "We have #{plugins.size} operating system plugin(s) registered"
+
+      plugins.each_value do |plugin|
+        @log.debug "- plugin for #{plugin.info[:full_name]} #{plugin.info[:versions].join(', ')}."
+      end
+
+      @log.debug "Plugins loaded."
+    end
+
+    def load_platform_plugins
+      @log.debug "Loading platform plugins..."
+
+      plugins = PlatformPluginManager.instance.initialize_plugins.plugins
+
+      @log.debug "We have #{plugins.size} platform plugin(s) registered"
+
+      plugins.each_value do |plugin|
+        @log.debug "- plugin for #{plugin.info[:full_name]}."
+      end
+      
+      @log.debug "Plugins loaded."
     end
 
     attr_reader :config
