@@ -10,23 +10,26 @@ module BoxGrinder
       }
     end
 
-    def build( config, image_config, options = {}  )
+    def define( config, image_config, options = {}  )
       @config       = config
       @image_config = image_config
 
       @log          = options[:log]         || Logger.new(STDOUT)
       @exec_helper  = options[:exec_helper] || ExecHelper.new( { :log => @log } )
 
-      Kickstart.new( @config, @image_config, :log => @log )
-
       @tmp_dir = "#{@config.dir.root}/#{@config.dir.build}/tmp"
 
-      FileUtils.mkdir_p @tmp_dir
+      Kickstart.new( @config, @image_config, :log => @log )
 
-      # "appliance:#{@appliance_config.name}:validate:dependencies"
+      desc "Build #{@image_config.simple_name} appliance."
+      task "appliance:#{@image_config.name}" => [ @image_config.path.file.raw.xml, "appliance:#{@image_config.name}:validate:dependencies" ]
 
-      build_raw_image
-      #do_post_build_operations
+      directory @tmp_dir
+
+      file @image_config.path.file.raw.xml => [ @image_config.path.file.raw.kickstart, "appliance:#{@image_config.name}:validate:dependencies", @tmp_dir ] do
+        build_raw_image
+        # do_post_build_operations
+      end
     end
 
     def build_raw_image

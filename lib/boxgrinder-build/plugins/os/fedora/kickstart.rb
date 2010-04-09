@@ -31,11 +31,33 @@ module BoxGrinder
       @appliance_config = appliance_config
       @log              = options[:log] || Logger.new(STDOUT)
 
-      FileUtils.mkdir_p @appliance_config.path.dir.raw.build
+      define_tasks
+    end
 
-      template = "#{@config.dir.base}/lib/boxgrinder-build/erb/appliance.ks.erb"
-      kickstart = ERB.new( File.read( template ) ).result( build_definition.send( :binding ) )
-      File.open( @appliance_config.path.file.raw.kickstart, 'w' ) {|f| f.write( kickstart ) }
+    def define_tasks
+      directory @appliance_config.path.dir.raw.build
+
+      file @appliance_config.path.file.raw.config => @appliance_config.path.dir.raw.build do
+        File.open( @appliance_config.path.file.raw.config, "w") {|f| f.write( @appliance_config.to_yaml ) } unless File.exists?( @appliance_config.path.file.raw.config )
+      end
+
+      task "appliance:#{@appliance_config.name}:config" do
+        if File.exists?( @appliance_config.path.file.raw.config )
+          unless @appliance_config.eql?( YAML.load_file( @appliance_config.path.file.raw.config ) )
+            FileUtils.rm_rf appliance_build_dir
+          end
+        end
+      end
+
+      file @appliance_config.path.file.raw.kickstart => [ @appliance_config.path.file.raw.config ] do
+        template = "#{@config.dir.base}/lib/boxgrinder-build/erb/appliance.ks.erb"
+        kickstart = ERB.new( File.read( template ) ).result( build_definition.send( :binding ) )
+        File.open( @appliance_config.path.file.raw.kickstart, 'w' ) {|f| f.write( kickstart ) }
+      end
+
+      #desc "Build kickstart for #{File.basename( @appliance_config.name, '-appliance' )} appliance"
+      task "appliance:#{@appliance_config.name}:kickstart" => [ "appliance:#{@appliance_config.name}:config", @appliance_config.path.file.raw.kickstart ]
+
     end
 
     def build_definition

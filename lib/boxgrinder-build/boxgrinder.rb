@@ -25,6 +25,7 @@ require 'boxgrinder-core/models/appliance-config'
 require 'boxgrinder-core/helpers/appliance-config-helper'
 require 'boxgrinder-build/defaults'
 require 'boxgrinder-build/appliance'
+require 'boxgrinder-build/image-definition-parser'
 require 'boxgrinder-build/managers/operating-system-plugin-manager'
 require 'boxgrinder-build/managers/platform-plugin-manager'
 require 'boxgrinder-build/validators/validator'
@@ -83,19 +84,11 @@ module BoxGrinder
       load_os_plugins
       load_platform_plugins
 
-      definitions = {}
+      definition_parser       = ImageDefinitionParser.new( "#{@config.dir.appliances}/**", "#{@config.dir.base}/appliances" )
+      appliance_config_helper = ApplianceConfigHelper.new( definition_parser.definitions )
 
-      Dir[ "#{@config.dir.appliances}/**/*.appl", "#{@config.dir.base}/appliances/*.appl" ].each do |file|
-        definition = YAML.load_file( file )
-
-        #TODO validate this AFTER it's converted to a object
-        #ApplianceDefinitionValidator.new( definition ).validate
-
-        definitions[definition['name']] = definition
-      end
-
-      for definition in definitions.values
-        Appliance.new( @config, ApplianceConfigHelper.new( definitions ).merge( ApplianceConfig.new( definition ).init_arch ).initialize_paths, :log => @log )
+      for config in definition_parser.configs.values
+        Appliance.new( @config, appliance_config_helper.merge( config ).initialize_paths, :log => @log )
       end
     end
 
@@ -123,7 +116,7 @@ module BoxGrinder
       plugins.each_value do |plugin|
         @log.debug "- plugin for #{plugin.info[:full_name]}."
       end
-      
+
       @log.debug "Plugins loaded."
     end
 

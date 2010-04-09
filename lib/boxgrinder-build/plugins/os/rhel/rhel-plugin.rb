@@ -10,7 +10,7 @@ module BoxGrinder
       }
     end
 
-    def build( config, image_config )
+    def define( config, image_config, options = {}  )
 
     end
   end

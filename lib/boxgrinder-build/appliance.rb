@@ -36,22 +36,15 @@ module BoxGrinder
 
     def define
       # TODO this needs to be rewritten
-      #ApplianceDependencyValidator.new( @config, @appliance_config, :log => @log )
+      ApplianceDependencyValidator.new( @config, @appliance_config, :log => @log )
 
-      desc "Build #{@appliance_config.simple_name} appliance."
-      task "appliance:#{@appliance_config.name}" => [ @appliance_config.path.file.raw.xml ]
-
-      # "appliance:#{@appliance_config.name}:validate:dependencies"
-
-      file @appliance_config.path.file.raw.xml do
-        OperatingSystemPluginManager.instance.plugins[@appliance_config.os.name.to_sym].build( @config, @appliance_config, :log => @log )
+      OperatingSystemPluginManager.instance.plugins.each_value do |plugin|
+        plugin.define( @config, @appliance_config, :log => @log )
       end
 
       PlatformPluginManager.instance.plugins.each_value do |plugin|
         plugin.define( @config, @appliance_config, :log => @log )
       end
-
-      #ReleaseHelper.new( @config, @appliance_config, :log => @log )
     end
   end
 end
