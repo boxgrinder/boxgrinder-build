@@ -36,7 +36,7 @@ require 'yaml'
 
 Dir["#{File.dirname( __FILE__ )}/../plugins/**/*-plugin.rb"].each {|file| require file }
 
-#$stderr.reopen('/dev/null')
+$stderr.reopen('/dev/null')
 
 module BoxGrinder
   class BoxGrinder
