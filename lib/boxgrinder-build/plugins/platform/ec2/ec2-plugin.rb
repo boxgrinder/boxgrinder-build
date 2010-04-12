@@ -142,7 +142,7 @@ module BoxGrinder
           repo_included = true if repo['baseurl'] == "http://repo.boxgrinder.org/boxgrinder/packages/fedora/12/RPMS/#{@image_config.hardware.arch}"
         end
 
-        guestfs.upload( "#{File.dirname( __FILE__ )}/src/ec2/f12-#{@image_config.hardware.arch}-boxgrinder.repo", "/etc/yum.repos.d/f12-#{@image_config.hardware.arch}-boxgrinder.repo" ) unless repo_included
+        guestfs.upload( "#{File.dirname( __FILE__ )}/src/f12-#{@image_config.hardware.arch}-boxgrinder.repo", "/etc/yum.repos.d/f12-#{@image_config.hardware.arch}-boxgrinder.repo" ) unless repo_included
         guestfs.sh( "yum -y downgrade udev-142" )
         guestfs.upload( "#{File.dirname( __FILE__ )}/src/f12/yum.conf", "/etc/yum.conf" )
         guestfs.rm_rf( "/etc/yum.repos.d/f12-#{@image_config.hardware.arch}-boxgrinder.repo" ) unless repo_included
