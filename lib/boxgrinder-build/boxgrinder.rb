@@ -30,7 +30,7 @@ require 'boxgrinder-build/managers/operating-system-plugin-manager'
 require 'boxgrinder-build/managers/platform-plugin-manager'
 require 'boxgrinder-build/validators/validator'
 require 'boxgrinder-build/validators/appliance-config-parameter-validator'
-#require 'boxgrinder-build/validators/appliance-definition-validator'
+require 'boxgrinder-build/helpers/plugin-helper'
 require 'boxgrinder-build/helpers/rake-helper'
 require 'ostruct'
 require 'yaml'
@@ -78,11 +78,7 @@ module BoxGrinder
 
       directory @config.dir.build
 
-      # load all plugins (os an platform)
-      Dir["#{File.dirname( __FILE__ )}/plugins/**/*.rb"].each {|file| require file }
-
-      load_os_plugins
-      load_platform_plugins
+      PluginHelper.new( :log => @log ).load_plugins
 
       definition_parser       = ImageDefinitionParser.new( "#{@config.dir.appliances}/**", "#{@config.dir.base}/appliances" )
       appliance_config_helper = ApplianceConfigHelper.new( definition_parser.definitions )
@@ -90,34 +86,6 @@ module BoxGrinder
       for config in definition_parser.configs.values
         Appliance.new( @config, appliance_config_helper.merge( config ).initialize_paths, :log => @log )
       end
-    end
-
-    def load_os_plugins
-      @log.debug "Loading operating system plugins..."
-
-      plugins = OperatingSystemPluginManager.instance.initialize_plugins.plugins
-
-      @log.debug "We have #{plugins.size} operating system plugin(s) registered"
-
-      plugins.each_value do |plugin|
-        @log.debug "- plugin for #{plugin.info[:full_name]} #{plugin.info[:versions].join(', ')}."
-      end
-
-      @log.debug "Plugins loaded."
-    end
-
-    def load_platform_plugins
-      @log.debug "Loading platform plugins..."
-
-      plugins = PlatformPluginManager.instance.initialize_plugins.plugins
-
-      @log.debug "We have #{plugins.size} platform plugin(s) registered"
-
-      plugins.each_value do |plugin|
-        @log.debug "- plugin for #{plugin.info[:full_name]}."
-      end
-
-      @log.debug "Plugins loaded."
     end
 
     attr_reader :config
