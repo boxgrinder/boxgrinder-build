@@ -29,7 +29,6 @@ module BoxGrinder
 
     def validate
       validate_common
-      validate_vmware_files
       validate_appliance_dir
     end
 
@@ -44,24 +43,6 @@ module BoxGrinder
 
     def validate_appliance_dir
       raise ValidationError, "Appliances directory '#{@config.dir.appliances}' doesn't exists, please create it: 'mkdir -p #{@config.dir.appliances}'." if !File.exists?(File.dirname( @config.dir.appliances )) && !File.directory?(File.dirname( @config.dir.appliances ))
-    end
-
-    def validate_vmware_files
-      if File.exists?( "#{@config.dir.src}/base.vmdk" )
-        @config.files.base_vmdk = "#{@config.dir.src}/base.vmdk"
-      else
-        @config.files.base_vmdk = "#{@config.dir.base}/src/base.vmdk"
-      end
-
-      raise ValidationError, "base.vmdk file doesn't exists, please check you configuration)" unless File.exists?( @config.files.base_vmdk )
-
-      if File.exists?( "#{@config.dir.src}/base.vmx" )
-        @config.files.base_vmx = "#{@config.dir.src}/base.vmx"
-      else
-        @config.files.base_vmx = "#{@config.dir.base}/src/base.vmx"
-      end
-
-      raise ValidationError, "base.vmx file doesn't exists, please check you configuration)" unless File.exists?( @config.files.base_vmx )
     end
   end
 end

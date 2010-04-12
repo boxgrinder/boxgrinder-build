@@ -74,7 +74,7 @@ module BoxGrinder
     def define_rules
       Validator.new( @config, :log => @log )
 
-      Rake::Task[ 'validate:all' ].invoke
+      #Rake::Task[ 'validate:all' ].invoke
 
       directory @config.dir.build
 

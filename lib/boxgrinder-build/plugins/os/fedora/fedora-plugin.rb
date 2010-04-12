@@ -85,7 +85,7 @@ module BoxGrinder
       @log.debug "Setting up '/etc/motd'..."
       # set nice banner for SSH
       motd_file = "/etc/init.d/motd"
-      guestfs.upload( "#{@config.dir.base}/src/motd.init", motd_file )
+      guestfs.upload( "#{File.dirname( __FILE__ )}/src/motd.init", motd_file )
       guestfs.sh( "sed -i s/#VERSION#/'#{@image_config.version}.#{@image_config.release}'/ #{motd_file}" )
       guestfs.sh( "sed -i s/#APPLIANCE#/'#{@image_config.name} appliance'/ #{motd_file}" )
 
@@ -105,7 +105,7 @@ module BoxGrinder
       @log.debug "Installing repositories from appliance definition file..."
       @image_config.repos.each do |repo|
         @log.debug "Installing #{repo['name']} repo..."
-        repo_file = File.read( "#{@config.dir.base}/src/base.repo").gsub( /#NAME#/, repo['name'] )
+        repo_file = File.read( "#{File.dirname( __FILE__ )}/src/base.repo").gsub( /#NAME#/, repo['name'] )
 
         ['baseurl', 'mirrorlist'].each  do |type|
           repo_file << ("#{type}=#{repo[type]}\n") unless repo[type].nil?

@@ -62,7 +62,7 @@ module BoxGrinder
     end
 
     def change_vmdk_values( type )
-      vmdk_data = File.open( @config.files.base_vmdk ).read
+      vmdk_data = File.open( "#{File.dirname( __FILE__ )}/src/base.vmdk" ).read
 
       disk_size = 0
       @image_config.hardware.partitions.values.each { |part| disk_size += part['size'] }
@@ -85,7 +85,7 @@ module BoxGrinder
     end
 
     def change_common_vmx_values
-      vmx_data = File.open( @config.files.base_vmx ).read
+      vmx_data = File.open( "#{File.dirname( __FILE__ )}/src/base.vmx" ).read
 
       # replace version with current appliance version
       vmx_data.gsub!( /#VERSION#/, "#{@image_config.version}.#{@image_config.release}" )

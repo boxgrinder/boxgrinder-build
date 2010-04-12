@@ -24,6 +24,7 @@ require 'boxgrinder-build/validators/ssh-validator'
 require 'boxgrinder-build/models/ssh-config'
 require 'boxgrinder-build/helpers/ssh-helper'
 
+# TODO this needs to be moved to selected plugins
 module BoxGrinder
   class ReleaseHelper < Rake::TaskLib
     def initialize( config, appliance_config, options = {} )

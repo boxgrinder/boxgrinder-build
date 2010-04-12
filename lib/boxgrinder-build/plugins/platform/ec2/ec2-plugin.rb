@@ -1,4 +1,8 @@
 require 'boxgrinder-build/plugins/platform/base-platform-plugin'
+require 'boxgrinder-build/helpers/aws-helper'
+require 'AWS'
+require 'aws/s3'
+include AWS::S3
 
 module BoxGrinder
   class EC2Plugin < BasePlatformPlugin
@@ -16,18 +20,6 @@ module BoxGrinder
       @log          = options[:log]         || Logger.new(STDOUT)
       @exec_helper  = options[:exec_helper] || ExecHelper.new( :log => @log )
 
-      file @image_config.path.file.ec2.disk  => [ @image_config.path.file.raw.xml ] do
-        convert_image_to_ec2_format
-      end
-
-      desc "Build #{@image_config.simple_name} appliance for Amazon EC2"
-      task "appliance:#{@image_config.name}:ec2" => [ @image_config.path.file.ec2.disk ]
-    end
-
-    def convert
-    end
-
-    def define_tasks
       directory @image_config.path.dir.ec2.bundle
 
       # TODO we should depend on actual disk file, not xml I think
@@ -150,9 +142,9 @@ module BoxGrinder
           repo_included = true if repo['baseurl'] == "http://repo.boxgrinder.org/boxgrinder/packages/fedora/12/RPMS/#{@image_config.hardware.arch}"
         end
 
-        guestfs.upload( "#{@config.dir.base}/src/ec2/f12-#{@image_config.hardware.arch}-boxgrinder.repo", "/etc/yum.repos.d/f12-#{@image_config.hardware.arch}-boxgrinder.repo" ) unless repo_included
+        guestfs.upload( "#{File.dirname( __FILE__ )}/src/ec2/f12-#{@image_config.hardware.arch}-boxgrinder.repo", "/etc/yum.repos.d/f12-#{@image_config.hardware.arch}-boxgrinder.repo" ) unless repo_included
         guestfs.sh( "yum -y downgrade udev-142" )
-        guestfs.upload( "#{@config.dir.base}/src/f12/yum.conf", "/etc/yum.conf" )
+        guestfs.upload( "#{File.dirname( __FILE__ )}/src/f12/yum.conf", "/etc/yum.conf" )
         guestfs.rm_rf( "/etc/yum.repos.d/f12-#{@image_config.hardware.arch}-boxgrinder.repo" ) unless repo_included
 
         @log.debug "Package udev downgraded."
@@ -237,7 +229,7 @@ module BoxGrinder
 
     def upload_fstab( guestfs )
       @log.debug "Uploading '/etc/fstab' file..."
-      fstab_file = @image_config.is64bit? ? "#{@config.dir.base}/src/ec2/fstab_64bit" : "#{@config.dir.base}/src/ec2/fstab_32bit"
+      fstab_file = @image_config.is64bit? ? "#{File.dirname( __FILE__ )}/src/fstab_64bit" : "#{File.dirname( __FILE__ )}/src/fstab_32bit"
       guestfs.upload( fstab_file, "/etc/fstab" )
       @log.debug "'/etc/fstab' file uploaded."
     end
@@ -246,14 +238,14 @@ module BoxGrinder
     def enable_networking( guestfs )
       @log.debug "Enabling networking..."
       guestfs.sh( "/sbin/chkconfig network on" )
-      guestfs.upload( "#{@config.dir.base}/src/ec2/ifcfg-eth0", "/etc/sysconfig/network-scripts/ifcfg-eth0" )
+      guestfs.upload( "#{File.dirname( __FILE__ )}/src/ifcfg-eth0", "/etc/sysconfig/network-scripts/ifcfg-eth0" )
       @log.debug "Networking enabled."
     end
 
     def upload_rc_local( guestfs )
       @log.debug "Uploading '/etc/rc.local' file..."
       rc_local = Tempfile.new('rc_local')
-      rc_local << guestfs.read_file( "/etc/rc.local" ) + File.read( "#{@config.dir.base}/src/ec2/rc_local" )
+      rc_local << guestfs.read_file( "/etc/rc.local" ) + File.read( "#{File.dirname( __FILE__ )}/src/rc_local" )
       rc_local.flush
 
       guestfs.upload( rc_local.path, "/etc/rc.local" )

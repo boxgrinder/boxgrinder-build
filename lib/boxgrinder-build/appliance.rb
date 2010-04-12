@@ -34,9 +34,19 @@ module BoxGrinder
       define
     end
 
+    # TODO where put this?
+    def validate_config( config )
+      os_plugin = OperatingSystemPluginManager.instance.plugins[config.os.name.to_sym]
+
+      raise "Not supported operating system selected: #{config.os.name}. Supported OSes are: #{OperatingSystemPluginManager.instance.plugins.keys.join(", ")}" if os_plugin.nil?
+      raise "Not supported operating system version selected: #{config.os.version}. Supported versions are: #{os_plugin.info[:versions].join(", ")}" unless os_plugin.info[:versions].include?( config.os.version )
+    end
+
     def define
       # TODO this needs to be rewritten
       ApplianceDependencyValidator.new( @config, @appliance_config, :log => @log )
+
+      validate_config( @appliance_config )
 
       OperatingSystemPluginManager.instance.plugins.each_value do |plugin|
         plugin.define( @config, @appliance_config, :log => @log )
