@@ -39,7 +39,7 @@ module BoxGrinder
     def load_os_plugins
       @log.debug "Loading operating system plugins..."
 
-      @os_plugins = OperatingSystemPluginManager.instance.initialize_plugins.plugins
+      @os_plugins = OperatingSystemPluginManager.instance.initialize_plugins( :log => @log ).plugins
 
       @log.debug "We have #{@os_plugins.size} operating system plugin(s) registered"
 
@@ -53,7 +53,7 @@ module BoxGrinder
     def load_platform_plugins
       @log.debug "Loading platform plugins..."
 
-      @platform_plugins = PlatformPluginManager.instance.initialize_plugins.plugins
+      @platform_plugins = PlatformPluginManager.instance.initialize_plugins( :log => @log ).plugins
 
       @log.debug "We have #{@platform_plugins.size} platform plugin(s) registered"
 

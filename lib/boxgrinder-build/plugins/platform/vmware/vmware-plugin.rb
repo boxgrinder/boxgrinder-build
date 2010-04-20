@@ -30,7 +30,7 @@ module BoxGrinder
       }
     end
 
-    def define( config, image_config, options = {}  )
+    def define( config, image_config, options = {} )
       @config       = config
       @image_config = image_config
 
@@ -53,17 +53,26 @@ module BoxGrinder
       task "appliance:#{@image_config.name}:vmware" => [ "appliance:#{@image_config.name}:vmware:personal", "appliance:#{@image_config.name}:vmware:enterprise" ]
 
       file @image_config.path.file.vmware.disk => [ @image_config.path.dir.vmware.build, @image_config.path.file.raw.xml ] do
-        convert_to_vmware
+        #convert_to_vmware
       end
     end
 
-    def convert
+    def build( image, image_config, options = {} )
+      @image        = image
+      @image_config = image_config
+
+      @log          = options[:log]         || Logger.new(STDOUT)
+      @exec_helper  = options[:exec_helper] || ExecHelper.new( :log => @log )
+
+      #vmware_image = convert( image )
+      #build_vmware_enterprise
+      #build_vmware_personal
     end
 
     # returns value of cylinders, heads and sector for selected disk size (in GB)
 
     def generate_scsi_chs(disk_size)
-      disk_size = disk_size * 1024
+      disk_size = (disk_size * 1024).to_i
 
       gb_sectors = 2097152
 
@@ -84,8 +93,8 @@ module BoxGrinder
     def change_vmdk_values( type )
       vmdk_data = File.open( "#{File.dirname( __FILE__ )}/src/base.vmdk" ).read
 
-      disk_size = 0
-      @image_config.hardware.partitions.values.each { |part| disk_size += part['size'] }
+      disk_size = 0.0
+      @image_config.hardware.partitions.values.each { |part| disk_size += part['size'].to_f }
 
       c, h, s, total_sectors = generate_scsi_chs( disk_size )
 
@@ -135,6 +144,8 @@ module BoxGrinder
     def build_vmware_personal
       @log.debug "Building VMware personal image."
 
+      FileUtils.mkdir_p @image_config.path.dir.vmware.personal
+
       # link disk image
       create_hardlink_to_disk_image( @image_config.path.file.vmware.personal.disk )
 
@@ -149,6 +160,8 @@ module BoxGrinder
 
     def build_vmware_enterprise
       @log.debug "Building VMware enterprise image."
+
+      FileUtils.mkdir_p @image_config.path.dir.vmware.enterprise
 
       # link disk image
       create_hardlink_to_disk_image( @image_config.path.file.vmware.enterprise.disk )
@@ -168,22 +181,38 @@ module BoxGrinder
       @log.debug "VMware enterprise image was built."
     end
 
-    def convert_to_vmware
+    def convert( base_image_path, config, image_config, options = {}  )
+      @config       = config
+      @image_config = image_config
+
+      @log          = options[:log]         || Logger.new(STDOUT)
+      @exec_helper  = options[:exec_helper] || ExecHelper.new( :log => @log )
+
       @log.info "Converting image to VMware format..."
       @log.debug "Copying VMware image file, this may take several minutes..."
 
-      @exec_helper.execute "cp #{@image_config.path.file.raw.disk} #{@image_config.path.file.vmware.disk}" if ( !File.exists?( @image_config.path.file.vmware.disk ) || File.new( @image_config.path.file.raw.disk ).mtime > File.new( @image_config.path.file.vmware.disk ).mtime )
+      build_dir = "build/#{@image_config.appliance_path}/vmware"
+      image_path = "#{build_dir}/#{@image_config.name}.raw"
+
+      FileUtils.mkdir_p build_dir
+
+      @exec_helper.execute "cp #{base_image_path} #{image_path}" if ( !File.exists?( image_path ) || File.new( base_image_path ).mtime > File.new( image_path ).mtime )
 
       @log.debug "VMware image copied."
 
-      customize
+      #customize
 
       @log.info "Image converted to VMware format."
+
+      build_vmware_enterprise
+      build_vmware_personal
+
+      image_path
     end
 
     def customize
       @log.debug "Customizing VMware image..."
-      ApplianceCustomizeHelper.new( @config, @image_config, @image_config.path.file.vmware.disk, :log => @log ).customize do |customizer, guestfs|
+      ApplianceCustomizeHelper.new( @config, @image_config, @image_config.path.file.vmware.disk, :log => @log ).customize do |guestfs, guestfs_helper|
         # install_vmware_tools( customizer )
         execute_post_operations( guestfs )
       end

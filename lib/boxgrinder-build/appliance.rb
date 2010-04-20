@@ -21,39 +21,64 @@
 require 'rake/tasklib'
 
 require 'boxgrinder-build/helpers/release-helper'
-require 'boxgrinder-build/validators/appliance-dependency-validator'
 
 module BoxGrinder
   class Appliance < Rake::TaskLib
 
-    def initialize( config, appliance_config, options = {} )
-      @config            = config
-      @appliance_config  = appliance_config
+    def initialize(  appliance_definition_file, options = {} )
+      @config            = Config.new
+      @appliance_definition_file  = appliance_definition_file
       @log               = options[:log] || Logger.new(STDOUT)
-
-      define
+      @options           = options[:options]
     end
 
-    # TODO where put this?
-    def validate_config( config )
-      os_plugin = OperatingSystemPluginManager.instance.plugins[config.os.name.to_sym]
+    def create
+      appliance_configs       = ApplianceHelper.new( :log => @log ).read_definitions( @appliance_definition_file )
+      appliance_config_helper = ApplianceConfigHelper.new( appliance_configs )
 
-      raise "Not supported operating system selected: #{config.os.name}. Supported OSes are: #{OperatingSystemPluginManager.instance.plugins.keys.join(", ")}" if os_plugin.nil?
-      raise "Not supported operating system version selected: #{config.os.version}. Supported versions are: #{os_plugin.info[:versions].join(", ")}" unless os_plugin.info[:versions].include?( config.os.version )
-    end
+      @appliance_config = appliance_config_helper.merge(clone_object(appliance_configs.values.first).init_arch).initialize_paths
 
-    def define
-      # TODO this needs to be rewritten
-      ApplianceDependencyValidator.new( @config, @appliance_config, :log => @log )
+      ApplianceConfigValidator.new( @appliance_config ).validate
 
-      validate_config( @appliance_config )
+      @log.debug "Selected platform: #{@options.platform}."
 
-      OperatingSystemPluginManager.instance.plugins.each_value do |plugin|
-        plugin.define( @config, @appliance_config, :log => @log )
+      if @options.force
+        @log.info "Removing previous builds for #{@appliance_config.name} appliance..."
+        FileUtils.rm_rf( @appliance_config.path.dir.build )
+        @log.debug "Previous builds removed,"
       end
 
-      PlatformPluginManager.instance.plugins.each_value do |plugin|
-        plugin.define( @config, @appliance_config, :log => @log )
+      disk = search_for_built_disks
+
+      if disk.nil?
+        os_plugin = OperatingSystemPluginManager.instance.plugins[@appliance_config.os.name.to_sym]
+        os_plugin.init( @config, @appliance_config, :log => @log )
+        os_plugin.build
+      else
+        @log.info "Base image for #{@appliance_config.name} appliance already exists, skipping..."
+      end
+
+      disk = search_for_built_disks
+
+      PlatformPluginManager.instance.plugins[@options.platform].convert( disk, @config, @appliance_config, :log => @log ) unless @options.platform == :base
+    end
+
+    # TODO: better way?
+    def clone_object( o )
+      Marshal::load(Marshal.dump(o))
+    end
+
+    def search_for_built_disks
+      disks = Dir[ "#{@appliance_config.path.dir.raw.build_full}/*.raw" ]
+
+      if disks.size == 0
+        return nil
+      else
+        if disks.size == 1
+          return disks.first
+        else
+          raise "More than 1 disk found, aborting."
+        end
       end
     end
   end

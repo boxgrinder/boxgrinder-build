@@ -18,57 +18,59 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require 'boxgrinder-build/plugins/os/base-operating-system-plugin'
+require 'boxgrinder-build/plugins/os/base/rpm-based-os-plugin'
+require 'boxgrinder-build/plugins/os/base/kickstart'
+require 'boxgrinder-build/plugins/os/base/validators/rpm-dependency-validator'
 
 module BoxGrinder
-  class FedoraPlugin < BaseOperatingSystemPlugin
+  class FedoraPlugin < RPMBasedOSPlugin
+
+    FEDORA_REPOS = {
+            "12" => {
+                    "base" => {
+                            "mirrorlist" => "http://mirrors.fedoraproject.org/mirrorlist?repo=fedora-12&arch=#ARCH#"
+                    },
+                    "updates" => {
+                            "mirrorlist" => "http://mirrors.fedoraproject.org/mirrorlist?repo=updates-released-f12&arch=#ARCH#"
+                    }
+            },
+            "11" => {
+                    "base" => {
+                            "mirrorlist" => "http://mirrors.fedoraproject.org/mirrorlist?repo=fedora-11&arch=#ARCH#"
+                    },
+                    "updates" => {
+                            "mirrorlist" => "http://mirrors.fedoraproject.org/mirrorlist?repo=updates-released-f11&arch=#ARCH#"
+                    }
+            },
+            "rawhide" => {
+                    "base" => {
+                            "mirrorlist" => "http://mirrors.fedoraproject.org/mirrorlist?repo=rawhide&arch=#ARCH#"
+                    }
+            }
+
+    }
+
     def info
       {
               :name       => :fedora,
               :full_name  => "Fedora",
-              :versions   => ["11", "12"]
+              :versions   => ["11", "12", "rawhide"]
       }
     end
 
-    def define( config, image_config, options = {}  )
-      @config       = config
-      @image_config = image_config
+    def build( config, appliance_config, options = {}  )
+      log          = options[:log]         || Logger.new(STDOUT)
+      exec_helper  = options[:exec_helper] || ExecHelper.new( { :log => log } )
 
-      @log          = options[:log]         || Logger.new(STDOUT)
-      @exec_helper  = options[:exec_helper] || ExecHelper.new( { :log => @log } )
+      disk_path = build_with_appliance_creator( config, appliance_config, FEDORA_REPOS, :log => log, :exec_helper => exec_helper )
 
-      @tmp_dir = "#{@config.dir.root}/#{@config.dir.build}/tmp"
-
-      Kickstart.new( @config, @image_config, :log => @log )
-
-      desc "Build #{@image_config.simple_name} appliance."
-      task "appliance:#{@image_config.name}" => [ @image_config.path.file.raw.xml, "appliance:#{@image_config.name}:validate:dependencies" ]
-
-      directory @tmp_dir
-
-      file @image_config.path.file.raw.xml => [ @image_config.path.file.raw.kickstart, "appliance:#{@image_config.name}:validate:dependencies", @tmp_dir ] do
-        build_raw_image
-        # do_post_build_operations
-      end
+      #do_post_build_operations( disk_path )
     end
 
-    def build_raw_image
-      @log.info "Building #{@image_config.simple_name} appliance..."
-
-      @exec_helper.execute "sudo PYTHONUNBUFFERED=1 appliance-creator -d -v -t #{@tmp_dir} --cache=#{@config.dir.rpms_cache}/#{@image_config.main_path} --config #{@image_config.path.file.raw.kickstart} -o #{@image_config.path.dir.raw.build} --name #{@image_config.name} --vmem #{@image_config.hardware.memory} --vcpu #{@image_config.hardware.cpus}"
-
-      # fix permissions
-      @exec_helper.execute "sudo chmod 777 #{@image_config.path.dir.raw.build_full}"
-      @exec_helper.execute "sudo chmod 666 #{@image_config.path.file.raw.disk}"
-      @exec_helper.execute "sudo chmod 666 #{@image_config.path.file.raw.xml}"
-
-      @log.info "Appliance #{@image_config.simple_name} was built successfully."
-    end
-
-    def do_post_build_operations
+    def do_post_build_operations( disk_path )
       @log.info "Executing post operations after build..."
 
-      guestfs_helper = GuestFSHelper.new( @image_config.path.file.raw.disk, :log => @log )
+      guestfs_helper = GuestFSHelper.new( disk_path, :log => @log )
       guestfs = guestfs_helper.guestfs
 
       change_configuration( guestfs )
@@ -87,8 +89,8 @@ module BoxGrinder
         @log.debug "No commands specified, skipping."
       end
 
-      guestfs.close
-
+      guestfs_helper.clean_close
+      
       @log.info "Post operations executed."
     end
 

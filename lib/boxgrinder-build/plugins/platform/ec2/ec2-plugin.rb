@@ -176,8 +176,8 @@ module BoxGrinder
         @log.debug "Services disabled."
       end
 
-      guestfs.close
-
+      guestfs_helper.clean_close
+      
       @log.info "Image converted to EC2 format."
     end
 

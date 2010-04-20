@@ -33,7 +33,7 @@ module BoxGrinder
     attr_reader :mirrorlist
   end
 
-  class ApplianceDependencyValidator
+  class RPMDependencyValidator
     def initialize( config, appliance_config, options = {} )
       @config = config
       @appliance_config = appliance_config

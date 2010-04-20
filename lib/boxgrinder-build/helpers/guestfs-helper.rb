@@ -26,6 +26,8 @@ module BoxGrinder
       @raw_disk = raw_disk
       @log      = options[:log] || Logger.new(STDOUT)
 
+      @partitions = {}
+
       launch
     end
 
@@ -55,24 +57,27 @@ module BoxGrinder
       @guestfs.launch
       @log.debug "Waiting for guestfs..."
       @guestfs.wait_ready
-      @log.debug "Guestfs launched."
 
-      if @guestfs.list_partitions.size > 0
-        partition_to_mount = "/dev/sda1"
-      else
-        partition_to_mount = "/dev/sda"
-      end
-
-      @log.debug "Mounting root partition..."
-      @guestfs.mount( partition_to_mount, "/" )
-      @log.debug "Root partition mounted."
-
-      # TODO is this really needed?
-      @log.debug "Uploading '/etc/resolv.conf'..."
-      @guestfs.upload( "/etc/resolv.conf", "/etc/resolv.conf" )
-      @log.debug "'/etc/resolv.conf' uploaded."
+      mount_partition( @guestfs.list_partitions.first, '/' ) if @guestfs.list_partitions.size == 1
+      mount_partition( @guestfs.list_devices.first, '/' ) if @guestfs.list_partitions.size == 0
 
       @log.debug "Guestfs launched."
+    end
+
+    def clean_close
+      @log.debug "Closing guestfs..."
+
+      @guestfs.sync
+      @guestfs.umount_all
+      @guestfs.close
+
+      @log.debug "Guestfs closed."
+    end
+
+    def mount_partition( part, mount_point )
+      @log.debug "Mounting #{part} partition to #{mount_point}..."
+      @guestfs.mount( part, mount_point )
+      @log.debug "Partition mounted."
     end
 
     # TODO this is shitty, I know... https://bugzilla.redhat.com/show_bug.cgi?id=507188

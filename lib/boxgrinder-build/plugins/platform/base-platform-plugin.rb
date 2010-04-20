@@ -8,7 +8,7 @@ module BoxGrinder
     end
 
     def convert
-      raise "Not implemented!"
+      raise "Convert operation for #{self.class} plugin is not implemented"
     end
   end
 end

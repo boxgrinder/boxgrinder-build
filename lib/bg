@@ -1,0 +1,46 @@
+require 'rubygems'
+require 'commander/import'
+require 'boxgrinder-build/helpers/plugin-helper'
+require 'boxgrinder-core/models/appliance-config'
+require 'boxgrinder-core/models/config'
+require 'boxgrinder-core/helpers/log-helper'
+require 'boxgrinder-core/helpers/appliance-config-helper'
+require 'boxgrinder-build/helpers/appliance-helper'
+require 'boxgrinder-build/validators/appliance-config-validator'
+require 'boxgrinder-build/appliance'
+
+# :name is optional, otherwise uses the basename of this executable
+
+module BoxGrinder
+
+  program :name, 'BoxGrinder'
+  program :version, '0.2.0'
+  program :description, 'A tool for building VM images from simple definition files.'
+
+  #default_command :build
+
+  log = LogHelper.new
+  plugin_helper = PluginHelper.new( :log => log ).load_plugins
+  valid_platforms = plugin_helper.platform_plugins.keys + [ :base ]
+
+  command :build do |c|
+    c.syntax      = 'build'
+    c.description = 'Builds the image for selected platform.'
+
+    c.option '-p STRING', '--platform STRING', String, "The type of platform. Valid types are: #{valid_platforms.join(', ')}."
+    c.option '-f', '--force', TrueClass, "Force image creation."
+
+    c.action do |args, options|
+      options.default :platform => :base
+      options.platform = options.platform.to_s.downcase.to_sym
+
+      appliance_definition_file = args.shift or raise('Appliance definition file is required. Run boxgrinder -h for more info')
+
+      raise("Appliance definition file '#{appliance_definition_file}' could not be found") unless File.exists?( appliance_definition_file )
+      raise("Not valid platform selected: #{options.platform}. Valid types are: #{valid_platforms.join(', ')}") unless valid_platforms.include?( options.platform )
+      
+      Appliance.new( appliance_definition_file, :log => log, :options => options ).create
+    end
+  end
+
+end

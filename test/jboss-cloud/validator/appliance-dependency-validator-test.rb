@@ -27,7 +27,7 @@ module JBossCloud
   class ApplianceDependencyValidatorTest < Test::Unit::TestCase
     def setup
       @options = { :log => LogMock.new, :exec_helper => ExecHelperMock.new }
-      @validator = ApplianceDependencyValidator.new( ConfigHelper.generate_config, ConfigHelper.generate_appliance_config, @options )
+      @validator = RPMDependencyValidator.new( ConfigHelper.generate_config, ConfigHelper.generate_appliance_config, @options )
     end
 
     def test_cached_repomdxml
@@ -45,7 +45,7 @@ jboss-tools-eclipse-0:3.5-1.fc11.x86_64
 firefox-0:3.5-1.fc11.x86_64
 
 " ) }
-      validator = ApplianceDependencyValidator.new( ConfigHelper.generate_config, ConfigHelper.generate_appliance_config, options )
+      validator = RPMDependencyValidator.new( ConfigHelper.generate_config, ConfigHelper.generate_appliance_config, options )
 
       invalid_names =  validator.invalid_names( "doesnt_matter", [ "invalid-package" ] )
 

@@ -5,7 +5,7 @@ parentCID=ffffffff
 createType="#TYPE#"
 
 # Extent description
-RW #TOTAL_SECTORS# #EXTENT_TYPE# "#NAME#-sda.raw" #NUMBER#
+RW #TOTAL_SECTORS# #EXTENT_TYPE# "#NAME#.raw" #NUMBER#
 
 # The Disk Data Base
 #DDB

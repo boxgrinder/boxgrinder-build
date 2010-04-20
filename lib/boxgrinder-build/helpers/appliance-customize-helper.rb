@@ -39,9 +39,9 @@ module BoxGrinder
       @guestfs_helper = GuestFSHelper.new( @disk, :log => @log )
       @guestfs = @guestfs_helper.guestfs
 
-      yield self, @guestfs
+      yield @guestfs, @guestfs_helper
 
-      @guestfs.close
+      @guestfs_helper.clean_close
     end
 
     def validate_options( options )

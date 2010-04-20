@@ -23,11 +23,28 @@ require 'boxgrinder-build/managers/operating-system-plugin-manager'
 module BoxGrinder
   class BaseOperatingSystemPlugin
     def self.inherited(klass)
-     OperatingSystemPluginManager.instance << klass
+      OperatingSystemPluginManager.instance << klass
     end
 
     def build
-      raise "Not implemented!"
+      raise "Build operation for #{self.class} plugin is not implemented"
+    end
+
+    def init( config, appliance_config, options = {} )
+      @config           = config
+      @appliance_config = appliance_config
+      @options          = options
+
+      @log              = options[:log]         || Logger.new(STDOUT)
+      @exec_helper      = options[:exec_helper] || ExecHelper.new( { :log => @log } )
+
+      @initialized       = true
+    end
+
+    def customize( disk)
+      ApplianceCustomizeHelper.new( @config, @appliance_config, disk, :log => @log ).customize do |guestfs, guestfs_helper|
+        yield guestfs, guestfs_helper
+      end
     end
   end
 end
