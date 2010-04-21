@@ -11,6 +11,8 @@ require 'boxgrinder-build/appliance'
 
 # :name is optional, otherwise uses the basename of this executable
 
+$stderr.reopen('/dev/null')
+
 module BoxGrinder
 
   program :name, 'BoxGrinder'

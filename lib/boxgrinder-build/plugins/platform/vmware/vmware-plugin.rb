@@ -66,7 +66,7 @@ module BoxGrinder
 
       gb_sectors = 2097152
 
-      if disk_size == 1024
+      if disk_size <= 1024
         h = 128
         s = 32
       else

@@ -76,6 +76,11 @@ module BoxGrinder
         @log.debug "Recreating initrd for #{kernel_version} kernel..."
         @log.debug guestfs.sh( "/sbin/mkinitrd -f -v --preload=mptspi /boot/initrd-#{kernel_version}.img #{kernel_version}" )
         @log.debug "Initrd recreated."
+
+        @log.debug "Applying root password..."
+        guestfs.sh( "/usr/bin/passwd -d root" )
+        guestfs.sh( "/usr/sbin/usermod -p '#{@appliance_config.os.password.crypt((0...8).map{65.+(rand(25)).chr}.join)}' root" )
+        @log.debug "Password applied."
       end
 
       @log.info "Done."
@@ -83,10 +88,9 @@ module BoxGrinder
       disk
     end
 
-
     # https://bugzilla.redhat.com/show_bug.cgi?id=466275
     def adjust_partition_table
-      @appliance_config.hardware.partitions['/boot'] = { 'root' => '/boot', 'size' => '0.1' }
+      @appliance_config.hardware.partitions['/boot'] = { 'root' => '/boot', 'size' => 0.1 } if @appliance_config.hardware.partitions['/boot'].nil?
     end
   end
 end
