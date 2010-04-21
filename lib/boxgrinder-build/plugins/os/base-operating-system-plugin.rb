@@ -41,8 +41,8 @@ module BoxGrinder
       @initialized       = true
     end
 
-    def customize( disk)
-      ApplianceCustomizeHelper.new( @config, @appliance_config, disk, :log => @log ).customize do |guestfs, guestfs_helper|
+    def customize( disk_path )
+      ApplianceCustomizeHelper.new( @config, @appliance_config, disk_path, :log => @log ).customize do |guestfs, guestfs_helper|
         yield guestfs, guestfs_helper
       end
     end

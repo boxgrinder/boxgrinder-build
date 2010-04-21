@@ -58,84 +58,10 @@ module BoxGrinder
       }
     end
 
-    def build( config, appliance_config, options = {}  )
-      log          = options[:log]         || Logger.new(STDOUT)
-      exec_helper  = options[:exec_helper] || ExecHelper.new( { :log => log } )
+    def build
+      raise "Build cannot be started before the plugin isn't initialized" if @initialized.nil?
 
-      disk_path = build_with_appliance_creator( config, appliance_config, FEDORA_REPOS, :log => log, :exec_helper => exec_helper )
-
-      #do_post_build_operations( disk_path )
-    end
-
-    def do_post_build_operations( disk_path )
-      @log.info "Executing post operations after build..."
-
-      guestfs_helper = GuestFSHelper.new( disk_path, :log => @log )
-      guestfs = guestfs_helper.guestfs
-
-      change_configuration( guestfs )
-      set_motd( guestfs )
-      install_version_files( guestfs )
-      install_repos( guestfs )
-
-      @log.debug "Executing post commands from appliance definition file..."
-      if @image_config.post.base.size > 0
-        for cmd in @image_config.post.base
-          @log.debug "Executing #{cmd}"
-          guestfs.sh( cmd )
-        end
-        @log.debug "Post commands from appliance definition file executed."
-      else
-        @log.debug "No commands specified, skipping."
-      end
-
-      guestfs_helper.clean_close
-      
-      @log.info "Post operations executed."
-    end
-
-    def change_configuration( guestfs )
-      @log.debug "Changing configuration files using augeas..."
-      guestfs.aug_init( "/", 0 )
-      # don't use DNS for SSH
-      guestfs.aug_set( "/files/etc/ssh/sshd_config/UseDNS", "no" ) if guestfs.exists( '/etc/ssh/sshd_config' ) != 0
-      guestfs.aug_save
-      @log.debug "Augeas changes saved."
-    end
-
-    def set_motd( guestfs )
-      @log.debug "Setting up '/etc/motd'..."
-      # set nice banner for SSH
-      motd_file = "/etc/init.d/motd"
-      guestfs.upload( "#{File.dirname( __FILE__ )}/src/motd.init", motd_file )
-      guestfs.sh( "sed -i s/#VERSION#/'#{@image_config.version}.#{@image_config.release}'/ #{motd_file}" )
-      guestfs.sh( "sed -i s/#APPLIANCE#/'#{@image_config.name} appliance'/ #{motd_file}" )
-
-      guestfs.sh( "/bin/chmod +x #{motd_file}" )
-      guestfs.sh( "/sbin/chkconfig --add motd" )
-      @log.debug "'/etc/motd' is nice now."
-    end
-
-    def install_version_files( guestfs )
-      @log.debug "Installing BoxGrinder version files..."
-      guestfs.sh( "echo 'BOXGRINDER_VERSION=#{@config.version_with_release}' > /etc/sysconfig/boxgrinder" )
-      guestfs.sh( "echo 'APPLIANCE_NAME=#{@image_config.name}' >> /etc/sysconfig/boxgrinder" )
-      @log.debug "Version files installed."
-    end
-
-    def install_repos( guestfs )
-      @log.debug "Installing repositories from appliance definition file..."
-      @image_config.repos.each do |repo|
-        @log.debug "Installing #{repo['name']} repo..."
-        repo_file = File.read( "#{File.dirname( __FILE__ )}/src/base.repo").gsub( /#NAME#/, repo['name'] )
-
-        ['baseurl', 'mirrorlist'].each  do |type|
-          repo_file << ("#{type}=#{repo[type]}\n") unless repo[type].nil?
-        end
-
-        guestfs.write_file( "/etc/yum.repos.d/#{repo['name']}.repo", repo_file, 0 )
-      end
-      @log.debug "Repositories installed."
+      build_with_appliance_creator( FEDORA_REPOS )
     end
   end
 end

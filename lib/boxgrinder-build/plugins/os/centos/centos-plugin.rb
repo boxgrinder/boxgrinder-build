@@ -47,34 +47,11 @@ module BoxGrinder
 
       adjust_partition_table
 
-      disk = build_with_appliance_creator( CENTOS_REPOS )
-
-      @log.info "Executing post-install steps..."
-
-      customize( disk ) do |guestfs, guestfs_helper|
-        # TODO: make sure we're mounting right partitions. What if we have more partitions?
-        # e2label?
-
-        root_partition = nil
-
-        guestfs.list_partitions.each do |partition|
-          guestfs_helper.mount_partition( partition, '/' )
-          if guestfs.exists( '/sbin/e2label' ) != 0
-            root_partition = partition
-            break
-          end
-          guestfs.umount( partition )
-        end
-
-        guestfs.list_partitions.each do |partition|
-          next if partition == root_partition
-          guestfs_helper.mount_partition( partition, guestfs.sh( "/sbin/e2label #{partition}" ).chomp.strip )
-        end
-
+      disk_path = build_with_appliance_creator( CENTOS_REPOS )  do |guestfs, guestfs_helper|
         kernel_version = guestfs.ls("/lib/modules").first
 
         @log.debug "Recreating initrd for #{kernel_version} kernel..."
-        @log.debug guestfs.sh( "/sbin/mkinitrd -f -v --preload=mptspi /boot/initrd-#{kernel_version}.img #{kernel_version}" )
+        guestfs.sh( "/sbin/mkinitrd -f -v --preload=mptspi /boot/initrd-#{kernel_version}.img #{kernel_version}" )
         @log.debug "Initrd recreated."
 
         @log.debug "Applying root password..."
@@ -85,7 +62,7 @@ module BoxGrinder
 
       @log.info "Done."
 
-      disk
+      disk_path
     end
 
     # https://bugzilla.redhat.com/show_bug.cgi?id=466275

@@ -45,7 +45,95 @@ module BoxGrinder
 
       @log.info "Appliance #{@appliance_config.simple_name} was built successfully."
 
+      customize( disk_path ) do |guestfs, guestfs_helper|
+        @log.info "Executing post operations after build..."
+
+        mount_partitions( guestfs, guestfs_helper ) if guestfs.list_partitions.size > 1
+
+        if @appliance_config.post.base.size > 0
+          @appliance_config.post.base.each do |cmd|
+            @log.debug "Executing #{cmd}"
+            guestfs.sh( cmd )
+          end
+          @log.debug "Post commands from appliance definition file executed."
+        else
+          @log.debug "No commands specified, skipping."
+        end
+
+        change_configuration( guestfs )
+        set_motd( guestfs )
+        install_version_files( guestfs )
+        install_repos( guestfs )
+
+        yield guestfs, guestfs_helper if block_given?
+
+        @log.info "Post operations executed."
+      end
+
       disk_path
     end
+
+    def mount_partitions( guestfs, guestfs_helper )
+      root_partition = nil
+
+      guestfs.list_partitions.each do |partition|
+        guestfs_helper.mount_partition( partition, '/' )
+        if guestfs.exists( '/sbin/e2label' ) != 0
+          root_partition = partition
+          break
+        end
+        guestfs.umount( partition )
+      end
+
+      guestfs.list_partitions.each do |partition|
+        next if partition == root_partition
+        guestfs_helper.mount_partition( partition, guestfs.sh( "/sbin/e2label #{partition}" ).chomp.strip )
+      end
+    end
+
+    def change_configuration( guestfs )
+      @log.debug "Changing configuration files using augeas..."
+      guestfs.aug_init( "/", 0 )
+      # don't use DNS for SSH
+      guestfs.aug_set( "/files/etc/ssh/sshd_config/UseDNS", "no" ) if guestfs.exists( '/etc/ssh/sshd_config' ) != 0
+      guestfs.aug_save
+      @log.debug "Augeas changes saved."
+    end
+
+    def install_version_files( guestfs )
+      @log.debug "Installing BoxGrinder version files..."
+      guestfs.sh( "echo 'BOXGRINDER_VERSION=#{@config.version_with_release}' > /etc/sysconfig/boxgrinder" )
+      guestfs.sh( "echo 'APPLIANCE_NAME=#{@appliance_config.name}' >> /etc/sysconfig/boxgrinder" )
+      @log.debug "Version files installed."
+    end
+
+    def set_motd( guestfs )
+      @log.debug "Setting up '/etc/motd'..."
+      # set nice banner for SSH
+      motd_file = "/etc/init.d/motd"
+      guestfs.upload( "#{File.dirname( __FILE__ )}/src/motd.init", motd_file )
+      guestfs.sh( "sed -i s/#VERSION#/'#{@appliance_config.version}.#{@appliance_config.release}'/ #{motd_file}" )
+      guestfs.sh( "sed -i s/#APPLIANCE#/'#{@appliance_config.name} appliance'/ #{motd_file}" )
+
+      guestfs.sh( "/bin/chmod +x #{motd_file}" )
+      guestfs.sh( "/sbin/chkconfig --add motd" )
+      @log.debug "'/etc/motd' is nice now."
+    end
+
+    def install_repos( guestfs )
+      @log.debug "Installing repositories from appliance definition file..."
+      @appliance_config.repos.each do |repo|
+        @log.debug "Installing #{repo['name']} repo..."
+        repo_file = File.read( "#{File.dirname( __FILE__ )}/src/base.repo").gsub( /#NAME#/, repo['name'] )
+
+        ['baseurl', 'mirrorlist'].each  do |type|
+          repo_file << ("#{type}=#{repo[type]}\n") unless repo[type].nil?
+        end
+
+        guestfs.write_file( "/etc/yum.repos.d/#{repo['name']}.repo", repo_file, 0 )
+      end
+      @log.debug "Repositories installed."
+    end
+
   end
 end
