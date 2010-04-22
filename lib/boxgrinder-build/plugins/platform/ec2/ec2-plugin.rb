@@ -58,13 +58,21 @@ module BoxGrinder
 
       @log.info "Converting #{@appliance_config.name} appliance image to EC2 format..."
 
-      ec2_prepare_disk
-      ec2_create_filesystem
+      begin
+        ec2_prepare_disk
+        ec2_create_filesystem
+      rescue => e
+        raise "Error while preparing EC2 disk image. See logs for more info"
+      end
 
       raw_disk_offset = calculate_disk_offset( raw_disk )
 
-      ec2_loop_device = mount_image(@files[:ec2_disk], @directories[:ec2_disk_mount_dir] )
-      raw_loop_device = mount_image(raw_disk, @directories[:raw_disk_mount_dir], raw_disk_offset )
+      begin
+        ec2_loop_device = mount_image(@files[:ec2_disk], @directories[:ec2_disk_mount_dir] )
+        raw_loop_device = mount_image(raw_disk, @directories[:raw_disk_mount_dir], raw_disk_offset )
+      rescue => e
+        raise "Error while mounting image. See logs for more info"
+      end
 
       sync_files( @directories[:raw_disk_mount_dir], @directories[:ec2_disk_mount_dir]  )
 
@@ -130,7 +138,7 @@ module BoxGrinder
       loop_device = get_loop_device
 
       @exec_helper.execute( "sudo losetup #{loop_device} #{disk}" )
-      offset = @exec_helper.execute("sudo parted -m #{loop_device} 'unit B print' | grep '^1' | awk -F: '{ print $2 }'").strip.chop
+      offset = @exec_helper.execute("sudo parted #{loop_device} 'unit B print' | grep Number -A 1 | tail -n 1 | awk '{ print $2 }'").strip.chop.scan(/^\d+/).to_s
       @exec_helper.execute( "sudo losetup -d #{loop_device}" )
 
       offset
