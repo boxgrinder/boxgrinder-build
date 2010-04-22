@@ -31,9 +31,13 @@ module BoxGrinder
     def load_plugins
       Dir["#{File.dirname( __FILE__ )}/../plugins/**/*.rb"].each {|file| require file }
 
-      print_plugins( 'os' ) { OperatingSystemPluginManager.instance.initialize_plugins( :log => @log ).plugins }
-      print_plugins( 'platform' ) { PlatformPluginManager.instance.initialize_plugins( :log => @log ).plugins }
-      print_plugins( 'delivery' ) { DeliveryPluginManager.instance.initialize_plugins( :log => @log ).plugins }
+      @os_plugins       = OperatingSystemPluginManager.instance.initialize_plugins( :log => @log ).plugins
+      @platform_plugins = PlatformPluginManager.instance.initialize_plugins( :log => @log ).plugins
+      @delivery_plugins = DeliveryPluginManager.instance.initialize_plugins( :log => @log ).plugins
+
+      print_plugins( 'os' ) { @os_plugins }
+      print_plugins( 'platform' ) { @platform_plugins }
+      print_plugins( 'delivery' ) { @delivery_plugins }
 
       self
     end
@@ -41,11 +45,11 @@ module BoxGrinder
     def print_plugins( type )
       @log.debug "Loading #{type} plugins..."
 
-      @platform_plugins = yield
+      plugins = yield
 
-      @log.debug "We have #{@platform_plugins.size} #{type} plugin(s) registered"
+      @log.debug "We have #{plugins.size} #{type} plugin(s) registered"
 
-      @platform_plugins.each_value do |plugin|
+      plugins.each_value do |plugin|
         @log.debug "- plugin for #{plugin.info[:full_name]}."
       end
 
@@ -54,5 +58,6 @@ module BoxGrinder
 
     attr_reader :os_plugins
     attr_reader :platform_plugins
+    attr_reader :delivery_plugins
   end
 end

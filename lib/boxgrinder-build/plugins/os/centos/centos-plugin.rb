@@ -43,7 +43,7 @@ module BoxGrinder
     end
 
     def build
-      raise "Build cannot be started before the plugin isn't initialized" if @initialized.nil?
+      raise "Build cannot be started until the plugin isn't initialized" if @initialized.nil?
 
       adjust_partition_table
 

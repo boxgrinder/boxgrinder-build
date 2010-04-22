@@ -49,6 +49,11 @@ module BoxGrinder
     end
 
     def convert( raw_disk )
+      if File.exists?( @files[:ec2_disk] )
+        @log.info "EC2 image for #{@appliance_config.name} appliance already exists, skipping..."
+        return @files[:ec2_disk]
+      end
+
       FileUtils.mkdir_p @directories[:build]
 
       @log.info "Converting #{@appliance_config.name} appliance image to EC2 format..."

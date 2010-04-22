@@ -36,7 +36,7 @@ $stderr.reopen('/dev/null')
 module BoxGrinder
 
   program :name, 'BoxGrinder'
-  program :version, '0.2.0'
+  program :version, '0.3.0'
   program :description, 'A tool for building VM images from simple definition files.'
 
   #default_command :build
