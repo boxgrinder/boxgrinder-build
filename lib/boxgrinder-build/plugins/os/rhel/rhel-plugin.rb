@@ -26,6 +26,7 @@ module BoxGrinder
       {
               :name       => :rhel,
               :full_name  => "Red Hat Enterprise Linux",
+              :type       => :linux,
               :versions   => ["5"]
       }
     end

@@ -48,10 +48,10 @@ module BoxGrinder
         @log.debug "Previous builds removed,"
       end
 
-      disk = search_for_built_disks
+      disk        = search_for_built_disks
+      os_plugin   = OperatingSystemPluginManager.instance.plugins[@appliance_config.os.name.to_sym]
 
       if disk.nil?
-        os_plugin = OperatingSystemPluginManager.instance.plugins[@appliance_config.os.name.to_sym]
         os_plugin.init( @config, @appliance_config, :log => @log )
         disk = os_plugin.build
       else
@@ -61,7 +61,7 @@ module BoxGrinder
       unless @options.platform == :base
         platform_plugin = PlatformPluginManager.instance.plugins[@options.platform]
         platform_plugin.init( @config, @appliance_config, :log => @log )
-        platform_plugin.convert( disk )
+        platform_plugin.convert( disk, os_plugin.info )
       end
     end
 

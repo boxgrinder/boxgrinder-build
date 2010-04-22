@@ -1,5 +1,3 @@
-#!/usr/bin/env ruby
-
 # JBoss, Home of Professional Open Source
 # Copyright 2009, Red Hat Middleware LLC, and individual contributors
 # by the @authors tag. See the copyright.txt in the distribution for a
@@ -20,23 +18,24 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require 'rubygems'
+module BoxGrinder
+  class BaseConverter
+    def initialize( config, appliance_config, options = {} )
+      @config           = config
+      @appliance_config = appliance_config
+      @options          = options
 
-gem 'boxgrinder-core', '>= 0.0.4'
-gem 'aws-s3', '>= 0.6.2'
-gem 'amazon-ec2', '>= 0.9.6'
-gem 'net-sftp', '>= 2.0.4'
-gem 'net-ssh', '>= 2.0.20'
-gem 'rake', '>= 0.8.7'
+      @log              = options[:log]         || Logger.new(STDOUT)
+      @exec_helper      = options[:exec_helper] || ExecHelper.new( { :log => @log } )
 
-require 'boxgrinder-build/helpers/rake-helper'
-require 'rake'
+      after_init
+    end
 
-task :default do
-  puts "Run '#{Rake.application.name} -T' to get list of all available commands."
+    def after_init
+    end
+
+    def convert
+      raise "Convert operation for #{self.class} converter is not implemented"
+    end
+  end
 end
-
-BoxGrinder::RakeHelper.new( :version => "1.0.0.Beta2", :release => "SNAPSHOT" )
-
-Rake.application.init('boxgrinder')
-Rake.application.top_level

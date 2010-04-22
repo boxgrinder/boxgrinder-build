@@ -54,6 +54,7 @@ module BoxGrinder
       {
               :name       => :fedora,
               :full_name  => "Fedora",
+              :type       => :linux,
               :versions   => ["11", "12", "rawhide"]
       }
     end

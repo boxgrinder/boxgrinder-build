@@ -38,6 +38,7 @@ module BoxGrinder
       {
               :name       => :centos,
               :full_name  => "CentOS",
+              :type       => :linux,
               :versions   => ["5"]
       }
     end
