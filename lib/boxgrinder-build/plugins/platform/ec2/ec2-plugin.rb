@@ -33,164 +33,91 @@ module BoxGrinder
       }
     end
 
-    def define( config, image_config, options = {}  )
-      @config       = config
-      @image_config = image_config
+    def after_init
+      base_path = "#{@config.dir.build}/#{@appliance_config.appliance_path}"
 
-      @log          = options[:log]         || Logger.new(STDOUT)
-      @exec_helper  = options[:exec_helper] || ExecHelper.new( :log => @log )
+      @directories = {
+              :build => "#{base_path}/ec2",
+              :ec2_disk_mount_dir => "#{base_path}/tmp/ec2-#{rand(9999999999).to_s.center(10, rand(9).to_s)}",
+              :raw_disk_mount_dir => "#{base_path}/tmp/raw-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
+      }
 
-      directory @image_config.path.dir.ec2.bundle
+      @files = {
+              :ec2_disk => "#{@directories[:build]}/#{@appliance_config.name}.ec2"
+      }
 
-      # TODO we should depend on actual disk file, not xml I think
-      file @image_config.path.file.ec2.disk  => [ @image_config.path.file.raw.xml, @image_config.path.dir.ec2.build ] do
-        convert_image_to_ec2_format
-      end
-
-      file @image_config.path.file.ec2.manifest => [ @image_config.path.file.ec2.disk, @image_config.path.dir.ec2.bundle ] do
-        @aws_helper = AWSHelper.new( @config, @image_config )
-        bundle_image
-      end
-
-      task "appliance:#{@image_config.name}:ec2:bundle" => [ @image_config.path.file.ec2.manifest ]
-
-      task "appliance:#{@image_config.name}:ec2:upload" => [ "appliance:#{@image_config.name}:ec2:bundle" ] do
-        @aws_helper = AWSHelper.new( @config, @image_config )
-        upload_image
-      end
-
-      task "appliance:#{@image_config.name}:ec2:register" => [ "appliance:#{@image_config.name}:ec2:upload" ] do
-        @aws_helper = AWSHelper.new( @config, @image_config )
-        register_image
-      end
-
-      desc "Build #{@image_config.simple_name} appliance for Amazon EC2"
-      task "appliance:#{@image_config.name}:ec2" => [ @image_config.path.file.ec2.disk ]
     end
 
-    def bundle_image
-      @log.info "Bundling AMI..."
+    def convert( raw_disk )
+      FileUtils.mkdir_p @directories[:build]
 
-      @exec_helper.execute( "ec2-bundle-image -i #{@image_config.path.file.ec2.disk} --kernel #{AWS_DEFAULTS[:kernel_id][@image_config.hardware.arch]} --ramdisk #{AWS_DEFAULTS[:ramdisk_id][@image_config.hardware.arch]} -c #{@aws_helper.aws_data['cert_file']} -k #{@aws_helper.aws_data['key_file']} -u #{@aws_helper.aws_data['account_number']} -r #{@image_config.hardware.arch} -d #{@image_config.path.dir.ec2.bundle}" )
-
-      @log.info "Bundling AMI finished."
-    end
-
-    def appliance_already_uploaded?
-      begin
-        bucket = Bucket.find( @aws_helper.aws_data['bucket_name'] )
-      rescue
-        return false
-      end
-
-      manifest_location = @aws_helper.bucket_manifest_key( @image_config.name )
-      manifest_location = manifest_location[ manifest_location.index( "/" ) + 1, manifest_location.length ]
-
-      for object in bucket.objects do
-        return true if object.key.eql?( manifest_location )
-      end
-
-      false
-    end
-
-    def upload_image
-      if appliance_already_uploaded?
-        @log.debug "Image for #{@image_config.simple_name} appliance is already uploaded, skipping..."
-        return
-      end
-
-      @log.info "Uploading #{@image_config.simple_name} AMI to bucket '#{@aws_helper.aws_data['bucket_name']}'..."
-
-      @exec_helper.execute( "ec2-upload-bundle -b #{@aws_helper.bucket_key( @image_config.name )} -m #{@image_config.path.file.ec2.manifest} -a #{@aws_helper.aws_data['access_key']} -s #{@aws_helper.aws_data['secret_access_key']} --retry" )
-    end
-
-    def register_image
-      ami_info    = @aws_helper.ami_info( @image_config.name )
-
-      if ami_info
-        @log.info "Image is registered under id: #{ami_info.imageId}"
-        return
-      else
-        ami_info = @aws_helper.ec2.register_image( :image_location => @aws_helper.bucket_manifest_key( @image_config.name ) )
-        @log.info "Image successfully registered under id: #{ami_info.imageId}."
-      end
-    end
-
-    def convert_image_to_ec2_format
-      FileUtils.mkdir_p @image_config.path.dir.ec2.build
-
-      @log.info "Converting #{@image_config.simple_name} appliance image to EC2 format..."
-
-      ec2_disk_mount_dir = "#{@config.dir.build}/#{@image_config.appliance_path}/tmp/ec2-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
-      raw_disk_mount_dir = "#{@config.dir.build}/#{@image_config.appliance_path}/tmp/raw-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
+      @log.info "Converting #{@appliance_config.name} appliance image to EC2 format..."
 
       ec2_prepare_disk
       ec2_create_filesystem
 
-      raw_disk_offset = calculate_disk_offset( @image_config.path.file.raw.disk )
+      raw_disk_offset = calculate_disk_offset( raw_disk )
 
-      ec2_loop_device = mount_image(@image_config.path.file.ec2.disk, ec2_disk_mount_dir )
-      raw_loop_device = mount_image(@image_config.path.file.raw.disk, raw_disk_mount_dir, raw_disk_offset )
+      ec2_loop_device = mount_image(@files[:ec2_disk], @directories[:ec2_disk_mount_dir] )
+      raw_loop_device = mount_image(raw_disk, @directories[:raw_disk_mount_dir], raw_disk_offset )
 
-      sync_files( raw_disk_mount_dir, ec2_disk_mount_dir )
+      sync_files( @directories[:raw_disk_mount_dir], @directories[:ec2_disk_mount_dir]  )
 
-      umount_image( @image_config.path.file.raw.disk, raw_disk_mount_dir, raw_loop_device )
-      umount_image( @image_config.path.file.ec2.disk, ec2_disk_mount_dir, ec2_loop_device )
+      umount_image( raw_disk, @directories[:raw_disk_mount_dir], raw_loop_device )
+      umount_image( @files[:ec2_disk], @directories[:ec2_disk_mount_dir], ec2_loop_device )
 
-      guestfs_helper = GuestFSHelper.new( @image_config.path.file.ec2.disk, :log => @log )
-      guestfs = guestfs_helper.guestfs
+      customize( @files[:ec2_disk]) do |guestfs, guestfs_helper|
+        create_devices( guestfs )
+        upload_fstab( guestfs )
 
-      create_devices( guestfs )
-      upload_fstab( guestfs )
+        guestfs.mkdir( "/data" ) if @appliance_config.is64bit?
 
-      guestfs.mkdir( "/data" ) if @image_config.is64bit?
+        enable_networking( guestfs )
+        upload_rc_local( guestfs )
 
-      enable_networking( guestfs )
-      upload_rc_local( guestfs )
+        guestfs_helper.rebuild_rpm_database
 
-      guestfs_helper.rebuild_rpm_database
+        install_additional_packages( guestfs )
+        change_configuration( guestfs )
 
-      install_additional_packages( guestfs )
-      change_configuration( guestfs )
+        if @appliance_config.os.name.eql?("fedora") and @appliance_config.os.version.to_s.eql?("12")
+          @log.debug "Downgrading udev package to use in EC2 environment..."
 
-      if @image_config.os.name.eql?("fedora") and @image_config.os.version.to_s.eql?("12")
-        @log.debug "Downgrading udev package to use in EC2 environment..."
+          repo_included = false
 
-        repo_included = false
+          @appliance_config.repos.each do |repo|
+            repo_included = true if repo['baseurl'] == "http://repo.boxgrinder.org/boxgrinder/packages/fedora/12/RPMS/#{@appliance_config.hardware.arch}"
+          end
 
-        @image_config.repos.each do |repo|
-          repo_included = true if repo['baseurl'] == "http://repo.boxgrinder.org/boxgrinder/packages/fedora/12/RPMS/#{@image_config.hardware.arch}"
+          guestfs.upload( "#{File.dirname( __FILE__ )}/src/f12-#{@appliance_config.hardware.arch}-boxgrinder.repo", "/etc/yum.repos.d/f12-#{@appliance_config.hardware.arch}-boxgrinder.repo" ) unless repo_included
+          guestfs.sh( "yum -y downgrade udev-142" )
+          guestfs.upload( "#{File.dirname( __FILE__ )}/src/f12/yum.conf", "/etc/yum.conf" )
+          guestfs.rm_rf( "/etc/yum.repos.d/f12-#{@appliance_config.hardware.arch}-boxgrinder.repo" ) unless repo_included
+
+          @log.debug "Package udev downgraded."
+
+          # TODO EC2 fix, remove that after Fedora pushes kernels to Amazon
+          @log.debug "Disabling unnecessary services..."
+          guestfs.sh( "/sbin/chkconfig ksm off" ) if guestfs.exists( "/etc/init.d/ksm" ) != 0
+          guestfs.sh( "/sbin/chkconfig ksmtuned off" ) if guestfs.exists( "/etc/init.d/ksmtuned" ) != 0
+          @log.debug "Services disabled."
         end
-
-        guestfs.upload( "#{File.dirname( __FILE__ )}/src/f12-#{@image_config.hardware.arch}-boxgrinder.repo", "/etc/yum.repos.d/f12-#{@image_config.hardware.arch}-boxgrinder.repo" ) unless repo_included
-        guestfs.sh( "yum -y downgrade udev-142" )
-        guestfs.upload( "#{File.dirname( __FILE__ )}/src/f12/yum.conf", "/etc/yum.conf" )
-        guestfs.rm_rf( "/etc/yum.repos.d/f12-#{@image_config.hardware.arch}-boxgrinder.repo" ) unless repo_included
-
-        @log.debug "Package udev downgraded."
-
-        # TODO EC2 fix, remove that after Fedora pushes kernels to Amazon
-        @log.debug "Disabling unnecessary services..."
-        guestfs.sh( "/sbin/chkconfig ksm off" ) if guestfs.exists( "/etc/init.d/ksm" ) != 0
-        guestfs.sh( "/sbin/chkconfig ksmtuned off" ) if guestfs.exists( "/etc/init.d/ksmtuned" ) != 0
-        @log.debug "Services disabled."
       end
 
-      guestfs_helper.clean_close
-      
       @log.info "Image converted to EC2 format."
     end
 
     def ec2_prepare_disk
       # TODO add progress bar?
+      # TODO using whole 10GB is fine? 
       @log.debug "Preparing disk for EC2 image..."
-      @exec_helper.execute "dd if=/dev/zero of=#{@image_config.path.file.ec2.disk} bs=1 count=0 seek=#{10 * 1024}M"
+      @exec_helper.execute "dd if=/dev/zero of=#{@files[:ec2_disk]} bs=1 count=0 seek=#{10 * 1024}M"
       @log.debug "Disk for EC2 image prepared"
     end
 
     def ec2_create_filesystem
       @log.debug "Creating filesystem..."
-      @exec_helper.execute "mkfs.ext3 -F #{@image_config.path.file.ec2.disk}"
+      @exec_helper.execute "mkfs.ext3 -F #{@files[:ec2_disk]}"
       @log.debug "Filesystem created"
     end
 
@@ -249,7 +176,7 @@ module BoxGrinder
 
     def upload_fstab( guestfs )
       @log.debug "Uploading '/etc/fstab' file..."
-      fstab_file = @image_config.is64bit? ? "#{File.dirname( __FILE__ )}/src/fstab_64bit" : "#{File.dirname( __FILE__ )}/src/fstab_32bit"
+      fstab_file = @appliance_config.is64bit? ? "#{File.dirname( __FILE__ )}/src/fstab_64bit" : "#{File.dirname( __FILE__ )}/src/fstab_32bit"
       guestfs.upload( fstab_file, "/etc/fstab" )
       @log.debug "'/etc/fstab' file uploaded."
     end
@@ -276,7 +203,7 @@ module BoxGrinder
 
     def install_additional_packages( guestfs )
       rpms = {
-              File.basename(AWS_DEFAULTS[:kernel_rpm][@image_config.hardware.arch]) => AWS_DEFAULTS[:kernel_rpm][@image_config.hardware.arch],
+              File.basename(AWS_DEFAULTS[:kernel_rpm][@appliance_config.hardware.arch]) => AWS_DEFAULTS[:kernel_rpm][@appliance_config.hardware.arch],
               "ec2-ami-tools.noarch.rpm" => "http://s3.amazonaws.com/ec2-downloads/ec2-ami-tools.noarch.rpm"
       }
 

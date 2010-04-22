@@ -18,17 +18,9 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require 'boxgrinder-build/managers/operating-system-plugin-manager'
-require 'boxgrinder-build/plugins/base-plugin'
+require 'boxgrinder-build/managers/base-plugin-manager'
 
 module BoxGrinder
-  class BaseOperatingSystemPlugin < BasePlugin
-    def self.inherited(klass)
-      OperatingSystemPluginManager.instance << klass
-    end
-
-    def build
-      raise "Build operation for #{self.class} plugin is not implemented"
-    end
+  class DeliveryPluginManager < BasePluginManager
   end
 end

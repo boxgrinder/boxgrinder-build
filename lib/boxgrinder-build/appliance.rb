@@ -53,14 +53,16 @@ module BoxGrinder
       if disk.nil?
         os_plugin = OperatingSystemPluginManager.instance.plugins[@appliance_config.os.name.to_sym]
         os_plugin.init( @config, @appliance_config, :log => @log )
-        os_plugin.build
+        disk = os_plugin.build
       else
         @log.info "Base image for #{@appliance_config.name} appliance already exists, skipping..."
       end
 
-      disk = search_for_built_disks
-
-      PlatformPluginManager.instance.plugins[@options.platform].convert( disk, @config, @appliance_config, :log => @log ) unless @options.platform == :base
+      unless @options.platform == :base
+        platform_plugin = PlatformPluginManager.instance.plugins[@options.platform]
+        platform_plugin.init( @config, @appliance_config, :log => @log )
+        platform_plugin.convert( disk )
+      end
     end
 
     # TODO: better way?

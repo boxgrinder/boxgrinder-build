@@ -20,8 +20,28 @@
 
 module BoxGrinder
   class  BasePlugin
-    def info
-      {}
+    def after_init
+    end
+
+    def init( config, appliance_config, options = {} )
+      @config           = config
+      @appliance_config = appliance_config
+      @options          = options
+
+      @log              = options[:log]         || Logger.new(STDOUT)
+      @exec_helper      = options[:exec_helper] || ExecHelper.new( { :log => @log } )
+
+      @initialized       = true
+
+      after_init
+    end
+
+    def customize( disk_path )
+      raise "Customizing cannot be started until the plugin isn't initialized" if @initialized.nil?
+
+      ApplianceCustomizeHelper.new( @config, @appliance_config, disk_path, :log => @log ).customize do |guestfs, guestfs_helper|
+        yield guestfs, guestfs_helper
+      end
     end
   end
 end
