@@ -30,13 +30,7 @@ module BoxGrinder
       }
     end
 
-    def convert( base_image_path, config, image_config, options = {}  )
-      @config       = config
-      @appliance_config = image_config
-
-      @log          = options[:log]         || Logger.new(STDOUT)
-      @exec_helper  = options[:exec_helper] || ExecHelper.new( :log => @log )
-
+    def convert( base_image_path, os_plugin_info )
       @log.info "Converting image to VMware format..."
       @log.debug "Copying VMware image file, this may take several minutes..."
 
@@ -85,7 +79,7 @@ module BoxGrinder
 
       disk_size = 0.0
       @appliance_config.hardware.partitions.values.each { |part| disk_size += part['size'].to_f }
-      
+
       c, h, s, total_sectors = generate_scsi_chs( disk_size )
 
       is_enterprise = type.eql?("vmfs")
