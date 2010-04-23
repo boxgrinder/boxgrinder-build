@@ -21,7 +21,25 @@
 require 'boxgrinder-build/plugins/platform/ec2/base-converter'
 
 module BoxGrinder
-  class LinuxEC2Converter < BaseConverter
+  class LinuxEC2Plugin < BasePlugin
+    AWS_DEFAULTS = {
+            :bucket_prefix => "#{DEFAULT_PROJECT_CONFIG[:name].downcase}/#{DEFAULT_PROJECT_CONFIG[:version]}-#{DEFAULT_PROJECT_CONFIG[:release]}",
+            :kernel_id => { "i386" => "aki-a71cf9ce", "x86_64" => "aki-b51cf9dc" }, # EU: :kernel_id => { "i386" => "aki-61022915", "x86_64" => "aki-6d022919" },
+            :ramdisk_id => { "i386" => "ari-a51cf9cc", "x86_64" => "ari-b31cf9da" }, # EU: :ramdisk_id => { "i386" => "ari-63022917", "x86_64" => "ari-37022943" },
+            :kernel_rpm => { "i386" => "http://repo.oddthesis.org/packages/other/kernel-xen-2.6.21.7-2.fc8.i686.rpm", "x86_64" => "http://repo.oddthesis.org/packages/other/kernel-xen-2.6.21.7-2.fc8.x86_64.rpm" },
+            :modules => { "i386" => "http://s3.amazonaws.com/ec2-downloads/ec2-modules-2.6.21.7-2.ec2.v1.2.fc8xen-i686.tgz", "x86_64" => "http://s3.amazonaws.com/ec2-downloads/ec2-modules-2.6.21.7-2.ec2.v1.2.fc8xen-x86_64.tgz" }
+    }
+
+    AWS_RAMDISKS = {
+            :fedora => [
+                    "11" => { "i386" => "ari-a51cf9cc", "x86_64" => "ari-b31cf9da" }
+            ]
+    }
+
+    SUPPORTED_OSES = {
+            :fedora => [ "11" ]
+    }
+
     def after_init
       base_path = "#{@config.dir.build}/#{@appliance_config.appliance_path}"
 
@@ -36,14 +54,26 @@ module BoxGrinder
       }
     end
 
+    def supported_os
+      supported = ""
+
+      SUPPORTED_OSES.each_key do |os_name|
+        supported << "#{os_name}, versions: #{SUPPORTED_OSES[os_name].join(", ")}"
+      end
+
+      supported
+    end
+
     def convert( raw_disk, os_plugin_info )
       if File.exists?( @files[:ec2_disk] )
         @log.info "EC2 image for #{@appliance_config.name} appliance already exists, skipping..."
         return @files[:ec2_disk]
       end
 
-      # TODO currently only Fedora is supported
-      return if os_plugin_info[:name] != :fedora
+      if SUPPORTED_OSES[os_plugin_info[:name]].nil? or !SUPPORTED_OSES[os_plugin_info[:name]].include?( @appliance_config.os.version )
+        @log.error "EC2 platform plugin for Linux operating systems supports: #{supported_os}. Your OS is #{@appliance_config.os.name} #{@appliance_config.os.version}."
+        return
+      end
 
       FileUtils.mkdir_p @directories[:build]
 
@@ -84,28 +114,28 @@ module BoxGrinder
         install_additional_packages( guestfs )
         change_configuration( guestfs )
 
-        if @appliance_config.os.name.eql?("fedora") and @appliance_config.os.version.to_s.eql?("12")
-          @log.debug "Downgrading udev package to use in EC2 environment..."
-
-          repo_included = false
-
-          @appliance_config.repos.each do |repo|
-            repo_included = true if repo['baseurl'] == "http://repo.boxgrinder.org/boxgrinder/packages/fedora/12/RPMS/#{@appliance_config.hardware.arch}"
-          end
-
-          guestfs.upload( "#{File.dirname( __FILE__ )}/src/f12-#{@appliance_config.hardware.arch}-boxgrinder.repo", "/etc/yum.repos.d/f12-#{@appliance_config.hardware.arch}-boxgrinder.repo" ) unless repo_included
-          guestfs.sh( "yum -y downgrade udev-142" )
-          guestfs.upload( "#{File.dirname( __FILE__ )}/src/f12/yum.conf", "/etc/yum.conf" )
-          guestfs.rm_rf( "/etc/yum.repos.d/f12-#{@appliance_config.hardware.arch}-boxgrinder.repo" ) unless repo_included
-
-          @log.debug "Package udev downgraded."
-
-          # TODO EC2 fix, remove that after Fedora pushes kernels to Amazon
-          @log.debug "Disabling unnecessary services..."
-          guestfs.sh( "/sbin/chkconfig ksm off" ) if guestfs.exists( "/etc/init.d/ksm" ) != 0
-          guestfs.sh( "/sbin/chkconfig ksmtuned off" ) if guestfs.exists( "/etc/init.d/ksmtuned" ) != 0
-          @log.debug "Services disabled."
-        end
+#        if @appliance_config.os.name.eql?("fedora") and @appliance_config.os.version.to_s.eql?("12")
+#          @log.debug "Downgrading udev package to use in EC2 environment..."
+#
+#          repo_included = false
+#
+#          @appliance_config.repos.each do |repo|
+#            repo_included = true if repo['baseurl'] == "http://repo.boxgrinder.org/boxgrinder/packages/fedora/12/RPMS/#{@appliance_config.hardware.arch}"
+#          end
+#
+#          guestfs.upload( "#{File.dirname( __FILE__ )}/src/f12-#{@appliance_config.hardware.arch}-boxgrinder.repo", "/etc/yum.repos.d/f12-#{@appliance_config.hardware.arch}-boxgrinder.repo" ) unless repo_included
+#          guestfs.sh( "yum -y downgrade udev-142" )
+#          guestfs.upload( "#{File.dirname( __FILE__ )}/src/f12/yum.conf", "/etc/yum.conf" )
+#          guestfs.rm_rf( "/etc/yum.repos.d/f12-#{@appliance_config.hardware.arch}-boxgrinder.repo" ) unless repo_included
+#
+#          @log.debug "Package udev downgraded."
+#
+#          # TODO EC2 fix, remove that after Fedora pushes kernels to Amazon
+#          @log.debug "Disabling unnecessary services..."
+#          guestfs.sh( "/sbin/chkconfig ksm off" ) if guestfs.exists( "/etc/init.d/ksm" ) != 0
+#          guestfs.sh( "/sbin/chkconfig ksmtuned off" ) if guestfs.exists( "/etc/init.d/ksmtuned" ) != 0
+#          @log.debug "Services disabled."
+#        end
       end
 
       @log.info "Image converted to EC2 format."

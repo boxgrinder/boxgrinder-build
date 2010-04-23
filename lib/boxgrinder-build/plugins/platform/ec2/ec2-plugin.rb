@@ -19,7 +19,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder-build/plugins/platform/base-platform-plugin'
-require 'boxgrinder-build/plugins/platform/ec2/linux-ec2-converter'
+require 'boxgrinder-build/plugins/platform/ec2/linux-ec2-plugin'
 
 module BoxGrinder
   class EC2Plugin < BasePlatformPlugin
@@ -33,7 +33,7 @@ module BoxGrinder
     def convert( raw_disk, os_plugin_info )
       case os_plugin_info[:type]
         when :linux
-          LinuxEC2Converter.new( @config, @appliance_config, @options ).convert( raw_disk, os_plugin_info )
+          LinuxEC2Plugin.new.init( @config, @appliance_config, @options ).convert( raw_disk, os_plugin_info )
         else
           raise "Attempting to convert to EC2 format image with not known os type: '#{os_plugin_info[:type]}'"
       end

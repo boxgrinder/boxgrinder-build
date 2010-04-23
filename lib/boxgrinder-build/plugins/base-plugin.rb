@@ -34,6 +34,8 @@ module BoxGrinder
       @initialized       = true
 
       after_init
+
+      self
     end
 
     def customize( disk_path )
