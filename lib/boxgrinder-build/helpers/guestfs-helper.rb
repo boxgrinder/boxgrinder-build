@@ -55,8 +55,6 @@ module BoxGrinder
 
       @log.debug "Launching guestfs..."
       @guestfs.launch
-      @log.debug "Waiting for guestfs..."
-      @guestfs.wait_ready
 
       mount_partition( @guestfs.list_partitions.first, '/' ) if @guestfs.list_partitions.size == 1
       mount_partition( @guestfs.list_devices.first, '/' ) if @guestfs.list_partitions.size == 0
@@ -76,7 +74,7 @@ module BoxGrinder
 
     def mount_partition( part, mount_point )
       @log.debug "Mounting #{part} partition to #{mount_point}..."
-      @guestfs.mount( part, mount_point )
+      @guestfs.mount_options( "", part, mount_point )
       @log.debug "Partition mounted."
     end
 

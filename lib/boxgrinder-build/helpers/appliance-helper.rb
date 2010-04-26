@@ -27,25 +27,36 @@ module BoxGrinder
       @log = options[:log] || Logger.new(STDOUT)
     end
 
-    def read_definitions( definition_file )
+    def read_definitions( definition_file, content_type = nil )
       @log.debug "Reading definition from '#{definition_file}' file..."
+
+      definition_file_extension = File.extname( definition_file )
 
       configs = {}
 
       appliance_config =
-              case File.extname( definition_file )
+              case definition_file_extension
                 when '.appl', '.yml'
                   read_yaml( definition_file )
                 when '.xml'
                   read_xml( definition_file )
                 else
-                  raise 'Unsupported file format for appliance definition file'
+                  unless content_type.nil?
+                    case content_type
+                      when 'application/x-yaml', 'text/yaml'
+                        read_yaml( definition_file )
+                      when 'application/xml', 'text/xml', 'application/x-xml'
+                        read_xml( definition_file )
+                    end
+                  else
+                    raise 'Unsupported file format for appliance definition file'
+                  end
               end
 
       configs[appliance_config.name] = appliance_config
 
       appliance_config.appliances.each do |appliance_name|
-        configs.merge!(read_definitions( "#{File.dirname( definition_file )}/#{appliance_name}.appl" ))
+        configs.merge!(read_definitions( "#{File.dirname( definition_file )}/#{appliance_name}#{definition_file_extension}" ))
       end unless appliance_config.appliances.nil? or !appliance_config.appliances.is_a?(Array)
 
       configs
@@ -54,8 +65,9 @@ module BoxGrinder
     def read_yaml( file )
       begin
         definition = YAML.load_file( file )
+        raise if definition.nil?
       rescue => e
-        raise "File '#{file}' could not be read"
+        raise "File '#{file}' could not be read."
       end
 
       appliance_config = ApplianceConfig.new

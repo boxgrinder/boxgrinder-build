@@ -26,61 +26,54 @@ module BoxGrinder
 
   class Kickstart
 
-    def initialize( config, image_config, repos, options = {} )
-      @config       = config
-      @repos        = repos
-      @image_config = image_config
-      @log          = options[:log] || Logger.new(STDOUT)
+    def initialize( config, appliance_config, repos, options = {} )
+      @config           = config
+      @repos            = repos
+      @appliance_config = appliance_config
+      @log              = options[:log] || Logger.new(STDOUT)
     end
 
     def define
-      directory @image_config.path.dir.raw.build
+      directory @appliance_config.path.dir.raw.build
 
-      file @image_config.path.file.raw.config => @image_config.path.dir.raw.build do
-        File.open( @image_config.path.file.raw.config, "w") {|f| f.write( @image_config.to_yaml ) } unless File.exists?( @image_config.path.file.raw.config )
+      file @appliance_config.path.file.raw.config => @appliance_config.path.dir.raw.build do
+        File.open( @appliance_config.path.file.raw.config, "w") {|f| f.write( @appliance_config.to_yaml ) } unless File.exists?( @appliance_config.path.file.raw.config )
       end
 
-      task "appliance:#{@image_config.name}:config" do
-        if File.exists?( @image_config.path.file.raw.config )
-          unless @image_config.eql?( YAML.load_file( @image_config.path.file.raw.config ) )
+      task "appliance:#{@appliance_config.name}:config" do
+        if File.exists?( @appliance_config.path.file.raw.config )
+          unless @appliance_config.eql?( YAML.load_file( @appliance_config.path.file.raw.config ) )
             FileUtils.rm_rf appliance_build_dir
           end
         end
       end
 
-      file @image_config.path.file.raw.kickstart => [ @image_config.path.file.raw.config ] do
+      file @appliance_config.path.file.raw.kickstart => [ @appliance_config.path.file.raw.config ] do
         create
       end
 
       #desc "Build kickstart for #{File.basename( @appliance_config.name, '-appliance' )} appliance"
-      task "appliance:#{@image_config.name}:kickstart" => [ "appliance:#{@image_config.name}:config", @image_config.path.file.raw.kickstart ]
+      task "appliance:#{@appliance_config.name}:kickstart" => [ "appliance:#{@appliance_config.name}:config", @appliance_config.path.file.raw.kickstart ]
 
     end
 
     def create
-      FileUtils.mkdir_p @image_config.path.dir.raw.build
+      FileUtils.mkdir_p @appliance_config.path.dir.raw.build
 
       template = "#{File.dirname( __FILE__ )}/src/appliance.ks.erb"
       kickstart = ERB.new( File.read( template ) ).result( build_definition.send( :binding ) )
-      File.open( @image_config.path.file.raw.kickstart, 'w' ) {|f| f.write( kickstart ) }
+      File.open( @appliance_config.path.file.raw.kickstart, 'w' ) {|f| f.write( kickstart ) }
     end
 
     def build_definition
       definition = { }
 
-      #case @image_config.os.name
-      #  when 'centos', 'rhel'
-      #    definition['disk_type'] = 'hda'
-      #  else
-      #    definition['disk_type'] = 'sda'
-      #end
+      definition['appliance_config']  = @appliance_config
 
-      definition['disk_type'] = 'sda'
-
-      definition['partitions']      = @image_config.hardware.partitions.values
-      definition['name']            = @image_config.name
-      definition['arch']            = @image_config.hardware.arch
-      definition['appliance_names'] = @image_config.appliances
+      definition['partitions']      = @appliance_config.hardware.partitions.values
+      definition['name']            = @appliance_config.name
+      definition['arch']            = @appliance_config.hardware.arch
+      definition['appliance_names'] = @appliance_config.appliances
       definition['repos']           = []
 
 #      appliance_definition          = @image_config.definition
@@ -101,9 +94,9 @@ module BoxGrinder
       definition['graphical'] = false
       definition['packages']  = []
 
-      definition['packages'] += @image_config.packages.includes
+      definition['packages'] += @appliance_config.packages.includes
 
-      @image_config.packages.excludes do |package|
+      @appliance_config.packages.excludes do |package|
         definition['packages'].push("-#{package}")
       end
 
@@ -111,8 +104,8 @@ module BoxGrinder
       definition['fstype'] = "ext3"
 
       # fix for F12; this is needed because of selinux management in appliance-creator
-      if @image_config.os.name.eql?("fedora")
-        case @image_config.os.version.to_s
+      if @appliance_config.os.name.eql?("fedora")
+        case @appliance_config.os.version.to_s
           when "12" then
             definition['packages'].push "system-config-firewall-base"
           # default filesystem for fedora 12
@@ -122,7 +115,7 @@ module BoxGrinder
         end
       end
 
-      definition['root_password'] = @image_config.os.password
+      definition['root_password'] = @appliance_config.os.password
 
       def definition.method_missing(sym, *args)
         self[ sym.to_s ]
@@ -130,7 +123,7 @@ module BoxGrinder
 
       cost = 40
 
-      for repo in valid_repos + @image_config.repos
+      for repo in valid_repos + @appliance_config.repos
 
         if repo.keys.include?('mirrorlist')
           urltype = 'mirrorlist'
@@ -138,7 +131,7 @@ module BoxGrinder
           urltype = 'baseurl'
         end
 
-        url = repo[urltype].gsub( /#ARCH#/, @image_config.hardware.arch ).gsub( /#OS_VERSION#/, @image_config.os.version ).gsub( /#OS_NAME#/, @image_config.os.name )
+        url = repo[urltype].gsub( /#ARCH#/, @appliance_config.hardware.arch ).gsub( /#OS_VERSION#/, @appliance_config.os.version ).gsub( /#OS_NAME#/, @appliance_config.os.name )
 
         repo_def = "repo --name=#{repo['name']} --cost=#{cost} --#{urltype}=#{url}"
         repo_def += " --excludepkgs=#{repo['excludes'].join(',')}" unless repo['excludes'].nil? or repo['excludes'].empty?
@@ -152,7 +145,7 @@ module BoxGrinder
     end
 
     def valid_repos
-      os_repos = @repos[@image_config.os.version]
+      os_repos = @repos[@appliance_config.os.version]
 
       repos = Array.new
 
@@ -162,7 +155,7 @@ module BoxGrinder
           mirrorlist = os_repos[type]['mirrorlist']
           baseurl = os_repos[type]['baseurl']
 
-          name = "#{@image_config.os.name}-#{@image_config.os.version}-#{type}"
+          name = "#{@appliance_config.os.name}-#{@appliance_config.os.version}-#{type}"
 
           if mirrorlist.nil?
             repos.push({ "name" => name, "baseurl" => baseurl })
