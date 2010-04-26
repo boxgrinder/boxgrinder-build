@@ -30,7 +30,7 @@ module BoxGrinder
       }
     end
 
-    def convert( base_image_path, os_plugin_info )
+    def convert( base_image_path )
       @log.info "Converting image to VMware format..."
       @log.debug "Copying VMware image file, this may take several minutes..."
 
@@ -43,12 +43,22 @@ module BoxGrinder
 
       @log.debug "VMware image copied."
 
-      #customize
-
-      @log.info "Image converted to VMware format."
+      if @appliance_config.post.vmware.size > 0
+        customize( image_path ) do |guestfs, guestfs_helper|
+          @appliance_config.post.vmware.each do |cmd|
+            @log.debug "Executing #{cmd}"
+            guestfs.sh( cmd )
+          end
+          @log.debug "Post commands from appliance definition file executed."
+        end
+      else
+        @log.debug "No commands specified, skipping."
+      end
 
       build_vmware_enterprise
       build_vmware_personal
+
+      @log.info "Image converted to VMware format."
 
       image_path
     end
@@ -165,15 +175,6 @@ module BoxGrinder
       @log.debug "VMware enterprise image was built."
     end
 
-    def customize
-      @log.debug "Customizing VMware image..."
-      ApplianceCustomizeHelper.new( @config, @appliance_config, @appliance_config.path.file.vmware.disk, :log => @log ).customize do |guestfs, guestfs_helper|
-        # install_vmware_tools( customizer )
-        execute_post_operations( guestfs )
-      end
-      @log.debug "Image customized."
-    end
-
     def execute_post_operations( guestfs )
       @log.debug "Executing post commands..."
       for cmd in @appliance_config.post.vmware
@@ -183,20 +184,20 @@ module BoxGrinder
       @log.debug "Post commands executed."
     end
 
-    def install_vmware_tools( customizer )
-      @log.debug "Installing VMware tools..."
-
-      if @appliance_config.is_os_version_stable?
-        rpmfusion_repo_rpm = [ "http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-rawhide.noarch.rpm", "http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-rawhide.noarch.rpm" ]
-      else
-        rpmfusion_repo_rpm = [ "http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-stable.noarch.rpm", "http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-stable.noarch.rpm" ]
-      end
-
-      #TODO this takes about 11 minutes, need to find a quicker way to install kmod-open-vm-tools package
-      customizer.install_packages( @appliance_config.path.file.vmware.disk, { :packages => { :yum => [ "kmod-open-vm-tools" ] }, :repos => rpmfusion_repo_rpm } )
-
-      @log.debug "VMware tools installed."
-    end
+#    def install_vmware_tools( customizer )
+#      @log.debug "Installing VMware tools..."
+#
+#      if @appliance_config.is_os_version_stable?
+#        rpmfusion_repo_rpm = [ "http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-rawhide.noarch.rpm", "http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-rawhide.noarch.rpm" ]
+#      else
+#        rpmfusion_repo_rpm = [ "http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-stable.noarch.rpm", "http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-stable.noarch.rpm" ]
+#      end
+#
+#      #TODO this takes about 11 minutes, need to find a quicker way to install kmod-open-vm-tools package
+#      customizer.install_packages( @appliance_config.path.file.vmware.disk, { :packages => { :yum => [ "kmod-open-vm-tools" ] }, :repos => rpmfusion_repo_rpm } )
+#
+#      @log.debug "VMware tools installed."
+#    end
 
   end
 end

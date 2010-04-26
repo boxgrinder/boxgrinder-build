@@ -30,12 +30,12 @@ module BoxGrinder
       }
     end
 
-    def convert( raw_disk, os_plugin_info )
-      case os_plugin_info[:type]
+    def convert( raw_disk )
+      case @appliance_config.os_family
         when :linux
-          LinuxEC2Plugin.new.init( @config, @appliance_config, @options ).convert( raw_disk, os_plugin_info )
+          LinuxEC2Plugin.new.init( @config, @appliance_config, @options ).convert( raw_disk )
         else
-          raise "Attempting to convert to EC2 format image with not known os type: '#{os_plugin_info[:type]}'"
+          raise "Attempting to convert to EC2 format image with not supported os: '#{@appliance_config.os.name}'"
       end
     end
   end

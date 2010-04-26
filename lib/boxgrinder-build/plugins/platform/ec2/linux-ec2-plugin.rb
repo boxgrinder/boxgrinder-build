@@ -26,7 +26,7 @@ module BoxGrinder
     #        :modules => { "i386" => "http://s3.amazonaws.com/ec2-downloads/ec2-modules-2.6.21.7-2.ec2.v1.2.fc8xen-i686.tgz", "x86_64" => "http://s3.amazonaws.com/ec2-downloads/ec2-modules-2.6.21.7-2.ec2.v1.2.fc8xen-x86_64.tgz" }
 
     SUPPORTED_OSES = {
-            :fedora => [ "11" ]
+            'fedora' => [ "11" ]
     }
 
     REGIONS = { 'us_east' => 'url' }
@@ -66,13 +66,13 @@ module BoxGrinder
       supported
     end
 
-    def convert( raw_disk, os_plugin_info )
+    def convert( raw_disk )
       if File.exists?( @files[:ec2_disk] )
         @log.info "EC2 image for #{@appliance_config.name} appliance already exists, skipping..."
         return @files[:ec2_disk]
       end
 
-      if SUPPORTED_OSES[os_plugin_info[:name]].nil? or !SUPPORTED_OSES[os_plugin_info[:name]].include?( @appliance_config.os.version )
+      unless SUPPORTED_OSES[@appliance_config.os.name].include?( @appliance_config.os.version )
         @log.error "EC2 platform plugin for Linux operating systems supports: #{supported_os}. Your OS is #{@appliance_config.os.name} #{@appliance_config.os.version}."
         return
       end

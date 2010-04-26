@@ -61,7 +61,7 @@ module BoxGrinder
       unless @options.platform == :base
         platform_plugin = PlatformPluginManager.instance.plugins[@options.platform]
         platform_plugin.init( @config, @appliance_config, :log => @log )
-        platform_plugin.convert( disk, os_plugin.info )
+        platform_plugin.convert( disk )
       end
     end
 
