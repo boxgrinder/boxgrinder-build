@@ -29,7 +29,7 @@ module BoxGrinder
     end
 
     def load_plugins
-      Dir["#{File.dirname( __FILE__ )}/../plugins/**/*.rb"].each {|file| require file }
+      Dir["#{File.dirname( __FILE__ )}/../plugins/**/*-plugin.rb"].each { |file| require "boxgrinder-build/plugins/#{file.scan(/\/plugins\/(.*)\.rb$/).to_s}" }
 
       @os_plugins       = OperatingSystemPluginManager.instance.initialize_plugins( :log => @log ).plugins
       @platform_plugins = PlatformPluginManager.instance.initialize_plugins( :log => @log ).plugins

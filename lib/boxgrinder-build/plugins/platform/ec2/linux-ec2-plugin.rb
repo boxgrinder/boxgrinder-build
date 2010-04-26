@@ -19,25 +19,27 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder-build/plugins/base-plugin'
+require 'tempfile'
 
 module BoxGrinder
   class LinuxEC2Plugin < BasePlugin
-    AWS_DEFAULTS = {
-            :bucket_prefix => "#{DEFAULT_PROJECT_CONFIG[:name].downcase}/#{DEFAULT_PROJECT_CONFIG[:version]}-#{DEFAULT_PROJECT_CONFIG[:release]}",
-            :kernel_id => { "i386" => "aki-a71cf9ce", "x86_64" => "aki-b51cf9dc" }, # EU: :kernel_id => { "i386" => "aki-61022915", "x86_64" => "aki-6d022919" },
-            :ramdisk_id => { "i386" => "ari-a51cf9cc", "x86_64" => "ari-b31cf9da" }, # EU: :ramdisk_id => { "i386" => "ari-63022917", "x86_64" => "ari-37022943" },
-            :kernel_rpm => { "i386" => "http://repo.oddthesis.org/packages/other/kernel-xen-2.6.21.7-2.fc8.i686.rpm", "x86_64" => "http://repo.oddthesis.org/packages/other/kernel-xen-2.6.21.7-2.fc8.x86_64.rpm" },
-            :modules => { "i386" => "http://s3.amazonaws.com/ec2-downloads/ec2-modules-2.6.21.7-2.ec2.v1.2.fc8xen-i686.tgz", "x86_64" => "http://s3.amazonaws.com/ec2-downloads/ec2-modules-2.6.21.7-2.ec2.v1.2.fc8xen-x86_64.tgz" }
-    }
-
-    AWS_RAMDISKS = {
-            :fedora => [
-                    "11" => { "i386" => "ari-a51cf9cc", "x86_64" => "ari-b31cf9da" }
-            ]
-    }
+    #        :modules => { "i386" => "http://s3.amazonaws.com/ec2-downloads/ec2-modules-2.6.21.7-2.ec2.v1.2.fc8xen-i686.tgz", "x86_64" => "http://s3.amazonaws.com/ec2-downloads/ec2-modules-2.6.21.7-2.ec2.v1.2.fc8xen-x86_64.tgz" }
 
     SUPPORTED_OSES = {
             :fedora => [ "11" ]
+    }
+
+    REGIONS = { 'us_east' => 'url' }
+
+    KERNELS = {
+            'us_east' => {
+                    'fedora' => {
+                            '11' => {
+                                    'i386'     => { :aki => 'aki-a71cf9ce', :ari => 'ari-a51cf9cc', :rpm => 'http://repo.oddthesis.org/packages/other/kernel-xen-2.6.21.7-2.fc8.i686.rpm' },
+                                    'x86_64'   => { :aki => 'aki-b51cf9dc', :ari => 'ari-b31cf9da', :rpm => 'http://repo.oddthesis.org/packages/other/kernel-xen-2.6.21.7-2.fc8.x86_64.rpm' }
+                            }
+                    }
+            }
     }
 
     def after_init
@@ -237,9 +239,11 @@ module BoxGrinder
 
     def install_additional_packages( guestfs )
       rpms = {
-              File.basename(AWS_DEFAULTS[:kernel_rpm][@appliance_config.hardware.arch]) => AWS_DEFAULTS[:kernel_rpm][@appliance_config.hardware.arch],
               "ec2-ami-tools.noarch.rpm" => "http://s3.amazonaws.com/ec2-downloads/ec2-ami-tools.noarch.rpm"
       }
+
+      kernel_rpm =  KERNELS['us_east'][@appliance_config.os.name][@appliance_config.os.version][@appliance_config.hardware.arch][:rpm]
+      rpms[File.basename( kernel_rpm )] = kernel_rpm unless kernel_rpm.nil?
 
       cache_rpms( rpms )
 

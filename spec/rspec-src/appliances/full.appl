@@ -1,0 +1,24 @@
+name: full
+summary: A full appliance definition
+os:
+  name: fedora
+  version: 11
+hardware:
+  memory: 256
+  partitions:
+    - root: "/"
+      size: 2
+    - root: "/home"
+      size: 3
+packages:
+  includes:
+    - gcc-c++
+    - wget
+repos:
+  - name: "cirras"
+    baseurl: "http://repo.boxgrinder.org/packages/#OS_NAME#/#OS_VERSION#/RPMS/#ARCH#"
+  - name: "abc"
+    baseurl: "http://abc"
+    mirrorlist: "http://repo.boxgrinder.org/packages/#OS_NAME#/#OS_VERSION#/RPMS/#ARCH#"
+  - name: "boxgrinder-f12-testing-#ARCH#"
+    mirrorlist: "https://mirrors.fedoraproject.org/metalink?repo=updates-testing-f#OS_VERSION#&arch=#ARCH#"

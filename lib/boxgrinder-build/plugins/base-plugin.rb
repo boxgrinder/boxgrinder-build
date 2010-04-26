@@ -18,6 +18,9 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
+require 'boxgrinder-core/helpers/exec-helper'
+require 'logger'
+
 module BoxGrinder
   class  BasePlugin
     def after_init

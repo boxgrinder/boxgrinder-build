@@ -1,6 +1,7 @@
 require 'boxgrinder-core/models/config'
 require 'boxgrinder-core/models/appliance-config'
 require 'boxgrinder-core/helpers/appliance-config-helper'
+require 'boxgrinder-build/helpers/appliance-helper'
 
 module RSpecConfigHelper
   def generate_config( params = OpenStruct.new )
@@ -17,7 +18,7 @@ module RSpecConfigHelper
     dir.src          = params.dir_src        || "../../../src"
     dir.base         = params.dir_src        || ".."
 
-    config = BoxGrinder::Config.new( params.name || "BoxGrinder", params.version || "1.0.0", params.release, dir, params.config_file.nil? ? "" : "src/#{params.config_file}" )
+    config = BoxGrinder::Config.new #( params.name || "BoxGrinder", params.version || "1.0.0", params.release, dir, params.config_file.nil? ? "" : "src/#{params.config_file}" )
 
     # files
     config.files.base_vmdk  = params.base_vmdk      || "../../../src/base.vmdk"
@@ -26,24 +27,11 @@ module RSpecConfigHelper
     config
   end
 
-  def generate_appliance_config( appliance_definition_file = nil )
-    definitions = {}
+  def generate_appliance_config( appliance_definition_file = "#{RSPEC_BASE_LOCATION}/rspec-src/appliances/full.appl" )
+    appliance_configs = BoxGrinder::ApplianceHelper.new(:log => Logger.new('/dev/null')).read_definitions( appliance_definition_file )
+    appliance_config_helper = BoxGrinder::ApplianceConfigHelper.new( appliance_configs )
 
-    if appliance_definition_file.nil?
-      definitions["valid-appliance"] =
-              {
-
-                      'name'    => "valid-appliance",
-                      'summary' => "This is a summary"
-
-              }
-
-    else
-      definition = YAML.load_file( appliance_definition_file )
-      definitions[definition['name']] = definition
-    end
-
-    BoxGrinder::ApplianceConfigHelper.new(definitions).merge(BoxGrinder::ApplianceConfig.new( definitions.values.first ).init_arch).initialize_paths
+    appliance_config_helper.merge(appliance_configs.values.first.clone.init_arch).initialize_paths
   end
 
   def generate_appliance_config_gnome( os_version = "11" )
@@ -58,5 +46,4 @@ module RSpecConfigHelper
 
     appliance_config
   end
-
 end

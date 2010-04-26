@@ -36,7 +36,7 @@ module BoxGrinder
       appliance_configs       = ApplianceHelper.new( :log => @log ).read_definitions( @appliance_definition_file )
       appliance_config_helper = ApplianceConfigHelper.new( appliance_configs )
 
-      @appliance_config = appliance_config_helper.merge(clone_object(appliance_configs.values.first).init_arch).initialize_paths
+      @appliance_config = appliance_config_helper.merge(appliance_configs.values.first.clone.init_arch).initialize_paths
 
       ApplianceConfigValidator.new( @appliance_config ).validate
 
@@ -63,11 +63,6 @@ module BoxGrinder
         platform_plugin.init( @config, @appliance_config, :log => @log )
         platform_plugin.convert( disk, os_plugin.info )
       end
-    end
-
-    # TODO: better way?
-    def clone_object( o )
-      Marshal::load(Marshal.dump(o))
     end
 
     def search_for_built_disks
