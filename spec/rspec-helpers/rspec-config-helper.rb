@@ -1,7 +1,7 @@
 require 'boxgrinder-core/models/config'
 require 'boxgrinder-core/models/appliance-config'
 require 'boxgrinder-core/helpers/appliance-config-helper'
-require 'boxgrinder-build/helpers/appliance-helper'
+require 'boxgrinder-core/helpers/appliance-helper'
 
 module RSpecConfigHelper
   def generate_config( params = OpenStruct.new )
