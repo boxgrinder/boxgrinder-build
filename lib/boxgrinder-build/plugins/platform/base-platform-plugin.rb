@@ -27,8 +27,11 @@ module BoxGrinder
       PlatformPluginManager.instance << klass
     end
 
-    def convert
-      raise "Convert operation for #{self.class} plugin is not implemented"
+    alias_method :execute_original, :execute
+
+    def execute( args = nil )
+      raise "Conversion cannot be started before the plugin isn't initialized" if @initialized.nil?
+      execute_original( args )
     end
   end
 end

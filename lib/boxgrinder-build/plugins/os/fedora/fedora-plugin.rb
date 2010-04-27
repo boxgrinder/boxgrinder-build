@@ -59,9 +59,7 @@ module BoxGrinder
       }
     end
 
-    def build
-      raise "Build cannot be started before the plugin isn't initialized" if @initialized.nil?
-
+    def execute
       build_with_appliance_creator( FEDORA_REPOS )
     end
   end

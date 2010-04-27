@@ -43,9 +43,7 @@ module BoxGrinder
       }
     end
 
-    def build
-      raise "Build cannot be started until the plugin isn't initialized" if @initialized.nil?
-
+    def execute
       adjust_partition_table
 
       disk_path = build_with_appliance_creator( CENTOS_REPOS )  do |guestfs, guestfs_helper|

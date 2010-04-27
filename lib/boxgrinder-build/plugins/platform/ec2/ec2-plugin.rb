@@ -46,10 +46,10 @@ module BoxGrinder
       @plugin.init( config, appliance_config, options )
     end
 
-    def convert( base_disk )
+    def execute( base_disk )
       raise "Conversion cannot be started before the plugin isn't initialized" if @initialized.nil?
 
-      @plugin.convert( base_disk )
+      @plugin.execute( base_disk )
     end
   end
 end

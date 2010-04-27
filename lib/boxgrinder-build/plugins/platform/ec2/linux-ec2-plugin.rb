@@ -67,7 +67,7 @@ module BoxGrinder
       supported
     end
 
-    def convert( raw_disk )
+    def execute( raw_disk )
       if File.exists?( deliverables[:disk] )
         @log.info "EC2 image for #{@appliance_config.name} appliance already exists, skipping..."
         return

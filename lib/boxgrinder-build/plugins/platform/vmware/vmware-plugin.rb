@@ -42,7 +42,7 @@ module BoxGrinder
       }
     end
 
-    def convert( base_image_path )
+    def execute( base_image_path )
       raise "Build cannot be started before the plugin isn't initialized" if @initialized.nil?
 
       @log.info "Converting image to VMware format..."

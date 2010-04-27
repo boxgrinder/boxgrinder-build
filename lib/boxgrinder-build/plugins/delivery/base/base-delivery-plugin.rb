@@ -26,7 +26,7 @@ module BoxGrinder
     alias_method :execute_original, :execute
 
     def execute( args = nil )
-      raise "Build cannot be started before the plugin isn't initialized" if @initialized.nil?
+      raise "Delivery cannot be started before the plugin isn't initialized" if @initialized.nil?
       execute_original( args )
     end
 
