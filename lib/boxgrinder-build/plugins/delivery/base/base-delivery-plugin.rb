@@ -23,12 +23,15 @@ require 'boxgrinder-build/plugins/base-plugin'
 
 module BoxGrinder
   class BaseDeliveryPlugin < BasePlugin
-    def self.inherited(klass)
-      DeliveryPluginManager.instance << klass
+    alias_method :execute_original, :execute
+
+    def execute( args = nil )
+      raise "Build cannot be started before the plugin isn't initialized" if @initialized.nil?
+      execute_original( args )
     end
 
-    def upload
-      raise "Upload operation for #{self.class} plugin is not implemented"
+    def self.inherited(klass)
+      DeliveryPluginManager.instance << klass
     end
   end
 end

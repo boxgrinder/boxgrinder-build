@@ -47,7 +47,8 @@ module BoxGrinder
 
       base_deliverables       = execute_os_plugin
       platform_deliverables   = execute_platform_plugin( base_deliverables )
-      delivery_deliverables   = execute_delivery_plugin( platform_deliverables )
+
+      execute_delivery_plugin( platform_deliverables )
     end
 
     def execute_os_plugin
@@ -60,7 +61,7 @@ module BoxGrinder
       end
 
       @log.debug "Executing operating system plugin for #{@appliance_config.os.name}..."
-      os_plugin.build
+      os_plugin.execute
       @log.debug "Operating system plugin executed."
 
       os_plugin.deliverables
@@ -81,14 +82,21 @@ module BoxGrinder
       end
 
       @log.debug "Executing platform plugin for #{@options.platform}..."
-      platform_plugin.convert( base_deliverables[:disk] )
+      platform_plugin.execute( base_deliverables[:disk] )
       @log.debug "Platform plugin executed."
 
       platform_plugin.deliverables
     end
 
     def execute_delivery_plugin( platfrom_deliverables )
-      platfrom_deliverables
+      if @options.delivery == :none
+        @log.debug "No delivery method selected, skipping."
+        return platfrom_deliverables
+      end
+
+      delivery_plugin = DeliveryPluginManager.instance.plugins[@options.delivery]
+      delivery_plugin.init( @config, @appliance_config, :log => @log )
+      delivery_plugin.execute( platfrom_deliverables )
     end
 
     def deliverables_exists( plugin )

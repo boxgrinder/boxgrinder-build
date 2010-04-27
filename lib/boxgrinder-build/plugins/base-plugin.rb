@@ -23,9 +23,6 @@ require 'logger'
 
 module BoxGrinder
   class  BasePlugin
-    def after_init
-    end
-
     def init( config, appliance_config, options = {} )
       @config           = config
       @appliance_config = appliance_config
@@ -34,11 +31,39 @@ module BoxGrinder
       @log              = options[:log]         || Logger.new(STDOUT)
       @exec_helper      = options[:exec_helper] || ExecHelper.new( { :log => @log } )
 
-      @initialized       = true
+      @config_file      = "#{ENV['HOME']}/.boxgrinder/plugins/#{self.info[:name]}"
+      @plugin_config    = nil
 
       after_init
+      read_plugin_config
+
+      @initialized      = true
 
       self
+    end
+
+    def execute( args = nil )
+      raise "Execute operation for #{self.class} plugin is not implemented"
+    end
+
+    def after_init
+    end
+
+    def after_read_plugin_config
+    end
+
+    def read_plugin_config
+      return unless File.exists?( @config_file )
+
+      @log.debug "Reading configuration file for #{self.class.name}."
+
+      begin
+        @plugin_config = YAML.load_file( @config_file )
+      rescue
+        raise "An error occurred while reading configuration file #{@config_file} for #{self.class.name}. It is a valid YAML file?"
+      end
+
+      after_read_plugin_config
     end
 
     def customize( disk_path )

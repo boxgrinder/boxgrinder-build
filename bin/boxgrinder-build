@@ -57,15 +57,16 @@ module BoxGrinder
     c.description = 'Creates a base image for selected appliance definition.'
 
     c.option '-p STRING', '--platform STRING', String, "The type of platform. Valid types are: #{valid_platforms.join(', ')}. Default: base."
-    c.option '-d STRING', '--deliver STRING', String, "The delivery method for selected image. Default: none."
+    c.option '-d STRING', '--delivery STRING', String, "The delivery method for selected image. Default: none."
     c.option '-f', '--force', TrueClass, "Force image creation - removes all previous builds for selected appliance. Default: false."
 
     c.action do |args, options|
       options.default :platform => :base
-      options.default :deliver  => :none
+      options.default :delivery => :none
       options.default :force    => false
 
-      options.platform = options.platform.to_s.downcase.to_sym
+      options.platform  = options.platform.to_s.downcase.to_sym
+      options.delivery  = options.delivery.to_s.downcase.to_sym
 
       appliance_definition_file = args.shift or raise('Appliance definition file is required. Run boxgrinder-build -h for more info')
 

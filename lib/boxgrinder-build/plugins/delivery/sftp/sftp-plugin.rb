@@ -20,21 +20,59 @@
 
 require 'net/ssh'
 require 'net/sftp'
-require 'progressbar/progressbar'
-require 'boxgrinder-core/helpers/exec-helper'
 
 module BoxGrinder
-  class SSHHelper
-    def initialize( ssh_options, options = {} )
-      @ssh_options    = ssh_options
+  class SFTPPlugin < BaseDeliveryPlugin
+    def info
+      {
+              :name       => :sftp,
+              :full_name  => "SSH File Transfer Protocol"
+      }
+    end
 
-      @log            = options[:log]         || Logger.new(STDOUT)
-      @exec_helper    = options[:exec_helper] || ExecHelper.new( :log => @log )
+    def after_init
+      @sftp_options = {}
+
+      #TODO: allow overriding of this settings in config file
+      @sftp_options[:create_path]          = true
+      @sftp_options[:overwrite]            = false
+      @sftp_options[:default_permissions]  = 0644
+    end
+
+    def after_read_plugin_config
+      @sftp_options[:username]  = @plugin_config['username']
+      @sftp_options[:host]      = @plugin_config['host']
+      @sftp_options[:path]      = @plugin_config['path']
+    end
+
+    def execute( platform_deliverables )
+      @log.info "Uploading #{@appliance_config.name} appliance via SSH..."
+
+
+      #SSHValidator.new( @config ).validate
+
+      files = {}
+      files[File.basename(platform_deliverables[:disk])] = platform_deliverables[:disk]
+
+      platform_deliverables[:metadata].each_value do |file|
+        files[File.basename(file)] = file
+      end
+
+      begin
+        connect
+        upload_files( @sftp_options[:path], files )
+        disconnect
+
+        @log.info "Appliance #{@appliance_config.name} uploaded."
+      rescue => e
+        @log.error e
+        @log.error "An error occurred while uploading files."
+      end
     end
 
     def connect
-      @log.info "Connecting to #{@ssh_options['host']}..."
-      @ssh = Net::SSH.start( @ssh_options['host'], @ssh_options['username'], { :password => @ssh_options['password'] } )
+      @log.info "Connecting to #{@sftp_options[:host]}..."
+      @ssh = Net::SSH.start( @sftp_options[:host], @sftp_options[:username], { :password => @sftp_options[:password] } )
     end
 
     def connected?
@@ -43,16 +81,21 @@ module BoxGrinder
     end
 
     def disconnect
-      @log.info "Disconnecting from #{@ssh_options['host']}..."
+      @log.info "Disconnecting from #{@sftp_options[:host]}..."
       @ssh.close if connected?
       @ssh = nil
     end
 
     def upload_files( path, files = {} )
-
       return if files.size == 0
 
       raise "You're not connected to server" unless connected?
+
+      @log.debug "Files to upload:"
+
+      files.each do |remote, local|
+        @log.debug "#{local} => #{remote}"
+      end
 
       global_size = 0
 
@@ -66,12 +109,11 @@ module BoxGrinder
       @log.info "#{files.size} files to upload (#{global_size_mb > 0 ? global_size_mb.to_s + "MB" : global_size_kb > 0 ? global_size_kb.to_s + "kB" : global_size.to_s})"
 
       @ssh.sftp.connect do |sftp|
-
         begin
           sftp.stat!( path )
         rescue Net::SFTP::StatusException => e
           raise unless e.code == 2
-          if @ssh_options['sftp_create_path']
+          if @sftp_options[:create_path]
             @ssh.exec!( "mkdir -p #{path}" )
           else
             raise
@@ -90,7 +132,7 @@ module BoxGrinder
           begin
             sftp.stat!( remote )
 
-            unless @ssh_options['sftp_overwrite']
+            unless @sftp_options[:overwrite]
 
               local_md5_sum   = `md5sum #{local} | awk '{ print $1 }'`.strip
               remote_md5_sum  = @ssh.exec!( "md5sum #{remote} | awk '{ print $1 }'" ).strip
@@ -122,19 +164,11 @@ module BoxGrinder
             end
           end
 
-          sftp.setstat(remote, :permissions => @ssh_options['sftp_default_permissions'])
+          sftp.setstat(remote, :permissions => @sftp_options[:default_permissions])
 
         end
       end
     end
 
-    def createrepo( path, directories = [] )
-      raise "You're not connected to server" unless connected?
-
-      directories.each do |directory|
-        @log.info "Refreshing repository information in #{directory}..."
-        @ssh.exec!( "createrepo #{path}/#{directory}" )
-      end
-    end
   end
 end
