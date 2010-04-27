@@ -47,8 +47,6 @@ module BoxGrinder
     end
 
     def execute( base_disk )
-      raise "Conversion cannot be started before the plugin isn't initialized" if @initialized.nil?
-
       @plugin.execute( base_disk )
     end
   end

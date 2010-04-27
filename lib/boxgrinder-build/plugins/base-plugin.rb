@@ -31,11 +31,11 @@ module BoxGrinder
       @log              = options[:log]         || Logger.new(STDOUT)
       @exec_helper      = options[:exec_helper] || ExecHelper.new( { :log => @log } )
 
-      @config_file      = "#{ENV['HOME']}/.boxgrinder/plugins/#{self.info[:name]}"
+      @config_file      = "#{ENV['HOME']}/.boxgrinder/plugins/#{self.info[:name]}" if self.respond_to?(:info)
       @plugin_config    = nil
 
       after_init
-      read_plugin_config
+      read_plugin_config unless @config_file.nil?
 
       @initialized      = true
 
