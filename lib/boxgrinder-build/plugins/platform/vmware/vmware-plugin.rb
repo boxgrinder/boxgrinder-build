@@ -30,21 +30,30 @@ module BoxGrinder
       }
     end
 
+    def deliverables
+      {
+              :disk     => "#{@appliance_config.path.dir.build}/vmware/#{@appliance_config.name}.raw",
+              :metadata => {
+                      :vmx_enterprise  => "#{@appliance_config.path.dir.build}/vmware/#{@appliance_config.name}-enterprise.vmx",
+                      :vmdk_enterprise => "#{@appliance_config.path.dir.build}/vmware/#{@appliance_config.name}-enterprise.vmdk",
+                      :vmx_personal    => "#{@appliance_config.path.dir.build}/vmware/#{@appliance_config.name}-personal.vmx",
+                      :vmdk_personal   => "#{@appliance_config.path.dir.build}/vmware/#{@appliance_config.name}-personal.vmdk"
+              }
+      }
+    end
+
     def convert( base_image_path )
       @log.info "Converting image to VMware format..."
       @log.debug "Copying VMware image file, this may take several minutes..."
 
-      build_dir = "build/#{@appliance_config.appliance_path}/vmware"
-      image_path = "#{build_dir}/#{@appliance_config.name}.raw"
+      FileUtils.mkdir_p File.dirname( deliverables[:disk] )
 
-      FileUtils.mkdir_p build_dir
-
-      @exec_helper.execute "cp #{base_image_path} #{image_path}" if ( !File.exists?( image_path ) || File.new( base_image_path ).mtime > File.new( image_path ).mtime )
+      @exec_helper.execute "cp #{base_image_path} #{deliverables[:disk]}" if ( !File.exists?( deliverables[:disk] ) || File.new( base_image_path ).mtime > File.new( deliverables[:disk] ).mtime )
 
       @log.debug "VMware image copied."
 
       if @appliance_config.post.vmware.size > 0
-        customize( image_path ) do |guestfs, guestfs_helper|
+        customize( deliverables[:disk] ) do |guestfs, guestfs_helper|
           @appliance_config.post.vmware.each do |cmd|
             @log.debug "Executing #{cmd}"
             guestfs.sh( cmd )
@@ -59,8 +68,6 @@ module BoxGrinder
       build_vmware_personal
 
       @log.info "Image converted to VMware format."
-
-      image_path
     end
 
     # returns value of cylinders, heads and sector for selected disk size (in GB)
@@ -130,35 +137,20 @@ module BoxGrinder
       vmx_data
     end
 
-    def create_hardlink_to_disk_image( vmware_raw_file )
-      # Hard link RAW disk to VMware destination folder
-      FileUtils.ln( @appliance_config.path.file.vmware.disk, vmware_raw_file ) if ( !File.exists?( vmware_raw_file ) || File.new( @appliance_config.path.file.raw.disk ).mtime > File.new( vmware_raw_file ).mtime )
-    end
-
     def build_vmware_personal
       @log.debug "Building VMware personal image."
 
-      FileUtils.mkdir_p @appliance_config.path.dir.vmware.personal
-
-      # link disk image
-      create_hardlink_to_disk_image( @appliance_config.path.file.vmware.personal.disk )
-
       # create .vmx file
-      File.open( @appliance_config.path.file.vmware.personal.vmx, "w" ) {|f| f.write( change_common_vmx_values ) }
+      File.open( deliverables[:metadata][:vmx_personal], "w" ) {|f| f.write( change_common_vmx_values ) }
 
       # create disk descriptor file
-      File.open( @appliance_config.path.file.vmware.personal.vmdk, "w" ) {|f| f.write( change_vmdk_values( "monolithicFlat" ) ) }
+      File.open( deliverables[:metadata][:vmdk_personal], "w" ) {|f| f.write( change_vmdk_values( "monolithicFlat" ) ) }
 
       @log.debug "VMware personal image was built."
     end
 
     def build_vmware_enterprise
       @log.debug "Building VMware enterprise image."
-
-      FileUtils.mkdir_p @appliance_config.path.dir.vmware.enterprise
-
-      # link disk image
-      create_hardlink_to_disk_image( @appliance_config.path.file.vmware.enterprise.disk )
 
       # defaults for ESXi (maybe for others too)
       @appliance_config.hardware.network = "VM Network" if @appliance_config.hardware.network.eql?( "NAT" )
@@ -167,37 +159,12 @@ module BoxGrinder
       vmx_data = change_common_vmx_values
       vmx_data += "ethernet0.networkName = \"#{@appliance_config.hardware.network}\""
 
-      File.open( @appliance_config.path.file.vmware.enterprise.vmx, "w" ) {|f| f.write( vmx_data ) }
+      File.open( deliverables[:metadata][:vmx_enterprise], "w" ) {|f| f.write( vmx_data ) }
 
       # create disk descriptor file
-      File.open( @appliance_config.path.file.vmware.enterprise.vmdk, "w" ) {|f| f.write( change_vmdk_values( "vmfs" ) ) }
+      File.open( deliverables[:metadata][:vmdk_enterprise], "w" ) {|f| f.write( change_vmdk_values( "vmfs" ) ) }
 
       @log.debug "VMware enterprise image was built."
     end
-
-    def execute_post_operations( guestfs )
-      @log.debug "Executing post commands..."
-      for cmd in @appliance_config.post.vmware
-        @log.debug "Executing #{cmd}"
-        guestfs.sh( cmd )
-      end
-      @log.debug "Post commands executed."
-    end
-
-#    def install_vmware_tools( customizer )
-#      @log.debug "Installing VMware tools..."
-#
-#      if @appliance_config.is_os_version_stable?
-#        rpmfusion_repo_rpm = [ "http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-rawhide.noarch.rpm", "http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-rawhide.noarch.rpm" ]
-#      else
-#        rpmfusion_repo_rpm = [ "http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-stable.noarch.rpm", "http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-stable.noarch.rpm" ]
-#      end
-#
-#      #TODO this takes about 11 minutes, need to find a quicker way to install kmod-open-vm-tools package
-#      customizer.install_packages( @appliance_config.path.file.vmware.disk, { :packages => { :yum => [ "kmod-open-vm-tools" ] }, :repos => rpmfusion_repo_rpm } )
-#
-#      @log.debug "VMware tools installed."
-#    end
-
   end
 end

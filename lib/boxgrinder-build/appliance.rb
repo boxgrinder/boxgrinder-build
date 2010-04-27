@@ -19,7 +19,6 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'rake/tasklib'
-
 require 'boxgrinder-build/helpers/release-helper'
 
 module BoxGrinder
@@ -38,31 +37,62 @@ module BoxGrinder
 
       @appliance_config = appliance_config_helper.merge(appliance_configs.values.first.clone.init_arch).initialize_paths
 
-      ApplianceConfigValidator.new( @appliance_config ).validate
-
-      @log.debug "Selected platform: #{@options.platform}."
+      ApplianceConfigValidator.new( @appliance_config, :os_plugins => OperatingSystemPluginManager.instance.plugins ).validate
 
       if @options.force
         @log.info "Removing previous builds for #{@appliance_config.name} appliance..."
         FileUtils.rm_rf( @appliance_config.path.dir.build )
-        @log.debug "Previous builds removed,"
+        @log.debug "Previous builds removed."
       end
 
-      disk        = search_for_built_disks
-      os_plugin   = OperatingSystemPluginManager.instance.plugins[@appliance_config.os.name.to_sym]
+      base_deliverables       = execute_os_plugin
+      platform_deliverables   = execute_platform_plugin( base_deliverables )
+      delivery_deliverables   = execute_delivery_plugin( platform_deliverables )
+    end
 
-      if disk.nil?
-        os_plugin.init( @config, @appliance_config, :log => @log )
-        disk = os_plugin.build
-      else
-        @log.info "Base image for #{@appliance_config.name} appliance already exists, skipping..."
+    def execute_os_plugin
+      os_plugin = OperatingSystemPluginManager.instance.plugins[@appliance_config.os.name.to_sym]
+      os_plugin.init( @config, @appliance_config, :log => @log )
+
+      if deliverables_exists( os_plugin )
+        @log.info "Deliverables for #{os_plugin.info[:name]} operating system plugin exists, skipping."
+        return os_plugin.deliverables
       end
 
-      unless @options.platform == :base
-        platform_plugin = PlatformPluginManager.instance.plugins[@options.platform]
-        platform_plugin.init( @config, @appliance_config, :log => @log )
-        platform_plugin.convert( disk )
+      @log.debug "Executing operating system plugin for #{@appliance_config.os.name}..."
+      os_plugin.build
+      @log.debug "Operating system plugin executed."
+
+      os_plugin.deliverables
+    end
+
+    def execute_platform_plugin( base_deliverables )
+      if @options.platform == :base
+        @log.debug "Selected platform is base, skipping platform conversion."
+        return base_deliverables
       end
+
+      platform_plugin = PlatformPluginManager.instance.plugins[@options.platform]
+      platform_plugin.init( @config, @appliance_config, :log => @log )
+
+      if deliverables_exists( platform_plugin )
+        @log.info "Deliverables for #{platform_plugin.info[:name]} platform plugin exists, skipping."
+        return platform_plugin.deliverables
+      end
+
+      @log.debug "Executing platform plugin for #{@options.platform}..."
+      platform_plugin.convert( base_deliverables[:disk] )
+      @log.debug "Platform plugin executed."
+
+      platform_plugin.deliverables
+    end
+
+    def execute_delivery_plugin( platfrom_deliverables )
+      platfrom_deliverables
+    end
+
+    def deliverables_exists( plugin )
+      File.exists?(plugin.deliverables[:disk]) and plugin.deliverables[:metadata].each_value { |file| File.exists?(file) }
     end
 
     def search_for_built_disks
@@ -74,7 +104,7 @@ module BoxGrinder
         if disks.size == 1
           return disks.first
         else
-          raise "More than 1 disk found, aborting."
+          raise "More than 1 disk found. This should never happen"
         end
       end
     end

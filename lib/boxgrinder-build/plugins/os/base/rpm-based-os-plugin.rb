@@ -23,29 +23,33 @@ require 'boxgrinder-build/plugins/os/base-operating-system-plugin'
 module BoxGrinder
   class RPMBasedOSPlugin < BaseOperatingSystemPlugin
 
+    def deliverables
+      {
+              :disk     => "#{@appliance_config.path.dir.raw.build_full}/#{@appliance_config.name}-sda.raw",
+              :metadata =>
+                      {
+                              :descriptor => "#{@appliance_config.path.dir.raw.build_full}/#{@appliance_config.name}.xml"
+                      }
+      }
+    end
+
     def build_with_appliance_creator( repos )
       Kickstart.new( @config, @appliance_config, repos, :log => @log ).create
       RPMDependencyValidator.new( @config, @appliance_config, @options ).resolve_packages
 
       tmp_dir = "#{@config.dir.root}/#{@config.dir.build}/tmp"
-
       FileUtils.mkdir_p( tmp_dir )
 
-      disk_type = 'sda'
-      disk_path = "#{@appliance_config.path.dir.raw.build_full}/#{@appliance_config.name}-#{disk_type}.raw"
-
-      @log.info "Building #{@appliance_config.simple_name} appliance..."
+      @log.info "Building #{@appliance_config.name} appliance..."
 
       @exec_helper.execute "sudo appliance-creator -d -v -t #{tmp_dir} --cache=#{@config.dir.rpms_cache}/#{@appliance_config.main_path} --config #{@appliance_config.path.file.raw.kickstart} -o #{@appliance_config.path.dir.raw.build} --name #{@appliance_config.name} --vmem #{@appliance_config.hardware.memory} --vcpu #{@appliance_config.hardware.cpus}"
 
       # fix permissions
       @exec_helper.execute "sudo chmod 777 #{@appliance_config.path.dir.raw.build_full}"
-      @exec_helper.execute "sudo chmod 666 #{disk_path}"
-      @exec_helper.execute "sudo chmod 666 #{@appliance_config.path.file.raw.xml}"
+      @exec_helper.execute "sudo chmod 666 #{deliverables[:disk]}"
+      @exec_helper.execute "sudo chmod 666 #{deliverables[:metadata][:descriptor]}"
 
-      @log.info "Appliance #{@appliance_config.simple_name} was built successfully."
-
-      customize( disk_path ) do |guestfs, guestfs_helper|
+      customize( deliverables[:disk] ) do |guestfs, guestfs_helper|
         @log.info "Executing post operations after build..."
 
         mount_partitions( guestfs, guestfs_helper ) if guestfs.list_partitions.size > 1
@@ -70,7 +74,7 @@ module BoxGrinder
         @log.info "Post operations executed."
       end
 
-      disk_path
+      @log.info "Base image for #{@appliance_config.name} appliance was built successfully."
     end
 
     def mount_partitions( guestfs, guestfs_helper )

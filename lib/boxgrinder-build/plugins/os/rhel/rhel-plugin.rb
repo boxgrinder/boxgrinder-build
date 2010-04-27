@@ -18,10 +18,10 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require 'boxgrinder-build/plugins/os/base-operating-system-plugin'
+require 'boxgrinder-build/plugins/os/base/rpm-based-os-plugin'
 
 module BoxGrinder
-  class RHELPlugin < BaseOperatingSystemPlugin
+  class RHELPlugin < RPMBasedOSPlugin
     def info
       {
               :name       => :rhel,
@@ -31,8 +31,8 @@ module BoxGrinder
       }
     end
 
-    def define( config, image_config, options = {}  )
-
+    def build
+      raise "Build cannot be started until the plugin isn't initialized" if @initialized.nil?
     end
   end
 end
