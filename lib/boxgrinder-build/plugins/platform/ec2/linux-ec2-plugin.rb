@@ -42,6 +42,13 @@ module BoxGrinder
             }
     }
 
+    def info
+      {
+              :name       => :ec2_linux,
+              :full_name  => "Amazon Elastic Compute Cloud"
+      }
+    end
+
     def after_init
       @directories = {
               :ec2_disk_mount_dir => "#{@appliance_config.path.dir.build}/tmp/ec2-#{rand(9999999999).to_s.center(10, rand(9).to_s)}",

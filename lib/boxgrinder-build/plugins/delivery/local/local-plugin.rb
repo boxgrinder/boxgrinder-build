@@ -5,7 +5,7 @@ module BoxGrinder
     def info
       {
               :name       => :local,
-              :full_name  => "Local filesystem"
+              :full_name  => "Local file system"
       }
     end
 

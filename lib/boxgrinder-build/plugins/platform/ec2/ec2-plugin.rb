@@ -26,7 +26,7 @@ module BoxGrinder
     def info
       {
               :name       => :ec2,
-              :full_name  => "Amazon Elastic Compute Cloud"
+              :full_name  => "Amazon Elastic Compute Cloud (Amazon EC2)"
       }
     end
 

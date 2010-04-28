@@ -29,8 +29,8 @@ module BoxGrinder
 
     def info
       {
-              :name       => :ami,
-              :full_name  => "Amazon Machine Image"
+              :name       => :s3,
+              :full_name  => "Amazon Simple Storage Service (Amazon S3)"
       }
     end
 

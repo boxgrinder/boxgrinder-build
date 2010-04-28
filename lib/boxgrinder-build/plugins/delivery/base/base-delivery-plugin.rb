@@ -33,5 +33,9 @@ module BoxGrinder
     def self.inherited(klass)
       DeliveryPluginManager.instance << klass
     end
+
+    def already_delivered?
+      false
+    end
   end
 end
