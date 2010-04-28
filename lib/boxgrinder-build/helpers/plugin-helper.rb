@@ -56,6 +56,32 @@ module BoxGrinder
       @log.debug "Plugins loaded."
     end
 
+    def deliverables_exists?( deliverables )
+      return false unless File.exists?(deliverables[:disk])
+
+      [:metadata, :other].each do |deliverable_type|
+        deliverables[deliverable_type].each_value do |file|
+          return false unless File.exists?(file)
+        end
+      end
+
+      true
+    end
+
+    def deliverables_array( deliverables )
+      files = []
+
+      files << deliverables[:disk]
+
+      [:metadata, :other].each do |deliverable_type|
+        deliverables[deliverable_type].each_value do |file|
+          file << file
+        end
+      end
+
+      files
+    end
+
     attr_reader :os_plugins
     attr_reader :platform_plugins
     attr_reader :delivery_plugins

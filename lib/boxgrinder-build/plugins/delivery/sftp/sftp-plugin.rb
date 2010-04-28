@@ -20,6 +20,9 @@
 
 require 'net/ssh'
 require 'net/sftp'
+require 'progressbar/progressbar'
+require 'boxgrinder-build/plugins/delivery/base/base-delivery-plugin'
+require 'boxgrinder-build/helpers/package-helper'
 
 module BoxGrinder
   class SFTPPlugin < BaseDeliveryPlugin
@@ -31,36 +34,23 @@ module BoxGrinder
     end
 
     def after_init
-      @sftp_options = {}
-
-      #TODO: allow overriding of this settings in config file
-      @sftp_options[:create_path]          = true
-      @sftp_options[:overwrite]            = false
-      @sftp_options[:default_permissions]  = 0644
+      set_default_config_value( 'create_path', true )
+      set_default_config_value( 'overwrite', false )
+      set_default_config_value( 'default_permissions', 0644 )
     end
 
-    def after_read_plugin_config
-      @sftp_options[:username]  = @plugin_config['username']
-      @sftp_options[:host]      = @plugin_config['host']
-      @sftp_options[:path]      = @plugin_config['path']
-    end
 
     def execute( platform_deliverables )
-      @log.info "Uploading #{@appliance_config.name} appliance via SSH..."
-
 
       #SSHValidator.new( @config ).validate
 
-      files = {}
-      files[File.basename(platform_deliverables[:disk])] = platform_deliverables[:disk]
+      package = PackageHelper.new( @config, @appliance_config, { :log => @log, :exec_helper => @exec_helper } ).package( platform_deliverables )
 
-      platform_deliverables[:metadata].each_value do |file|
-        files[File.basename(file)] = file
-      end
+      @log.info "Uploading #{@appliance_config.name} appliance via SSH..."
 
       begin
         connect
-        upload_files( @sftp_options[:path], files )
+        upload_files( @plugin_config['path'], { File.basename(package) => package } )
         disconnect
 
         @log.info "Appliance #{@appliance_config.name} uploaded."
@@ -70,9 +60,17 @@ module BoxGrinder
       end
     end
 
+    def package( dir, files )
+      @log.info "Packaging #{@appliance_config.name} appliance..."
+
+      @exec_helper.execute "tar -C #{dir} -cvzf '#{@appliance_config.path.file.package[:vmware][:tgz]}' README #{files.join(' ')}"
+
+      @log.info "Appliance #{@appliance_config.name} packaged."
+    end
+
     def connect
-      @log.info "Connecting to #{@sftp_options[:host]}..."
-      @ssh = Net::SSH.start( @sftp_options[:host], @sftp_options[:username], { :password => @sftp_options[:password] } )
+      @log.info "Connecting to #{@plugin_config['host']}..."
+      @ssh = Net::SSH.start( @plugin_config['host'], @plugin_config['username'], { :password => @plugin_config['password'] } )
     end
 
     def connected?
@@ -81,7 +79,7 @@ module BoxGrinder
     end
 
     def disconnect
-      @log.info "Disconnecting from #{@sftp_options[:host]}..."
+      @log.info "Disconnecting from #{@plugin_config['host']}..."
       @ssh.close if connected?
       @ssh = nil
     end
@@ -113,7 +111,7 @@ module BoxGrinder
           sftp.stat!( path )
         rescue Net::SFTP::StatusException => e
           raise unless e.code == 2
-          if @sftp_options[:create_path]
+          if @plugin_config['create_path']
             @ssh.exec!( "mkdir -p #{path}" )
           else
             raise
@@ -132,7 +130,7 @@ module BoxGrinder
           begin
             sftp.stat!( remote )
 
-            unless @sftp_options[:overwrite]
+            unless @plugin_config['overwrite']
 
               local_md5_sum   = `md5sum #{local} | awk '{ print $1 }'`.strip
               remote_md5_sum  = @ssh.exec!( "md5sum #{remote} | awk '{ print $1 }'" ).strip
@@ -149,6 +147,8 @@ module BoxGrinder
 
           @ssh.exec!( "mkdir -p #{File.dirname( remote ) }" )
 
+          ProgressBar.new( "#{nb_of} #{name}", 12345688)
+
           pbar = ProgressBar.new( "#{nb_of} #{name}", size_b )
           pbar.file_transfer_mode
 
@@ -164,11 +164,9 @@ module BoxGrinder
             end
           end
 
-          sftp.setstat(remote, :permissions => @sftp_options[:default_permissions])
-
+          sftp.setstat(remote, :permissions => @plugin_config['default_permissions'])
         end
       end
     end
-
   end
 end

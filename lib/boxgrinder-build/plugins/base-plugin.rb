@@ -30,17 +30,26 @@ module BoxGrinder
 
       @log              = options[:log]         || Logger.new(STDOUT)
       @exec_helper      = options[:exec_helper] || ExecHelper.new( { :log => @log } )
+      @plugin_config    = {}
 
-      @config_file      = "#{ENV['HOME']}/.boxgrinder/plugins/#{self.info[:name]}" if self.respond_to?(:info)
-      @plugin_config    = nil
+      if self.respond_to?(:info)
+        @config_file = "#{ENV['HOME']}/.boxgrinder/plugins/#{self.info[:name]}"
+
+        read_plugin_config
+
+        @deliverables             = Hash.new( {} )
+        @deliverables[:disk]      = nil
+        @deliverables[:platform]  = self.info[:name]
+      end
 
       after_init
-      read_plugin_config unless @config_file.nil?
 
-      @initialized      = true
+      @initialized = true
 
       self
     end
+
+    attr_reader :deliverables
 
     def execute( args = nil )
       raise "Execute operation for #{self.class} plugin is not implemented"
@@ -50,6 +59,10 @@ module BoxGrinder
     end
 
     def after_read_plugin_config
+    end
+
+    def set_default_config_value( key, value )
+      @plugin_config[key] = @plugin_config[key].nil? ? value : @plugin_config[key]
     end
 
     def read_plugin_config

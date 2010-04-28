@@ -22,14 +22,11 @@ require 'boxgrinder-build/plugins/os/base-operating-system-plugin'
 
 module BoxGrinder
   class RPMBasedOSPlugin < BaseOperatingSystemPlugin
+    def after_init
+      @deliverables[:disk] = "#{@appliance_config.path.dir.raw.build_full}/#{@appliance_config.name}-sda.raw"
 
-    def deliverables
-      {
-              :disk     => "#{@appliance_config.path.dir.raw.build_full}/#{@appliance_config.name}-sda.raw",
-              :metadata =>
-                      {
-                              :descriptor => "#{@appliance_config.path.dir.raw.build_full}/#{@appliance_config.name}.xml"
-                      }
+      @deliverables[:metadata]  = {
+              :descriptor   => "#{@appliance_config.path.dir.raw.build_full}/#{@appliance_config.name}.xml"
       }
     end
 
@@ -46,10 +43,10 @@ module BoxGrinder
 
       # fix permissions
       @exec_helper.execute "sudo chmod 777 #{@appliance_config.path.dir.raw.build_full}"
-      @exec_helper.execute "sudo chmod 666 #{deliverables[:disk]}"
-      @exec_helper.execute "sudo chmod 666 #{deliverables[:metadata][:descriptor]}"
+      @exec_helper.execute "sudo chmod 666 #{@deliverables[:disk]}"
+      @exec_helper.execute "sudo chmod 666 #{@deliverables[:metadata][:descriptor]}"
 
-      customize( deliverables[:disk] ) do |guestfs, guestfs_helper|
+      customize( @deliverables[:disk] ) do |guestfs, guestfs_helper|
         @log.info "Executing post operations after build..."
 
         mount_partitions( guestfs, guestfs_helper ) if guestfs.list_partitions.size > 1

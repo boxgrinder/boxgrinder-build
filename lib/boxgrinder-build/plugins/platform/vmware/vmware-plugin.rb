@@ -30,32 +30,34 @@ module BoxGrinder
       }
     end
 
-    def deliverables
-      {
-              :disk     => "#{@appliance_config.path.dir.build}/vmware/#{@appliance_config.name}.raw",
-              :metadata => {
-                      :vmx_enterprise  => "#{@appliance_config.path.dir.build}/vmware/#{@appliance_config.name}-enterprise.vmx",
-                      :vmdk_enterprise => "#{@appliance_config.path.dir.build}/vmware/#{@appliance_config.name}-enterprise.vmdk",
-                      :vmx_personal    => "#{@appliance_config.path.dir.build}/vmware/#{@appliance_config.name}-personal.vmx",
-                      :vmdk_personal   => "#{@appliance_config.path.dir.build}/vmware/#{@appliance_config.name}-personal.vmdk"
-              }
+    def after_init
+      @deliverables[:disk] = "#{@appliance_config.path.dir.build}/vmware/#{@appliance_config.name}.raw"
+
+      @deliverables[:metadata]  = {
+              :vmx_enterprise   => "#{@appliance_config.path.dir.build}/vmware/#{@appliance_config.name}-enterprise.vmx",
+              :vmdk_enterprise  => "#{@appliance_config.path.dir.build}/vmware/#{@appliance_config.name}-enterprise.vmdk",
+              :vmx_personal     => "#{@appliance_config.path.dir.build}/vmware/#{@appliance_config.name}-personal.vmx",
+              :vmdk_personal    => "#{@appliance_config.path.dir.build}/vmware/#{@appliance_config.name}-personal.vmdk"
+      }
+
+      @deliverables[:other]     = {
+              :readme           => "#{@appliance_config.path.dir.build}/vmware/README"
       }
     end
 
-    def execute( base_image_path )
-      raise "Build cannot be started before the plugin isn't initialized" if @initialized.nil?
 
+    def execute( base_image_path )
       @log.info "Converting image to VMware format..."
       @log.debug "Copying VMware image file, this may take several minutes..."
 
-      FileUtils.mkdir_p File.dirname( deliverables[:disk] )
+      FileUtils.mkdir_p File.dirname( @deliverables[:disk] )
 
-      @exec_helper.execute "cp #{base_image_path} #{deliverables[:disk]}" if ( !File.exists?( deliverables[:disk] ) || File.new( base_image_path ).mtime > File.new( deliverables[:disk] ).mtime )
+      @exec_helper.execute "cp #{base_image_path} #{@deliverables[:disk]}" if ( !File.exists?( @deliverables[:disk] ) || File.new( base_image_path ).mtime > File.new( @deliverables[:disk] ).mtime )
 
       @log.debug "VMware image copied."
 
       if @appliance_config.post.vmware.size > 0
-        customize( deliverables[:disk] ) do |guestfs, guestfs_helper|
+        customize( @deliverables[:disk] ) do |guestfs, guestfs_helper|
           @appliance_config.post.vmware.each do |cmd|
             @log.debug "Executing #{cmd}"
             guestfs.sh( cmd )
@@ -68,6 +70,13 @@ module BoxGrinder
 
       build_vmware_enterprise
       build_vmware_personal
+
+      readme = File.open( "#{File.dirname(__FILE__)}/src/README" ).read
+      readme.gsub!( /#APPLIANCE_NAME#/, @appliance_config.name )
+      readme.gsub!( /#NAME#/, @config.name )
+      readme.gsub!( /#VERSION#/, @config.version_with_release )
+
+      File.open( @deliverables[:other][:readme], "w") {|f| f.write( readme ) }
 
       @log.info "Image converted to VMware format."
     end
@@ -143,10 +152,10 @@ module BoxGrinder
       @log.debug "Building VMware personal image."
 
       # create .vmx file
-      File.open( deliverables[:metadata][:vmx_personal], "w" ) {|f| f.write( change_common_vmx_values ) }
+      File.open( @deliverables[:metadata][:vmx_personal], "w" ) {|f| f.write( change_common_vmx_values ) }
 
       # create disk descriptor file
-      File.open( deliverables[:metadata][:vmdk_personal], "w" ) {|f| f.write( change_vmdk_values( "monolithicFlat" ) ) }
+      File.open( @deliverables[:metadata][:vmdk_personal], "w" ) {|f| f.write( change_vmdk_values( "monolithicFlat" ) ) }
 
       @log.debug "VMware personal image was built."
     end
@@ -161,10 +170,10 @@ module BoxGrinder
       vmx_data = change_common_vmx_values
       vmx_data += "ethernet0.networkName = \"#{@appliance_config.hardware.network}\""
 
-      File.open( deliverables[:metadata][:vmx_enterprise], "w" ) {|f| f.write( vmx_data ) }
+      File.open( @deliverables[:metadata][:vmx_enterprise], "w" ) {|f| f.write( vmx_data ) }
 
       # create disk descriptor file
-      File.open( deliverables[:metadata][:vmdk_enterprise], "w" ) {|f| f.write( change_vmdk_values( "vmfs" ) ) }
+      File.open( @deliverables[:metadata][:vmdk_enterprise], "w" ) {|f| f.write( change_vmdk_values( "vmfs" ) ) }
 
       @log.debug "VMware enterprise image was built."
     end

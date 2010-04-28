@@ -42,19 +42,14 @@ module BoxGrinder
             }
     }
 
-    def deliverables
-      {
-              :disk     => "#{@appliance_config.path.dir.build}/ec2/#{@appliance_config.name}.ec2",
-              :metadata => {}
-      }
-    end
-
     def after_init
       @directories = {
-              :build => "#{@appliance_config.path.dir.build}/ec2",
               :ec2_disk_mount_dir => "#{@appliance_config.path.dir.build}/tmp/ec2-#{rand(9999999999).to_s.center(10, rand(9).to_s)}",
               :raw_disk_mount_dir => "#{@appliance_config.path.dir.build}/tmp/raw-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
       }
+
+      @deliverables[:disk] = "#{@appliance_config.path.dir.build}/ec2/#{@appliance_config.name}.ec2"
+
     end
 
     def supported_os
@@ -68,7 +63,7 @@ module BoxGrinder
     end
 
     def execute( raw_disk )
-      if File.exists?( deliverables[:disk] )
+      if File.exists?( @deliverables[:disk] )
         @log.info "EC2 image for #{@appliance_config.name} appliance already exists, skipping..."
         return
       end
@@ -78,7 +73,7 @@ module BoxGrinder
         return
       end
 
-      FileUtils.mkdir_p @directories[:build]
+      FileUtils.mkdir_p File.dirname( @deliverables[:disk] )
 
       @log.info "Converting #{@appliance_config.name} appliance image to EC2 format..."
 
@@ -92,7 +87,7 @@ module BoxGrinder
       raw_disk_offset = calculate_disk_offset( raw_disk )
 
       begin
-        ec2_loop_device = mount_image(deliverables[:disk], @directories[:ec2_disk_mount_dir] )
+        ec2_loop_device = mount_image(@deliverables[:disk], @directories[:ec2_disk_mount_dir] )
         raw_loop_device = mount_image(raw_disk, @directories[:raw_disk_mount_dir], raw_disk_offset )
       rescue => e
         raise "Error while mounting image. See logs for more info"
@@ -101,9 +96,9 @@ module BoxGrinder
       sync_files( @directories[:raw_disk_mount_dir], @directories[:ec2_disk_mount_dir]  )
 
       umount_image( raw_disk, @directories[:raw_disk_mount_dir], raw_loop_device )
-      umount_image( deliverables[:disk], @directories[:ec2_disk_mount_dir], ec2_loop_device )
+      umount_image( @deliverables[:disk], @directories[:ec2_disk_mount_dir], ec2_loop_device )
 
-      customize( deliverables[:disk]) do |guestfs, guestfs_helper|
+      customize( @deliverables[:disk]) do |guestfs, guestfs_helper|
         create_devices( guestfs )
         upload_fstab( guestfs )
 
@@ -148,13 +143,13 @@ module BoxGrinder
       # TODO add progress bar?
       # TODO using whole 10GB is fine?
       @log.debug "Preparing disk for EC2 image..."
-      @exec_helper.execute "dd if=/dev/zero of=#{deliverables[:disk]} bs=1 count=0 seek=#{10 * 1024}M"
+      @exec_helper.execute "dd if=/dev/zero of=#{@deliverables[:disk]} bs=1 count=0 seek=#{10 * 1024}M"
       @log.debug "Disk for EC2 image prepared"
     end
 
     def ec2_create_filesystem
       @log.debug "Creating filesystem..."
-      @exec_helper.execute "mkfs.ext3 -F #{deliverables[:disk]}"
+      @exec_helper.execute "mkfs.ext3 -F #{@deliverables[:disk]}"
       @log.debug "Filesystem created"
     end
 

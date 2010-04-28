@@ -55,7 +55,7 @@ module BoxGrinder
       os_plugin = OperatingSystemPluginManager.instance.plugins[@appliance_config.os.name.to_sym]
       os_plugin.init( @config, @appliance_config, :log => @log )
 
-      if deliverables_exists( os_plugin )
+      if deliverables_exists( os_plugin.deliverables )
         @log.info "Deliverables for #{os_plugin.info[:name]} operating system plugin exists, skipping."
         return os_plugin.deliverables
       end
@@ -76,7 +76,7 @@ module BoxGrinder
       platform_plugin = PlatformPluginManager.instance.plugins[@options.platform]
       platform_plugin.init( @config, @appliance_config, :log => @log )
 
-      if deliverables_exists( platform_plugin )
+      if deliverables_exists( platform_plugin.deliverables )
         @log.info "Deliverables for #{platform_plugin.info[:name]} platform plugin exists, skipping."
         return platform_plugin.deliverables
       end
@@ -99,8 +99,16 @@ module BoxGrinder
       delivery_plugin.execute( platfrom_deliverables )
     end
 
-    def deliverables_exists( plugin )
-      File.exists?(plugin.deliverables[:disk]) and plugin.deliverables[:metadata].each_value { |file| File.exists?(file) }
+    def deliverables_exists( deliverables )
+      return false unless File.exists?(deliverables[:disk])
+
+      [:metadata, :other].each do |deliverable_type|
+        deliverables[deliverable_type].each_value do |file|
+          return false unless File.exists?(file)
+        end
+      end
+
+      true
     end
 
     def search_for_built_disks
