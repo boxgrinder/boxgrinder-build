@@ -22,5 +22,18 @@ require 'boxgrinder-build/managers/base-plugin-manager'
 
 module BoxGrinder
   class DeliveryPluginManager < BasePluginManager
+    def types
+      t = {}
+
+      @plugins.each_value do |plugin|
+        plugin.info[:type].each do |type|
+          t[type] = plugin
+        end
+
+      end
+      
+      t
+    end
+
   end
 end

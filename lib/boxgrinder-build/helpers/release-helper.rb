@@ -76,7 +76,7 @@ module BoxGrinder
           end
 
           task "appliance:#{@appliance_config.name}:upload:#{image_format}:#{package_format}:cloudfront" => [ "appliance:#{@appliance_config.name}:package:#{image_format}:#{package_format}" ] do
-            upload_to_cloudfront( files_to_upload )
+            upload_to_bucket( files_to_upload )
           end
         end
       end

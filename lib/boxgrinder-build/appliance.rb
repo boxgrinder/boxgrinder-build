@@ -20,6 +20,11 @@
 
 require 'rake/tasklib'
 require 'boxgrinder-build/helpers/release-helper'
+require 'boxgrinder-core/models/appliance-config'
+require 'boxgrinder-core/models/config'
+require 'boxgrinder-core/helpers/appliance-helper'
+require 'boxgrinder-core/helpers/appliance-config-helper'
+require 'boxgrinder-core/validators/appliance-config-validator'
 
 module BoxGrinder
   class Appliance < Rake::TaskLib
@@ -67,10 +72,10 @@ module BoxGrinder
       os_plugin.deliverables
     end
 
-    def execute_platform_plugin( base_deliverables )
-      if @options.platform == :base
-        @log.debug "Selected platform is base, skipping platform conversion."
-        return base_deliverables
+    def execute_platform_plugin( deliverables )
+      if @options.platform == :none
+        @log.debug "No platform selected, skipping platform conversion."
+        return deliverables
       end
 
       platform_plugin = PlatformPluginManager.instance.plugins[@options.platform]
@@ -82,23 +87,24 @@ module BoxGrinder
       end
 
       @log.debug "Executing platform plugin for #{@options.platform}..."
-      platform_plugin.execute( base_deliverables[:disk] )
+      platform_plugin.execute( deliverables[:disk] )
       @log.debug "Platform plugin executed."
 
       platform_plugin.deliverables
     end
 
-    def execute_delivery_plugin( platfrom_deliverables )
+    def execute_delivery_plugin( deliverables )
       if @options.delivery == :none
-        @log.debug "No delivery method selected, skipping."
-        return platfrom_deliverables
+        @log.debug "No delivery method selected, skipping delivering."
+        return deliverables
       end
 
-      delivery_plugin = DeliveryPluginManager.instance.plugins[@options.delivery]
+      delivery_plugin = DeliveryPluginManager.instance.types[@options.delivery]
       delivery_plugin.init( @config, @appliance_config, :log => @log )
-      delivery_plugin.execute( platfrom_deliverables )
+      delivery_plugin.execute( deliverables, @options.delivery )
     end
 
+    # TODO: move this to plugin (os,platform,delivery)
     def deliverables_exists( deliverables )
       return false unless File.exists?(deliverables[:disk])
 

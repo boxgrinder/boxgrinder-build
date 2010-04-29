@@ -22,14 +22,16 @@ require 'boxgrinder-core/helpers/exec-helper'
 require 'logger'
 
 module BoxGrinder
-  class  BasePlugin
-    def init( config, appliance_config, options = {} )
+  class BasePlugin
+    def init(config, appliance_config, options = {})
       @config           = config
       @appliance_config = appliance_config
       @options          = options
 
-      @log              = options[:log]         || Logger.new(STDOUT)
-      @exec_helper      = options[:exec_helper] || ExecHelper.new( { :log => @log } )
+      @log              = options[:log]           || Logger.new(STDOUT)
+      @exec_helper      = options[:exec_helper]   || ExecHelper.new( :log => @log )
+      @plugin_helper    = options[:plugin_helper] || PluginHelper.new( :log => @log )
+
       @plugin_config    = {}
 
       if self.respond_to?(:info)
@@ -37,7 +39,7 @@ module BoxGrinder
 
         read_plugin_config
 
-        @deliverables             = Hash.new( {} )
+        @deliverables             = Hash.new({})
         @deliverables[:disk]      = nil
         @deliverables[:platform]  = self.info[:name]
       end
@@ -51,38 +53,43 @@ module BoxGrinder
 
     attr_reader :deliverables
 
-    def execute( args = nil )
+    def validate_plugin_config(fields = [], doc = nil)
+      more_info = doc.nil? ? '' : "See #{doc} for more info"
+
+      raise "Not valid configuration file for #{info[:name]} plugin. Please create valid '#{@config_file}' file. #{more_info}" if @plugin_config.nil?
+
+      fields.each do |field|
+        raise "Please specify a valid #{field} in plugin configuration file: '#{@config_file}'. #{more_info}" if @plugin_config[field].nil?
+      end
+    end
+
+    def execute(args = nil)
       raise "Execute operation for #{self.class} plugin is not implemented"
     end
 
     def after_init
     end
 
-    def after_read_plugin_config
-    end
-
-    def set_default_config_value( key, value )
+    def set_default_config_value(key, value)
       @plugin_config[key] = @plugin_config[key].nil? ? value : @plugin_config[key]
     end
 
     def read_plugin_config
-      return unless File.exists?( @config_file )
+      return unless File.exists?(@config_file)
 
       @log.debug "Reading configuration file for #{self.class.name}."
 
       begin
-        @plugin_config = YAML.load_file( @config_file )
+        @plugin_config = YAML.load_file(@config_file)
       rescue
         raise "An error occurred while reading configuration file #{@config_file} for #{self.class.name}. It is a valid YAML file?"
       end
-
-      after_read_plugin_config
     end
 
-    def customize( disk_path )
+    def customize(disk_path)
       raise "Customizing cannot be started until the plugin isn't initialized" if @initialized.nil?
 
-      ApplianceCustomizeHelper.new( @config, @appliance_config, disk_path, :log => @log ).customize do |guestfs, guestfs_helper|
+      ApplianceCustomizeHelper.new(@config, @appliance_config, disk_path, :log => @log).customize do |guestfs, guestfs_helper|
         yield guestfs, guestfs_helper
       end
     end

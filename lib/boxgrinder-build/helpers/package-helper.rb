@@ -20,21 +20,19 @@
 
 module BoxGrinder
   class PackageHelper
-    def initialize( config, appliance_config, options = {} )
+    def initialize(config, appliance_config, options = {})
       @config           = config
       @appliance_config = appliance_config
 
-      @log              = options[:log]         || Logger.new(STDOUT)
-      @exec_helper      = options[:exec_helper] || ExecHelper.new( { :log => @log } )
+      @log              = options[:log] || Logger.new(STDOUT)
+      @exec_helper      = options[:exec_helper] || ExecHelper.new({:log => @log})
     end
 
-    def package( deliverables, type = :tar )
-
-
+    def package(deliverables, type = :tar)
       files = []
-      files << File.basename( deliverables[:disk] )
+      files << File.basename(deliverables[:disk])
 
-      [ :metadata, :other ].each do |deliverable_type|
+      [:metadata, :other].each do |deliverable_type|
         deliverables[deliverable_type].each_value do |file|
           files << File.basename(file)
         end
@@ -43,20 +41,18 @@ module BoxGrinder
       deliverable_platform  = deliverables[:platform].nil? ? "" : deliverables[:platform]
       package_path          = "#{@appliance_config.path.dir.packages}/#{@appliance_config.name}-#{@appliance_config.version}.#{@appliance_config.release}-#{@appliance_config.hardware.arch}-#{deliverable_platform}.tgz"
 
-      if File.exists?( package_path )
-         @log.info "Package of #{type} type for #{@appliance_config.name} appliance and #{deliverable_platform} platform already exists, skipping."
-
-
+      if File.exists?(package_path)
+        @log.info "Package of #{type} type for #{@appliance_config.name} appliance and #{deliverable_platform} platform already exists, skipping."
         return package_path
       end
 
-      FileUtils.mkdir_p( File.dirname( package_path ) )
+      FileUtils.mkdir_p(File.dirname(package_path))
 
       @log.info "Packaging #{@appliance_config.name} appliance for #{deliverable_platform} platform to #{type}..."
 
       case type
         when :tar
-          @exec_helper.execute "tar -C #{File.dirname( deliverables[:disk] )} -cvzf '#{package_path}' #{files.join(' ')}"
+          @exec_helper.execute "tar -C #{File.dirname(deliverables[:disk])} -cvzf '#{package_path}' #{files.join(' ')}"
         else
           raise "Only tar format is currently supported."
       end

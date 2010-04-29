@@ -29,9 +29,9 @@ module BoxGrinder
 
     alias_method :execute_original, :execute
 
-    def execute( args = nil )
+    def execute(args = nil)
       raise "Conversion cannot be started before the plugin isn't initialized" if @initialized.nil?
-      execute_original( args )
+      execute_original(args)
     end
   end
 end

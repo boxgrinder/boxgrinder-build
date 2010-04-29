@@ -29,28 +29,29 @@ module BoxGrinder
     def info
       {
               :name       => :sftp,
+              :type       => [:sftp],
               :full_name  => "SSH File Transfer Protocol"
       }
     end
 
     def after_init
-      set_default_config_value( 'create_path', true )
-      set_default_config_value( 'overwrite', false )
-      set_default_config_value( 'default_permissions', 0644 )
+      set_default_config_value('create_path', true)
+      set_default_config_value('overwrite', false)
+      set_default_config_value('default_permissions', 0644)
     end
 
-
-    def execute( platform_deliverables )
+    def execute(deliverables, type = :sftp)
+      validate_plugin_config( [ 'path', 'username', 'host' ], 'CHANGEME' )
 
       #SSHValidator.new( @config ).validate
 
-      package = PackageHelper.new( @config, @appliance_config, { :log => @log, :exec_helper => @exec_helper } ).package( platform_deliverables )
+      package = PackageHelper.new(@config, @appliance_config, {:log => @log, :exec_helper => @exec_helper}).package(deliverables)
 
       @log.info "Uploading #{@appliance_config.name} appliance via SSH..."
 
       begin
         connect
-        upload_files( @plugin_config['path'], { File.basename(package) => package } )
+        upload_files(@plugin_config['path'], {File.basename(package) => package})
         disconnect
 
         @log.info "Appliance #{@appliance_config.name} uploaded."
@@ -60,7 +61,7 @@ module BoxGrinder
       end
     end
 
-    def package( dir, files )
+    def package(dir, files)
       @log.info "Packaging #{@appliance_config.name} appliance..."
 
       @exec_helper.execute "tar -C #{dir} -cvzf '#{@appliance_config.path.file.package[:vmware][:tgz]}' README #{files.join(' ')}"
@@ -70,7 +71,7 @@ module BoxGrinder
 
     def connect
       @log.info "Connecting to #{@plugin_config['host']}..."
-      @ssh = Net::SSH.start( @plugin_config['host'], @plugin_config['username'], { :password => @plugin_config['password'] } )
+      @ssh = Net::SSH.start(@plugin_config['host'], @plugin_config['username'], {:password => @plugin_config['password']})
     end
 
     def connected?
@@ -84,7 +85,7 @@ module BoxGrinder
       @ssh = nil
     end
 
-    def upload_files( path, files = {} )
+    def upload_files(path, files = {})
       return if files.size == 0
 
       raise "You're not connected to server" unless connected?
@@ -98,7 +99,7 @@ module BoxGrinder
       global_size = 0
 
       files.each_value do |file|
-        global_size += File.size( file )
+        global_size += File.size(file)
       end
 
       global_size_kb = global_size / 1024
@@ -108,11 +109,11 @@ module BoxGrinder
 
       @ssh.sftp.connect do |sftp|
         begin
-          sftp.stat!( path )
+          sftp.stat!(path)
         rescue Net::SFTP::StatusException => e
           raise unless e.code == 2
           if @plugin_config['create_path']
-            @ssh.exec!( "mkdir -p #{path}" )
+            @ssh.exec!("mkdir -p #{path}")
           else
             raise
           end
@@ -121,21 +122,21 @@ module BoxGrinder
         nb = 0
 
         files.each do |key, local|
-          name       = File.basename( local )
+          name       = File.basename(local)
           remote     = "#{path}/#{key}"
-          size_b     = File.size( local )
+          size_b     = File.size(local)
           size_kb    = size_b / 1024
           nb_of      = "#{nb += 1}/#{files.size}"
 
           begin
-            sftp.stat!( remote )
+            sftp.stat!(remote)
 
             unless @plugin_config['overwrite']
 
               local_md5_sum   = `md5sum #{local} | awk '{ print $1 }'`.strip
-              remote_md5_sum  = @ssh.exec!( "md5sum #{remote} | awk '{ print $1 }'" ).strip
+              remote_md5_sum  = @ssh.exec!("md5sum #{remote} | awk '{ print $1 }'").strip
 
-              if (local_md5_sum.eql?( remote_md5_sum ))
+              if (local_md5_sum.eql?(remote_md5_sum))
                 @log.info "#{nb_of} #{name}: files are identical (md5sum: #{local_md5_sum}), skipping..."
                 next
               end
@@ -145,18 +146,16 @@ module BoxGrinder
             raise unless e.code == 2
           end
 
-          @ssh.exec!( "mkdir -p #{File.dirname( remote ) }" )
+          @ssh.exec!("mkdir -p #{File.dirname(remote) }")
 
-          ProgressBar.new( "#{nb_of} #{name}", 12345688)
-
-          pbar = ProgressBar.new( "#{nb_of} #{name}", size_b )
+          pbar = ProgressBar.new("#{nb_of} #{name}", size_b)
           pbar.file_transfer_mode
 
-          sftp.upload!( local, remote ) do |event, uploader, *args|
+          sftp.upload!(local, remote) do |event, uploader, * args|
             case event
               when :open then
               when :put then
-                pbar.set( args[1] )
+                pbar.set(args[1])
               when :close then
               when :mkdir then
               when :finish then

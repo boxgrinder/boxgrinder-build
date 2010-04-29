@@ -25,9 +25,11 @@ module BoxGrinder
   class BaseDeliveryPlugin < BasePlugin
     alias_method :execute_original, :execute
 
-    def execute( args = nil )
+    def execute( deliverables, type)
       raise "Delivery cannot be started before the plugin isn't initialized" if @initialized.nil?
-      execute_original( args )
+      raise "Not valid delivery type selected for #{info[:name]} plugin: #{type}. Available types: #{info[:type].join(" ")}" unless info[:type].include?(type)
+      
+      execute_original( deliverables, type )
     end
 
     def self.inherited(klass)

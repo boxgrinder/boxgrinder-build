@@ -22,12 +22,7 @@
 
 require 'rubygems'
 require 'commander/import'
-require 'boxgrinder-core/models/appliance-config'
-require 'boxgrinder-core/models/config'
 require 'boxgrinder-core/helpers/log-helper'
-require 'boxgrinder-core/helpers/appliance-helper'
-require 'boxgrinder-core/helpers/appliance-config-helper'
-require 'boxgrinder-core/validators/appliance-config-validator'
 require 'boxgrinder-build/helpers/plugin-helper'
 require 'boxgrinder-build/appliance'
 
@@ -48,20 +43,20 @@ program :description, 'A tool for building VM images from simple definition file
 default_command :build
 
 module BoxGrinder
-  log               = LogHelper.new
-  plugin_helper     = PluginHelper.new( :log => log ).load_plugins
-  valid_platforms   = plugin_helper.platform_plugins.keys + [ :base ]
+  log = LogHelper.new
+
+  PluginHelper.new( :log => log ).load_plugins
 
   command :build do |c|
-    c.syntax      = 'build'
+    c.syntax      = 'build appliance_definition.appl [options]'
     c.description = 'Creates a base image for selected appliance definition.'
 
-    c.option '-p STRING', '--platform STRING', String, "The type of platform. Valid types are: #{valid_platforms.join(', ')}. Default: base."
-    c.option '-d STRING', '--delivery STRING', String, "The delivery method for selected image. Default: none."
+    c.option '-p STRING', '--platform STRING', String, "The type of platform. Valid types are: #{PlatformPluginManager.instance.plugins.keys.join(', ')}. Default: none."
+    c.option '-d STRING', '--delivery STRING', String, "The delivery type for selected image. Valid types are: #{DeliveryPluginManager.instance.types.keys.join(', ')}. Default: none."
     c.option '-f', '--force', TrueClass, "Force image creation - removes all previous builds for selected appliance. Default: false."
 
     c.action do |args, options|
-      options.default :platform => :base
+      options.default :platform => :none
       options.default :delivery => :none
       options.default :force    => false
 
@@ -71,7 +66,8 @@ module BoxGrinder
       appliance_definition_file = args.shift or raise('Appliance definition file is required. Run boxgrinder-build -h for more info')
 
       raise("Appliance definition file '#{appliance_definition_file}' could not be found") unless File.exists?( appliance_definition_file )
-      raise("Not valid platform selected: #{options.platform}. Valid types are: #{valid_platforms.join(', ')}") unless valid_platforms.include?( options.platform )
+      raise "Not known platform: #{options.platform}. Available platforms: #{PlatformPluginManager.instance.plugins.keys.join(', ')}." if PlatformPluginManager.instance.plugins[options.platform].nil?
+      raise "Not known delivery type: #{options.delivery}. Available types: #{DeliveryPluginManager.instance.types.keys.join(', ')}." if DeliveryPluginManager.instance.types.keys.include?(options.delivery).nil?
 
       Appliance.new( appliance_definition_file, :options => options, :log => log ).create
     end
