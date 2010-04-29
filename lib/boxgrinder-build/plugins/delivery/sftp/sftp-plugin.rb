@@ -35,13 +35,12 @@ module BoxGrinder
     end
 
     def after_init
-      set_default_config_value('create_path', true)
       set_default_config_value('overwrite', false)
       set_default_config_value('default_permissions', 0644)
     end
 
     def execute(deliverables, type = :sftp)
-      validate_plugin_config( [ 'path', 'username', 'host' ], 'CHANGEME' )
+      validate_plugin_config(['path', 'username', 'host'], 'CHANGEME')
 
       #SSHValidator.new( @config ).validate
 
@@ -50,6 +49,7 @@ module BoxGrinder
       @log.info "Uploading #{@appliance_config.name} appliance via SSH..."
 
       begin
+        #TODO move to a block
         connect
         upload_files(@plugin_config['path'], {File.basename(package) => package})
         disconnect
@@ -112,11 +112,7 @@ module BoxGrinder
           sftp.stat!(path)
         rescue Net::SFTP::StatusException => e
           raise unless e.code == 2
-          if @plugin_config['create_path']
-            @ssh.exec!("mkdir -p #{path}")
-          else
-            raise
-          end
+          @ssh.exec!("mkdir -p #{path}")
         end
 
         nb = 0

@@ -19,7 +19,6 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'rake/tasklib'
-require 'boxgrinder-build/helpers/release-helper'
 require 'boxgrinder-core/models/appliance-config'
 require 'boxgrinder-core/models/config'
 require 'boxgrinder-core/helpers/appliance-helper'
@@ -115,20 +114,6 @@ module BoxGrinder
       end
 
       true
-    end
-
-    def search_for_built_disks
-      disks = Dir[ "#{@appliance_config.path.dir.raw.build_full}/*.raw" ]
-
-      if disks.size == 0
-        return nil
-      else
-        if disks.size == 1
-          return disks.first
-        else
-          raise "More than 1 disk found. This should never happen"
-        end
-      end
     end
   end
 end

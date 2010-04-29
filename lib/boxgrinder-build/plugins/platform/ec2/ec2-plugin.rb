@@ -99,7 +99,7 @@ module BoxGrinder
       sync_files(raw_disk_mount_dir, ec2_disk_mount_dir)
 
       umount_image(raw_disk, raw_disk_mount_dir, raw_loop_device)
-      umount_image(@deliverables[:disk], mec2_disk_mount_dir, ec2_loop_device)
+      umount_image(@deliverables[:disk], ec2_disk_mount_dir, ec2_loop_device)
 
       customize(@deliverables[:disk]) do |guestfs, guestfs_helper|
         create_devices(guestfs)
