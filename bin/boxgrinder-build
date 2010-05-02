@@ -32,6 +32,7 @@ gem 'amazon-ec2', '>= 0.9.6'
 gem 'net-sftp', '>= 2.0.4'
 gem 'net-ssh', '>= 2.0.20'
 gem 'rake', '>= 0.8.7'
+gem 'progressbar', '>= 0.9.0'
 
 # :name is optional, otherwise uses the basename of this executable
 
@@ -41,6 +42,8 @@ program :name, 'BoxGrinder'
 program :version, '0.3.0'
 program :description, 'A tool for building VM images from simple definition files.'
 default_command :build
+
+global_option('-V', '--verbose', TrueClass, "Prints verbose information while building. Default: false.") { ENV['BG_LOG_THRESHOLD'] = 'debug'}
 
 module BoxGrinder
   log = LogHelper.new
@@ -54,11 +57,13 @@ module BoxGrinder
     c.option '-p STRING', '--platform STRING', String, "The type of platform. Valid types are: #{PlatformPluginManager.instance.plugins.keys.join(', ')}. Default: none."
     c.option '-d STRING', '--delivery STRING', String, "The delivery type for selected image. Valid types are: #{DeliveryPluginManager.instance.types.keys.join(', ')}. Default: none."
     c.option '-f', '--force', TrueClass, "Force image creation - removes all previous builds for selected appliance. Default: false."
+    #c.option '-V', '--verbose', TrueClass, "Prints verbose information while building. Default: false."
 
     c.action do |args, options|
       options.default :platform => :none
       options.default :delivery => :none
       options.default :force    => false
+      options.default :verbose  => false
 
       options.platform  = options.platform.to_s.downcase.to_sym
       options.delivery  = options.delivery.to_s.downcase.to_sym
@@ -66,8 +71,8 @@ module BoxGrinder
       appliance_definition_file = args.shift or raise('Appliance definition file is required. Run boxgrinder-build -h for more info')
 
       raise("Appliance definition file '#{appliance_definition_file}' could not be found") unless File.exists?( appliance_definition_file )
-      raise "Not known platform: #{options.platform}. Available platforms: #{PlatformPluginManager.instance.plugins.keys.join(', ')}." if PlatformPluginManager.instance.plugins[options.platform].nil?
-      raise "Not known delivery type: #{options.delivery}. Available types: #{DeliveryPluginManager.instance.types.keys.join(', ')}." if DeliveryPluginManager.instance.types.keys.include?(options.delivery).nil?
+      raise "Not known platform: #{options.platform}. Available platforms: #{PlatformPluginManager.instance.plugins.keys.join(', ')}." if PlatformPluginManager.instance.plugins[options.platform].nil? and options.platform != :none
+      raise "Not known delivery type: #{options.delivery}. Available types: #{DeliveryPluginManager.instance.types.keys.join(', ')}." if DeliveryPluginManager.instance.types.keys.include?(options.delivery).nil?  and options.delivery != :none
 
       Appliance.new( appliance_definition_file, :options => options, :log => log ).create
     end

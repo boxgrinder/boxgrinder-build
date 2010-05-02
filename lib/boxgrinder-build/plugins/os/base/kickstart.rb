@@ -26,51 +26,27 @@ module BoxGrinder
 
   class Kickstart
 
-    def initialize( config, appliance_config, repos, options = {} )
+    def initialize(config, appliance_config, repos, options = {})
       @config           = config
       @repos            = repos
       @appliance_config = appliance_config
       @log              = options[:log] || Logger.new(STDOUT)
     end
 
-    def define
-      directory @appliance_config.path.dir.raw.build
-
-      file @appliance_config.path.file.raw.config => @appliance_config.path.dir.raw.build do
-        File.open( @appliance_config.path.file.raw.config, "w") {|f| f.write( @appliance_config.to_yaml ) } unless File.exists?( @appliance_config.path.file.raw.config )
-      end
-
-      task "appliance:#{@appliance_config.name}:config" do
-        if File.exists?( @appliance_config.path.file.raw.config )
-          unless @appliance_config.eql?( YAML.load_file( @appliance_config.path.file.raw.config ) )
-            FileUtils.rm_rf appliance_build_dir
-          end
-        end
-      end
-
-      file @appliance_config.path.file.raw.kickstart => [ @appliance_config.path.file.raw.config ] do
-        create
-      end
-
-      #desc "Build kickstart for #{File.basename( @appliance_config.name, '-appliance' )} appliance"
-      task "appliance:#{@appliance_config.name}:kickstart" => [ "appliance:#{@appliance_config.name}:config", @appliance_config.path.file.raw.kickstart ]
-
-    end
-
     def create
       FileUtils.mkdir_p @appliance_config.path.dir.raw.build
 
-      template = "#{File.dirname( __FILE__ )}/src/appliance.ks.erb"
-      kickstart = ERB.new( File.read( template ) ).result( build_definition.send( :binding ) )
-      File.open( @appliance_config.path.file.raw.kickstart, 'w' ) {|f| f.write( kickstart ) }
+      template = "#{File.dirname(__FILE__)}/src/appliance.ks.erb"
+      kickstart = ERB.new(File.read(template)).result(build_definition.send(:binding))
+      File.open(@appliance_config.path.file.raw.kickstart, 'w') { |f| f.write(kickstart) }
     end
 
     def build_definition
-      definition = { }
+      definition = {}
 
       definition['appliance_config']  = @appliance_config
 
-      definition['partitions']      = @appliance_config.hardware.partitions.values
+      #definition['partitions']      = @appliance_config.hardware.partitions.values
       definition['name']            = @appliance_config.name
       definition['arch']            = @appliance_config.hardware.arch
       definition['appliance_names'] = @appliance_config.appliances
@@ -117,8 +93,8 @@ module BoxGrinder
 
       definition['root_password'] = @appliance_config.os.password
 
-      def definition.method_missing(sym, *args)
-        self[ sym.to_s ]
+      def definition.method_missing(sym, * args)
+        self[sym.to_s]
       end
 
       cost = 40
@@ -131,7 +107,7 @@ module BoxGrinder
           urltype = 'baseurl'
         end
 
-        url = repo[urltype].gsub( /#ARCH#/, @appliance_config.hardware.arch ).gsub( /#OS_VERSION#/, @appliance_config.os.version ).gsub( /#OS_NAME#/, @appliance_config.os.name )
+        url = repo[urltype].gsub(/#ARCH#/, @appliance_config.hardware.arch).gsub(/#OS_VERSION#/, @appliance_config.os.version).gsub(/#OS_NAME#/, @appliance_config.os.name)
 
         repo_def = "repo --name=#{repo['name']} --cost=#{cost} --#{urltype}=#{url}"
         repo_def += " --excludepkgs=#{repo['excludes'].join(',')}" unless repo['excludes'].nil? or repo['excludes'].empty?
@@ -149,7 +125,7 @@ module BoxGrinder
 
       repos = Array.new
 
-      for type in [ "base", "updates" ]
+      for type in ["base", "updates"]
         unless os_repos[type].nil?
 
           mirrorlist = os_repos[type]['mirrorlist']
@@ -158,9 +134,9 @@ module BoxGrinder
           name = "#{@appliance_config.os.name}-#{@appliance_config.os.version}-#{type}"
 
           if mirrorlist.nil?
-            repos.push({ "name" => name, "baseurl" => baseurl })
+            repos.push({"name" => name, "baseurl" => baseurl})
           else
-            repos.push({ "name" => name, "mirrorlist" => mirrorlist })
+            repos.push({"name" => name, "mirrorlist" => mirrorlist})
           end
         end
       end

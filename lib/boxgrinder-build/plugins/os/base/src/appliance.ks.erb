@@ -17,8 +17,8 @@ services --enabled=network
 
 rootpw <%= root_password %> 
 
-<% for partition in partitions %>
-part <%= partition['root'] %> --size <%= (partition['size'].to_f * 1024).to_i %> --fstype <%= fstype %> --ondisk sda<% end %>
+<% appliance_config.hardware.partitions.each do |root, partition| %>
+part <%= root %> --size <%= (partition['size'].to_f * 1024).to_i %> --fstype <%= fstype %> --ondisk sda<% end %>
 
 <% for repo in repos %>
 <%= repo %><% end %>

@@ -20,7 +20,7 @@
 
 require 'net/ssh'
 require 'net/sftp'
-require 'progressbar/progressbar'
+require 'progressbar'
 require 'boxgrinder-build/plugins/delivery/base/base-delivery-plugin'
 require 'boxgrinder-build/helpers/package-helper'
 
@@ -59,14 +59,6 @@ module BoxGrinder
         @log.error e
         @log.error "An error occurred while uploading files."
       end
-    end
-
-    def package(dir, files)
-      @log.info "Packaging #{@appliance_config.name} appliance..."
-
-      @exec_helper.execute "tar -C #{dir} -cvzf '#{@appliance_config.path.file.package[:vmware][:tgz]}' README #{files.join(' ')}"
-
-      @log.info "Appliance #{@appliance_config.name} packaged."
     end
 
     def connect
