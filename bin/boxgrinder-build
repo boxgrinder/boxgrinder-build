@@ -26,7 +26,7 @@ require 'boxgrinder-core/helpers/log-helper'
 require 'boxgrinder-build/helpers/plugin-helper'
 require 'boxgrinder-build/appliance'
 
-gem 'boxgrinder-core', '>= 0.0.5'
+gem 'boxgrinder-core', '>= 0.0.6'
 gem 'aws-s3', '>= 0.6.2'
 gem 'amazon-ec2', '>= 0.9.6'
 gem 'net-sftp', '>= 2.0.4'
