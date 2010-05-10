@@ -39,7 +39,7 @@ module BoxGrinder
       appliance_configs       = ApplianceHelper.new( :log => @log ).read_definitions( @appliance_definition_file )
       appliance_config_helper = ApplianceConfigHelper.new( appliance_configs )
 
-      @appliance_config = appliance_config_helper.merge(appliance_configs.values.first.clone.init_arch).initialize_paths
+      @appliance_config = appliance_config_helper.merge(appliance_configs.values.last.clone.init_arch).initialize_paths
 
       ApplianceConfigValidator.new( @appliance_config, :os_plugins => OperatingSystemPluginManager.instance.plugins ).validate
 

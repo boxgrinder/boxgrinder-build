@@ -1,6 +1,0 @@
-
-summary: This is a appliance with additional packages
-
-packages:
-  - mc
-  - subversion

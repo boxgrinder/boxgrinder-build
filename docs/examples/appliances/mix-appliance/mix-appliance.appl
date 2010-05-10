@@ -1,9 +1,0 @@
-
-summary: This is a appliance with additional packages and appliances
-
-appliances:
-  - packages-appliance
-
-packages:
-  - texlive-latex
-  - subversion

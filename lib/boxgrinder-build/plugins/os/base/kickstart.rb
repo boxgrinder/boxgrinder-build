@@ -81,6 +81,7 @@ module BoxGrinder
 
       # fix for F12; this is needed because of selinux management in appliance-creator
       if @appliance_config.os.name.eql?("fedora")
+        definition['packages'].push("kernel", "passwd")
         case @appliance_config.os.version.to_s
           when "12" then
             definition['packages'].push "system-config-firewall-base"
