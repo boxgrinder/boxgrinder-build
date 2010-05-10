@@ -3,7 +3,7 @@ require 'rubygems'
 Gem::Specification.new do |s|
   s.platform  = Gem::Platform::RUBY
   s.name      = "boxgrinder-build"
-  s.version   = "0.3.0"
+  s.version   = "0.3.1"
   s.author    = "BoxGrinder Project"
   s.homepage  = "http://www.jboss.org/stormgrind/projects/boxgrinder.html"
   s.email     = "info@boxgrinder.org"
@@ -18,4 +18,5 @@ Gem::Specification.new do |s|
   s.add_dependency('net-ssh', '>= 2.0.20')
   s.add_dependency('rake', '>= 0.8.7')
   s.add_dependency('progressbar', '>= 0.9.0')
+  s.add_dependency('commander', '>= 4.0.3')
 end
