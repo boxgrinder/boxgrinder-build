@@ -5,5 +5,5 @@ RSPEC_BASE_LOCATION = File.dirname(__FILE__)
 #require 'images/vmware-image-spec'
 #require 'images/ec2-image-spec'
 
-require 'plugins/platform/ec2/linux-ec2-plugin-spec'
+require 'plugins/platform/ec2/ec2-plugin-spec'
 require 'plugins/platform/vmware/vmware-plugin-spec'

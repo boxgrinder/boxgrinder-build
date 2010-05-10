@@ -1,12 +1,12 @@
-require 'boxgrinder-build/plugins/platform/ec2/linux-ec2-plugin'
+require 'boxgrinder-build/plugins/platform/ec2/ec2-plugin'
 require 'rspec-helpers/rspec-config-helper'
 
 module BoxGrinder
-  describe LinuxEC2Plugin do
+  describe EC2Plugin do
     include RSpecConfigHelper
 
     before(:each) do
-      @plugin = LinuxEC2Plugin.new.init(generate_config, generate_appliance_config, :log => Logger.new('/dev/null'))
+      @plugin = EC2Plugin.new.init(generate_config, generate_appliance_config, :log => Logger.new('/dev/null'))
 
       @config             = @plugin.instance_variable_get(:@config)
       @appliance_config   = @plugin.instance_variable_get(:@appliance_config)

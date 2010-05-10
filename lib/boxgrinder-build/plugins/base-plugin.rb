@@ -19,6 +19,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder-core/helpers/exec-helper'
+require 'boxgrinder-build/helpers/plugin-helper'
 require 'logger'
 
 module BoxGrinder

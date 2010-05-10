@@ -111,9 +111,8 @@ module BoxGrinder
     it "should build personal image" do
       prepare_image
 
-      @plugin.should_receive(:create_hardlink_to_disk_image).once.with("build/appliances/#{@arch}/fedora/11/full/vmware/personal/full.raw")
-      File.should_receive(:open).once.with("build/appliances/#{@arch}/fedora/11/full/vmware/personal/full.vmx", "w")
-      File.should_receive(:open).once.with("build/appliances/#{@arch}/fedora/11/full/vmware/personal/full.vmdk", "w")
+      File.should_receive(:open).once.with("build/appliances/#{@arch}/fedora/11/full/vmware/full-personal.vmx", "w")
+      File.should_receive(:open).once.with("build/appliances/#{@arch}/fedora/11/full/vmware/full-personal.vmdk", "w")
 
       @plugin.build_vmware_personal
     end
@@ -121,11 +120,10 @@ module BoxGrinder
     it "should build enterprise image" do
       prepare_image
 
-      @plugin.should_receive(:create_hardlink_to_disk_image).once.with("build/appliances/#{@arch}/fedora/11/full/vmware/enterprise/full.raw")
       @plugin.should_receive(:change_common_vmx_values).with(no_args()).and_return("")
 
-      File.should_receive(:open).once.with("build/appliances/#{@arch}/fedora/11/full/vmware/enterprise/full.vmx", "w")
-      File.should_receive(:open).once.with("build/appliances/#{@arch}/fedora/11/full/vmware/enterprise/full.vmdk", "w")
+      File.should_receive(:open).once.with("build/appliances/#{@arch}/fedora/11/full/vmware/full-enterprise.vmx", "w")
+      File.should_receive(:open).once.with("build/appliances/#{@arch}/fedora/11/full/vmware/full-enterprise.vmdk", "w")
 
       @plugin.build_vmware_enterprise
     end
@@ -133,11 +131,21 @@ module BoxGrinder
     it "should convert image to vmware" do
       prepare_image
 
+      @appliance_config.post.vmware.push("one", "two", "three")
+
       @exec_helper.should_receive(:execute).with( "cp a/base/image/path.raw build/appliances/#{@arch}/fedora/11/full/vmware/full.raw" )
       @plugin.should_receive(:build_vmware_enterprise).with(no_args())
       @plugin.should_receive(:build_vmware_personal).with(no_args())
 
-      @plugin.convert( 'a/base/image/path.raw' )
+      guestfs_mock = mock("GuestFS")
+
+      @plugin.should_receive(:customize).with("build/appliances/#{@arch}/fedora/11/full/vmware/full.raw").and_yield(guestfs_mock, nil)
+
+      guestfs_mock.should_receive(:sh).once.ordered.with("one")
+      guestfs_mock.should_receive(:sh).once.ordered.with("two")
+      guestfs_mock.should_receive(:sh).once.ordered.with("three")
+
+      @plugin.execute( 'a/base/image/path.raw' )
     end
 
 #    it "should customize image" do
@@ -150,20 +158,7 @@ module BoxGrinder
 #      @plugin.customize
 #    end
 
-    it "should execute post operations" do
-      prepare_image
-
-      guestfs_mock = mock("GuestFS")
-
-      @appliance_config.post.vmware.push("one", "two", "three")
-
-      guestfs_mock.should_receive(:sh).once.ordered.with("one")
-      guestfs_mock.should_receive(:sh).once.ordered.with("two")
-      guestfs_mock.should_receive(:sh).once.ordered.with("three")
-
-      @plugin.execute_post_operations(guestfs_mock)
-    end
-
+    
 #    it "should install vmware tools" do
 #      prepare_image
 #

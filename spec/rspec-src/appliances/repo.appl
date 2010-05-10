@@ -6,7 +6,7 @@ os:
 hardware:
   memory: 256
   partitions:
-    - root: "/"
+    "/":
       size: 1
 packages:
   includes:

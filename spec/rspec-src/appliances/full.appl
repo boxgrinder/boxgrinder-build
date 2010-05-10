@@ -6,9 +6,9 @@ os:
 hardware:
   memory: 256
   partitions:
-    - root: "/"
+    "/":
       size: 2
-    - root: "/home"
+    "/home":
       size: 3
 packages:
   includes:
