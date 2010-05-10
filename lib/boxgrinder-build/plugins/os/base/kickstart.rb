@@ -127,7 +127,7 @@ module BoxGrinder
       repos = Array.new
 
       for type in ["base", "updates"]
-        unless os_repos[type].nil?
+        unless os_repos.nil? or os_repos[type].nil?
 
           mirrorlist = os_repos[type]['mirrorlist']
           baseurl = os_repos[type]['baseurl']
