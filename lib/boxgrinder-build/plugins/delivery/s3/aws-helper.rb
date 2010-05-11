@@ -20,33 +20,27 @@
 
 require 'AWS'
 require 'aws/s3'
-require 'boxgrinder-core/defaults'
-require 'boxgrinder-build/validators/aws-validator'
 
 module BoxGrinder
   class AWSHelper
-    def initialize( config, appliance_config )
+    def initialize( config, appliance_config, plugin_config )
       @config           = config
       @appliance_config = appliance_config
-
-      aws_validator = AWSValidator.new( @config )
-      aws_validator.validate_aws_config( @config.data['aws'] )
-
-      @aws_data = @config.data['aws']
+      @plugin_config    = plugin_config
 
       # remove dashes from account number
-      @aws_data['account_number'] = @aws_data['account_number'].to_s.gsub(/-/, '')
+      @plugin_config['account_number'] = @plugin_config['account_number'].to_s.gsub(/-/, '')
 
-      @ec2        = AWS::EC2::Base.new(:access_key_id => @aws_data['access_key'], :secret_access_key => @aws_data['secret_access_key'])
-      @s3         = AWS::S3::Base.establish_connection!(:access_key_id => @aws_data['access_key'], :secret_access_key => @aws_data['secret_access_key'] )
+      @ec2        = AWS::EC2::Base.new(:access_key_id => @plugin_config['access_key'], :secret_access_key => @plugin_config['secret_access_key'])
+      @s3         = AWS::S3::Base.establish_connection!(:access_key_id => @plugin_config['access_key'], :secret_access_key => @plugin_config['secret_access_key'] )
     end
 
-    attr_reader :aws_data
+    attr_reader :plugin_config
     attr_reader :ec2
     attr_reader :s3
 
     def bucket_key( appliance_name )
-      "#{@aws_data['bucket_name']}/#{appliance_name}/#{@appliance_config.version}.#{@appliance_config.release}/#{@appliance_config.hardware.arch}"
+      "#{@plugin_config['bucket']}/#{appliance_name}/#{@appliance_config.version}.#{@appliance_config.release}/#{@appliance_config.hardware.arch}"
     end
 
     def bucket_manifest_key( appliance_name )
@@ -60,7 +54,7 @@ module BoxGrinder
     def ami_info( appliance_name )
       ami_info = nil
 
-      images = @ec2.describe_images( :owner_id => @aws_data['account_number'] ).imagesSet
+      images = @ec2.describe_images( :owner_id => @plugin_config['account_number'] ).imagesSet
 
       return nil if images.nil?
 

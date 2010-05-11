@@ -58,7 +58,6 @@ module BoxGrinder
     c.option '-p STRING', '--platform STRING', String, "The type of platform. Valid types are: #{PlatformPluginManager.instance.plugins.keys.join(', ')}. Default: none."
     c.option '-d STRING', '--delivery STRING', String, "The delivery type for selected image. Valid types are: #{DeliveryPluginManager.instance.types.keys.join(', ')}. Default: none."
     c.option '-f', '--force', TrueClass, "Force image creation - removes all previous builds for selected appliance. Default: false."
-    #c.option '-V', '--verbose', TrueClass, "Prints verbose information while building. Default: false."
 
     c.action do |args, options|
       options.default :platform => :none

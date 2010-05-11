@@ -27,6 +27,21 @@ include AWS::S3
 module BoxGrinder
   class S3Plugin < BaseDeliveryPlugin
 
+    AMI_OSES = {
+            'fedora' => ["11"]
+    }
+
+    KERNELS = {
+            'us_east' => {
+                    'fedora' => {
+                            '11' => {
+                                    'i386'     => { :aki => 'aki-a71cf9ce', :ari => 'ari-a51cf9cc' },
+                                    'x86_64'   => { :aki => 'aki-b51cf9dc', :ari => 'ari-b31cf9da' }
+                            }
+                    }
+            }
+    }
+
     def info
       {
               :name       => :s3,
@@ -37,10 +52,25 @@ module BoxGrinder
 
     def after_init
       set_default_config_value('overwrite', false)
+
+      @ami_build_dir  = "#{@appliance_config.path.dir.build}/ec2/ami"
+      @ami_manifest   = "#{@ami_build_dir}/#{@appliance_config.name}.ec2.manifest.xml"
     end
 
-    def execute(deliverables, type = :ami)
+    def supported_os
+      supported = ""
+
+      AMI_OSES.each_key do |os_name|
+        supported << "#{os_name}, versions: #{AMI_OSES[os_name].join(", ")}"
+      end
+
+      supported
+    end
+
+    def execute( deliverables, type = :ami )
       validate_plugin_config(['bucket', 'access_key', 'secret_access_key', 'path'])
+
+      @aws_helper = AWSHelper.new( @config, @appliance_config, @plugin_config )
 
       case type
         when :s3
@@ -48,16 +78,25 @@ module BoxGrinder
         when :cloudfront
           upload_to_bucket(deliverables, :public_read)
         when :ami
-          raise "Not implemented!"
-          #bundle_image(deliverables)
-          #upload_image
-          #register_image
+          validate_plugin_config(['cert_file', 'key_file'])
+
+          unless AMI_OSES[@appliance_config.os.name].include?(@appliance_config.os.version)
+            @log.error "You cannot convert selected image to AMI because of unsupported operating system: #{@appliance_config.os.name} #{@appliance_config.os.version}. Supported systems: #{supported_os}."
+            return
+          end
+
+          unless image_already_uploaded?
+            bundle_image( deliverables )
+            upload_image
+          else
+            @log.debug "AMI for #{@appliance_config.name} appliance already uploaded, skipping..."
+          end
+
+          register_image
       end
     end
 
     def upload_to_bucket(deliverables, permissions = :private)
-      AWSHelper.new(@config, @appliance_config)
-
       package = PackageHelper.new(@config, @appliance_config, {:log => @log, :exec_helper => @exec_helper}).package(deliverables)
 
       @log.info "Uploading #{@appliance_config.name} appliance to S3 bucket '#{@plugin_config['bucket']}'..."
@@ -81,15 +120,19 @@ module BoxGrinder
     end
 
 
-    def bundle_image(deliverables)
+    def bundle_image( deliverables )
+      return if File.exists?( @ami_build_dir )
+
       @log.info "Bundling AMI..."
 
-      @exec_helper.execute("ec2-bundle-image -i #{deliverables[:disk]} --kernel #{AWS_DEFAULTS[:kernel_id][@appliance_config.hardware.arch]} --ramdisk #{AWS_DEFAULTS[:ramdisk_id][@appliance_config.hardware.arch]} -c #{@aws_helper.aws_data['cert_file']} -k #{@aws_helper.aws_data['key_file']} -u #{@aws_helper.aws_data['account_number']} -r #{@appliance_config.hardware.arch} -d #{@appliance_config.path.dir.ec2.bundle}")
+      FileUtils.mkdir_p( @ami_build_dir )
+
+      @exec_helper.execute("ec2-bundle-image -i #{deliverables[:disk]} --kernel #{KERNELS['us_east'][@appliance_config.os.name][@appliance_config.os.version][@appliance_config.hardware.arch][:aki]} --ramdisk #{KERNELS['us_east'][@appliance_config.os.name][@appliance_config.os.version][@appliance_config.hardware.arch][:ari]} -c #{@plugin_config['cert_file']} -k #{@plugin_config['key_file']} -u #{@plugin_config['account_number']} -r #{@appliance_config.hardware.arch} -d #{@ami_build_dir}")
 
       @log.info "Bundling AMI finished."
     end
 
-    def appliance_already_uploaded?
+    def image_already_uploaded?
       begin
         bucket = Bucket.find(@aws_helper.aws_data['bucket_name'])
       rescue
@@ -107,14 +150,9 @@ module BoxGrinder
     end
 
     def upload_image
-      if appliance_already_uploaded?
-        @log.debug "Image for #{@appliance_config.name} appliance is already uploaded, skipping..."
-        return
-      end
+      @log.info "Uploading #{@appliance_config.name} AMI to bucket '#{@plugin_config['bucket']}'..."
 
-      @log.info "Uploading #{@appliance_config.name} AMI to bucket '#{@aws_helper.aws_data['bucket_name']}'..."
-
-      @exec_helper.execute("ec2-upload-bundle -b #{@aws_helper.bucket_key(@appliance_config.name)} -m #{@appliance_config.path.file.ec2.manifest} -a #{@aws_helper.aws_data['access_key']} -s #{@aws_helper.aws_data['secret_access_key']} --retry")
+      @exec_helper.execute("ec2-upload-bundle -b #{@aws_helper.bucket_key(@appliance_config.name)} -m #{@ami_manifest} -a #{@plugin_config['access_key']} -s #{@plugin_config['secret_access_key']} --retry")
     end
 
     def register_image

@@ -36,19 +36,17 @@ module BoxGrinder
     REGIONS = {'us_east' => 'url'}
 
     KERNELS = {
-            'us_east' => {
-                    'fedora' => {
-                            '11' => {
-                                    'i386'     => {:aki => 'aki-a71cf9ce', :ari => 'ari-a51cf9cc', :rpm => 'http://repo.oddthesis.org/packages/other/kernel-xen-2.6.21.7-2.fc8.i686.rpm'},
-                                    'x86_64'   => {:aki => 'aki-b51cf9dc', :ari => 'ari-b31cf9da', :rpm => 'http://repo.oddthesis.org/packages/other/kernel-xen-2.6.21.7-2.fc8.x86_64.rpm'}
-                            }
+            'fedora' => {
+                    '11' => {
+                            'i386'     => { :rpm => 'http://repo.oddthesis.org/packages/other/kernel-xen-2.6.21.7-2.fc8.i686.rpm' },
+                            'x86_64'   => { :rpm => 'http://repo.oddthesis.org/packages/other/kernel-xen-2.6.21.7-2.fc8.x86_64.rpm' }
                     }
             }
+
     }
 
     def after_init
       @deliverables[:disk] = "#{@appliance_config.path.dir.build}/ec2/#{@appliance_config.name}.ec2"
-
     end
 
     def supported_os
@@ -241,7 +239,7 @@ module BoxGrinder
               "ec2-ami-tools.noarch.rpm" => "http://s3.amazonaws.com/ec2-downloads/ec2-ami-tools.noarch.rpm"
       }
 
-      kernel_rpm =  KERNELS['us_east'][@appliance_config.os.name][@appliance_config.os.version][@appliance_config.hardware.arch][:rpm]
+      kernel_rpm =  KERNELS[@appliance_config.os.name][@appliance_config.os.version][@appliance_config.hardware.arch][:rpm]
       rpms[File.basename(kernel_rpm)] = kernel_rpm unless kernel_rpm.nil?
 
       cache_rpms(rpms)
