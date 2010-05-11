@@ -44,7 +44,9 @@ program :version, '0.3.0'
 program :description, 'A tool for building VM images from simple definition files.'
 default_command :build
 
-global_option('-V', '--verbose', TrueClass, "Prints verbose information while building. Default: false.") { ENV['BG_LOG_THRESHOLD'] = 'debug'}
+$verbose = false
+
+global_option('-V', '--verbose', TrueClass, "Prints verbose information while building. Default: false.") { $verbose = true}
 
 module BoxGrinder
   log = LogHelper.new
@@ -63,8 +65,8 @@ module BoxGrinder
       options.default :platform => :none
       options.default :delivery => :none
       options.default :force    => false
-      options.default :verbose  => false
 
+      options.verbose   = $verbose
       options.platform  = options.platform.to_s.downcase.to_sym
       options.delivery  = options.delivery.to_s.downcase.to_sym
 
@@ -74,7 +76,7 @@ module BoxGrinder
       raise "Not known platform: #{options.platform}. Available platforms: #{PlatformPluginManager.instance.plugins.keys.join(', ')}." if PlatformPluginManager.instance.plugins[options.platform].nil? and options.platform != :none
       raise "Not known delivery type: #{options.delivery}. Available types: #{DeliveryPluginManager.instance.types.keys.join(', ')}." if DeliveryPluginManager.instance.types.keys.include?(options.delivery).nil?  and options.delivery != :none
 
-      Appliance.new( appliance_definition_file, :options => options, :log => log ).create
+      Appliance.new( appliance_definition_file, :options => options, :log => LogHelper.new( :threshold => $verbose ? :debug : :info ) ).create
     end
   end
 end
