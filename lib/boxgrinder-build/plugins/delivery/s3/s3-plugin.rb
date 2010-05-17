@@ -52,6 +52,7 @@ module BoxGrinder
 
     def after_init
       set_default_config_value('overwrite', false)
+      set_default_config_value('path', '/')
 
       @ami_build_dir  = "#{@appliance_config.path.dir.build}/ec2/ami"
       @ami_manifest   = "#{@ami_build_dir}/#{@appliance_config.name}.ec2.manifest.xml"
@@ -68,7 +69,7 @@ module BoxGrinder
     end
 
     def execute( deliverables, type = :ami )
-      validate_plugin_config(['bucket', 'access_key', 'secret_access_key', 'path'])
+      validate_plugin_config(['bucket', 'access_key', 'secret_access_key'])
 
       @aws_helper = AWSHelper.new( @config, @appliance_config, @plugin_config )
 

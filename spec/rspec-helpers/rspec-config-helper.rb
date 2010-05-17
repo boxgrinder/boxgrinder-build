@@ -28,10 +28,10 @@ module RSpecConfigHelper
   end
 
   def generate_appliance_config( appliance_definition_file = "#{RSPEC_BASE_LOCATION}/rspec-src/appliances/full.appl" )
-    appliance_configs = BoxGrinder::ApplianceHelper.new(:log => Logger.new('/dev/null')).read_definitions( appliance_definition_file )
+    appliance_configs, appliance_config = BoxGrinder::ApplianceHelper.new(:log => Logger.new('/dev/null')).read_definitions( appliance_definition_file )
     appliance_config_helper = BoxGrinder::ApplianceConfigHelper.new( appliance_configs )
 
-    appliance_config_helper.merge(appliance_configs.values.first.clone.init_arch).initialize_paths
+    appliance_config_helper.merge(appliance_config.clone.init_arch).initialize_paths
   end
 
   def generate_appliance_config_gnome( os_version = "11" )
