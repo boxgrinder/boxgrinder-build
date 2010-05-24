@@ -110,7 +110,7 @@ module BoxGrinder
 
     def generate_package_list
       packages = []
-      for package in @appliance_config.packages
+      for package in @appliance_config.packages.includes
         packages << package unless package.match /^@/
       end
       packages
