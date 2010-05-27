@@ -30,7 +30,7 @@ module BoxGrinder
       }
     end
 
-    def build_with_appliance_creator( repos )
+    def build_with_appliance_creator( repos = {} )
       Kickstart.new( @config, @appliance_config, repos, :log => @log ).create
       RPMDependencyValidator.new( @config, @appliance_config, @options ).resolve_packages
 
