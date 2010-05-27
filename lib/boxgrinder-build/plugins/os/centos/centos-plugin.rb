@@ -18,10 +18,10 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require 'boxgrinder-build/plugins/os/base/rpm-based-os-plugin'
+require 'boxgrinder-build/plugins/os/base/rhel-based-os-plugin'
 
 module BoxGrinder
-  class CentOSPlugin < RPMBasedOSPlugin
+  class CentOSPlugin < RHELBasedOSPlugin
 
     CENTOS_REPOS = {
             "5" => {
@@ -46,29 +46,7 @@ module BoxGrinder
     def execute
       raise "Build cannot be started until the plugin isn't initialized" if @initialized.nil?
 
-      adjust_partition_table
-
-      disk_path = build_with_appliance_creator( CENTOS_REPOS )  do |guestfs, guestfs_helper|
-        kernel_version = guestfs.ls("/lib/modules").first
-
-        @log.debug "Recreating initrd for #{kernel_version} kernel..."
-        guestfs.sh( "/sbin/mkinitrd -f -v --preload=mptspi /boot/initrd-#{kernel_version}.img #{kernel_version}" )
-        @log.debug "Initrd recreated."
-
-        @log.debug "Applying root password..."
-        guestfs.sh( "/usr/bin/passwd -d root" )
-        guestfs.sh( "/usr/sbin/usermod -p '#{@appliance_config.os.password.crypt((0...8).map{65.+(rand(25)).chr}.join)}' root" )
-        @log.debug "Password applied."
-      end
-
-      @log.info "Done."
-
-      disk_path
-    end
-
-    # https://bugzilla.redhat.com/show_bug.cgi?id=466275
-    def adjust_partition_table
-      @appliance_config.hardware.partitions['/boot'] = { 'root' => '/boot', 'size' => 0.1 } if @appliance_config.hardware.partitions['/boot'].nil?
+      build_rhel( CENTOS_REPOS )
     end
   end
 end
