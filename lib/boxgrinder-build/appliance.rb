@@ -34,8 +34,9 @@ module BoxGrinder
       @log                        = options[:log] || Logger.new(STDOUT)
       @options                    = options[:options]
 
-      @config.name    = @options.name
-      @config.version = @options.version
+      @config.name            = @options.name
+      @config.version.version = @options.version
+      @config.version.release = nil
     end
 
     def create
