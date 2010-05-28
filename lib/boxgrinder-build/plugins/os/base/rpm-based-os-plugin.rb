@@ -124,6 +124,11 @@ module BoxGrinder
     def install_repos( guestfs )
       @log.debug "Installing repositories from appliance definition file..."
       @appliance_config.repos.each do |repo|
+        if repo['ephemeral']
+          @log.debug "Repository '#{repo['name']}' is a ephemeral repo. It'll not be installed to appliance."
+          next
+        end
+
         @log.debug "Installing #{repo['name']} repo..."
         repo_file = File.read( "#{File.dirname( __FILE__ )}/src/base.repo").gsub( /#NAME#/, repo['name'] )
 

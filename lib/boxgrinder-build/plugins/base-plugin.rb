@@ -34,13 +34,13 @@ module BoxGrinder
       @plugin_helper    = options[:plugin_helper] || PluginHelper.new( :log => @log )
 
       @plugin_config    = {}
+      @deliverables     = Hash.new({})
 
       if self.respond_to?(:info)
         @config_file = "#{ENV['HOME']}/.boxgrinder/plugins/#{self.info[:name]}"
 
         read_plugin_config
 
-        @deliverables             = Hash.new({})
         @deliverables[:disk]      = nil
         @deliverables[:platform]  = self.info[:name]
       end

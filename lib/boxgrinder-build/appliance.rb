@@ -28,11 +28,14 @@ require 'boxgrinder-core/validators/appliance-config-validator'
 module BoxGrinder
   class Appliance < Rake::TaskLib
 
-    def initialize(  appliance_definition_file, options = {} )
-      @config            = Config.new
+    def initialize( appliance_definition_file, options = {} )
+      @config                     = Config.new
       @appliance_definition_file  = appliance_definition_file
-      @log               = options[:log] || Logger.new(STDOUT)
-      @options           = options[:options]
+      @log                        = options[:log] || Logger.new(STDOUT)
+      @options                    = options[:options]
+
+      @config.name    = @options.name
+      @config.version = @options.version
     end
 
     def create

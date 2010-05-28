@@ -101,7 +101,6 @@ module BoxGrinder
       cost = 40
 
       for repo in valid_repos + @appliance_config.repos
-
         if repo.keys.include?('mirrorlist')
           urltype = 'mirrorlist'
         else
