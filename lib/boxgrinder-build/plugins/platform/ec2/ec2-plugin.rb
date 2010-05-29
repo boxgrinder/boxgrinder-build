@@ -30,8 +30,9 @@ module BoxGrinder
     end
 
     SUPPORTED_OSES = {
-            'rhel' => [ '5' ],
-            'fedora' => [ '11' ]
+            'rhel'    => [ '5' ],
+            'centos'  => [ '5' ],
+            'fedora'  => [ '11' ]
     }
 
     REGIONS = {'us_east' => 'url'}
@@ -42,8 +43,13 @@ module BoxGrinder
                             'i386'     => { :rpm => 'http://repo.oddthesis.org/packages/other/kernel-xen-2.6.21.7-2.fc8.i686.rpm' },
                             'x86_64'   => { :rpm => 'http://repo.oddthesis.org/packages/other/kernel-xen-2.6.21.7-2.fc8.x86_64.rpm' }
                     }
+            },
+            'centos' => {
+                    '5' => {
+                            'i386'     => { :rpm => 'http://repo.oddthesis.org/packages/other/kernel-xen-2.6.21.7-2.fc8.i686.rpm' },
+                            'x86_64'   => { :rpm => 'http://repo.oddthesis.org/packages/other/kernel-xen-2.6.21.7-2.fc8.x86_64.rpm' }
+                    }
             }
-
     }
 
     def after_init

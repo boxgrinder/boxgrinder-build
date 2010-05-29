@@ -40,6 +40,12 @@ module BoxGrinder
                                     'x86_64'   => { :aki => 'aki-b51cf9dc', :ari => 'ari-b31cf9da' }
                             }
                     },
+                    'centos' => {
+                            '5' => {
+                                    'i386'     => { :aki => 'aki-a71cf9ce', :ari => 'ari-a51cf9cc' },
+                                    'x86_64'   => { :aki => 'aki-b51cf9dc', :ari => 'ari-b31cf9da' }
+                            }
+                    },
                     'rhel' => {
                             '5' => {
                                     'i386'     => { :aki => 'aki-e3a54b8a', :ari => 'ari-f9a54b90' },
