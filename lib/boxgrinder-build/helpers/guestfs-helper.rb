@@ -56,8 +56,14 @@ module BoxGrinder
       @log.debug "Launching guestfs..."
       @guestfs.launch
 
-      mount_partition( @guestfs.list_partitions.first, '/' ) if @guestfs.list_partitions.size == 1
-      mount_partition( @guestfs.list_devices.first, '/' ) if @guestfs.list_partitions.size == 0
+      case @guestfs.list_partitions.size
+        when 0
+          mount_partition( @guestfs.list_devices.first, '/' )
+        when 1
+          mount_partition( @guestfs.list_partitions.first, '/' )
+        else
+          mount_partitions
+      end
 
       @log.debug "Guestfs launched."
     end
@@ -84,6 +90,24 @@ module BoxGrinder
       @guestfs.sh( "rm -f /var/lib/rpm/__db.*" )
       @guestfs.sh( "rpm --rebuilddb" )
       @log.debug "Cleaning RPM database finished."
+    end
+
+    def mount_partitions
+      root_partition = nil
+
+      @guestfs.list_partitions.each do |partition|
+        mount_partition( partition, '/' )
+        if @guestfs.exists( '/sbin/e2label' ) != 0
+          root_partition = partition
+          break
+        end
+        @guestfs.umount( partition )
+      end
+
+      @guestfs.list_partitions.each do |partition|
+        next if partition == root_partition
+        mount_partition( partition, @guestfs.sh( "/sbin/e2label #{partition}" ).chomp.strip )
+      end
     end
   end
 end

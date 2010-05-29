@@ -49,8 +49,6 @@ module BoxGrinder
       customize( @deliverables[:disk] ) do |guestfs, guestfs_helper|
         @log.info "Executing post operations after build..."
 
-        mount_partitions( guestfs, guestfs_helper ) if guestfs.list_partitions.size > 1
-
         if @appliance_config.post.base.size > 0
           @appliance_config.post.base.each do |cmd|
             @log.debug "Executing #{cmd}"
@@ -72,24 +70,6 @@ module BoxGrinder
       end
 
       @log.info "Base image for #{@appliance_config.name} appliance was built successfully."
-    end
-
-    def mount_partitions( guestfs, guestfs_helper )
-      root_partition = nil
-
-      guestfs.list_partitions.each do |partition|
-        guestfs_helper.mount_partition( partition, '/' )
-        if guestfs.exists( '/sbin/e2label' ) != 0
-          root_partition = partition
-          break
-        end
-        guestfs.umount( partition )
-      end
-
-      guestfs.list_partitions.each do |partition|
-        next if partition == root_partition
-        guestfs_helper.mount_partition( partition, guestfs.sh( "/sbin/e2label #{partition}" ).chomp.strip )
-      end
     end
 
     def change_configuration( guestfs )
@@ -125,7 +105,7 @@ module BoxGrinder
       @log.debug "Installing repositories from appliance definition file..."
       @appliance_config.repos.each do |repo|
         if repo['ephemeral']
-          @log.debug "Repository '#{repo['name']}' is a ephemeral repo. It'll not be installed to appliance."
+          @log.debug "Repository '#{repo['name']}' is an ephemeral repo. It'll not be installed in the appliance."
           next
         end
 

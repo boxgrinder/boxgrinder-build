@@ -82,23 +82,22 @@ module BoxGrinder
         raise "Error while preparing EC2 disk image. See logs for more info"
       end
 
-      raw_disk_offset = calculate_disk_offset(raw_disk)
-
       ec2_disk_mount_dir = "#{@appliance_config.path.dir.build}/tmp/ec2-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
       raw_disk_mount_dir = "#{@appliance_config.path.dir.build}/tmp/raw-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
 
 
       begin
-        ec2_loop_device = mount_image(@deliverables[:disk], ec2_disk_mount_dir)
-        raw_loop_device = mount_image(raw_disk, raw_disk_mount_dir, raw_disk_offset)
+        ec2_mounts = mount_image( @deliverables[:disk], ec2_disk_mount_dir )
+        raw_mounts = mount_image( raw_disk, raw_disk_mount_dir )
       rescue => e
+        @log.debug e
         raise "Error while mounting image. See logs for more info"
       end
 
       sync_files(raw_disk_mount_dir, ec2_disk_mount_dir)
 
-      umount_image(raw_disk, raw_disk_mount_dir, raw_loop_device)
-      umount_image(@deliverables[:disk], ec2_disk_mount_dir, ec2_loop_device)
+      umount_image(raw_disk, raw_disk_mount_dir, raw_mounts)
+      umount_image(@deliverables[:disk], ec2_disk_mount_dir, ec2_mounts)
 
       customize(@deliverables[:disk]) do |guestfs, guestfs_helper|
         create_devices(guestfs)
@@ -155,30 +154,51 @@ module BoxGrinder
       @log.debug "Filesystem created"
     end
 
-    def calculate_disk_offset(disk)
+    def calculate_disk_offsets( disk )
+      @log.debug "Calculating offsets for '#{File.basename(disk)}' disk..."
       loop_device = get_loop_device
 
       @exec_helper.execute("sudo losetup #{loop_device} #{disk}")
-      offset = @exec_helper.execute("sudo parted #{loop_device} 'unit B print' | grep Number -A 1 | tail -n 1 | awk '{ print $2 }'").strip.chop.scan(/^\d+/).to_s
+      offsets = @exec_helper.execute("sudo parted #{loop_device} 'unit B print' | grep -e '^ [0-9]' | awk '{ print $2 }'").scan(/\d+/)
       @exec_helper.execute("sudo losetup -d #{loop_device}")
 
-      offset
+      @log.trace "Offsets:\n#{offsets}"
+
+      offsets
     end
 
-    def mount_image(disk, mount_dir, offset = 0)
-      loop_device = get_loop_device
+    def mount_image(disk, mount_dir)
+      offsets = calculate_disk_offsets( disk )
 
-      @log.debug "Mounting image #{File.basename(disk)} in #{mount_dir} using #{loop_device} with offset #{offset}"
+      @log.debug "Mounting image #{File.basename(disk)} in #{mount_dir}..."
       FileUtils.mkdir_p(mount_dir)
-      @exec_helper.execute("sudo losetup -o #{offset.to_s} #{loop_device} #{disk}")
-      @exec_helper.execute("sudo mount #{loop_device} -t ext3 #{ mount_dir}")
 
-      loop_device
+      mounts = {}
+
+      offsets.each do |offset|
+        loop_device = get_loop_device
+        @exec_helper.execute("sudo losetup -o #{offset.to_s} #{loop_device} #{disk}")
+        label = @exec_helper.execute("e2label #{loop_device}").strip.chomp
+        label = '/' if label == ''
+        mounts[label] = loop_device
+      end
+
+      @exec_helper.execute("sudo mount #{mounts['/']} -t ext3 #{mount_dir}")
+
+      mounts.each { |mount_point, loop_device| @exec_helper.execute("sudo mount #{loop_device} -t ext3 #{mount_dir}/#{mount_point}") unless mount_point == '/' }
+
+      @log.trace "Mounts:\n#{mounts}"
+
+      mounts
     end
 
-    def umount_image(disk, mount_dir, loop_device)
-      @log.debug "Unmounting image #{File.basename(disk)}"
-      @exec_helper.execute("sudo umount -d #{loop_device}")
+    def umount_image(disk, mount_dir, mounts)
+      @log.debug "Unmounting image '#{File.basename(disk)}'..."
+
+      mounts.each { |mount_point, loop_device| @exec_helper.execute("sudo umount -d #{loop_device}") unless mount_point == '/' }
+
+      @exec_helper.execute("sudo umount -d #{mounts['/']}")
+
       FileUtils.rm_rf(mount_dir)
     end
 
