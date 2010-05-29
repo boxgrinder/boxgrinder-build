@@ -39,19 +39,15 @@ module BoxGrinder
     attr_reader :ec2
     attr_reader :s3
 
-    def bucket_key( appliance_name )
-      "#{@plugin_config['bucket']}/#{appliance_name}/#{@appliance_config.version}.#{@appliance_config.release}/#{@appliance_config.hardware.arch}"
+    def bucket_key( appliance_name, path )
+      "#{@plugin_config['bucket']}#{path}/#{appliance_name}/#{@appliance_config.version}.#{@appliance_config.release}/#{@appliance_config.hardware.arch}"
     end
 
-    def bucket_manifest_key( appliance_name )
-      "#{bucket_key( appliance_name )}/#{appliance_name}.ec2.manifest.xml"
+    def bucket_manifest_key( appliance_name, path )
+      "#{bucket_key( appliance_name, path )}/#{appliance_name}.ec2.manifest.xml"
     end
 
-    def appliance_is_registered?( appliance_name )
-      !ami_info( appliance_name ).nil?
-    end
-
-    def ami_info( appliance_name )
+    def ami_info( appliance_name, path )
       ami_info = nil
 
       images = @ec2.describe_images( :owner_id => @plugin_config['account_number'] ).imagesSet
@@ -59,7 +55,7 @@ module BoxGrinder
       return nil if images.nil?
 
       for image in images.item do
-        ami_info = image if (image.imageLocation.eql?( bucket_manifest_key( appliance_name ) ))
+        ami_info = image if (image.imageLocation.eql?( bucket_manifest_key( appliance_name, path ) ))
       end
 
       ami_info

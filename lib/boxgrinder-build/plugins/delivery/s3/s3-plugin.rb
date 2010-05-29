@@ -147,7 +147,7 @@ module BoxGrinder
         return false
       end
 
-      manifest_location = @aws_helper.bucket_manifest_key(@appliance_config.name)
+      manifest_location = @aws_helper.bucket_manifest_key(@appliance_config.name, @plugin_config['path'])
       manifest_location = manifest_location[manifest_location.index("/") + 1, manifest_location.length]
 
       for object in bucket.objects do
@@ -160,20 +160,19 @@ module BoxGrinder
     def upload_image
       @log.info "Uploading #{@appliance_config.name} AMI to bucket '#{@plugin_config['bucket']}'..."
 
-      @exec_helper.execute("ec2-upload-bundle -b #{@aws_helper.bucket_key(@appliance_config.name)} -m #{@ami_manifest} -a #{@plugin_config['access_key']} -s #{@plugin_config['secret_access_key']} --retry")
+      @exec_helper.execute("ec2-upload-bundle -b #{@aws_helper.bucket_key(@appliance_config.name, @plugin_config['path'])} -m #{@ami_manifest} -a #{@plugin_config['access_key']} -s #{@plugin_config['secret_access_key']} --retry")
     end
 
     def register_image
-      ami_info    = @aws_helper.ami_info(@appliance_config.name)
+      ami_info    = @aws_helper.appliance_is_registered?(@appliance_config.name, @plugin_config['path'])
 
       if ami_info
         @log.info "Image is registered under id: #{ami_info.imageId}"
         return
       else
-        ami_info = @aws_helper.ec2.register_image(:image_location => @aws_helper.bucket_manifest_key(@appliance_config.name))
+        ami_info = @aws_helper.ec2.register_image(:image_location => @aws_helper.bucket_manifest_key(@appliance_config.name, @plugin_config['path']))
         @log.info "Image successfully registered under id: #{ami_info.imageId}."
       end
     end
-
   end
 end
