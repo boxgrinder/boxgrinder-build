@@ -26,6 +26,14 @@ module BoxGrinder
   class FedoraPlugin < RPMBasedOSPlugin
 
     FEDORA_REPOS = {
+            "13" => {
+                    "base" => {
+                            "mirrorlist" => "http://mirrors.fedoraproject.org/mirrorlist?repo=fedora-13&arch=#ARCH#"
+                    },
+                    "updates" => {
+                            "mirrorlist" => "http://mirrors.fedoraproject.org/mirrorlist?repo=updates-released-f13&arch=#ARCH#"
+                    }
+            },
             "12" => {
                     "base" => {
                             "mirrorlist" => "http://mirrors.fedoraproject.org/mirrorlist?repo=fedora-12&arch=#ARCH#"
@@ -55,7 +63,7 @@ module BoxGrinder
               :name       => :fedora,
               :full_name  => "Fedora",
               :type       => :linux,
-              :versions   => ["11", "12", "rawhide"]
+              :versions   => ["11", "12", "13", "rawhide"]
       }
     end
 

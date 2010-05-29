@@ -30,7 +30,8 @@ module BoxGrinder
     end
 
     SUPPORTED_OSES = {
-            'fedora' => ["11"]
+            'rhel' => [ '5' ],
+            'fedora' => [ '11' ]
     }
 
     REGIONS = {'us_east' => 'url'}
@@ -65,7 +66,7 @@ module BoxGrinder
         return
       end
 
-      unless SUPPORTED_OSES[@appliance_config.os.name].include?(@appliance_config.os.version)
+      unless !SUPPORTED_OSES[@appliance_config.os.name].nil? and SUPPORTED_OSES[@appliance_config.os.name].include?(@appliance_config.os.version)
         @log.error "EC2 platform plugin for Linux operating systems supports: #{supported_os}. Your OS is #{@appliance_config.os.name} #{@appliance_config.os.version}."
         return
       end
@@ -239,8 +240,11 @@ module BoxGrinder
               "ec2-ami-tools.noarch.rpm" => "http://s3.amazonaws.com/ec2-downloads/ec2-ami-tools.noarch.rpm"
       }
 
-      kernel_rpm =  KERNELS[@appliance_config.os.name][@appliance_config.os.version][@appliance_config.hardware.arch][:rpm]
-      rpms[File.basename(kernel_rpm)] = kernel_rpm unless kernel_rpm.nil?
+      begin
+        kernel_rpm =  KERNELS[@appliance_config.os.name][@appliance_config.os.version][@appliance_config.hardware.arch][:rpm]
+        rpms[File.basename(kernel_rpm)] = kernel_rpm
+      rescue
+      end
 
       cache_rpms(rpms)
 

@@ -39,7 +39,7 @@ gem 'commander', '>= 4.0.3'
 
 #$stderr.reopen('/dev/null')
 
-program :name, 'BoxGrinder'
+program :name, 'BoxGrinder Build'
 program :version, '0.3.6'
 program :description, 'A tool for building VM images from simple definition files.'
 default_command :build
@@ -75,7 +75,7 @@ module BoxGrinder
 
       appliance_definition_file = args.shift or raise('Appliance definition file is required. Run boxgrinder-build -h for more info')
 
-      raise("Appliance definition file '#{appliance_definition_file}' could not be found") unless File.exists?( appliance_definition_file )
+      raise "Appliance definition file '#{appliance_definition_file}' could not be found" unless File.exists?( appliance_definition_file )
       raise "Not known platform: #{options.platform}. Available platforms: #{PlatformPluginManager.instance.plugins.keys.join(', ')}." if PlatformPluginManager.instance.plugins[options.platform].nil? and options.platform != :none
       raise "Not known delivery type: #{options.delivery}. Available types: #{DeliveryPluginManager.instance.types.keys.join(', ')}." if DeliveryPluginManager.instance.types.keys.include?(options.delivery).nil?  and options.delivery != :none
 
