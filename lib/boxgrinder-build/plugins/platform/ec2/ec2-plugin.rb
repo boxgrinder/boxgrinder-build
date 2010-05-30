@@ -49,6 +49,12 @@ module BoxGrinder
                             'i386'     => { :rpm => 'http://repo.oddthesis.org/packages/other/kernel-xen-2.6.21.7-2.fc8.i686.rpm' },
                             'x86_64'   => { :rpm => 'http://repo.oddthesis.org/packages/other/kernel-xen-2.6.21.7-2.fc8.x86_64.rpm' }
                     }
+            },
+            'rhel' => {
+                    '5' => {
+                            'i386'     => { :rpm => 'http://repo.oddthesis.org/packages/other/kernel-xen-2.6.21.7-2.fc8.i686.rpm' },
+                            'x86_64'   => { :rpm => 'http://repo.oddthesis.org/packages/other/kernel-xen-2.6.21.7-2.fc8.x86_64.rpm' }
+                    }
             }
     }
 

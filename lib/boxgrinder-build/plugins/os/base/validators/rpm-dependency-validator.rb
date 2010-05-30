@@ -72,7 +72,6 @@ module BoxGrinder
       if invalid_names.size == 0
         @log.info "All additional packages for #{@appliance_config.simple_name} appliance successfully resolved."
       else
-        puts invalid_names.to_yaml
         raise "Package#{invalid_names.size > 1 ? "s" : ""} #{invalid_names.join(', ')} for #{@appliance_config.simple_name} appliance not found in repositories. Please check package names in appliance definition file."
       end
     end

@@ -48,9 +48,14 @@ module BoxGrinder
                     },
                     'rhel' => {
                             '5' => {
-                                    'i386'     => { :aki => 'aki-e3a54b8a', :ari => 'ari-f9a54b90' },
-                                    'x86_64'   => { :aki => 'aki-ffa54b96', :ari => 'ari-fda54b94' }
+                                    'i386'     => { :aki => 'aki-a71cf9ce', :ari => 'ari-a51cf9cc' },
+                                    'x86_64'   => { :aki => 'aki-b51cf9dc', :ari => 'ari-b31cf9da' }
                             }
+#                            '5' => {
+#                                    'i386'     => { :aki => 'aki-e3a54b8a', :ari => 'ari-f9a54b90' },
+#                                    'x86_64'   => { :aki => 'aki-ffa54b96', :ari => 'ari-fda54b94' }
+#                            }
+
                     }
             }
     }
@@ -148,7 +153,7 @@ module BoxGrinder
 
     def image_already_uploaded?
       begin
-        bucket = Bucket.find(@aws_helper.aws_data['bucket_name'])
+        bucket = Bucket.find(@plugin_config['bucket'])
       rescue
         return false
       end
@@ -170,7 +175,7 @@ module BoxGrinder
     end
 
     def register_image
-      ami_info    = @aws_helper.appliance_is_registered?(@appliance_config.name, @plugin_config['path'])
+      ami_info    = @aws_helper.ami_info(@appliance_config.name, @plugin_config['path'])
 
       if ami_info
         @log.info "Image is registered under id: #{ami_info.imageId}"
