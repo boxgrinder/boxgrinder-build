@@ -3,7 +3,7 @@ require 'rubygems'
 Gem::Specification.new do |s|
   s.platform  = Gem::Platform::RUBY
   s.name      = "boxgrinder-build"
-  s.version   = "0.3.6"
+  s.version   = "0.3.7"
   s.author    = "BoxGrinder Project"
   s.homepage  = "http://www.jboss.org/stormgrind/projects/boxgrinder.html"
   s.email     = "info@boxgrinder.org"
@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.files     = Dir['lib/boxgrinder-build/**/*'] + Dir['docs/**/*'] << 'README' << 'LICENSE'
   s.executables << 'boxgrinder-build'
 
-  s.add_dependency('boxgrinder-core', '>= 0.0.9')
+  s.add_dependency('boxgrinder-core', '>= 0.0.10')
   s.add_dependency('aws-s3', '>= 0.6.2')
   s.add_dependency('amazon-ec2', '>= 0.9.6')
   s.add_dependency('net-sftp', '>= 2.0.4')

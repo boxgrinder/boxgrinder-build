@@ -28,8 +28,9 @@ module BoxGrinder
   class S3Plugin < BaseDeliveryPlugin
 
     AMI_OSES = {
-            'fedora' => [ '11' ],
-            'rhel' => [ '5' ]
+            'fedora'  => [ '11' ],
+            'centos'  => [ '5' ],
+            'rhel'    => [ '5' ]
     }
 
     KERNELS = {
