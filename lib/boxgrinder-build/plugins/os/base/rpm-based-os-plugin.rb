@@ -49,7 +49,7 @@ module BoxGrinder
       customize( @deliverables[:disk] ) do |guestfs, guestfs_helper|
         @log.info "Executing post operations after build..."
 
-        if @appliance_config.post.base.size > 0
+        unless @appliance_config.post.base.nil?
           @appliance_config.post.base.each do |cmd|
             @log.debug "Executing #{cmd}"
             guestfs.sh( cmd )

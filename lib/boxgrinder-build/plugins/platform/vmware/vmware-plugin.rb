@@ -56,7 +56,7 @@ module BoxGrinder
 
       @log.debug "VMware image copied."
 
-      if @appliance_config.post.vmware.size > 0
+      unless @appliance_config.post.vmware.nil?
         customize( @deliverables[:disk] ) do |guestfs, guestfs_helper|
           @appliance_config.post.vmware.each do |cmd|
             @log.debug "Executing #{cmd}"

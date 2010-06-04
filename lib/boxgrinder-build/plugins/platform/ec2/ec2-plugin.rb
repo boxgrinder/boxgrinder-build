@@ -125,6 +125,16 @@ module BoxGrinder
         install_additional_packages(guestfs)
         change_configuration(guestfs)
 
+        unless @appliance_config.post.ec2.nil?
+          @appliance_config.post.ec2.each do |cmd|
+            @log.debug "Executing #{cmd}"
+            guestfs.sh( cmd )
+          end
+          @log.debug "Post commands from appliance definition file executed."
+        else
+          @log.debug "No commands specified, skipping."
+        end
+
         #        if @appliance_config.os.name.eql?("fedora") and @appliance_config.os.version.to_s.eql?("12")
         #          @log.debug "Downgrading udev package to use in EC2 environment..."
         #
