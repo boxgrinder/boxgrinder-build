@@ -47,10 +47,15 @@ module BoxGrinder
       @exec_helper.execute "sudo chmod 666 #{@deliverables[:metadata][:descriptor]}"
 
       customize( @deliverables[:disk] ) do |guestfs, guestfs_helper|
+        # TODO is this really needed?
+        @log.debug "Uploading '/etc/resolv.conf'..."
+        guestfs.upload( "/etc/resolv.conf", "/etc/resolv.conf" )
+        @log.debug "'/etc/resolv.conf' uploaded."
+
         @log.info "Executing post operations after build..."
 
-        unless @appliance_config.post.base.nil?
-          @appliance_config.post.base.each do |cmd|
+        unless @appliance_config.post['base'].nil?
+          @appliance_config.post['base'].each do |cmd|
             @log.debug "Executing #{cmd}"
             guestfs.sh( cmd )
           end

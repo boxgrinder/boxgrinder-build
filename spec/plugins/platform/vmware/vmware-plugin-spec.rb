@@ -131,7 +131,7 @@ module BoxGrinder
     it "should convert image to vmware" do
       prepare_image
 
-      @appliance_config.post.vmware.push("one", "two", "three")
+      @appliance_config.post['vmware'] = ["one", "two", "three"]
 
       @exec_helper.should_receive(:execute).with( "cp a/base/image/path.raw build/appliances/#{@arch}/fedora/11/full/vmware/full.raw" )
       @plugin.should_receive(:build_vmware_enterprise).with(no_args())

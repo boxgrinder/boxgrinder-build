@@ -112,6 +112,11 @@ module BoxGrinder
       umount_image(@deliverables[:disk], ec2_disk_mount_dir, ec2_mounts)
 
       customize(@deliverables[:disk]) do |guestfs, guestfs_helper|
+        # TODO is this really needed?
+        @log.debug "Uploading '/etc/resolv.conf'..."
+        guestfs.upload( "/etc/resolv.conf", "/etc/resolv.conf" )
+        @log.debug "'/etc/resolv.conf' uploaded."
+
         create_devices(guestfs)
         upload_fstab(guestfs)
 
@@ -125,8 +130,8 @@ module BoxGrinder
         install_additional_packages(guestfs)
         change_configuration(guestfs)
 
-        unless @appliance_config.post.ec2.nil?
-          @appliance_config.post.ec2.each do |cmd|
+        unless @appliance_config.post['ec2'].nil?
+          @appliance_config.post['ec2'].each do |cmd|
             @log.debug "Executing #{cmd}"
             guestfs.sh( cmd )
           end
@@ -200,7 +205,7 @@ module BoxGrinder
       offsets.each do |offset|
         loop_device = get_loop_device
         @exec_helper.execute("sudo losetup -o #{offset.to_s} #{loop_device} #{disk}")
-        label = @exec_helper.execute("e2label #{loop_device}").strip.chomp
+        label = @exec_helper.execute("sudo e2label #{loop_device}").strip.chomp
         label = '/' if label == ''
         mounts[label] = loop_device
       end

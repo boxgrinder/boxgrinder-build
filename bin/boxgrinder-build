@@ -26,7 +26,7 @@ require 'boxgrinder-core/helpers/log-helper'
 require 'boxgrinder-build/helpers/plugin-helper'
 require 'boxgrinder-build/appliance'
 
-gem 'boxgrinder-core', '>= 0.0.10'
+gem 'boxgrinder-core', '>= 0.0.11'
 gem 'aws-s3', '>= 0.6.2'
 gem 'amazon-ec2', '>= 0.9.6'
 gem 'net-sftp', '>= 2.0.4'
@@ -40,7 +40,7 @@ gem 'commander', '>= 4.0.3'
 #$stderr.reopen('/dev/null')
 
 program :name, 'BoxGrinder Build'
-program :version, '0.3.7'
+program :version, '0.3.8'
 program :description, 'A tool for building VM images from simple definition files.'
 default_command :build
 

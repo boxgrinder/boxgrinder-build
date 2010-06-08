@@ -38,11 +38,17 @@ module BoxGrinder
     it "should mount image" do
       FileUtils.should_receive(:mkdir_p).with("mount_dir").once
 
-      @plugin.should_receive(:get_loop_device).once.and_return("/dev/loop0")
-      @exec_helper.should_receive(:execute).with( "sudo losetup -o 1234 /dev/loop0 disk" )
-      @exec_helper.should_receive(:execute).with( "sudo mount /dev/loop0 -t ext3 mount_dir" )
+      @plugin.should_receive(:get_loop_device).and_return("/dev/loop0")
+      @exec_helper.should_receive(:execute).with( "sudo losetup /dev/loop0 disk" )
+      @exec_helper.should_receive(:execute).with( "sudo parted /dev/loop0 'unit B print' | grep -e '^ [0-9]' | awk '{ print $2 }'" ).and_return("1234")
+      @exec_helper.should_receive(:execute).with( "sudo losetup -d /dev/loop0" )
 
-      @plugin.mount_image("disk", "mount_dir", "1234")
+      @plugin.should_receive(:get_loop_device).and_return("/dev/loop1")
+      @exec_helper.should_receive(:execute).with( "sudo losetup -o 1234 /dev/loop1 disk" )
+      @exec_helper.should_receive(:execute).with( "sudo e2label /dev/loop1" ).and_return("/")
+      @exec_helper.should_receive(:execute).with( "sudo mount /dev/loop1 -t ext3 mount_dir" )
+
+      @plugin.mount_image("disk", "mount_dir")
     end
 
     it "should sync files" do
