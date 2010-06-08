@@ -98,7 +98,7 @@ module BoxGrinder
         when :cloudfront
           upload_to_bucket(deliverables, :public_read)
         when :ami
-          validate_plugin_config(['cert_file', 'key_file'])
+          validate_plugin_config(['cert_file', 'key_file', 'account_number'])
 
           unless AMI_OSES[@appliance_config.os.name].include?(@appliance_config.os.version)
             @log.error "You cannot convert selected image to AMI because of unsupported operating system: #{@appliance_config.os.name} #{@appliance_config.os.version}. Supported systems: #{supported_os}."
