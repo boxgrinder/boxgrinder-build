@@ -52,6 +52,8 @@ module BoxGrinder
         guestfs.upload( "/etc/resolv.conf", "/etc/resolv.conf" )
         @log.debug "'/etc/resolv.conf' uploaded."
 
+        change_configuration( guestfs )
+
         @log.info "Executing post operations after build..."
 
         unless @appliance_config.post['base'].nil?
@@ -82,6 +84,8 @@ module BoxGrinder
       guestfs.aug_init( "/", 0 )
       # don't use DNS for SSH
       guestfs.aug_set( "/files/etc/ssh/sshd_config/UseDNS", "no" ) if guestfs.exists( '/etc/ssh/sshd_config' ) != 0
+      # setting SELinux into permissive mode
+      guestfs.aug_set("/files/etc/sysconfig/selinux/SELINUX", "permissive")
       guestfs.aug_save
       @log.debug "Augeas changes saved."
     end
