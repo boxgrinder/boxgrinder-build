@@ -56,9 +56,6 @@ module BoxGrinder
 
       @log.debug "VMware image copied."
 
-
-
-
       customize( @deliverables[:disk] ) do |guestfs, guestfs_helper|
         change_configuration( guestfs )
 
