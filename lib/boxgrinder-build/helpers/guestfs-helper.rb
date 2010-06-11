@@ -104,6 +104,8 @@ module BoxGrinder
         @guestfs.umount( partition )
       end
 
+      raise "No root partition found for '#{File.basename( @raw_disk )}' disk!" if root_partition.nil?
+
       @guestfs.list_partitions.each do |partition|
         next if partition == root_partition
         mount_partition( partition, @guestfs.sh( "/sbin/e2label #{partition}" ).chomp.strip )

@@ -56,16 +56,22 @@ module BoxGrinder
 
       @log.debug "VMware image copied."
 
-      unless @appliance_config.post['vmware'].nil?
-        customize( @deliverables[:disk] ) do |guestfs, guestfs_helper|
+
+
+
+      customize( @deliverables[:disk] ) do |guestfs, guestfs_helper|
+        change_configuration( guestfs )
+
+        unless @appliance_config.post['vmware'].nil?
           @appliance_config.post['vmware'].each do |cmd|
             @log.debug "Executing #{cmd}"
             guestfs.sh( cmd )
           end
+
           @log.debug "Post commands from appliance definition file executed."
+        else
+          @log.debug "No commands specified, skipping."
         end
-      else
-        @log.debug "No commands specified, skipping."
       end
 
       build_vmware_enterprise
@@ -146,6 +152,15 @@ module BoxGrinder
       # vmx_data.gsub!( /#NETWORK_NAME#/, @image_config.network_name )
 
       vmx_data
+    end
+
+    def change_configuration( guestfs )
+      @log.debug "Changing configuration files using augeas..."
+      guestfs.aug_init("/", 0)
+      # setting SELinux into permissive mode
+      guestfs.aug_set("/files/etc/sysconfig/selinux/SELINUX", "permissive")
+      guestfs.aug_save
+      @log.debug "Augeas changes saved."
     end
 
     def build_vmware_personal
