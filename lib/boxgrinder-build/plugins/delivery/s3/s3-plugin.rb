@@ -19,10 +19,8 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder-build/plugins/delivery/base/base-delivery-plugin'
-require 'boxgrinder-build/plugins/delivery/s3/aws-helper'
 require 'AWS'
 require 'aws/s3'
-include AWS::S3
 
 module BoxGrinder
   class S3Plugin < BaseDeliveryPlugin
@@ -52,10 +50,10 @@ module BoxGrinder
                                     'i386'     => { :aki => 'aki-a71cf9ce', :ari => 'ari-a51cf9cc' },
                                     'x86_64'   => { :aki => 'aki-b51cf9dc', :ari => 'ari-b31cf9da' }
                             }
-#                            '5' => {
-#                                    'i386'     => { :aki => 'aki-e3a54b8a', :ari => 'ari-f9a54b90' },
-#                                    'x86_64'   => { :aki => 'aki-ffa54b96', :ari => 'ari-fda54b94' }
-#                            }
+                            #                            '5' => {
+                            #                                    'i386'     => { :aki => 'aki-e3a54b8a', :ari => 'ari-f9a54b90' },
+                            #                                    'x86_64'   => { :aki => 'aki-ffa54b96', :ari => 'ari-fda54b94' }
+                            #                            }
 
                     }
             }
@@ -88,9 +86,9 @@ module BoxGrinder
     end
 
     def execute( deliverables, type = :ami )
-      validate_plugin_config(['bucket', 'access_key', 'secret_access_key'])
+      validate_plugin_config(['bucket', 'access_key', 'secret_access_key'], 'http://community.jboss.org/docs/DOC-15217')
 
-      @aws_helper = AWSHelper.new( @config, @appliance_config, @plugin_config )
+      AWS::S3::Base.establish_connection!(:access_key_id => @plugin_config['access_key'], :secret_access_key => @plugin_config['secret_access_key'] )
 
       case type
         when :s3
@@ -98,7 +96,11 @@ module BoxGrinder
         when :cloudfront
           upload_to_bucket(deliverables, :public_read)
         when :ami
-          validate_plugin_config(['cert_file', 'key_file', 'account_number'])
+          validate_plugin_config(['cert_file', 'key_file', 'account_number'], 'http://community.jboss.org/docs/DOC-15217')
+
+          @plugin_config['account_number'] = @plugin_config['account_number'].to_s.gsub(/-/, '')
+
+          @ec2 = AWS::EC2::Base.new(:access_key_id => @plugin_config['access_key'], :secret_access_key => @plugin_config['secret_access_key'])
 
           unless AMI_OSES[@appliance_config.os.name].include?(@appliance_config.os.version)
             @log.error "You cannot convert selected image to AMI because of unsupported operating system: #{@appliance_config.os.name} #{@appliance_config.os.version}. Supported systems: #{supported_os}."
@@ -159,7 +161,7 @@ module BoxGrinder
         return false
       end
 
-      manifest_location = @aws_helper.bucket_manifest_key(@appliance_config.name, @plugin_config['path'])
+      manifest_location = bucket_manifest_key(@appliance_config.name, @plugin_config['path'])
       manifest_location = manifest_location[manifest_location.index("/") + 1, manifest_location.length]
 
       for object in bucket.objects do
@@ -172,19 +174,42 @@ module BoxGrinder
     def upload_image
       @log.info "Uploading #{@appliance_config.name} AMI to bucket '#{@plugin_config['bucket']}'..."
 
-      @exec_helper.execute("ec2-upload-bundle -b #{@aws_helper.bucket_key(@appliance_config.name, @plugin_config['path'])} -m #{@ami_manifest} -a #{@plugin_config['access_key']} -s #{@plugin_config['secret_access_key']} --retry")
+      @exec_helper.execute("ec2-upload-bundle -b #{bucket_key(@appliance_config.name, @plugin_config['path'])} -m #{@ami_manifest} -a #{@plugin_config['access_key']} -s #{@plugin_config['secret_access_key']} --retry")
     end
 
     def register_image
-      ami_info    = @aws_helper.ami_info(@appliance_config.name, @plugin_config['path'])
+      info  = ami_info(@appliance_config.name, @plugin_config['path'])
 
-      if ami_info
-        @log.info "Image is registered under id: #{ami_info.imageId}"
+      if info
+        @log.info "Image is registered under id: #{info.imageId}"
         return
       else
-        ami_info = @aws_helper.ec2.register_image(:image_location => @aws_helper.bucket_manifest_key(@appliance_config.name, @plugin_config['path']))
-        @log.info "Image successfully registered under id: #{ami_info.imageId}."
+        info = @ec2.register_image(:image_location => bucket_manifest_key(@appliance_config.name, @plugin_config['path']))
+        @log.info "Image successfully registered under id: #{info.imageId}."
       end
+    end
+
+    def ami_info( appliance_name, path )
+      ami_info = nil
+
+      images = @ec2.describe_images( :owner_id => @plugin_config['account_number'] ).imagesSet
+
+      return nil if images.nil?
+
+      for image in images.item do
+        ami_info = image if (image.imageLocation.eql?( bucket_manifest_key( appliance_name, path ) ))
+      end
+
+      ami_info
+    end
+
+    def bucket_key( appliance_name, path )
+      path = "/#{path.gsub(/^(\/)*/, '').gsub(/(\/)*$/, '')}/" unless path == '/'
+      "#{@plugin_config['bucket']}#{path}#{appliance_name}/#{@appliance_config.version}.#{@appliance_config.release}/#{@appliance_config.hardware.arch}"
+    end
+
+    def bucket_manifest_key( appliance_name, path )
+      "#{bucket_key( appliance_name, path )}/#{appliance_name}.ec2.manifest.xml"
     end
   end
 end

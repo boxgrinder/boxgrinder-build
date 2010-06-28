@@ -25,20 +25,7 @@ end
 
 module RSpecConfigHelper
   def generate_config( params = OpenStruct.new )
-
-    dir = OpenStruct.new
-
-    dir.src_cache    = params.dir_src_cache  || "sources_cache"
-    dir.rpms_cache   = params.dir_rpms_cache || "rpms_cache"
-    dir.root         = params.dir_root       || "/tmp/dir_root"
-    dir.top          = params.dir_top        || "topdir"
-    dir.build        = params.dir_build      || "build"
-    dir.specs        = params.dir_specs      || "specs"
-    dir.appliances   = params.dir_appliances || "../../../appliances"
-    dir.src          = params.dir_src        || "../../../src"
-    dir.base         = params.dir_src        || ".."
-
-    config = BoxGrinder::Config.new #( params.name || "BoxGrinder", params.version || "1.0.0", params.release, dir, params.config_file.nil? ? "" : "src/#{params.config_file}" )
+    config = BoxGrinder::Config.new
 
     # files
     config.files.base_vmdk  = params.base_vmdk      || "../../../src/base.vmdk"
