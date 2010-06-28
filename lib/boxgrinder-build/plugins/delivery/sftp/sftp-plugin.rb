@@ -40,9 +40,7 @@ module BoxGrinder
     end
 
     def execute(deliverables, type = :sftp)
-      validate_plugin_config(['path', 'username', 'host'], 'CHANGEME')
-
-      #SSHValidator.new( @config ).validate
+      validate_plugin_config(['path', 'username', 'host'], 'http://community.jboss.org/docs/DOC-15524')
 
       package = PackageHelper.new(@config, @appliance_config, {:log => @log, :exec_helper => @exec_helper}).package(deliverables)
 
