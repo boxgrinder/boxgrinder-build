@@ -241,8 +241,8 @@ module BoxGrinder
         cache_file = "#{@config.dir.src_cache}/#{name}"
 
         if (!File.exist?(cache_file))
-          FileUtils.mkdir_p(@config.dir.src_cache)
-          @exec_helper.execute("wget #{rpms[name]} -O #{cache_file}")
+          @exec_helper.execute "sudo mkdir -p #{@config.dir.src_cache}"
+          @exec_helper.execute "sudo wget #{rpms[name]} -O #{cache_file}"
         end
       end
     end
