@@ -1,9 +1,14 @@
 require 'boxgrinder-build/plugins/delivery/s3/s3-plugin'
 require 'rspec-helpers/rspec-config-helper'
+require 'rbconfig'
 
 module BoxGrinder
   describe S3Plugin do
     include RSpecConfigHelper
+
+    before(:all) do
+      @arch = RbConfig::CONFIG['host_cpu']
+    end
 
     before(:each) do
       @plugin = S3Plugin.new.init(generate_config, generate_appliance_config, :log => Logger.new('/dev/null'))
@@ -27,19 +32,19 @@ module BoxGrinder
     end
 
     it "should generate valid bucket_key" do
-      @plugin.bucket_key( "name", "this/is/a/path" ).should == "bucket/this/is/a/path/name/1.0/i386"
+      @plugin.bucket_key( "name", "this/is/a/path" ).should == "bucket/this/is/a/path/name/1.0/#{@arch}"
     end
 
     it "should generate valid bucket_key with mixed slashes" do
-      @plugin.bucket_key( "name", "//this/" ).should == "bucket/this/name/1.0/i386"
+      @plugin.bucket_key( "name", "//this/" ).should == "bucket/this/name/1.0/#{@arch}"
     end
 
     it "should generate valid bucket_key with root path" do
-      @plugin.bucket_key( "name", "/" ).should == "bucket/name/1.0/i386"
+      @plugin.bucket_key( "name", "/" ).should == "bucket/name/1.0/#{@arch}"
     end
 
     it "should generate valid bucket manifest key" do
-      @plugin.bucket_manifest_key( "name", "/a/asd/f/sdf///" ).should == "bucket/a/asd/f/sdf/name/1.0/i386/name.ec2.manifest.xml"
+      @plugin.bucket_manifest_key( "name", "/a/asd/f/sdf///" ).should == "bucket/a/asd/f/sdf/name/1.0/#{@arch}/name.ec2.manifest.xml"
     end
 
   end

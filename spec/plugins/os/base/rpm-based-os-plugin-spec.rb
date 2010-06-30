@@ -1,9 +1,14 @@
 require 'boxgrinder-build/plugins/os/base/rpm-based-os-plugin'
 require 'rspec-helpers/rspec-config-helper'
+require 'rbconfig'
 
 module BoxGrinder
   describe RPMBasedOSPlugin do
     include RSpecConfigHelper
+
+    before(:all) do
+      @arch = RbConfig::CONFIG['host_cpu']
+    end
 
     before(:each) do
       @plugin = RPMBasedOSPlugin.new.init(generate_config, generate_appliance_config, :log => Logger.new('/dev/null'))
@@ -17,9 +22,9 @@ module BoxGrinder
     it "should install repos" do
       guestfs = mock("guestfs")
 
-      guestfs.should_receive(:write_file).with("/etc/yum.repos.d/cirras.repo", "[cirras]\nname=cirras\nenabled=1\ngpgcheck=0\nbaseurl=http://repo.boxgrinder.org/packages/fedora/11/RPMS/i386\n", 0)
-      guestfs.should_receive(:write_file).with("/etc/yum.repos.d/abc.repo", "[abc]\nname=abc\nenabled=1\ngpgcheck=0\nbaseurl=http://abc\nmirrorlist=http://repo.boxgrinder.org/packages/fedora/11/RPMS/i386\n", 0)
-      guestfs.should_receive(:write_file).with("/etc/yum.repos.d/boxgrinder-f11-testing-i386.repo", "[boxgrinder-f11-testing-i386]\nname=boxgrinder-f11-testing-i386\nenabled=1\ngpgcheck=0\nmirrorlist=https://mirrors.fedoraproject.org/metalink?repo=updates-testing-f11&arch=i386\n", 0)
+      guestfs.should_receive(:write_file).with("/etc/yum.repos.d/cirras.repo", "[cirras]\nname=cirras\nenabled=1\ngpgcheck=0\nbaseurl=http://repo.boxgrinder.org/packages/fedora/11/RPMS/#{@arch}\n", 0)
+      guestfs.should_receive(:write_file).with("/etc/yum.repos.d/abc.repo", "[abc]\nname=abc\nenabled=1\ngpgcheck=0\nbaseurl=http://abc\nmirrorlist=http://repo.boxgrinder.org/packages/fedora/11/RPMS/#{@arch}\n", 0)
+      guestfs.should_receive(:write_file).with("/etc/yum.repos.d/boxgrinder-f11-testing-#{@arch}.repo", "[boxgrinder-f11-testing-#{@arch}]\nname=boxgrinder-f11-testing-#{@arch}\nenabled=1\ngpgcheck=0\nmirrorlist=https://mirrors.fedoraproject.org/metalink?repo=updates-testing-f11&arch=#{@arch}\n", 0)
 
       @plugin.install_repos( guestfs )
     end
@@ -29,7 +34,7 @@ module BoxGrinder
 
       guestfs = mock("guestfs")
 
-      guestfs.should_receive(:write_file).once.with("/etc/yum.repos.d/boxgrinder-f12-testing-i386.repo", "[boxgrinder-f12-testing-i386]\nname=boxgrinder-f12-testing-i386\nenabled=1\ngpgcheck=0\nmirrorlist=https://mirrors.fedoraproject.org/metalink?repo=updates-testing-f12&arch=i386\n", 0)
+      guestfs.should_receive(:write_file).once.with("/etc/yum.repos.d/boxgrinder-f12-testing-#{@arch}.repo", "[boxgrinder-f12-testing-#{@arch}]\nname=boxgrinder-f12-testing-#{@arch}\nenabled=1\ngpgcheck=0\nmirrorlist=https://mirrors.fedoraproject.org/metalink?repo=updates-testing-f12&arch=#{@arch}\n", 0)
 
       @plugin.install_repos( guestfs )
     end
