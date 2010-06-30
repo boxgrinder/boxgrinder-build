@@ -24,6 +24,8 @@ class Logger
 end
 
 module RSpecConfigHelper
+  RSPEC_BASE_LOCATION = "#{File.dirname(__FILE__)}/.."
+
   def generate_config( params = OpenStruct.new )
     config = BoxGrinder::Config.new
 
