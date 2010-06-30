@@ -44,18 +44,6 @@ module BoxGrinder
       # Because we're using repoquery command from our building environment, we must ensure, that our repository
       # names are unique
       @magic_hash = "#{@config.name.downcase.gsub(" ", "_")}-"
-
-      define_tasks
-    end
-
-    def define_tasks
-      desc "Validate packages dependencies for #{@appliance_config.simple_name} appliance"
-      task "appliance:#{@appliance_config.name}:validate:dependencies" => [ @appliance_config.path.file.raw.kickstart ] do
-        # if RAW file is already built, don't check for dependencies
-        resolve_packages unless File.exists?( @appliance_config.path.file.raw.disk )
-      end
-
-      task "appliance:all:validate:dependencies" => [ "appliance:#{@appliance_config.name}:validate:dependencies" ]
     end
 
     def resolve_packages
