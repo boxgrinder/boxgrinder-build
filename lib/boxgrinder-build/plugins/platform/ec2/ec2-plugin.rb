@@ -240,10 +240,8 @@ module BoxGrinder
       for name in rpms.keys
         cache_file = "#{@config.dir.src_cache}/#{name}"
 
-        if (!File.exist?(cache_file))
-          @exec_helper.execute "sudo mkdir -p #{@config.dir.src_cache}"
-          @exec_helper.execute "sudo wget #{rpms[name]} -O #{cache_file}"
-        end
+        @exec_helper.execute "sudo mkdir -p #{@config.dir.src_cache}"
+        @exec_helper.execute "sudo wget #{rpms[name]} -O #{cache_file}" unless File.exist?(cache_file)
       end
     end
 

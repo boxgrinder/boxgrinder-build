@@ -15,8 +15,8 @@ module BoxGrinder
     end
 
     it "should download a rpm to cache directory" do
-      FileUtils.should_receive(:mkdir_p).with("sources-cache").once
-      @exec_helper.should_receive(:execute).with( "wget http://rpm_location -O sources-cache/rpm_name" )
+      @exec_helper.should_receive(:execute).with( "sudo mkdir -p /var/cache/boxgrinder/sources-cache" )
+      @exec_helper.should_receive(:execute).with( "sudo wget http://rpm_location -O /var/cache/boxgrinder/sources-cache/rpm_name" )
       @plugin.cache_rpms( 'rpm_name' => 'http://rpm_location' )
     end
 
@@ -122,8 +122,8 @@ module BoxGrinder
       @plugin.should_receive(:cache_rpms).once.with(rpms)
 
       guestfs.should_receive(:mkdir_p).once.ordered.with("/tmp/rpms")
-      guestfs.should_receive(:upload).once.ordered.with("sources-cache/#{kernel_rpm}", "/tmp/rpms/#{kernel_rpm}")
-      guestfs.should_receive(:upload).once.ordered.with("sources-cache/ec2-ami-tools.noarch.rpm", "/tmp/rpms/ec2-ami-tools.noarch.rpm")
+      guestfs.should_receive(:upload).once.ordered.with("/var/cache/boxgrinder/sources-cache/#{kernel_rpm}", "/tmp/rpms/#{kernel_rpm}")
+      guestfs.should_receive(:upload).once.ordered.with("/var/cache/boxgrinder/sources-cache/ec2-ami-tools.noarch.rpm", "/tmp/rpms/ec2-ami-tools.noarch.rpm")
       guestfs.should_receive(:sh).once.ordered.with("rpm -Uvh --nodeps /tmp/rpms/*.rpm")
       guestfs.should_receive(:rm_rf).once.ordered.with("/tmp/rpms")
 

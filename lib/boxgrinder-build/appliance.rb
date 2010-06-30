@@ -18,7 +18,6 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require 'rake/tasklib'
 require 'boxgrinder-core/models/appliance-config'
 require 'boxgrinder-core/models/config'
 require 'boxgrinder-core/helpers/appliance-helper'
@@ -26,7 +25,7 @@ require 'boxgrinder-core/helpers/appliance-config-helper'
 require 'boxgrinder-core/validators/appliance-config-validator'
 
 module BoxGrinder
-  class Appliance < Rake::TaskLib
+  class Appliance
 
     def initialize( appliance_definition_file, options = {} )
       @config                     = Config.new

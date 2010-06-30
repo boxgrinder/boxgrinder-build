@@ -18,13 +18,12 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require 'rake/tasklib'
 require 'boxgrinder-core/validators/errors'
 require 'boxgrinder-build/helpers/guestfs-helper'
 require 'tempfile'
 
 module BoxGrinder
-  class ApplianceCustomizeHelper < Rake::TaskLib
+  class ApplianceCustomizeHelper
 
     def initialize( config, appliance_config, disk, options = {} )
       @config           = config

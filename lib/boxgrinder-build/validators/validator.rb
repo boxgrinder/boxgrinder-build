@@ -21,10 +21,9 @@
 require 'boxgrinder-core/validators/errors'
 require 'boxgrinder-build/validators/appliance-validator'
 require 'boxgrinder-build/validators/config-validator'
-require 'rake/tasklib'
 
 module BoxGrinder
-  class Validator < Rake::TaskLib
+  class Validator
 
     def initialize( config, options = {} )
       @config         = config
