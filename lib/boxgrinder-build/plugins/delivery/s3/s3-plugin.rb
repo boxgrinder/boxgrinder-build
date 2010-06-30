@@ -19,6 +19,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder-build/plugins/delivery/base/base-delivery-plugin'
+require 'rubygems'
 require 'AWS'
 require 'aws/s3'
 
