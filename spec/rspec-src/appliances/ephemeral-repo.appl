@@ -1,0 +1,24 @@
+name: repo
+summary: A dummy repo appliance
+os:
+  name: fedora
+  version: 12
+hardware:
+  memory: 256
+  partitions:
+    "/":
+      size: 1
+packages:
+  includes:
+    - gcc-c++
+    - wget
+repos:
+  - name: "cirras"
+    baseurl: "http://repo.boxgrinder.org/packages/#OS_NAME#/#OS_VERSION#/RPMS/#ARCH#"
+    ephemeral: true
+  - name: "abc"
+    baseurl: "http://abc"
+    mirrorlist: "http://repo.boxgrinder.org/packages/#OS_NAME#/#OS_VERSION#/RPMS/#ARCH#"
+    ephemeral: true
+  - name: "boxgrinder-f12-testing-#ARCH#"
+    mirrorlist: "https://mirrors.fedoraproject.org/metalink?repo=updates-testing-f#OS_VERSION#&arch=#ARCH#"
