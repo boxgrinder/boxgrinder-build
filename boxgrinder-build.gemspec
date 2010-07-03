@@ -16,7 +16,6 @@ Gem::Specification.new do |s|
   s.add_dependency('amazon-ec2', '>= 0.9.6')
   s.add_dependency('net-sftp', '>= 2.0.4')
   s.add_dependency('net-ssh', '>= 2.0.20')
-  s.add_dependency('rake', '>= 0.8.7')
   s.add_dependency('progressbar', '>= 0.9.0')
   s.add_dependency('commander', '>= 4.0.3')
 end

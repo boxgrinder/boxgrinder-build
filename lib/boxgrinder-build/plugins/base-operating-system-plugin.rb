@@ -18,20 +18,16 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require 'boxgrinder-build/managers/platform-plugin-manager'
+require 'boxgrinder-build/managers/operating-system-plugin-manager'
 require 'boxgrinder-build/plugins/base-plugin'
 
 module BoxGrinder
-  class BasePlatformPlugin < BasePlugin
-    def self.inherited(klass)
-      PlatformPluginManager.instance << klass
-    end
-
+  class BaseOperatingSystemPlugin < BasePlugin
     alias_method :execute_original, :execute
 
-    def execute(args = nil)
-      raise "Conversion cannot be started before the plugin isn't initialized" if @initialized.nil?
-      execute_original(args)
+    def execute( args = nil )
+      raise "Build cannot be started before the plugin isn't initialized" if @initialized.nil?
+      execute_original( args )
     end
   end
 end

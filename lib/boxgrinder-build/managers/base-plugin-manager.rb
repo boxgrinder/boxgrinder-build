@@ -25,38 +25,25 @@ module BoxGrinder
     include Singleton
 
     def initialize
-      @plugin_classes = []
-      @plugins        = {}
+      @plugins = {}
     end
 
-    def <<(plugin_class)
-      @plugin_classes << plugin_class
-    end
+    def initialize_plugin( info, options = {} )
+      raise "We already have registered plugin for #{info[:name]}." unless @plugins[info[:name]].nil?
 
-    def initialize_plugins( options = {} )
-      log = options[:log] || Logger.new(STDOUT)
-
-      @plugin_classes.each do |plugin_class|
-        begin
-          plugin = plugin_class.new
-        rescue => e
-          raise "Error while initializing #{plugin_class} plugin.", e
-        end
-
-        next unless plugin.respond_to?(:info)
-
-        plugin.instance_variable_set( :@log, log )
-
-        if @plugins[plugin.info[:name]].nil?
-          @plugins[plugin.info[:name]] = plugin
-        else
-          raise "We already have registered plugin for #{plugin.info[:name]}."
-        end
+      begin
+        plugin = info[:class].new
+      rescue => e
+        raise "Error while initializing #{info[:class]} plugin.", e
       end
+
+      plugin.instance_variable_set( :@log, options[:log] ) unless options[:log].nil?
+
+      @plugins[info[:name]] = { :info => info, :plugin => plugin }
+
       self
     end
 
     attr_reader :plugins
-
   end
 end

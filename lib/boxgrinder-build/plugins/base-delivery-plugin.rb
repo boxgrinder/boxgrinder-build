@@ -18,20 +18,22 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require 'boxgrinder-build/managers/operating-system-plugin-manager'
+require 'boxgrinder-build/managers/delivery-plugin-manager'
 require 'boxgrinder-build/plugins/base-plugin'
 
 module BoxGrinder
-  class BaseOperatingSystemPlugin < BasePlugin
-    def self.inherited(klass)
-      OperatingSystemPluginManager.instance << klass
-    end
-
+  class BaseDeliveryPlugin < BasePlugin
     alias_method :execute_original, :execute
 
-    def execute( args = nil )
-      raise "Build cannot be started before the plugin isn't initialized" if @initialized.nil?
-      execute_original( args )
+    def execute( deliverables, type)
+      raise "Delivery cannot be started before the plugin isn't initialized" if @initialized.nil?
+      raise "Not valid delivery type selected for #{info[:name]} plugin: #{type}. Available types: #{info[:type].join(" ")}" unless info[:type].include?(type)
+      
+      execute_original( deliverables, type )
+    end
+
+    def already_delivered?
+      false
     end
   end
 end

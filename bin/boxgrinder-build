@@ -31,7 +31,6 @@ gem 'aws-s3', '>= 0.6.2'
 gem 'amazon-ec2', '>= 0.9.6'
 gem 'net-sftp', '>= 2.0.4'
 gem 'net-ssh', '>= 2.0.20'
-gem 'rake', '>= 0.8.7'
 gem 'progressbar', '>= 0.9.0'
 gem 'commander', '>= 4.0.3'
 
@@ -42,24 +41,23 @@ gem 'commander', '>= 4.0.3'
 program :name, 'BoxGrinder Build'
 program :version, '0.4.1'
 program :description, 'A tool for building VM images from simple definition files.'
+program :help, 'Hompeage', 'http://www.jboss.org/stormgrind/projects/boxgrinder/build.html'
 default_command :build
 
-$verbose = false
+$log_level = :info
 
-global_option('-V', '--verbose', TrueClass, "Prints verbose information while building. Default: false.") { $verbose = true}
+global_option('-V', '--verbose', TrueClass, "Prints debug information while building. Default: false.") { $log_level = :debug}
+global_option('-W', '--veryverbose', TrueClass, "Prints trace information while building. Default: false.") { $log_level = :trace}
 
 module BoxGrinder
-  log = LogHelper.new
-
-  PluginHelper.new( :log => log ).load_plugins
-
   command :build do |c|
     c.syntax      = 'build appliance_definition.appl [options]'
-    c.description = 'Creates a base image for selected appliance definition.'
+    c.description = 'Creates an image from selected appliance definition for selected platform.'
 
-    c.option '-p STRING', '--platform STRING', String, "The type of platform. Valid types are: #{PlatformPluginManager.instance.plugins.keys.join(', ')}. Default: none."
-    c.option '-d STRING', '--delivery STRING', String, "The delivery type for selected image. Valid types are: #{DeliveryPluginManager.instance.types.keys.join(', ')}. Default: none."
-    c.option '-f', '--force', TrueClass, "Force image creation - removes all previous builds for selected appliance. Default: false."
+    c.option '-p STRING', '--platform STRING', String, "The type of platform. Default: none." # Valid types are: #{PlatformPluginManager.instance.plugins.keys.join(', ')}. Default: none."
+    c.option '-d STRING', '--delivery STRING', String, "The delivery type for selected image. Default: none." # Valid types are: #{DeliveryPluginManager.instance.types.keys.join(', ')}. Default: none."
+    c.option '-f STRING', '--force', TrueClass, "Force image creation - removes all previous builds for selected appliance. Default: false."
+    c.option '-l STRING', '--plugins STRING', String, "Comma separated list of plugins. Default: default plugins will be available."
 
     c.action do |args, options|
       options.default :platform => :none
@@ -69,17 +67,21 @@ module BoxGrinder
       options.name      = program(:name)
       options.version   = program(:version)
 
-      options.verbose   = $verbose
       options.platform  = options.platform.to_s.downcase.to_sym
       options.delivery  = options.delivery.to_s.downcase.to_sym
 
-      appliance_definition_file = args.shift or raise('Appliance definition file is required. Run boxgrinder-build -h for more info')
+      appliance_definition_file = args.shift or raise("You need to specify appliance definition file. Run 'boxgrinder-build -h' for more info")
 
       raise "Appliance definition file '#{appliance_definition_file}' could not be found" unless File.exists?( appliance_definition_file )
+
+      log = LogHelper.new( :threshold => $log_level)
+      
+      PluginHelper.new( :options => options, :log => log ).load_plugins
+
       raise "Not known platform: #{options.platform}. Available platforms: #{PlatformPluginManager.instance.plugins.keys.join(', ')}." if PlatformPluginManager.instance.plugins[options.platform].nil? and options.platform != :none
       raise "Not known delivery type: #{options.delivery}. Available types: #{DeliveryPluginManager.instance.types.keys.join(', ')}." if DeliveryPluginManager.instance.types.keys.include?(options.delivery).nil?  and options.delivery != :none
 
-      Appliance.new( appliance_definition_file, :options => options, :log => LogHelper.new( :threshold => $verbose ? :debug : :info ) ).create
+#      Appliance.new( appliance_definition_file, :options => options, :log => log ).create
     end
   end
 end
