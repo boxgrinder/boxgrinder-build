@@ -1,5 +1,5 @@
 require 'boxgrinder-build/helpers/plugin-helper'
-require 'rspec-helpers/rspec-config-helper'
+require 'rspec/rspec-config-helper'
 require 'ostruct'
 
 module BoxGrinder
