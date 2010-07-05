@@ -5,6 +5,8 @@ desc "Run all examples"
 Spec::Rake::SpecTask.new('examples') do |t|
   t.libs.unshift "../../boxgrinder-core/lib"
   t.libs.unshift "../../boxgrinder-core/spec"
-  
+
   t.spec_files = FileList['**/*-spec.rb']
+  t.rcov = true
+  t.rcov_opts = ['--exclude', 'spec']
 end

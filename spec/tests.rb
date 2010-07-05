@@ -1,1 +1,0 @@
-require 'helpers/plugin-helper-spec'

@@ -44,7 +44,7 @@ module BoxGrinder
 
       @appliance_config = appliance_config_helper.merge(appliance_config.clone.init_arch).initialize_paths
 
-      ApplianceConfigValidator.new( @appliance_config, :os_plugins => OperatingSystemPluginManager.instance.plugins ).validate
+      ApplianceConfigValidator.new( @appliance_config, :os_plugins => PluginManager.instance.plugins[:os] ).validate
 
       if @options.force
         @log.info "Removing previous builds for #{@appliance_config.name} appliance..."
@@ -59,11 +59,11 @@ module BoxGrinder
     end
 
     def execute_os_plugin
-      os_plugin = OperatingSystemPluginManager.instance.plugins[@appliance_config.os.name.to_sym]
+      os_plugin, os_plugin_info = PluginManager.instance.initialize_plugin(:os, @appliance_config.os.name.to_sym )
       os_plugin.init( @config, @appliance_config, :log => @log )
 
       if deliverables_exists( os_plugin.deliverables )
-        @log.info "Deliverables for #{os_plugin.info[:name]} operating system plugin exists, skipping."
+        @log.info "Deliverables for #{os_plugin_info[:name]} operating system plugin exists, skipping."
         return os_plugin.deliverables
       end
 
@@ -80,11 +80,11 @@ module BoxGrinder
         return deliverables
       end
 
-      platform_plugin = PlatformPluginManager.instance.plugins[@options.platform]
+      platform_plugin, platform_plugin_info = PluginManager.instance.initialize_plugin(:platform, @options.platform.to_sym )
       platform_plugin.init( @config, @appliance_config, :log => @log )
 
       if deliverables_exists( platform_plugin.deliverables )
-        @log.info "Deliverables for #{platform_plugin.info[:name]} platform plugin exists, skipping."
+        @log.info "Deliverables for #{platform_plugin_info[:name]} platform plugin exists, skipping."
         return platform_plugin.deliverables
       end
 
@@ -101,7 +101,7 @@ module BoxGrinder
         return deliverables
       end
 
-      delivery_plugin = DeliveryPluginManager.instance.types[@options.delivery]
+      delivery_plugin, delivery_plugin_info = PluginManager.instance.initialize_plugin(:delivery, @options.delivery.to_sym )
       delivery_plugin.init( @config, @appliance_config, :log => @log )
       delivery_plugin.execute( deliverables, @options.delivery )
     end

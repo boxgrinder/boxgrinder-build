@@ -34,7 +34,7 @@ module BoxGrinder
     end
 
     it "should require default plugins" do
-      plugins = %w(boxgrinder-build-fedora-os-plugin boxgrinder-build-rhel-os-plugin boxgrinder-build-centos-os-plugin boxgrinder-build-ec2-platform-plugin)
+      plugins = %w(boxgrinder-build-fedora-os-plugin boxgrinder-build-rhel-os-plugin boxgrinder-build-centos-os-plugin boxgrinder-build-ec2-platform-plugin boxgrinder-build-vmware-platform-plugin boxgrinder-build-s3-delivery-plugin boxgrinder-build-sftp-delivery-plugin boxgrinder-build-local-delivery-plugin)
 
       plugins.each do |plugin|
         @plugin_helper.should_receive(:gem).ordered.with(plugin)
