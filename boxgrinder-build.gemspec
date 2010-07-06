@@ -12,10 +12,5 @@ Gem::Specification.new do |s|
   s.executables << 'boxgrinder-build'
 
   s.add_dependency('boxgrinder-core', '>= 0.0.12')
-  s.add_dependency('aws-s3', '>= 0.6.2')
-  s.add_dependency('amazon-ec2', '>= 0.9.6')
-  s.add_dependency('net-sftp', '>= 2.0.4')
-  s.add_dependency('net-ssh', '>= 2.0.20')
-  s.add_dependency('progressbar', '>= 0.9.0')
   s.add_dependency('commander', '>= 4.0.3')
 end

@@ -63,7 +63,7 @@ module BoxGrinder
     end
 
     def execute(args = nil)
-      raise "Execute operation for #{self.class} plugin is not implemented"
+      raise "Conversion cannot be started before the plugin isn't initialized" if @initialized.nil?
     end
 
     def after_init
@@ -81,7 +81,7 @@ module BoxGrinder
       begin
         @plugin_config = YAML.load_file(@config_file)
       rescue
-        raise "An error occurred while reading configuration file #{@config_file} for #{self.class.name}. It is a valid YAML file?"
+        raise "An error occurred while reading configuration file #{@config_file} for #{self.class.name}. Is it a valid YAML file?"
       end
     end
 

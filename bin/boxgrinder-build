@@ -27,12 +27,7 @@ require 'boxgrinder-build/managers/plugin-manager'
 require 'boxgrinder-build/helpers/plugin-helper'
 require 'boxgrinder-build/appliance'
 
-gem 'boxgrinder-core', '>= 0.0.11'
-gem 'aws-s3', '>= 0.6.2'
-gem 'amazon-ec2', '>= 0.9.6'
-gem 'net-sftp', '>= 2.0.4'
-gem 'net-ssh', '>= 2.0.20'
-gem 'progressbar', '>= 0.9.0'
+gem 'boxgrinder-core', '>= 0.0.12'
 gem 'commander', '>= 4.0.3'
 
 # :name is optional, otherwise uses the basename of this executable
