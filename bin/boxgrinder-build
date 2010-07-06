@@ -30,14 +30,14 @@ require 'boxgrinder-build/appliance'
 gem 'boxgrinder-core', '>= 0.0.12'
 gem 'commander', '>= 4.0.3'
 
-# :name is optional, otherwise uses the basename of this executable
-
 #$stderr.reopen('/dev/null')
 
 program :name, 'BoxGrinder Build'
 program :version, '0.4.2'
-program :description, 'A tool for building VM images from simple definition files.'
-program :help, 'Hompeage', 'http://www.jboss.org/stormgrind/projects/boxgrinder/build.html'
+program :description, "A tool for building VM images from simple definition files."
+program :help, 'Hompepage', 'http://www.jboss.org/stormgrind/projects/boxgrinder/build.html'
+program :help, 'Documentation', 'http://community.jboss.org/docs/DOC-14358'
+program :help, 'Examples', "Run 'boxgrinder-build -h build' for more info about syntax."
 default_command :build
 
 $log_level = :info
@@ -49,6 +49,7 @@ module BoxGrinder
   command :build do |c|
     c.syntax      = 'build appliance_definition.appl [options]'
     c.description = 'Creates an image from selected appliance definition for selected platform.'
+    c.examples    = "boxgrinder-build test.appl -p vmware\nboxgrinder-build test.appl -p ec2 -d ami\nboxgrinder-build test.appl -d sftp"
 
     c.option '-p STRING', '--platform STRING', String, "The type of platform. Default: none." # Valid types are: #{PlatformPluginManager.instance.plugins.keys.join(', ')}. Default: none."
     c.option '-d STRING', '--delivery STRING', String, "The delivery type for selected image. Default: none." # Valid types are: #{DeliveryPluginManager.instance.types.keys.join(', ')}. Default: none."
