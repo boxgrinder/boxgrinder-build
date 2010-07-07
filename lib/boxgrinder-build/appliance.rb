@@ -52,58 +52,58 @@ module BoxGrinder
         @log.debug "Previous builds removed."
       end
 
-      base_deliverables       = execute_os_plugin
-      platform_deliverables   = execute_platform_plugin( base_deliverables )
+      base_plugin_output       = execute_os_plugin
+      platform_plugin_output   = execute_platform_plugin( base_plugin_output )
 
-      execute_delivery_plugin( platform_deliverables )
+      execute_delivery_plugin( platform_plugin_output )
     end
 
     def execute_os_plugin
       os_plugin, os_plugin_info = PluginManager.instance.initialize_plugin(:os, @appliance_config.os.name.to_sym )
-      os_plugin.init( @config, @appliance_config, :log => @log )
+      os_plugin.init( @config, @appliance_config, :log => @log, :plugin_info => os_plugin_info )
 
       if deliverables_exists( os_plugin.deliverables )
         @log.info "Deliverables for #{os_plugin_info[:name]} operating system plugin exists, skipping."
-        return os_plugin.deliverables
+        return { :deliverables => os_plugin.deliverables }
       end
 
       @log.debug "Executing operating system plugin for #{@appliance_config.os.name}..."
       os_plugin.execute
       @log.debug "Operating system plugin executed."
 
-      os_plugin.deliverables
+      { :deliverables => os_plugin.deliverables, :plugin_info => os_plugin_info }
     end
 
-    def execute_platform_plugin( deliverables )
+    def execute_platform_plugin( previous_plugin_output )
       if @options.platform == :none
         @log.debug "No platform selected, skipping platform conversion."
-        return deliverables
+        return previous_plugin_output
       end
 
       platform_plugin, platform_plugin_info = PluginManager.instance.initialize_plugin(:platform, @options.platform.to_sym )
-      platform_plugin.init( @config, @appliance_config, :log => @log )
+      platform_plugin.init( @config, @appliance_config, :log => @log, :plugin_info => platform_plugin_info, :previous_plugin_info => previous_plugin_output[:plugin_info] )
 
       if deliverables_exists( platform_plugin.deliverables )
         @log.info "Deliverables for #{platform_plugin_info[:name]} platform plugin exists, skipping."
-        return platform_plugin.deliverables
+        return { :deliverables => platform_plugin.deliverables, :plugin_info => platform_plugin_info }
       end
 
       @log.debug "Executing platform plugin for #{@options.platform}..."
-      platform_plugin.execute( deliverables[:disk] )
+      platform_plugin.execute( previous_plugin_output[:deliverables][:disk] )
       @log.debug "Platform plugin executed."
 
-      platform_plugin.deliverables
+      { :deliverables => platform_plugin.deliverables, :plugin_info => platform_plugin_info }
     end
 
-    def execute_delivery_plugin( deliverables )
+    def execute_delivery_plugin( previous_plugin_output )
       if @options.delivery == :none
         @log.debug "No delivery method selected, skipping delivering."
-        return deliverables
+        return
       end
 
       delivery_plugin, delivery_plugin_info = PluginManager.instance.initialize_plugin(:delivery, @options.delivery.to_sym )
-      delivery_plugin.init( @config, @appliance_config, :log => @log )
-      delivery_plugin.execute( deliverables, @options.delivery )
+      delivery_plugin.init( @config, @appliance_config, :log => @log, :plugin_info => delivery_plugin_info, :previous_plugin_info => previous_plugin_output[:plugin_info] )
+      delivery_plugin.execute( previous_plugin_output[:deliverables], @options.delivery )
     end
 
     # TODO: move this to plugin (os,platform,delivery)

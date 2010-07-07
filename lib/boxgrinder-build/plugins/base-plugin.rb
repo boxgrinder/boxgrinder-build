@@ -19,6 +19,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder-core/helpers/exec-helper'
+require 'boxgrinder-build/helpers/appliance-customize-helper'
 require 'logger'
 
 module BoxGrinder
@@ -30,17 +31,17 @@ module BoxGrinder
 
       @log              = options[:log]           || Logger.new(STDOUT)
       @exec_helper      = options[:exec_helper]   || ExecHelper.new( :log => @log )
+      
+      @plugin_info      = options[:plugin_info]
+      @previous_info    = options[:previous_plugin_info]
 
       @plugin_config    = {}
       @deliverables     = Hash.new({})
 
-      if self.respond_to?(:info)
-        @config_file = "#{ENV['HOME']}/.boxgrinder/plugins/#{self.info[:name]}"
+      unless @plugin_info.nil?
+        @config_file = "#{ENV['HOME']}/.boxgrinder/plugins/#{@plugin_info[:name]}"
 
         read_plugin_config
-
-        @deliverables[:disk]      = nil
-        @deliverables[:platform]  = self.info[:name]
       end
 
       after_init

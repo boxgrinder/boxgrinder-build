@@ -21,6 +21,7 @@
 require 'boxgrinder-core/validators/errors'
 require 'boxgrinder-build/helpers/guestfs-helper'
 require 'tempfile'
+require 'logger'
 
 module BoxGrinder
   class ApplianceCustomizeHelper

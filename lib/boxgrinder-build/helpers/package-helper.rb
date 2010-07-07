@@ -28,7 +28,18 @@ module BoxGrinder
       @exec_helper      = options[:exec_helper] || ExecHelper.new({:log => @log})
     end
 
-    def package(deliverables, type = :tar)
+    def package(deliverables, options = {})
+      type        =  options[:type]     || :tar
+      plugin_info =  options[:plugin_info]
+
+      platform = 'raw'
+
+      unless plugin_info.nil?
+        if plugin_info[:type] == :platform
+          platform = plugin_info[:name].to_s
+        end
+      end
+
       files = []
       files << File.basename(deliverables[:disk])
 
@@ -38,17 +49,16 @@ module BoxGrinder
         end
       end
 
-      deliverable_platform  = deliverables[:platform].nil? ? "" : deliverables[:platform]
-      package_path          = "#{@appliance_config.path.dir.packages}/#{@appliance_config.name}-#{@appliance_config.version}.#{@appliance_config.release}-#{@appliance_config.hardware.arch}-#{deliverable_platform}.tgz"
+      package_path = "#{@appliance_config.path.dir.packages}/#{@appliance_config.name}-#{@appliance_config.version}.#{@appliance_config.release}-#{@appliance_config.hardware.arch}-#{platform}.tgz"
 
       if File.exists?(package_path)
-        @log.info "Package of #{type} type for #{@appliance_config.name} appliance and #{deliverable_platform} platform already exists, skipping."
+        @log.info "Package of #{type} type for #{@appliance_config.name} appliance and #{platform} platform already exists, skipping."
         return package_path
       end
 
       FileUtils.mkdir_p(File.dirname(package_path))
 
-      @log.info "Packaging #{@appliance_config.name} appliance for #{deliverable_platform} platform to #{type}..."
+      @log.info "Packaging #{@appliance_config.name} appliance for #{platform} platform to #{type}..."
 
       case type
         when :tar

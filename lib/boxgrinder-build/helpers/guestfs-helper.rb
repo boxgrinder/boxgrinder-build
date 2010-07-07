@@ -19,6 +19,27 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'guestfs'
+require 'logger'
+
+module Guestfs
+  class Guestfs
+    alias_method :sh_original, :sh
+
+    def sh( command )
+      @log.trace "Executing '#{command}' command using GuestFS"
+
+      begin
+        output = sh_original( command )
+        @log.trace "Command return:\r\n+++++\r\n#{output}+++++" unless output.strip.length == 0
+      rescue => e
+        @log.error e.backtrace.join($/)
+        @log.error "Error occurred while executing above command. Appliance may not work properly."
+      end
+
+      output
+    end
+  end
+end
 
 module BoxGrinder
   class GuestFSHelper
@@ -28,14 +49,15 @@ module BoxGrinder
 
       @partitions = {}
 
-      launch
+      run
     end
 
     attr_reader :guestfs
 
-    def launch
+    def run
       @log.debug "Preparing guestfs..."
       @guestfs = Guestfs::create
+      @guestfs.instance_variable_set( :@log, @log )
 
       # TODO remove this, https://bugzilla.redhat.com/show_bug.cgi?id=502058
       @guestfs.set_append( "noapic" )
@@ -49,9 +71,9 @@ module BoxGrinder
         @guestfs.set_qemu( qemu_wrapper )
       end
 
-      @log.debug "Adding drive '#{@raw_disk}'..."
+      @log.trace "Adding drive '#{@raw_disk}'..."
       @guestfs.add_drive( @raw_disk )
-      @log.debug "Drive added."
+      @log.trace "Drive added."
 
       @log.debug "Launching guestfs..."
       @guestfs.launch
@@ -65,23 +87,23 @@ module BoxGrinder
           mount_partitions
       end
 
-      @log.debug "Guestfs launched."
+      @log.trace "Guestfs launched."
     end
 
     def clean_close
-      @log.debug "Closing guestfs..."
+      @log.trace "Closing guestfs..."
 
       @guestfs.sync
       @guestfs.umount_all
       @guestfs.close
 
-      @log.debug "Guestfs closed."
+      @log.trace "Guestfs closed."
     end
 
     def mount_partition( part, mount_point )
-      @log.debug "Mounting #{part} partition to #{mount_point}..."
+      @log.trace "Mounting #{part} partition to #{mount_point}..."
       @guestfs.mount_options( "", part, mount_point )
-      @log.debug "Partition mounted."
+      @log.trace "Partition mounted."
     end
 
     # TODO this is shitty, I know... https://bugzilla.redhat.com/show_bug.cgi?id=507188
