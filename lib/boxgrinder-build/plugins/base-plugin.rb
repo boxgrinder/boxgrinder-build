@@ -32,15 +32,14 @@ module BoxGrinder
       @log              = options[:log]           || Logger.new(STDOUT)
       @exec_helper      = options[:exec_helper]   || ExecHelper.new( :log => @log )
       
-      @plugin_info      = options[:plugin_info]
-      @previous_info    = options[:previous_plugin_info]
+      @plugin_info            = options[:plugin_info]
+      @previous_plugin_info   = options[:previous_plugin_info]
 
       @plugin_config    = {}
-      @deliverables     = Hash.new({})
+      @deliverables     = {}
 
       unless @plugin_info.nil?
         @config_file = "#{ENV['HOME']}/.boxgrinder/plugins/#{@plugin_info[:name]}"
-
         read_plugin_config
       end
 
@@ -86,6 +85,7 @@ module BoxGrinder
       end
     end
 
+    # TODO consider removing this from BasePlugin and moving to another base class
     def customize(disk_path)
       raise "Customizing cannot be started until the plugin isn't initialized" if @initialized.nil?
 
