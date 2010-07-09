@@ -81,7 +81,7 @@ module BoxGrinder
       end
 
       platform_plugin, platform_plugin_info = PluginManager.instance.initialize_plugin(:platform, @options.platform.to_sym )
-      platform_plugin.init( @config, @appliance_config, :log => @log, :plugin_info => platform_plugin_info, :previous_plugin_info => previous_plugin_output[:plugin_info] )
+      platform_plugin.init( @config, @appliance_config, :log => @log, :plugin_info => platform_plugin_info, :previous_plugin_info => previous_plugin_output[:plugin_info], :previous_deliverables => previous_plugin_output[:deliverables] )
 
       if deliverables_exists( platform_plugin.deliverables )
         @log.info "Deliverables for #{platform_plugin_info[:name]} platform plugin exists, skipping."
@@ -89,7 +89,7 @@ module BoxGrinder
       end
 
       @log.debug "Executing platform plugin for #{@options.platform}..."
-      platform_plugin.execute( previous_plugin_output[:deliverables][:disk] )
+      platform_plugin.execute
       @log.debug "Platform plugin executed."
 
       { :deliverables => platform_plugin.deliverables, :plugin_info => platform_plugin_info }
@@ -102,18 +102,17 @@ module BoxGrinder
       end
 
       delivery_plugin, delivery_plugin_info = PluginManager.instance.initialize_plugin(:delivery, @options.delivery.to_sym )
-      delivery_plugin.init( @config, @appliance_config, :log => @log, :plugin_info => delivery_plugin_info, :previous_plugin_info => previous_plugin_output[:plugin_info] )
-      delivery_plugin.execute( previous_plugin_output[:deliverables], @options.delivery )
+      delivery_plugin.init( @config, @appliance_config, :log => @log, :plugin_info => delivery_plugin_info, :previous_plugin_info => previous_plugin_output[:plugin_info], :previous_deliverables => previous_plugin_output[:deliverables] )
+      delivery_plugin.execute( @options.delivery )
     end
 
-    # TODO: move this to plugin (os,platform,delivery)
     def deliverables_exists( deliverables )
       return false unless File.exists?(deliverables[:disk])
 
       [:metadata, :other].each do |deliverable_type|
         deliverables[deliverable_type].each_value do |file|
           return false unless File.exists?(file)
-        end
+        end unless deliverables[deliverable_type].nil?
       end
 
       true

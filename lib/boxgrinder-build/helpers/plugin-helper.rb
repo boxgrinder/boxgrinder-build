@@ -43,7 +43,7 @@ module BoxGrinder
     end
 
     def parse_plugin_list
-      plugins = nil
+      plugins = []
 
       unless @options.plugins.nil?
         plugins = @options.plugins.gsub('\'', '').gsub('"', '').split(',')
@@ -54,9 +54,9 @@ module BoxGrinder
     end
 
     def read_and_require
-      plugins = parse_plugin_list || %w(boxgrinder-build-fedora-os-plugin boxgrinder-build-rhel-os-plugin boxgrinder-build-centos-os-plugin boxgrinder-build-ec2-platform-plugin boxgrinder-build-vmware-platform-plugin boxgrinder-build-s3-delivery-plugin boxgrinder-build-sftp-delivery-plugin boxgrinder-build-local-delivery-plugin)
+      plugins = %w(boxgrinder-build-fedora-os-plugin boxgrinder-build-rhel-os-plugin boxgrinder-build-centos-os-plugin boxgrinder-build-ec2-platform-plugin boxgrinder-build-vmware-platform-plugin boxgrinder-build-s3-delivery-plugin boxgrinder-build-sftp-delivery-plugin boxgrinder-build-local-delivery-plugin) + parse_plugin_list
 
-      plugins.each do |plugin|
+      plugins.flatten.each do |plugin|
         @log.trace "Requiring plugin '#{plugin}'..."
 
         begin

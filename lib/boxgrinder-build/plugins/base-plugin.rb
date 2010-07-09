@@ -35,8 +35,10 @@ module BoxGrinder
       @plugin_info            = options[:plugin_info]
       @previous_plugin_info   = options[:previous_plugin_info]
 
+      @deliverables           = {}
+      @previous_deliverables  = options[:previous_deliverables] || {}
+
       @plugin_config    = {}
-      @deliverables     = {}
 
       unless @plugin_info.nil?
         @config_file = "#{ENV['HOME']}/.boxgrinder/plugins/#{@plugin_info[:name]}"
@@ -58,7 +60,7 @@ module BoxGrinder
       raise "Not valid configuration file for #{info[:name]} plugin. Please create valid '#{@config_file}' file. #{more_info}" if @plugin_config.nil?
 
       fields.each do |field|
-        raise "Please specify a valid #{field} in plugin configuration file: '#{@config_file}'. #{more_info}" if @plugin_config[field].nil?
+        raise "Please specify a valid '#{field}' key in plugin configuration file: '#{@config_file}'. #{more_info}" if @plugin_config[field].nil?
       end
     end
 

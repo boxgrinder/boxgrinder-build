@@ -53,14 +53,20 @@ module BoxGrinder
       raise "No type specified for your plugin" if info[:type].nil?
     end
 
-    def initialize_plugin( type, name, options = {} )
+    def initialize_plugin( type, name )
+      plugins = @plugins[type]
+      # this should never happen
+      raise "There are no #{type} plugins." if plugins.nil?
+      plugin_info = plugins[name]
+      raise "There is no #{type} plugin registered for '#{name}' type/name." if plugin_info.nil?
+
       begin
-        plugin = @plugins[type][name][:class].new
+        plugin = plugin_info[:class].new
       rescue => e
-        raise "Error while initializing #{@plugins[type][name][:class]} plugin.", e
+        raise "Error while initializing #{plugin_info[:class]} plugin.", e
       end
 
-      [ plugin, @plugins[type][name] ]
+      [ plugin, plugin_info ]
     end
 
     def plugin_types( type )
