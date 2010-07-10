@@ -30,6 +30,7 @@ end
 
 include BoxGrinder::Plugins
 
+# TODO consider removing singleton pattern
 module BoxGrinder
   class PluginManager
     include Singleton
@@ -42,7 +43,14 @@ module BoxGrinder
       validate_plugin_info( info )
 
       raise "We already have registered plugin for #{info[:name]}." unless @plugins[info[:name]].nil?
-      @plugins[info[:type]][info[:name]] = info
+
+      unless info[:types].nil?
+        info[:types].each do |type|
+          @plugins[info[:type]][type] = info
+        end
+      else
+        @plugins[info[:type]][info[:name]] = info
+      end
 
       self
     end
