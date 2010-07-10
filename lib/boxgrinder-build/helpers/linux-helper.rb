@@ -18,8 +18,14 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
+require 'logger'
+
 module BoxGrinder
   class LinuxHelper
+    def initialize( options = {} )
+      @log = options[:log] || Logger.new(STDOUT)
+    end
+
     def kernel_version( guestfs )
       kernel_versions = guestfs.ls("/lib/modules")
       version         = kernel_versions.last
