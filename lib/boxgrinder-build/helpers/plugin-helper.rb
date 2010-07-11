@@ -75,8 +75,8 @@ module BoxGrinder
 
       @log.debug "We have #{plugins.size} #{type} plugin(s) registered"
 
-      plugins.each_value do |plugin_info|
-        @log.debug "- plugin for #{plugin_info[:full_name]}."
+      plugins.each do |plugin_name_or_type, plugin_info|
+        @log.debug "- #{plugin_name_or_type} plugin for #{plugin_info[:full_name]}."
       end
 
       @log.debug "Plugins loaded."
