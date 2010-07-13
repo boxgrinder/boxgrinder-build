@@ -1,0 +1,27 @@
+name: jeos-f13
+summary: Just Enough Operating System based on Fedora 13
+os:
+ name: fedora
+ version: 13
+hardware:
+ partitions:
+   "/":
+     size: 2
+packages:
+ includes:
+   - bash
+   - kernel-PAE
+   - grub
+   - e2fsprogs
+   - passwd
+   - policycoreutils
+   - chkconfig
+   - rootfiles
+   - yum
+   - vim-minimal
+   - acpid
+   - dhclient
+   - iputils
+   - openssh-server
+   - openssh-clients
+   - system-config-firewall-base
