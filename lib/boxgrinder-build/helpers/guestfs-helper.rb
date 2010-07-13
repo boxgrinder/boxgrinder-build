@@ -65,6 +65,7 @@ module BoxGrinder
       # workaround for latest qemu
       # It'll only work if qemu-stable package is installed. It is installed by default on meta-appliance
       # TODO wait for stable qemu and remove this
+      # Looks like in F13 (qemu-img-0.12.3-8.fc13.i686) this is fixed
       qemu_wrapper = "/usr/share/qemu-stable/bin/qemu.wrapper"
 
       if File.exists?( qemu_wrapper )

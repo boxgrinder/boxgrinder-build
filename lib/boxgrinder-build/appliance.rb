@@ -75,12 +75,12 @@ module BoxGrinder
     end
 
     def execute_platform_plugin( previous_plugin_output )
-      if @options.platform == :none
+      if @options.platform == :none or @options.platform == nil
         @log.debug "No platform selected, skipping platform conversion."
         return previous_plugin_output
       end
 
-      platform_plugin, platform_plugin_info = PluginManager.instance.initialize_plugin(:platform, @options.platform.to_sym )
+      platform_plugin, platform_plugin_info = PluginManager.instance.initialize_plugin(:platform, @options.platform )
       platform_plugin.init( @config, @appliance_config, :log => @log, :plugin_info => platform_plugin_info, :previous_plugin_info => previous_plugin_output[:plugin_info], :previous_deliverables => previous_plugin_output[:deliverables] )
 
       if deliverables_exists( platform_plugin.deliverables )
@@ -96,14 +96,19 @@ module BoxGrinder
     end
 
     def execute_delivery_plugin( previous_plugin_output )
-      if @options.delivery == :none
+      if @options.delivery == :none or @options.delivery == nil
         @log.debug "No delivery method selected, skipping delivering."
         return
       end
 
-      delivery_plugin, delivery_plugin_info = PluginManager.instance.initialize_plugin(:delivery, @options.delivery.to_sym )
+      delivery_plugin, delivery_plugin_info = PluginManager.instance.initialize_plugin(:delivery, @options.delivery )
       delivery_plugin.init( @config, @appliance_config, :log => @log, :plugin_info => delivery_plugin_info, :previous_plugin_info => previous_plugin_output[:plugin_info], :previous_deliverables => previous_plugin_output[:deliverables] )
-      delivery_plugin.execute( @options.delivery )
+
+      if @options.delivery != delivery_plugin_info[:name]
+        delivery_plugin.execute( @options.delivery )
+      else
+        delivery_plugin.execute
+      end
     end
 
     def deliverables_exists( deliverables )

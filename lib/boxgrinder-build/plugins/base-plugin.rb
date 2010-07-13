@@ -20,6 +20,8 @@
 
 require 'boxgrinder-core/helpers/exec-helper'
 require 'boxgrinder-build/helpers/appliance-customize-helper'
+require 'ostruct'
+require 'openhash/openhash'
 require 'logger'
 
 module BoxGrinder
@@ -31,28 +33,49 @@ module BoxGrinder
 
       @log              = options[:log]           || Logger.new(STDOUT)
       @exec_helper      = options[:exec_helper]   || ExecHelper.new( :log => @log )
-      
+
       @plugin_info            = options[:plugin_info]
       @previous_plugin_info   = options[:previous_plugin_info]
 
-      @deliverables           = {}
       @previous_deliverables  = options[:previous_deliverables] || {}
+      @plugin_config          = {}
 
-      @plugin_config    = {}
+      @deliverables           = OpenHash.new
+      @deliverables.disk      = nil
+      @deliverables.metadata  = {}
+      @deliverables.other     = {}
 
-      unless @plugin_info.nil?
-        @config_file = "#{ENV['HOME']}/.boxgrinder/plugins/#{@plugin_info[:name]}"
-        read_plugin_config
-      end
+      @dir                    = OpenHash.new
+      @dir.base               = "#{@appliance_config.path.dir.build}/#{@plugin_info[:name]}"
+      @dir.tmp                = "#{@dir.base}/tmp"
 
-      after_init
+      @config_file            = "#{ENV['HOME']}/.boxgrinder/plugins/#{@plugin_info[:name]}"
+
+      read_plugin_config
 
       @initialized = true
+
+      after_init
 
       self
     end
 
     attr_reader :deliverables
+
+    def register_deliverable( type, deliverable )
+      raise "Conversion cannot be started before the plugin isn't initialized" if @initialized.nil?
+      raise "Unsupported delivery type: '#{type}' to register." unless [:disk, :metadata, :other].include?(type)
+
+      if type == :disk
+        @deliverables.disk = "#{@dir.base}/#{deliverable}"
+      else
+        raise "Specified deliverable for '#{type}' should be a Hash, not #{deliverable.class}." unless deliverable.is_a?(Hash)
+
+        deliverable.each do |name, path|
+          @deliverables[type][name] = "#{@dir.base}/#{path}"
+        end
+      end
+    end
 
     def validate_plugin_config(fields = [], doc = nil)
       more_info = doc.nil? ? '' : "See #{doc} for more info"
