@@ -36,57 +36,12 @@ module BoxGrinder
     end
 
     def customize
-      @guestfs_helper = GuestFSHelper.new( @disk, :log => @log )
+      @guestfs_helper = GuestFSHelper.new( @disk, :log => @log ).run
       @guestfs = @guestfs_helper.guestfs
 
       yield @guestfs, @guestfs_helper
 
       @guestfs_helper.clean_close
-    end
-
-    def validate_options( options )
-      options = {
-              :packages => {},
-              :repos => []
-      }.merge(options)
-
-      options[:packages][:yum] = options[:packages][:yum] || []
-      options[:packages][:yum_local] = options[:packages][:yum_local] || []
-      options[:packages][:rpm] = options[:packages][:rpm] || []
-
-      if ( options[:packages][:yum_local].size == 0 and options[:packages][:rpm].size == 0 and options[:packages][:yum].size == 0 and options[:repos].size == 0)
-        @log.debug "No additional local or remote packages or gems to install, skipping..."
-        return false
-      end
-
-      true
-    end
-
-    def install_packages( options = {} )
-      # silent return, we don't have any packages to install
-      return unless validate_options( options )
-
-      @guestfs_helper.rebuild_rpm_database
-
-      for repo in options[:repos]
-        @log.debug "Installing repo file '#{repo}'..."
-        @guestfs.sh( "rpm -Uvh #{repo}" )
-        @log.debug "Repo file '#{repo}' installed."
-      end unless options[:repos].nil?
-
-      unless options[:packages].nil?
-        for yum_package in options[:packages][:yum]
-          @log.debug "Installing package '#{yum_package}'..."
-          @guestfs.sh( "yum -y install #{yum_package}" )
-          @log.debug "Package '#{yum_package}' installed."
-        end unless options[:packages][:yum].nil?
-
-        for package in options[:packages][:rpm]
-          @log.debug "Installing package '#{package}'..."
-          @guestfs.sh( "rpm -Uvh --force #{package}" )
-          @log.debug "Package '#{package}' installed."
-        end unless options[:packages][:rpm].nil?
-      end
     end
   end
 end

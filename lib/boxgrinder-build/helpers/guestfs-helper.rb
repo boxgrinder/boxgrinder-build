@@ -48,8 +48,6 @@ module BoxGrinder
       @log      = options[:log] || Logger.new(STDOUT)
 
       @partitions = {}
-
-      run
     end
 
     attr_reader :guestfs
@@ -89,6 +87,8 @@ module BoxGrinder
       end
 
       @log.trace "Guestfs launched."
+
+      self
     end
 
     def clean_close
