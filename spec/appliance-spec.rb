@@ -139,5 +139,78 @@ module BoxGrinder
       @appliance.create
     end
 
+    it "should remove previous build when force is specified" do
+      prepare_appliance( OpenStruct.new( :force => true ) )
+
+      validator = mock(ApplianceConfigValidator)
+      validator.should_receive(:validate)
+
+      ApplianceConfigValidator.should_receive(:new).with(any_args).and_return(validator)
+
+      @appliance.should_receive(:execute_os_plugin).and_return(nil)
+      @appliance.should_receive(:execute_platform_plugin).and_return(nil)
+      @appliance.should_receive(:execute_delivery_plugin).and_return(nil)
+
+      FileUtils.should_receive(:rm_rf).with("build/appliances/#{@arch}/fedora/13/jeos-f13")
+
+      @appliance.create
+    end
+
+    it "should not execute plugins when deliverables exists" do
+      prepare_appliance( OpenStruct.new({ :platform => :vmware }) )
+
+      validator = mock(ApplianceConfigValidator)
+      validator.should_receive(:validate)
+
+      ApplianceConfigValidator.should_receive(:new).with(any_args).and_return(validator)
+
+      os_plugin = mock('OS Plugin')
+      os_plugin.should_receive(:init)
+      os_plugin.should_receive(:deliverables).and_return({ :disk => 'abc'})
+      os_plugin.should_receive(:deliverables).and_return({ :disk => 'abc'})
+
+      plugin_manager_first_call = mock('PluginManagerOne')
+      plugin_manager_first_call.should_receive(:plugins).and_return({})
+
+      PluginManager.should_receive(:instance).and_return(plugin_manager_first_call)
+
+      plugin_manager_second_call = mock('PluginManagerTwo')
+      plugin_manager_second_call.should_receive(:initialize_plugin).with(:os, :fedora).and_return([ os_plugin, {:class => Appliance, :type => :os, :name => :fedora, :full_name  => "Fedora", :versions   => ["11", "12", "13", "rawhide"] } ] )
+
+      PluginManager.should_receive(:instance).and_return(plugin_manager_second_call)
+
+      @appliance.should_receive(:deliverables_exists).with({:disk=> 'abc'}).and_return(true)
+
+      platform_plugin = mock('Platform Plugin')
+      platform_plugin.should_receive(:init)
+      platform_plugin.should_receive(:deliverables).and_return({ :disk => 'def'})
+      platform_plugin.should_receive(:deliverables).and_return({ :disk => 'def'})
+
+      platform_plugin_manager_second_call = mock('PlatformPluginManagerOne')
+      platform_plugin_manager_second_call.should_receive(:initialize_plugin).with(:platform, :vmware).and_return([ platform_plugin, {:class => Appliance, :type => :platform, :name => :vmware, :full_name  => "VMware"} ] )
+
+      PluginManager.should_receive(:instance).and_return(platform_plugin_manager_second_call)
+
+      @appliance.should_receive(:deliverables_exists).with({:disk=> 'def'}).and_return(true)
+      @appliance.create
+    end
+
+
+    it "should check if deliverables exists and return true" do
+      File.should_receive(:exists?).with('disk').and_return(true)
+      File.should_receive(:exists?).with('def').and_return(true)
+      File.should_receive(:exists?).with('a/path').and_return(true)
+
+      @appliance.deliverables_exists({ :disk => 'disk', :metadata => { :abc => 'def' }, :other => { :file => 'a/path' }}).should == true
+    end
+
+    it "should check if deliverables exists and return false" do
+      File.should_receive(:exists?).with('disk').and_return(true)
+      File.should_receive(:exists?).with('def').and_return(false)
+      File.should_not_receive(:exists?)
+
+      @appliance.deliverables_exists({ :disk => 'disk', :metadata => { :abc => 'def' }, :other => { :file => 'a/path' }}).should == false
+    end
+
   end
 end
