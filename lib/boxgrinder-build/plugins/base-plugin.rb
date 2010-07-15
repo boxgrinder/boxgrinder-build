@@ -22,6 +22,7 @@ require 'boxgrinder-core/helpers/exec-helper'
 require 'boxgrinder-build/helpers/appliance-customize-helper'
 require 'ostruct'
 require 'openhash/openhash'
+require 'fileutils'
 require 'logger'
 
 module BoxGrinder
@@ -42,7 +43,8 @@ module BoxGrinder
 
       @deliverables           = OpenHash.new
       @dir                    = OpenHash.new
-      @dir.base               = "#{@appliance_config.path.dir.build}/#{@plugin_info[:name]}"
+
+      @dir.base               = "#{@appliance_config.path.build}/#{@plugin_info[:name]}-plugin"
       @dir.tmp                = "#{@dir.base}/tmp"
 
       @config_file            = "#{ENV['HOME']}/.boxgrinder/plugins/#{@plugin_info[:name]}"
@@ -50,6 +52,9 @@ module BoxGrinder
       read_plugin_config
 
       @initialized = true
+
+      FileUtils.mkdir_p @dir.base
+      FileUtils.mkdir_p @dir.tmp
 
       after_init
 
