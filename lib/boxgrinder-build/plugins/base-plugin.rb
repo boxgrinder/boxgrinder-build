@@ -41,10 +41,6 @@ module BoxGrinder
       @plugin_config          = {}
 
       @deliverables           = OpenHash.new
-      @deliverables.disk      = nil
-      @deliverables.metadata  = {}
-      @deliverables.other     = {}
-
       @dir                    = OpenHash.new
       @dir.base               = "#{@appliance_config.path.dir.build}/#{@plugin_info[:name]}"
       @dir.tmp                = "#{@dir.base}/tmp"
@@ -62,18 +58,12 @@ module BoxGrinder
 
     attr_reader :deliverables
 
-    def register_deliverable( type, deliverable )
-      raise "Conversion cannot be started before the plugin isn't initialized" if @initialized.nil?
-      raise "Unsupported delivery type: '#{type}' to register." unless [:disk, :metadata, :other].include?(type)
+    def register_deliverable( deliverable )
+      raise "You cannot register deliverables before plugin initialization, please initialize the plugin using init method." if @initialized.nil?
+      raise "Please specify deliverables as Hash, not #{deliverable.class}." unless deliverable.is_a?(Hash)
 
-      if type == :disk
-        @deliverables.disk = "#{@dir.base}/#{deliverable}"
-      else
-        raise "Specified deliverable for '#{type}' should be a Hash, not #{deliverable.class}." unless deliverable.is_a?(Hash)
-
-        deliverable.each do |name, path|
-          @deliverables[type][name] = "#{@dir.base}/#{path}"
-        end
+      deliverable.each do |name, path|
+        @deliverables[name] = "#{@dir.base}/#{path}"
       end
     end
 
