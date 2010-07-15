@@ -49,7 +49,8 @@ module BoxGrinder
         end
       end
 
-      package_path = "#{@appliance_config.path.dir.packages}/#{@appliance_config.name}-#{@appliance_config.version}.#{@appliance_config.release}-#{@appliance_config.hardware.arch}-#{platform}.tgz"
+      #TODO rewrite this to use deliverables and previous_deliverables
+      package_path = "#{@appliance_config.path.packages}/#{@appliance_config.name}-#{@appliance_config.version}.#{@appliance_config.release}-#{@appliance_config.hardware.arch}-#{platform}.tgz"
 
       if File.exists?(package_path)
         @log.info "Package of #{type} type for #{@appliance_config.name} appliance and #{platform} platform already exists, skipping."

@@ -48,7 +48,7 @@ module BoxGrinder
 
       if @options.force
         @log.info "Removing previous builds for #{@appliance_config.name} appliance..."
-        FileUtils.rm_rf( @appliance_config.path.dir.build )
+        FileUtils.rm_rf( @appliance_config.path.build )
         @log.debug "Previous builds removed."
       end
 
