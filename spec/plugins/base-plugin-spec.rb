@@ -55,9 +55,7 @@ module BoxGrinder
       @plugin.register_deliverable(:abc => "def")
       @plugin.register_deliverable(:file => "a/path")
 
-      File.should_receive(:exists?).with("build/appliances/#{@arch}/fedora/11/full/plugin_name-plugin/disk").and_return(true)
-      File.should_receive(:exists?).with("build/appliances/#{@arch}/fedora/11/full/plugin_name-plugin/def").and_return(true)
-      File.should_receive(:exists?).with("build/appliances/#{@arch}/fedora/11/full/plugin_name-plugin/a/path").and_return(true)
+      File.should_receive(:exists?).exactly(3).times.with(any_args()).and_return(true)
 
       @plugin.deliverables_exists?.should == true
     end
@@ -67,9 +65,9 @@ module BoxGrinder
       @plugin.register_deliverable(:abc => "def")
       @plugin.register_deliverable(:file => "a/path")
 
-      File.should_receive(:exists?).ordered.with("build/appliances/#{@arch}/fedora/11/full/plugin_name-plugin/disk").and_return(true)
-      File.should_receive(:exists?).with("build/appliances/#{@arch}/fedora/11/full/plugin_name-plugin/def").and_return(false)
-      File.should_not_receive(:exists?).ordered.with("build/appliances/#{@arch}/fedora/11/full/plugin_name-plugin/a/path")
+      File.should_receive(:exists?).once.with(any_args()).and_return(true)
+      File.should_receive(:exists?).once.with(any_args()).and_return(false)
+      File.should_not_receive(:exists?)
 
       @plugin.deliverables_exists?.should == false
     end
