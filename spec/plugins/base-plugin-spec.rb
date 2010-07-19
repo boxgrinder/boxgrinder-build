@@ -73,5 +73,19 @@ module BoxGrinder
 
       @plugin.deliverables_exists?.should == false
     end
+
+    it "should run the plugin" do
+      @plugin.register_deliverable(:disk => "disk")
+
+      FileUtils.should_receive(:rm_rf).with("build/appliances/#{@arch}/fedora/11/full/plugin_name-plugin/tmp")
+      FileUtils.should_receive(:mkdir_p).with("build/appliances/#{@arch}/fedora/11/full/plugin_name-plugin/tmp")
+
+      @plugin.should_receive( :execute ).with('a', 3)
+
+      FileUtils.should_receive(:mv).with("build/appliances/#{@arch}/fedora/11/full/plugin_name-plugin/tmp/disk", "build/appliances/#{@arch}/fedora/11/full/plugin_name-plugin/disk")
+      FileUtils.should_receive(:rm_rf).with("build/appliances/#{@arch}/fedora/11/full/plugin_name-plugin/tmp")
+
+      @plugin.run('a', 3)
+    end
   end
 end
