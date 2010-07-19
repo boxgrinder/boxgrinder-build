@@ -62,13 +62,13 @@ module BoxGrinder
       os_plugin, os_plugin_info = PluginManager.instance.initialize_plugin(:os, @appliance_config.os.name.to_sym )
       os_plugin.init( @config, @appliance_config, :log => @log, :plugin_info => os_plugin_info )
 
-      if deliverables_exists( os_plugin.deliverables )
+      if os_plugin.deliverables_exists?
         @log.info "Deliverables for #{os_plugin_info[:name]} operating system plugin exists, skipping."
         return { :deliverables => os_plugin.deliverables }
       end
 
       @log.debug "Executing operating system plugin for #{@appliance_config.os.name}..."
-      os_plugin.execute
+      os_plugin.run
       @log.debug "Operating system plugin executed."
 
       { :deliverables => os_plugin.deliverables, :plugin_info => os_plugin_info }
@@ -83,13 +83,13 @@ module BoxGrinder
       platform_plugin, platform_plugin_info = PluginManager.instance.initialize_plugin(:platform, @options.platform )
       platform_plugin.init( @config, @appliance_config, :log => @log, :plugin_info => platform_plugin_info, :previous_plugin_info => previous_plugin_output[:plugin_info], :previous_deliverables => previous_plugin_output[:deliverables] )
 
-      if deliverables_exists( platform_plugin.deliverables )
+      if platform_plugin.deliverables_exists?
         @log.info "Deliverables for #{platform_plugin_info[:name]} platform plugin exists, skipping."
         return { :deliverables => platform_plugin.deliverables, :plugin_info => platform_plugin_info }
       end
 
       @log.debug "Executing platform plugin for #{@options.platform}..."
-      platform_plugin.execute
+      platform_plugin.run
       @log.debug "Platform plugin executed."
 
       { :deliverables => platform_plugin.deliverables, :plugin_info => platform_plugin_info }
@@ -105,22 +105,10 @@ module BoxGrinder
       delivery_plugin.init( @config, @appliance_config, :log => @log, :plugin_info => delivery_plugin_info, :previous_plugin_info => previous_plugin_output[:plugin_info], :previous_deliverables => previous_plugin_output[:deliverables] )
 
       if @options.delivery != delivery_plugin_info[:name]
-        delivery_plugin.execute( @options.delivery )
+        delivery_plugin.run( @options.delivery )
       else
-        delivery_plugin.execute
+        delivery_plugin.run
       end
-    end
-
-    def deliverables_exists( deliverables )
-      return false unless File.exists?(deliverables[:disk])
-
-      [:metadata, :other].each do |deliverable_type|
-        deliverables[deliverable_type].each_value do |file|
-          return false unless File.exists?(file)
-        end unless deliverables[deliverable_type].nil?
-      end
-
-      true
     end
   end
 end

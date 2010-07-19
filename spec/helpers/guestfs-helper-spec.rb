@@ -10,8 +10,9 @@ module BoxGrinder
 
     def prepare_and_launch( partitions )
       guetfs = mock('Guestfs')
-      guetfs.should_receive(:instance_variable_set).with(:@log, @log)
       guetfs.should_receive(:set_append).with('noapic')
+      guetfs.should_receive(:set_verbose)
+      guetfs.should_receive(:set_trace)
 
       File.should_receive(:exists?).with('/usr/share/qemu-stable/bin/qemu.wrapper').and_return(true)
 
@@ -30,7 +31,7 @@ module BoxGrinder
 
       @helper.should_receive(:mount_partitions).with(no_args)
 
-      @helper.run.should == @helper
+      @helper.execute.should == @helper
     end
 
     it "should prepare and run guestfs with one partition" do
@@ -39,7 +40,7 @@ module BoxGrinder
       guestfs.should_receive(:list_partitions).and_return(['/'])
       @helper.should_receive(:mount_partition).with("/", "/")
 
-      @helper.run.should == @helper
+      @helper.execute.should == @helper
     end
 
     it "should prepare and run guestfs with no partitions" do
@@ -48,7 +49,7 @@ module BoxGrinder
       guestfs.should_receive(:list_devices).and_return(['/dev/sda'])
       @helper.should_receive(:mount_partition).with("/dev/sda", "/")
 
-      @helper.run.should == @helper
+      @helper.execute.should == @helper
     end
 
     it "should close guestfs in clean way" do
@@ -72,7 +73,7 @@ module BoxGrinder
       @helper.mount_partition("/dev/sda", "/")
     end
 
-    it "should rebuild RPM database" do
+    it "should rebuild RPM database for Fedora" do
       guestfs = mock('Guestfs')
 
       guestfs.should_receive(:sh).with("rm -f /var/lib/rpm/__db.*")
@@ -122,7 +123,7 @@ module BoxGrinder
       end
     end
 
-    
+
 
   end
 end

@@ -29,7 +29,7 @@ require 'boxgrinder-build/appliance'
 gem 'boxgrinder-core', '>= 0.0.12'
 gem 'commander', '>= 4.0.3'
 
-#$stderr.reopen('/dev/null')
+#$stderr.reopen($stdout)
 
 if Process.uid != 0
   puts "This program must be executed with root privileges. Try 'sudo boxgrinder-build'"
@@ -77,7 +77,7 @@ module BoxGrinder
 
       raise "Appliance definition file '#{appliance_definition_file}' could not be found" unless File.exists?( appliance_definition_file )
 
-      log = LogHelper.new( :threshold => $log_level)
+      log = LogHelper.new( :threshold => $log_level )
 
       PluginHelper.new( :options => options, :log => log ).load_plugins
       PluginManager.instance.log = log

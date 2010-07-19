@@ -35,8 +35,8 @@ module BoxGrinder
 
       os_plugin = mock('OS Plugin')
       os_plugin.should_receive(:init)
-      os_plugin.should_receive(:deliverables).and_return({ :disk => 'abc'})
-      os_plugin.should_receive(:execute)
+      os_plugin.should_receive(:deliverables_exists?).and_return(false)
+      os_plugin.should_receive(:run)
       os_plugin.should_receive(:deliverables).and_return({ :disk => 'abc'})
 
       plugin_manager_second_call = mock('PluginManagerTwo')
@@ -66,8 +66,8 @@ module BoxGrinder
 
       platform_plugin = mock('VMware Plugin')
       platform_plugin.should_receive(:init)
-      platform_plugin.should_receive(:deliverables).and_return({ :disk => 'abc'})
-      platform_plugin.should_receive(:execute)
+      platform_plugin.should_receive(:deliverables_exists?).and_return(false)
+      platform_plugin.should_receive(:run)
       platform_plugin.should_receive(:deliverables).and_return({ :disk => 'abc'})
 
       plugin_manager_second_call = mock('PluginManagerTwo')
@@ -99,7 +99,7 @@ module BoxGrinder
 
       delivery_plugin = mock('S3 Plugin')
       delivery_plugin.should_receive(:init)
-      delivery_plugin.should_receive(:execute).with(:ami)
+      delivery_plugin.should_receive(:run).with(:ami)
 
       plugin_manager_second_call = mock('PluginManagerTwo')
       plugin_manager_second_call.should_receive(:initialize_plugin).with(:delivery, :ami).and_return([ delivery_plugin, {:class => Appliance, :type => :delivery, :name => :s3, :full_name  => "Amazon Simple Storage Service (Amazon S3)", :types => [:s3, :cloudfront, :ami]} ] )
@@ -129,7 +129,7 @@ module BoxGrinder
 
       delivery_plugin = mock('S3 Plugin')
       delivery_plugin.should_receive(:init)
-      delivery_plugin.should_receive(:execute).with(no_args)
+      delivery_plugin.should_receive(:run).with(no_args)
 
       plugin_manager_second_call = mock('PluginManagerTwo')
       plugin_manager_second_call.should_receive(:initialize_plugin).with(:delivery, :sftp).and_return([ delivery_plugin, {:class => Appliance, :type => :delivery, :name => :sftp, :full_name  => "SSH File Transfer Protocol"} ] )
@@ -166,7 +166,7 @@ module BoxGrinder
 
       os_plugin = mock('OS Plugin')
       os_plugin.should_receive(:init)
-      os_plugin.should_receive(:deliverables).and_return({ :disk => 'abc'})
+      os_plugin.should_receive(:deliverables_exists?).and_return(true)
       os_plugin.should_receive(:deliverables).and_return({ :disk => 'abc'})
 
       plugin_manager_first_call = mock('PluginManagerOne')
@@ -179,11 +179,9 @@ module BoxGrinder
 
       PluginManager.should_receive(:instance).and_return(plugin_manager_second_call)
 
-      @appliance.should_receive(:deliverables_exists).with({:disk=> 'abc'}).and_return(true)
-
       platform_plugin = mock('Platform Plugin')
       platform_plugin.should_receive(:init)
-      platform_plugin.should_receive(:deliverables).and_return({ :disk => 'def'})
+      platform_plugin.should_receive(:deliverables_exists?).and_return(true)
       platform_plugin.should_receive(:deliverables).and_return({ :disk => 'def'})
 
       platform_plugin_manager_second_call = mock('PlatformPluginManagerOne')
@@ -191,26 +189,7 @@ module BoxGrinder
 
       PluginManager.should_receive(:instance).and_return(platform_plugin_manager_second_call)
 
-      @appliance.should_receive(:deliverables_exists).with({:disk=> 'def'}).and_return(true)
       @appliance.create
     end
-
-
-    it "should check if deliverables exists and return true" do
-      File.should_receive(:exists?).with('disk').and_return(true)
-      File.should_receive(:exists?).with('def').and_return(true)
-      File.should_receive(:exists?).with('a/path').and_return(true)
-
-      @appliance.deliverables_exists({ :disk => 'disk', :metadata => { :abc => 'def' }, :other => { :file => 'a/path' }}).should == true
-    end
-
-    it "should check if deliverables exists and return false" do
-      File.should_receive(:exists?).with('disk').and_return(true)
-      File.should_receive(:exists?).with('def').and_return(false)
-      File.should_not_receive(:exists?)
-
-      @appliance.deliverables_exists({ :disk => 'disk', :metadata => { :abc => 'def' }, :other => { :file => 'a/path' }}).should == false
-    end
-
   end
 end

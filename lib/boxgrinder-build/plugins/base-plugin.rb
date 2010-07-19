@@ -19,7 +19,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder-core/helpers/exec-helper'
-require 'boxgrinder-build/helpers/appliance-customize-helper'
+require 'boxgrinder-build/helpers/guestfs-helper'
 require 'ostruct'
 require 'openhash/openhash'
 require 'fileutils'
@@ -42,6 +42,7 @@ module BoxGrinder
       @plugin_config          = {}
 
       @deliverables           = OpenHash.new
+      @target_deliverables    = OpenHash.new
       @dir                    = OpenHash.new
 
       @dir.base               = "#{@appliance_config.path.build}/#{@plugin_info[:name]}-plugin"
@@ -53,22 +54,18 @@ module BoxGrinder
 
       @initialized = true
 
-      FileUtils.mkdir_p @dir.base
-      FileUtils.mkdir_p @dir.tmp
-
       after_init
 
       self
     end
 
-    attr_reader :deliverables
-
     def register_deliverable( deliverable )
-      raise "You cannot register deliverables before plugin initialization, please initialize the plugin using init method." if @initialized.nil?
+      raise "You can only register deliverables after the plugin is initialized, please initialize the plugin using init method." if @initialized.nil?
       raise "Please specify deliverables as Hash, not #{deliverable.class}." unless deliverable.is_a?(Hash)
 
       deliverable.each do |name, path|
-        @deliverables[name] = "#{@dir.base}/#{path}"
+        @deliverables[name]          = "#{@dir.tmp}/#{path}"
+        @target_deliverables[name]   = "#{@dir.base}/#{path}"
       end
     end
 
@@ -83,10 +80,47 @@ module BoxGrinder
     end
 
     def execute(args = nil)
-      raise "Conversion cannot be started before the plugin isn't initialized" if @initialized.nil?
+      raise "You can only execute the plugin after the plugin is initialized, please initialize the plugin using init method." if @initialized.nil?
+    end
+
+    def run( *args )
+      FileUtils.rm_rf @dir.tmp
+      FileUtils.mkdir_p @dir.tmp
+
+      execute( *args )
+
+      after_execute
     end
 
     def after_init
+    end
+
+    def after_execute
+      @deliverables.each do |name, path|
+        @log.trace "Moving '#{path}' deliverable to target destination '#{@target_deliverables[name]}'..."
+        FileUtils.mv( path, @target_deliverables[name] )
+      end
+
+      FileUtils.rm_rf @dir.tmp
+    end
+
+    def deliverables_exists?
+      raise "You can only check deliverables after the plugin is initialized, please initialize the plugin using init method." if @initialized.nil?
+
+      exists = true
+
+      @target_deliverables.each_value do |file|
+        unless File.exists?(file)
+          exists = false
+          break
+        end
+      end
+
+      exists
+    end
+
+    def deliverables
+      @target_deliverables
     end
 
     def set_default_config_value(key, value)
@@ -106,10 +140,10 @@ module BoxGrinder
     end
 
     # TODO consider removing this from BasePlugin and moving to another base class
-    def customize(disk_path)
+    def customize( disk_path )
       raise "Customizing cannot be started until the plugin isn't initialized" if @initialized.nil?
 
-      ApplianceCustomizeHelper.new(@config, @appliance_config, disk_path, :log => @log).customize do |guestfs, guestfs_helper|
+      GuestFSHelper.new( disk_path, :log => @log ).customize  do |guestfs, guestfs_helper|
         yield guestfs, guestfs_helper
       end
     end

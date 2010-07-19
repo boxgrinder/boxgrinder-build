@@ -21,22 +21,58 @@
 require 'guestfs'
 require 'logger'
 
+module BoxGrinder
+  class SilencerProxy
+    def initialize( o, destination )
+      @o            = o
+      @destination  = destination
+    end
+
+    def method_missing( m, *args, &block )
+      begin
+        redirect_streams( @destination ) do
+          @o.send(m, *args, &block)
+        end
+      rescue
+        raise
+      end
+    end
+
+    def redirect_streams( destination )
+      old_stdout_stream = STDOUT.dup
+      old_stderr_stream = STDERR.dup
+
+      STDOUT.reopen( destination )
+      STDERR.reopen( destination )
+
+      STDOUT.sync = true
+      STDERR.sync = true
+
+      yield
+    ensure
+      STDOUT.reopen( old_stdout_stream )
+      STDERR.reopen( old_stderr_stream )
+    end
+  end
+end
+
 module Guestfs
   class Guestfs
     alias_method :sh_original, :sh
 
     def sh( command )
-      @log.trace "Executing '#{command}' command using GuestFS"
-
       begin
         output = sh_original( command )
-        @log.trace "Command return:\r\n+++++\r\n#{output}+++++" unless output.strip.length == 0
+        puts output
       rescue => e
-        @log.error e.backtrace.join($/)
-        @log.error "Error occurred while executing above command. Appliance may not work properly."
+        puts "Error occurred while executing above command. Appliance may not work properly."
       end
 
       output
+    end
+
+    def redirect( destination )
+      BoxGrinder::SilencerProxy.new( self, destination )
     end
   end
 end
@@ -52,13 +88,40 @@ module BoxGrinder
 
     attr_reader :guestfs
 
-    def run
+    def customize
+      read_pipe, write_pipe = IO.pipe
+
+      fork do
+        read_pipe.each do |o|
+          if o.chomp.strip.eql?("<EOF>")
+            exit
+          else
+            @log.trace "GFS: #{o.chomp.strip}"
+          end
+        end
+      end
+
+      helper = execute( write_pipe )
+
+      yield @guestfs, helper
+
+      clean_close
+
+      write_pipe.puts "<EOF>"
+
+      Process.wait
+    end
+
+    def execute( pipe = nil )
       @log.debug "Preparing guestfs..."
-      @guestfs = Guestfs::create
-      @guestfs.instance_variable_set( :@log, @log )
+
+      @guestfs = pipe.nil? ? Guestfs::create : Guestfs::create.redirect( pipe )
 
       # TODO remove this, https://bugzilla.redhat.com/show_bug.cgi?id=502058
       @guestfs.set_append( "noapic" )
+
+      @guestfs.set_verbose(1)
+      @guestfs.set_trace(1)
 
       # workaround for latest qemu
       # It'll only work if qemu-stable package is installed. It is installed by default on meta-appliance
