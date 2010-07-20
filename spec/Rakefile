@@ -2,11 +2,12 @@ require 'rake'
 require 'spec/rake/spectask'
 
 desc "Run all examples"
-Spec::Rake::SpecTask.new('examples') do |t|
+Spec::Rake::SpecTask.new(:default) do |t|
   t.libs.unshift "../../boxgrinder-core/lib"
   t.libs.unshift "../../boxgrinder-core/spec"
 
   t.spec_files = FileList['**/*-spec.rb']
   t.rcov = true
-  t.rcov_opts = ['--exclude', 'spec']
+  t.rcov_opts = ['--exclude', 'spec' ]
+  t.spec_opts = [ '--format', 's']
 end
