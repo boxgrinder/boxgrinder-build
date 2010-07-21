@@ -26,7 +26,7 @@ require 'boxgrinder-build/managers/plugin-manager'
 require 'boxgrinder-build/helpers/plugin-helper'
 require 'boxgrinder-build/appliance'
 
-gem 'boxgrinder-core', '>= 0.0.12'
+gem 'boxgrinder-core', '>= 0.0.20'
 gem 'commander', '>= 4.0.3'
 
 #$stderr.reopen($stdout)
@@ -39,7 +39,7 @@ end
 require 'commander/import'
 
 program :name, 'BoxGrinder Build'
-program :version, '0.4.2'
+program :version, '0.5.0'
 program :description, "A tool for building VM images from simple definition files."
 program :help, 'Hompepage', 'http://www.jboss.org/stormgrind/projects/boxgrinder/build.html'
 program :help, 'Documentation', 'http://community.jboss.org/docs/DOC-14358'
