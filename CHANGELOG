@@ -1,7 +1,10 @@
 
+v0.5.1
+
+* Fix for running Augeas in Libguestfs
+
 v0.5.0
 
 * Plugins externalized from BoxGrinder Build
-* TODO
 
 v0.4.0

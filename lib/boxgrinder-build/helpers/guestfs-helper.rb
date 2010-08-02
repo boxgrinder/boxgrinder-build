@@ -18,6 +18,7 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
+require 'boxgrinder-build/helpers/augeas-helper'
 require 'guestfs'
 require 'logger'
 
@@ -196,6 +197,10 @@ module BoxGrinder
         next if partition == root_partition
         mount_partition( partition, @guestfs.sh( "/sbin/e2label #{partition}" ).chomp.strip )
       end
+    end
+
+    def augeas( &block )
+      AugeasHelper.new( @guestfs, self, :log => @log ).edit( &block )
     end
   end
 end

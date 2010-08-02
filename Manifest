@@ -6,6 +6,7 @@ Rakefile
 bin/boxgrinder-build
 lib/boxgrinder-build/appliance.rb
 lib/boxgrinder-build/helpers/appliance-customize-helper.rb
+lib/boxgrinder-build/helpers/augeas-helper.rb
 lib/boxgrinder-build/helpers/guestfs-helper.rb
 lib/boxgrinder-build/helpers/linux-helper.rb
 lib/boxgrinder-build/helpers/package-helper.rb
@@ -15,6 +16,7 @@ lib/boxgrinder-build/plugins/base-plugin.rb
 spec/Rakefile
 spec/appliance-spec.rb
 spec/helpers/appliance-customize-helper-spec.rb
+spec/helpers/augeas-helper-spec.rb
 spec/helpers/guestfs-helper-spec.rb
 spec/helpers/linux-helper-spec.rb
 spec/helpers/package-helper-spec.rb

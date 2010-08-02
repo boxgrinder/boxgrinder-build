@@ -39,7 +39,7 @@ end
 require 'commander/import'
 
 program :name, 'BoxGrinder Build'
-program :version, '0.5.0'
+program :version, '0.5.1'
 program :description, "A tool for building VM images from simple definition files."
 program :help, 'Hompepage', 'http://www.jboss.org/stormgrind/projects/boxgrinder/build.html'
 program :help, 'Documentation', 'http://community.jboss.org/docs/DOC-14358'
