@@ -7,5 +7,5 @@ Echoe.new("boxgrinder-build") do |p|
   p.url         = "http://www.jboss.org/stormgrind/projects/boxgrinder.html"
   p.email       = "info@boxgrinder.org"
   p.ignore_pattern = /^(pkg|doc)|\.svn|CVS|\.bzr|\.DS|\.git|\.log/
-  p.runtime_dependencies = ["commander >=4.0.3", "boxgrinder-core >=0.0.20"]
+  p.runtime_dependencies = ["commander ~>4.0.3", "boxgrinder-core ~>0.0.22"]
 end

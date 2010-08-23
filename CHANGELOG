@@ -1,7 +1,7 @@
 
 v0.5.1
 
-* Fix for running Augeas in Libguestfs
+* [BGBUILD-40] Fix for running Augeas in Libguestfs
 
 v0.5.0
 
