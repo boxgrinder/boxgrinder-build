@@ -1,4 +1,8 @@
 
+v0.6.0
+
+* [BGBUILD-46] Allow building 32 bit images on 64 bit arch
+
 v0.5.1
 
 * [BGBUILD-40] Fix for running Augeas in Libguestfs

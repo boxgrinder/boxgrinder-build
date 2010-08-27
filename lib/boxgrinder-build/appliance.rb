@@ -52,6 +52,8 @@ module BoxGrinder
         @log.debug "Previous builds removed."
       end
 
+      @log.info "Building #{@appliance_config.hardware.arch} bit appliance."
+
       base_plugin_output       = execute_os_plugin
       platform_plugin_output   = execute_platform_plugin( base_plugin_output )
 

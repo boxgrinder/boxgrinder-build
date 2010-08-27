@@ -1,6 +1,5 @@
 require 'boxgrinder-build/appliance'
 require 'rspec/rspec-config-helper'
-require 'rbconfig'
 require 'ostruct'
 
 module BoxGrinder
@@ -8,7 +7,7 @@ module BoxGrinder
     include RSpecConfigHelper
 
     before(:all) do
-      @arch = RbConfig::CONFIG['host_cpu']
+      @arch = `uname -m`.chomp.strip
     end
 
     def prepare_appliance( options = OpenStruct.new )
