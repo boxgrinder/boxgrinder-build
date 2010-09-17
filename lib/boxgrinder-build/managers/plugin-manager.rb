@@ -93,6 +93,5 @@ module BoxGrinder
     end
 
     attr_reader :plugins
-    attr_accessor :log
   end
 end

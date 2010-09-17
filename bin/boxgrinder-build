@@ -21,13 +21,12 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'rubygems'
-require 'boxgrinder-core/helpers/log-helper'
-require 'boxgrinder-build/managers/plugin-manager'
-require 'boxgrinder-build/helpers/plugin-helper'
-require 'boxgrinder-build/appliance'
 
 gem 'boxgrinder-core', '>= 0.0.23'
 gem 'commander', '>= 4.0.3'
+
+require 'boxgrinder-core/helpers/log-helper'
+require 'boxgrinder-build/appliance'
 
 #$stderr.reopen($stdout)
 
@@ -49,7 +48,7 @@ default_command :build
 $log_level = :info
 
 global_option('-V', '--verbose', TrueClass, "Prints debug information while building. Default: false.") { $log_level = :debug}
-global_option('-W', '--veryverbose', TrueClass, "Prints trace information while building. Default: false.") { $log_level = :trace}
+global_option('-W', '--very-verbose', TrueClass, "Prints trace information while building. Default: false.") { $log_level = :trace}
 
 module BoxGrinder
   command :build do |c|
@@ -77,15 +76,7 @@ module BoxGrinder
 
       raise "Appliance definition file '#{appliance_definition_file}' could not be found" unless File.exists?( appliance_definition_file )
 
-      log = LogHelper.new( :threshold => $log_level )
-
-      PluginHelper.new( :options => options, :log => log ).load_plugins
-      PluginManager.instance.log = log
-
-      raise "Not known platform: #{options.platform}. #{PluginManager.instance.plugins[:platform].empty? ? 'There are no platform plugins, please install one or more.' : "Available types: #{PluginManager.instance.plugin_types( :platform ).join(', ')}."}"  if PluginManager.instance.plugins[:platform][options.platform].nil? and options.platform != :none
-      raise "Not known delivery type: #{options.delivery}. #{PluginManager.instance.plugins[:delivery].empty? ? 'There are no delivery plugins, please install one or more.' : "Available types: #{PluginManager.instance.plugin_types( :delivery ).join(', ')}."}" if PluginManager.instance.plugin_types( :delivery ).include?(options.delivery).nil?  and options.delivery != :none
-
-      Appliance.new( appliance_definition_file, :options => options, :log => log ).create
+      Appliance.new( appliance_definition_file, :options => options, :log => LogHelper.new( :threshold => $log_level ) ).create
     end
   end
 end

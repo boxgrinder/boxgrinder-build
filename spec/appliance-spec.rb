@@ -14,181 +14,198 @@ module BoxGrinder
       options.name      = 'boxgrinder'
       options.version   = '1.0'
 
-      @appliance = Appliance.new( "#{File.dirname( __FILE__ )}/rspec/src/appliances/jeos-f13.appl", :log => Logger.new('/dev/null'), :options => options )
+      @options = options
+      @log = Logger.new('/dev/null')
+
+      @plugin_manager = mock( PluginManager )
+
+      PluginManager.stub!(:instance).and_return( @plugin_manager )
+
+      @appliance = Appliance.new( "#{File.dirname( __FILE__ )}/rspec/src/appliances/jeos-f13.appl", :log => @log, :options => @options )
     end
 
     before(:each) do
       prepare_appliance
     end
 
-    it "should create only base image" do
-      validator = mock(ApplianceConfigValidator)
-      validator.should_receive(:validate)
+    it "should prepare appliance to build" do
+      @appliance.should_receive(:read_and_validate_definition)
+      @appliance.should_not_receive(:remove_old_builds)
+      @appliance.should_receive(:execute_plugin_chain)
 
-      ApplianceConfigValidator.should_receive(:new).with(any_args).and_return(validator)
+      @appliance.create
+    end
 
-      plugin_manager_first_call = mock('PluginManagerOne')
-      plugin_manager_first_call.should_receive(:plugins).and_return({})
+    it "should prepare appliance to build with removing old files" do
+      prepare_appliance( OpenStruct.new( :force => true ) )
 
-      PluginManager.should_receive(:instance).and_return(plugin_manager_first_call)
+      @appliance.should_receive(:read_and_validate_definition)
+      @appliance.should_receive(:remove_old_builds)
+      @appliance.should_receive(:execute_plugin_chain)
 
-      os_plugin = mock('OS Plugin')
+      @appliance.create
+    end
+
+    it "should read and validate definition" do
+      appliance_config = ApplianceConfig.new
+
+      appliance_helper = mock(ApplianceHelper)
+      appliance_helper.should_receive(:read_definitions).with( "#{File.dirname( __FILE__ )}/rspec/src/appliances/jeos-f13.appl" ).and_return([{}, appliance_config])
+
+      ApplianceHelper.should_receive(:new).with( :log => @log ).and_return(appliance_helper)
+
+      appliance_config_helper = mock(ApplianceConfigHelper)
+
+      appliance_config.should_receive(:clone).and_return(appliance_config)
+      appliance_config.should_receive(:init_arch).and_return(appliance_config)
+      appliance_config.should_receive(:initialize_paths).and_return(appliance_config)
+
+      appliance_config_helper.should_receive(:merge).with( appliance_config ).and_return( appliance_config )
+
+      ApplianceConfigHelper.should_receive(:new).with( {} ).and_return( appliance_config_helper )
+
+      appliance_config_validator = mock(ApplianceConfigValidator)
+      appliance_config_validator.should_receive(:validate)
+
+      ApplianceConfigValidator.should_receive(:new).with( appliance_config ).and_return(appliance_config_validator)
+
+      @appliance.read_and_validate_definition
+    end
+
+    it "should remove old builds" do
+      @appliance.instance_variable_set(:@appliance_config, generate_appliance_config )
+      FileUtils.should_receive(:rm_rf).with('build/appliances/i686/fedora/11/full')
+      @appliance.remove_old_builds
+    end
+
+    it "should build base appliance" do
+      plugin_helper = mock(PluginHelper)
+      plugin_helper.should_receive(:load_plugins)
+
+      PluginHelper.should_receive( :new ).with( :options => @options, :log => @log ).and_return( plugin_helper )
+
+      @appliance.instance_variable_set(:@appliance_config, generate_appliance_config )
+
+      os_plugin = mock('FedoraPlugin')
       os_plugin.should_receive(:init)
       os_plugin.should_receive(:deliverables_exists?).and_return(false)
       os_plugin.should_receive(:run)
       os_plugin.should_receive(:deliverables).and_return({ :disk => 'abc'})
 
-      plugin_manager_second_call = mock('PluginManagerTwo')
-      plugin_manager_second_call.should_receive(:initialize_plugin).with(:os, :fedora).and_return([ os_plugin, {:class => Appliance, :type => :os, :name => :fedora, :full_name  => "Fedora", :versions   => ["11", "12", "13", "rawhide"] } ] )
+      @plugin_manager.should_receive(:plugins).and_return( { :os => "something" } )
+      @plugin_manager.should_receive(:initialize_plugin).once.with(:os, :fedora).and_return([ os_plugin, {:class => Appliance, :type => :os, :name => :fedora, :full_name  => "Fedora", :versions   => ["11", "12", "13", "rawhide"] } ] )
 
-      PluginManager.should_receive(:instance).and_return(plugin_manager_second_call)
+      @appliance.execute_plugin_chain
+    end
 
-      @appliance.create
+    it "should not build base appliance because deliverable already exists" do
+      plugin_helper = mock(PluginHelper)
+      plugin_helper.should_receive(:load_plugins)
+
+      PluginHelper.should_receive( :new ).with( :options => @options, :log => @log ).and_return( plugin_helper )
+
+      @appliance.instance_variable_set(:@appliance_config, generate_appliance_config )
+
+      os_plugin = mock('FedoraPlugin')
+      os_plugin.should_receive(:init)
+      os_plugin.should_receive(:deliverables_exists?).and_return(true)
+      os_plugin.should_not_receive(:run)
+      os_plugin.should_receive(:deliverables).and_return({ :disk => 'abc'})
+
+      @plugin_manager.should_receive(:plugins).and_return( { :os => "something" } )
+      @plugin_manager.should_receive(:initialize_plugin).once.with(:os, :fedora).and_return([ os_plugin, {:class => Appliance, :type => :os, :name => :fedora, :full_name  => "Fedora", :versions   => ["11", "12", "13", "rawhide"] } ] )
+
+      @appliance.execute_plugin_chain
     end
 
     it "should build appliance and convert it to VMware format" do
       prepare_appliance( OpenStruct.new({ :platform => :vmware }) )
 
-      validator = mock(ApplianceConfigValidator)
-      validator.should_receive(:validate)
+      plugin_helper = mock(PluginHelper)
+      plugin_helper.should_receive(:load_plugins)
 
-      ApplianceConfigValidator.should_receive(:new).with(any_args).and_return(validator)
+      PluginHelper.should_receive( :new ).with( :options => @options, :log => @log ).and_return( plugin_helper )
 
-      os_plugin_output = {}
-
-      @appliance.should_receive(:execute_os_plugin).and_return(os_plugin_output)
-
-      plugin_manager_first_call = mock('PluginManagerOne')
-      plugin_manager_first_call.should_receive(:plugins).and_return({})
-
-      PluginManager.should_receive(:instance).and_return(plugin_manager_first_call)
+      @appliance.instance_variable_set(:@appliance_config, generate_appliance_config )
+      @appliance.should_receive( :execute_os_plugin ).and_return( {} )
 
       platform_plugin = mock('VMware Plugin')
       platform_plugin.should_receive(:init)
       platform_plugin.should_receive(:deliverables_exists?).and_return(false)
       platform_plugin.should_receive(:run)
-      platform_plugin.should_receive(:deliverables).and_return({ :disk => 'abc'})
+      platform_plugin.should_receive(:deliverables).and_return({ :disk => 'abc' })
 
-      plugin_manager_second_call = mock('PluginManagerTwo')
-      plugin_manager_second_call.should_receive(:initialize_plugin).with(:platform, :vmware).and_return([ platform_plugin, {:class => Appliance, :type => :platform, :name => :vmware, :full_name  => "VMware"} ] )
+      @plugin_manager.should_receive(:plugins).and_return( { :platform => "something" } )
+      @plugin_manager.should_receive(:initialize_plugin).once.with(:platform, :vmware).and_return([ platform_plugin, {:class => Appliance, :type => :platform, :name => :vmware, :full_name  => "VMware"} ]  )
 
-      PluginManager.should_receive(:instance).and_return(plugin_manager_second_call)
+      @appliance.execute_plugin_chain
+    end
 
-      @appliance.create
+    it "should build appliance and convert it to VMware format because deliverable already exists" do
+      prepare_appliance( OpenStruct.new({ :platform => :vmware }) )
+
+      plugin_helper = mock(PluginHelper)
+      plugin_helper.should_receive(:load_plugins)
+
+      PluginHelper.should_receive( :new ).with( :options => @options, :log => @log ).and_return( plugin_helper )
+
+      @appliance.instance_variable_set(:@appliance_config, generate_appliance_config )
+      @appliance.should_receive( :execute_os_plugin ).and_return( {} )
+
+      platform_plugin = mock('VMware Plugin')
+      platform_plugin.should_receive(:init)
+      platform_plugin.should_receive(:deliverables_exists?).and_return(true)
+      platform_plugin.should_not_receive(:run)
+      platform_plugin.should_receive(:deliverables).and_return({ :disk => 'abc' })
+
+      @plugin_manager.should_receive(:plugins).and_return( { :platform => "something" } )
+      @plugin_manager.should_receive(:initialize_plugin).once.with(:platform, :vmware).and_return([ platform_plugin, {:class => Appliance, :type => :platform, :name => :vmware, :full_name  => "VMware"} ]  )
+
+      @appliance.execute_plugin_chain
     end
 
     it "should build appliance, convert it to EC2 format and deliver it using S3 ami type" do
       prepare_appliance( OpenStruct.new({ :platform => :ec2, :delivery => :ami }) )
 
-      validator = mock(ApplianceConfigValidator)
-      validator.should_receive(:validate)
+      plugin_helper = mock(PluginHelper)
+      plugin_helper.should_receive(:load_plugins)
 
-      ApplianceConfigValidator.should_receive(:new).with(any_args).and_return(validator)
+      PluginHelper.should_receive( :new ).with( :options => @options, :log => @log ).and_return( plugin_helper )
 
-      os_plugin_output = { :abc => 'def'}
-      platform_plugin_output = { :abc => 'def'}
-
-      @appliance.should_receive(:execute_os_plugin).and_return(os_plugin_output)
-      @appliance.should_receive(:execute_platform_plugin).and_return(platform_plugin_output)
-
-      plugin_manager_first_call = mock('PluginManagerOne')
-      plugin_manager_first_call.should_receive(:plugins).and_return({})
-
-      PluginManager.should_receive(:instance).and_return(plugin_manager_first_call)
+      @appliance.instance_variable_set(:@appliance_config, generate_appliance_config )
+      @appliance.should_receive( :execute_os_plugin ).and_return( { :abc => 'def'} )
+      @appliance.should_receive( :execute_platform_plugin ).with( { :abc => 'def'} ).and_return( { :def => 'ghi'} )
 
       delivery_plugin = mock('S3 Plugin')
       delivery_plugin.should_receive(:init)
       delivery_plugin.should_receive(:run).with(:ami)
 
-      plugin_manager_second_call = mock('PluginManagerTwo')
-      plugin_manager_second_call.should_receive(:initialize_plugin).with(:delivery, :ami).and_return([ delivery_plugin, {:class => Appliance, :type => :delivery, :name => :s3, :full_name  => "Amazon Simple Storage Service (Amazon S3)", :types => [:s3, :cloudfront, :ami]} ] )
+      @plugin_manager.should_receive(:plugins).and_return( { :delivery => "something" } )
+      @plugin_manager.should_receive(:initialize_plugin).with(:delivery, :ami).and_return([ delivery_plugin, {:class => Appliance, :type => :delivery, :name => :s3, :full_name  => "Amazon Simple Storage Service (Amazon S3)", :types => [:s3, :cloudfront, :ami]} ] )
 
-      PluginManager.should_receive(:instance).and_return(plugin_manager_second_call)
-
-      @appliance.create
+      @appliance.execute_plugin_chain
     end
-    it "should build appliance, convert it to vmware format and deliver it using sftp ami type" do
-      prepare_appliance( OpenStruct.new({ :platform => :vmware, :delivery => :sftp }) )
 
-      validator = mock(ApplianceConfigValidator)
-      validator.should_receive(:validate)
+    it "should build appliance, convert it to EC2 format and deliver it using delivery plugin with only one delivery type" do
+      prepare_appliance( OpenStruct.new({ :platform => :ec2, :delivery => :same }) )
 
-      ApplianceConfigValidator.should_receive(:new).with(any_args).and_return(validator)
+      plugin_helper = mock(PluginHelper)
+      plugin_helper.should_receive(:load_plugins)
 
-      os_plugin_output = { :abc => 'def'}
-      platform_plugin_output = { :abc => 'def'}
+      PluginHelper.should_receive( :new ).with( :options => @options, :log => @log ).and_return( plugin_helper )
 
-      @appliance.should_receive(:execute_os_plugin).and_return(os_plugin_output)
-      @appliance.should_receive(:execute_platform_plugin).and_return(platform_plugin_output)
-
-      plugin_manager_first_call = mock('PluginManagerOne')
-      plugin_manager_first_call.should_receive(:plugins).and_return({})
-
-      PluginManager.should_receive(:instance).and_return(plugin_manager_first_call)
+      @appliance.instance_variable_set(:@appliance_config, generate_appliance_config )
+      @appliance.should_receive( :execute_os_plugin ).and_return( { :abc => 'def'} )
+      @appliance.should_receive( :execute_platform_plugin ).with( { :abc => 'def'} ).and_return( { :def => 'ghi'} )
 
       delivery_plugin = mock('S3 Plugin')
       delivery_plugin.should_receive(:init)
-      delivery_plugin.should_receive(:run).with(no_args)
+      delivery_plugin.should_receive(:run).with(no_args())
 
-      plugin_manager_second_call = mock('PluginManagerTwo')
-      plugin_manager_second_call.should_receive(:initialize_plugin).with(:delivery, :sftp).and_return([ delivery_plugin, {:class => Appliance, :type => :delivery, :name => :sftp, :full_name  => "SSH File Transfer Protocol"} ] )
+      @plugin_manager.should_receive(:plugins).and_return( { :delivery => "something" } )
+      @plugin_manager.should_receive(:initialize_plugin).with(:delivery, :same).and_return([ delivery_plugin, {:class => Appliance, :type => :delivery, :name => :same, :full_name  => "A plugin"} ] )
 
-      PluginManager.should_receive(:instance).and_return(plugin_manager_second_call)
-
-      @appliance.create
-    end
-
-    it "should remove previous build when force is specified" do
-      prepare_appliance( OpenStruct.new( :force => true ) )
-
-      validator = mock(ApplianceConfigValidator)
-      validator.should_receive(:validate)
-
-      ApplianceConfigValidator.should_receive(:new).with(any_args).and_return(validator)
-
-      @appliance.should_receive(:execute_os_plugin).and_return(nil)
-      @appliance.should_receive(:execute_platform_plugin).and_return(nil)
-      @appliance.should_receive(:execute_delivery_plugin).and_return(nil)
-
-      FileUtils.should_receive(:rm_rf).with("build/appliances/#{@arch}/fedora/13/jeos-f13")
-
-      @appliance.create
-    end
-
-    it "should not execute plugins when deliverables exists" do
-      prepare_appliance( OpenStruct.new({ :platform => :vmware }) )
-
-      validator = mock(ApplianceConfigValidator)
-      validator.should_receive(:validate)
-
-      ApplianceConfigValidator.should_receive(:new).with(any_args).and_return(validator)
-
-      os_plugin = mock('OS Plugin')
-      os_plugin.should_receive(:init)
-      os_plugin.should_receive(:deliverables_exists?).and_return(true)
-      os_plugin.should_receive(:deliverables).and_return({ :disk => 'abc'})
-
-      plugin_manager_first_call = mock('PluginManagerOne')
-      plugin_manager_first_call.should_receive(:plugins).and_return({})
-
-      PluginManager.should_receive(:instance).and_return(plugin_manager_first_call)
-
-      plugin_manager_second_call = mock('PluginManagerTwo')
-      plugin_manager_second_call.should_receive(:initialize_plugin).with(:os, :fedora).and_return([ os_plugin, {:class => Appliance, :type => :os, :name => :fedora, :full_name  => "Fedora", :versions   => ["11", "12", "13", "rawhide"] } ] )
-
-      PluginManager.should_receive(:instance).and_return(plugin_manager_second_call)
-
-      platform_plugin = mock('Platform Plugin')
-      platform_plugin.should_receive(:init)
-      platform_plugin.should_receive(:deliverables_exists?).and_return(true)
-      platform_plugin.should_receive(:deliverables).and_return({ :disk => 'def'})
-
-      platform_plugin_manager_second_call = mock('PlatformPluginManagerOne')
-      platform_plugin_manager_second_call.should_receive(:initialize_plugin).with(:platform, :vmware).and_return([ platform_plugin, {:class => Appliance, :type => :platform, :name => :vmware, :full_name  => "VMware"} ] )
-
-      PluginManager.should_receive(:instance).and_return(platform_plugin_manager_second_call)
-
-      @appliance.create
+      @appliance.execute_plugin_chain
     end
   end
 end

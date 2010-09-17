@@ -22,6 +22,8 @@ require 'boxgrinder-core/models/appliance-config'
 require 'boxgrinder-core/models/config'
 require 'boxgrinder-core/helpers/appliance-helper'
 require 'boxgrinder-core/helpers/appliance-config-helper'
+require 'boxgrinder-build/helpers/plugin-helper'
+require 'boxgrinder-build/managers/plugin-manager'
 require 'boxgrinder-core/validators/appliance-config-validator'
 
 module BoxGrinder
@@ -38,21 +40,25 @@ module BoxGrinder
       @config.version.release = nil
     end
 
-    def create
+    def read_and_validate_definition
       appliance_configs, appliance_config = ApplianceHelper.new( :log => @log ).read_definitions( @appliance_definition_file )
       appliance_config_helper             = ApplianceConfigHelper.new( appliance_configs )
 
       @appliance_config = appliance_config_helper.merge(appliance_config.clone.init_arch).initialize_paths
 
-      ApplianceConfigValidator.new( @appliance_config, :os_plugins => PluginManager.instance.plugins[:os] ).validate
+      ApplianceConfigValidator.new( @appliance_config ).validate
+    end
 
-      if @options.force
-        @log.info "Removing previous builds for #{@appliance_config.name} appliance..."
-        FileUtils.rm_rf( @appliance_config.path.build )
-        @log.debug "Previous builds removed."
-      end
+    def remove_old_builds
+      @log.info "Removing previous builds for #{@appliance_config.name} appliance..."
+      FileUtils.rm_rf( @appliance_config.path.build )
+      @log.debug "Previous builds removed."
+    end
 
-      @log.info "Building #{@appliance_config.hardware.arch} bit appliance."
+    def execute_plugin_chain
+      PluginHelper.new( :options => @options, :log => @log ).load_plugins
+
+      @log.info "Building '#{@appliance_config.name}' appliance for #{@appliance_config.hardware.arch} architecture."
 
       base_plugin_output       = execute_os_plugin
       platform_plugin_output   = execute_platform_plugin( base_plugin_output )
@@ -60,7 +66,15 @@ module BoxGrinder
       execute_delivery_plugin( platform_plugin_output )
     end
 
+    def create
+      read_and_validate_definition
+      remove_old_builds if @options.force
+      execute_plugin_chain
+    end
+
     def execute_os_plugin
+      raise "No operating system plugins installed. Install one or more operating system plugin. See http://community.jboss.org/docs/DOC-15081 and http://community.jboss.org/docs/DOC-15214 for more info" if PluginManager.instance.plugins[:os].empty?
+
       os_plugin, os_plugin_info = PluginManager.instance.initialize_plugin(:os, @appliance_config.os.name.to_sym )
       os_plugin.init( @config, @appliance_config, :log => @log, :plugin_info => os_plugin_info )
 
@@ -82,6 +96,8 @@ module BoxGrinder
         return previous_plugin_output
       end
 
+      raise "No platform plugins installed. Install one or more platform plugin. See http://community.jboss.org/docs/DOC-15081 and http://community.jboss.org/docs/DOC-15214 for more info" if PluginManager.instance.plugins[:platform].empty?
+
       platform_plugin, platform_plugin_info = PluginManager.instance.initialize_plugin(:platform, @options.platform )
       platform_plugin.init( @config, @appliance_config, :log => @log, :plugin_info => platform_plugin_info, :previous_plugin_info => previous_plugin_output[:plugin_info], :previous_deliverables => previous_plugin_output[:deliverables] )
 
@@ -102,6 +118,8 @@ module BoxGrinder
         @log.debug "No delivery method selected, skipping delivering."
         return
       end
+
+      raise "No delivery plugins installed. Install one or more delivery plugin. See http://community.jboss.org/docs/DOC-15081 and http://community.jboss.org/docs/DOC-15214 for more info" if PluginManager.instance.plugins[:delivery].empty?
 
       delivery_plugin, delivery_plugin_info = PluginManager.instance.initialize_plugin(:delivery, @options.delivery )
       delivery_plugin.init( @config, @appliance_config, :log => @log, :plugin_info => delivery_plugin_info, :previous_plugin_info => previous_plugin_output[:plugin_info], :previous_deliverables => previous_plugin_output[:deliverables] )
