@@ -74,7 +74,7 @@ module BoxGrinder
 
     it "should remove old builds" do
       @appliance.instance_variable_set(:@appliance_config, generate_appliance_config )
-      FileUtils.should_receive(:rm_rf).with('build/appliances/i686/fedora/11/full')
+      FileUtils.should_receive(:rm_rf).with("build/appliances/#{@arch}/fedora/11/full")
       @appliance.remove_old_builds
     end
 
