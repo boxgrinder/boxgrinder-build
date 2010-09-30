@@ -56,8 +56,6 @@ module BoxGrinder
     end
 
     def execute_plugin_chain
-      PluginHelper.new( :options => @options, :log => @log ).load_plugins
-
       @log.info "Building '#{@appliance_config.name}' appliance for #{@appliance_config.hardware.arch} architecture."
 
       base_plugin_output       = execute_os_plugin
@@ -67,6 +65,8 @@ module BoxGrinder
     end
 
     def create
+      PluginHelper.new( :options => @options, :log => @log ).load_plugins
+
       read_and_validate_definition
       remove_old_builds if @options.force
       execute_plugin_chain

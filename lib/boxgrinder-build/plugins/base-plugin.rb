@@ -20,6 +20,7 @@
 
 require 'boxgrinder-core/helpers/exec-helper'
 require 'boxgrinder-build/helpers/guestfs-helper'
+require 'boxgrinder-build/helpers/image-helper'
 require 'ostruct'
 require 'openhash/openhash'
 require 'fileutils'
@@ -34,6 +35,7 @@ module BoxGrinder
 
       @log              = options[:log]           || Logger.new(STDOUT)
       @exec_helper      = options[:exec_helper]   || ExecHelper.new( :log => @log )
+      @image_helper     = options[:image_helper]  || ImageHelper.new( :log => @log )
 
       @plugin_info            = options[:plugin_info]
       @previous_plugin_info   = options[:previous_plugin_info]

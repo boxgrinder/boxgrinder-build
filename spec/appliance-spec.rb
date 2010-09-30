@@ -29,6 +29,11 @@ module BoxGrinder
     end
 
     it "should prepare appliance to build" do
+      plugin_helper = mock(PluginHelper)
+      plugin_helper.should_receive(:load_plugins)
+
+      PluginHelper.should_receive( :new ).with( :options => @options, :log => @log ).and_return( plugin_helper )
+
       @appliance.should_receive(:read_and_validate_definition)
       @appliance.should_not_receive(:remove_old_builds)
       @appliance.should_receive(:execute_plugin_chain)
@@ -38,6 +43,11 @@ module BoxGrinder
 
     it "should prepare appliance to build with removing old files" do
       prepare_appliance( OpenStruct.new( :force => true ) )
+
+      plugin_helper = mock(PluginHelper)
+      plugin_helper.should_receive(:load_plugins)
+
+      PluginHelper.should_receive( :new ).with( :options => @options, :log => @log ).and_return( plugin_helper )
 
       @appliance.should_receive(:read_and_validate_definition)
       @appliance.should_receive(:remove_old_builds)
@@ -79,11 +89,6 @@ module BoxGrinder
     end
 
     it "should build base appliance" do
-      plugin_helper = mock(PluginHelper)
-      plugin_helper.should_receive(:load_plugins)
-
-      PluginHelper.should_receive( :new ).with( :options => @options, :log => @log ).and_return( plugin_helper )
-
       @appliance.instance_variable_set(:@appliance_config, generate_appliance_config )
 
       os_plugin = mock('FedoraPlugin')
@@ -99,11 +104,6 @@ module BoxGrinder
     end
 
     it "should not build base appliance because deliverable already exists" do
-      plugin_helper = mock(PluginHelper)
-      plugin_helper.should_receive(:load_plugins)
-
-      PluginHelper.should_receive( :new ).with( :options => @options, :log => @log ).and_return( plugin_helper )
-
       @appliance.instance_variable_set(:@appliance_config, generate_appliance_config )
 
       os_plugin = mock('FedoraPlugin')
@@ -120,11 +120,6 @@ module BoxGrinder
 
     it "should build appliance and convert it to VMware format" do
       prepare_appliance( OpenStruct.new({ :platform => :vmware }) )
-
-      plugin_helper = mock(PluginHelper)
-      plugin_helper.should_receive(:load_plugins)
-
-      PluginHelper.should_receive( :new ).with( :options => @options, :log => @log ).and_return( plugin_helper )
 
       @appliance.instance_variable_set(:@appliance_config, generate_appliance_config )
       @appliance.should_receive( :execute_os_plugin ).and_return( {} )
@@ -144,11 +139,6 @@ module BoxGrinder
     it "should build appliance and convert it to VMware format because deliverable already exists" do
       prepare_appliance( OpenStruct.new({ :platform => :vmware }) )
 
-      plugin_helper = mock(PluginHelper)
-      plugin_helper.should_receive(:load_plugins)
-
-      PluginHelper.should_receive( :new ).with( :options => @options, :log => @log ).and_return( plugin_helper )
-
       @appliance.instance_variable_set(:@appliance_config, generate_appliance_config )
       @appliance.should_receive( :execute_os_plugin ).and_return( {} )
 
@@ -167,11 +157,6 @@ module BoxGrinder
     it "should build appliance, convert it to EC2 format and deliver it using S3 ami type" do
       prepare_appliance( OpenStruct.new({ :platform => :ec2, :delivery => :ami }) )
 
-      plugin_helper = mock(PluginHelper)
-      plugin_helper.should_receive(:load_plugins)
-
-      PluginHelper.should_receive( :new ).with( :options => @options, :log => @log ).and_return( plugin_helper )
-
       @appliance.instance_variable_set(:@appliance_config, generate_appliance_config )
       @appliance.should_receive( :execute_os_plugin ).and_return( { :abc => 'def'} )
       @appliance.should_receive( :execute_platform_plugin ).with( { :abc => 'def'} ).and_return( { :def => 'ghi'} )
@@ -188,11 +173,6 @@ module BoxGrinder
 
     it "should build appliance, convert it to EC2 format and deliver it using delivery plugin with only one delivery type" do
       prepare_appliance( OpenStruct.new({ :platform => :ec2, :delivery => :same }) )
-
-      plugin_helper = mock(PluginHelper)
-      plugin_helper.should_receive(:load_plugins)
-
-      PluginHelper.should_receive( :new ).with( :options => @options, :log => @log ).and_return( plugin_helper )
 
       @appliance.instance_variable_set(:@appliance_config, generate_appliance_config )
       @appliance.should_receive( :execute_os_plugin ).and_return( { :abc => 'def'} )
