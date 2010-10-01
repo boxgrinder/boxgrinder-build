@@ -105,8 +105,6 @@ module BoxGrinder
     end
 
     def customize( disk_path )
-      raise "Customizing cannot be started until the plugin isn't initialized" if @initialized.nil?
-
       GuestFSHelper.new( disk_path, :log => @log ).customize  do |guestfs, guestfs_helper|
         yield guestfs, guestfs_helper
       end
