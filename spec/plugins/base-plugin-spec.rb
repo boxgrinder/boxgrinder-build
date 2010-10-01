@@ -84,5 +84,71 @@ module BoxGrinder
 
       @plugin.run('a', 3)
     end
+
+    it "should register a supported os" do
+      @plugin.register_supported_os( 'fedora', ['12', '13'] )
+
+      oses = @plugin.instance_variable_get(:@supported_oses)
+
+      oses.size.should == 1
+      oses['fedora'].size.should == 2
+      oses['fedora'].should == ['12', '13']
+    end
+
+    it "should return that the OS is supported" do
+      @plugin.register_supported_os( 'fedora', ['12', '13'] )
+
+      @plugin.instance_variable_get(:@appliance_config).os.name = 'fedora'
+      @plugin.instance_variable_get(:@appliance_config).os.version = '12'
+
+      @plugin.is_supported_os?.should == true
+    end
+
+    it "should return that the OS is not supported" do
+      @plugin.register_supported_os( 'fedora', ['1223'] )
+
+      @plugin.instance_variable_get(:@appliance_config).os.name = 'fedora'
+      @plugin.instance_variable_get(:@appliance_config).os.version = '12'
+
+      @plugin.is_supported_os?.should == false
+    end
+
+    it "should return supported os string" do
+      @plugin.register_supported_os( 'fedora', ['12', '13'] )
+      @plugin.register_supported_os( 'centos', ['5'] )
+
+      @plugin.supported_oses.should == "fedora (versions: 12, 13), centos (versions: 5)"
+    end
+
+    it "should set default config value" do
+      @plugin.set_default_config_value( 'key', 'avalue' )
+
+      @plugin.instance_variable_get(:@plugin_config)['key'].should == 'avalue'
+    end
+
+    it "should read plugin config" do
+      @plugin.instance_variable_set(:@config_file, "configfile")
+
+      File.should_receive(:exists?).with('configfile').and_return(true)
+      YAML.should_receive(:load_file).with('configfile').and_return('abcdef')
+
+      @plugin.read_plugin_config
+
+      @plugin.instance_variable_get(:@plugin_config).should == 'abcdef'
+    end
+
+    it "should read plugin config and raise an exception" do
+      @plugin.instance_variable_set(:@config_file, "configfile")
+
+      File.should_receive(:exists?).with('configfile').and_return(true)
+      YAML.should_receive(:load_file).with('configfile').and_raise('something')
+
+      begin
+        @plugin.read_plugin_config
+        raise "Should raise"
+      rescue => e
+        e.message.should == "An error occurred while reading configuration file 'configfile' for BoxGrinder::BasePlugin. Is it a valid YAML file?"
+      end
+    end
   end
 end

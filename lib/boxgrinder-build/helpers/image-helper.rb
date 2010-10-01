@@ -19,6 +19,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'fileutils'
+require 'boxgrinder-build/helpers/guestfs-helper'
 
 module BoxGrinder
   class ImageHelper
@@ -101,6 +102,14 @@ module BoxGrinder
       @log.debug "Syncing files between #{from_dir} and #{to_dir}..."
       @exec_helper.execute "rsync -u -r -a #{from_dir}/* #{to_dir}"
       @log.debug "Sync finished."
+    end
+
+    def customize( disk_path )
+      raise "Customizing cannot be started until the plugin isn't initialized" if @initialized.nil?
+
+      GuestFSHelper.new( disk_path, :log => @log ).customize  do |guestfs, guestfs_helper|
+        yield guestfs, guestfs_helper
+      end
     end
   end
 end

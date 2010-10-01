@@ -19,7 +19,6 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder-core/helpers/exec-helper'
-require 'boxgrinder-build/helpers/guestfs-helper'
 require 'boxgrinder-build/helpers/image-helper'
 require 'ostruct'
 require 'openhash/openhash'
@@ -44,6 +43,7 @@ module BoxGrinder
       @plugin_config          = {}
 
       @deliverables           = OpenHash.new
+      @supported_oses         = OpenHash.new
       @target_deliverables    = OpenHash.new
       @dir                    = OpenHash.new
 
@@ -69,6 +69,29 @@ module BoxGrinder
         @deliverables[name]          = "#{@dir.tmp}/#{path}"
         @target_deliverables[name]   = "#{@dir.base}/#{path}"
       end
+    end
+
+    def register_supported_os( name, versions )
+      raise "You can register supported operating system only after the plugin is initialized, please initialize the plugin using init method." if @initialized.nil?
+
+      @supported_oses[name] = OpenHash.new if @supported_oses[name].nil?
+      @supported_oses[name] = versions
+    end
+
+    def is_supported_os?
+      return false unless !@supported_oses[@appliance_config.os.name].nil? and @supported_oses[@appliance_config.os.name].include?(@appliance_config.os.version)
+      true
+    end
+
+    def supported_oses
+      supported = ""
+
+      @supported_oses.each do |name, versions|
+        supported << ", " unless supported.empty?
+        supported << "#{name} (versions: #{versions.join(", ")})"
+      end
+
+      supported
     end
 
     def validate_plugin_config(fields = [], doc = nil)
@@ -137,16 +160,7 @@ module BoxGrinder
       begin
         @plugin_config = YAML.load_file(@config_file)
       rescue
-        raise "An error occurred while reading configuration file #{@config_file} for #{self.class.name}. Is it a valid YAML file?"
-      end
-    end
-
-    # TODO consider removing this from BasePlugin and moving to another base class
-    def customize( disk_path )
-      raise "Customizing cannot be started until the plugin isn't initialized" if @initialized.nil?
-
-      GuestFSHelper.new( disk_path, :log => @log ).customize  do |guestfs, guestfs_helper|
-        yield guestfs, guestfs_helper
+        raise "An error occurred while reading configuration file '#{@config_file}' for #{self.class.name}. Is it a valid YAML file?"
       end
     end
   end
