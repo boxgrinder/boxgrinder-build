@@ -11,7 +11,7 @@ module BoxGrinder
 
     before(:each) do
       @plugin = BasePlugin.new
-      @plugin.init( generate_config, generate_appliance_config, :plugin_info => { :name => :plugin_name })
+      @plugin.init(generate_config, generate_appliance_config, :plugin_info => {:name => :plugin_name}, :log => Logger.new('/dev/null'))
     end
 
     it "should be initialized after running init method" do
@@ -77,7 +77,7 @@ module BoxGrinder
       FileUtils.should_receive(:rm_rf).with("build/appliances/#{@arch}/fedora/11/full/plugin_name-plugin/tmp")
       FileUtils.should_receive(:mkdir_p).with("build/appliances/#{@arch}/fedora/11/full/plugin_name-plugin/tmp")
 
-      @plugin.should_receive( :execute ).with('a', 3)
+      @plugin.should_receive(:execute).with('a', 3)
 
       FileUtils.should_receive(:mv).with("build/appliances/#{@arch}/fedora/11/full/plugin_name-plugin/tmp/disk", "build/appliances/#{@arch}/fedora/11/full/plugin_name-plugin/disk")
       FileUtils.should_receive(:rm_rf).with("build/appliances/#{@arch}/fedora/11/full/plugin_name-plugin/tmp")
@@ -86,7 +86,7 @@ module BoxGrinder
     end
 
     it "should register a supported os" do
-      @plugin.register_supported_os( 'fedora', ['12', '13'] )
+      @plugin.register_supported_os('fedora', ['12', '13'])
 
       oses = @plugin.instance_variable_get(:@supported_oses)
 
@@ -96,32 +96,32 @@ module BoxGrinder
     end
 
     it "should return that the OS is supported" do
-      @plugin.register_supported_os( 'fedora', ['12', '13'] )
+      @plugin.register_supported_os('fedora', ['12', '13'])
 
-      @plugin.instance_variable_get(:@appliance_config).os.name = 'fedora'
+      @plugin.instance_variable_get(:@appliance_config).os.name    = 'fedora'
       @plugin.instance_variable_get(:@appliance_config).os.version = '12'
 
       @plugin.is_supported_os?.should == true
     end
 
     it "should return that the OS is not supported" do
-      @plugin.register_supported_os( 'fedora', ['1223'] )
+      @plugin.register_supported_os('fedora', ['1223'])
 
-      @plugin.instance_variable_get(:@appliance_config).os.name = 'fedora'
+      @plugin.instance_variable_get(:@appliance_config).os.name    = 'fedora'
       @plugin.instance_variable_get(:@appliance_config).os.version = '12'
 
       @plugin.is_supported_os?.should == false
     end
 
     it "should return supported os string" do
-      @plugin.register_supported_os( 'fedora', ['12', '13'] )
-      @plugin.register_supported_os( 'centos', ['5'] )
+      @plugin.register_supported_os('fedora', ['12', '13'])
+      @plugin.register_supported_os('centos', ['5'])
 
       @plugin.supported_oses.should == "fedora (versions: 12, 13), centos (versions: 5)"
     end
 
     it "should set default config value" do
-      @plugin.set_default_config_value( 'key', 'avalue' )
+      @plugin.set_default_config_value('key', 'avalue')
 
       @plugin.instance_variable_get(:@plugin_config)['key'].should == 'avalue'
     end

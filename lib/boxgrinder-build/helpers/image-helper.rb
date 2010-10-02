@@ -39,14 +39,15 @@ module BoxGrinder
       offsets.each do |offset|
         loop_device = get_loop_device
         @exec_helper.execute("losetup -o #{offset.to_s} #{loop_device} #{disk}")
-        label = @exec_helper.execute("e2label #{loop_device}").strip.chomp
+        label = @exec_helper.execute("e2label #{loop_device}").strip.chomp.gsub('_', '')
         label = '/' if label == ''
         mounts[label] = loop_device
       end
 
       @exec_helper.execute("mount #{mounts['/']} -t ext3 #{mount_dir}")
 
-      mounts.each { |mount_point, loop_device| @exec_helper.execute("mount #{loop_device} -t ext3 #{mount_dir}/#{mount_point}") unless mount_point == '/' }
+      # TODO filesystem type check!!!
+      mounts.each { |mount_point, loop_device| @exec_helper.execute("mount #{loop_device} -t ext3 #{mount_dir}#{mount_point}") unless mount_point == '/' }
 
       @log.trace "Mounts:\n#{mounts}"
 
@@ -92,6 +93,7 @@ module BoxGrinder
       @log.trace "Disk prepared"
     end
 
+    # TODO: filesystem should be user defined!
     def create_filesystem( disk )
       @log.trace "Creating filesystem..."
       @exec_helper.execute "mkfs.ext3 -F #{disk}"
@@ -105,7 +107,7 @@ module BoxGrinder
     end
 
     def customize( disk_path )
-      GuestFSHelper.new( disk_path, :log => @log ).customize  do |guestfs, guestfs_helper|
+      GuestFSHelper.new( disk_path, :log => @log ).customize do |guestfs, guestfs_helper|
         yield guestfs, guestfs_helper
       end
     end
