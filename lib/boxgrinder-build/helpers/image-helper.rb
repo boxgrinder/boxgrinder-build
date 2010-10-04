@@ -44,17 +44,21 @@ module BoxGrinder
         mounts[label] = loop_device
       end
 
-      root_fs_type = @exec_helper.execute("df -T #{mounts['/']} | tail -1 | awk '{print $2}'")
-      @exec_helper.execute("mount #{mounts['/']} -t #{root_fs_type} #{mount_dir}")
+      @exec_helper.execute("mount #{mounts['/']} -t #{get_filesystem_type(mounts['/'])} #{mount_dir}")
 
       mounts.reject { |key, value| key == '/' }.each do |mount_point, loop_device|
-        fs_type = @exec_helper.execute("df -T #{loop_device} | tail -1 | awk '{print $2}'")
-        @exec_helper.execute("mount #{loop_device} -t #{fs_type} #{mount_dir}#{mount_point}") unless mount_point == '/'
+        @exec_helper.execute("mount #{loop_device} -t #{get_filesystem_type(loop_device)} #{mount_dir}#{mount_point}")
       end
 
       @log.trace "Mounts:\n#{mounts}"
 
       mounts
+    end
+
+    def get_filesystem_type(device, default_type = 'ext3')
+      fs_type = @exec_helper.execute("df -T #{device} | tail -1 | awk '{print $2}'")
+      return default_type if fs_type.empty? or fs_type == '-'
+      fs_type
     end
 
     def umount_image(disk, mount_dir, mounts)
@@ -96,10 +100,11 @@ module BoxGrinder
       @log.trace "Disk prepared"
     end
 
-    # TODO: filesystem should be user defined!
-    def create_filesystem(disk, type = 'ext3')
+    def create_filesystem(disk, options = {})
+      options = {:type => 'ext3', :label => '/'}.merge(options)
+
       @log.trace "Creating filesystem..."
-      @exec_helper.execute "mke2fs -T #{type} -F #{disk}"
+      @exec_helper.execute "mke2fs -T #{options[:type]} -L '#{options[:label]}' -F #{disk}"
       @log.trace "Filesystem created"
     end
 

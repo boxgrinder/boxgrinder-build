@@ -19,6 +19,7 @@ spec/appliance-spec.rb
 spec/helpers/appliance-customize-helper-spec.rb
 spec/helpers/augeas-helper-spec.rb
 spec/helpers/guestfs-helper-spec.rb
+spec/helpers/image-helper-spec.rb
 spec/helpers/linux-helper-spec.rb
 spec/helpers/package-helper-spec.rb
 spec/helpers/plugin-helper-spec.rb
