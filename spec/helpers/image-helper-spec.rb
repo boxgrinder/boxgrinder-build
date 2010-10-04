@@ -34,6 +34,7 @@ module BoxGrinder
       @helper.should_receive(:get_loop_device).and_return('/dev/loop0')
       @exec_helper.should_receive(:execute).with('losetup -o 0 /dev/loop0 disk.raw')
       @exec_helper.should_receive(:execute).with('e2label /dev/loop0').and_return('/')
+      @exec_helper.should_receive(:execute).with("df -T /dev/loop0 | tail -1 | awk '{print $2}'").and_return('ext3')
       @exec_helper.should_receive(:execute).with('mount /dev/loop0 -t ext3 mount_dir')
 
       @helper.mount_image('disk.raw', 'mount_dir').should == {"/"=>"/dev/loop0"}
@@ -49,8 +50,11 @@ module BoxGrinder
       @exec_helper.should_receive(:execute).with('losetup -o 562 /dev/loop1 disk.raw')
       @exec_helper.should_receive(:execute).with('e2label /dev/loop1').and_return('_/')
 
+      @exec_helper.should_receive(:execute).with("df -T /dev/loop1 | tail -1 | awk '{print $2}'").and_return('ext3')
+      @exec_helper.should_receive(:execute).with("df -T /dev/loop0 | tail -1 | awk '{print $2}'").and_return('ext4')
+
       @exec_helper.should_receive(:execute).with('mount /dev/loop1 -t ext3 mount_dir')
-      @exec_helper.should_receive(:execute).with('mount /dev/loop0 -t ext3 mount_dir/home')
+      @exec_helper.should_receive(:execute).with('mount /dev/loop0 -t ext4 mount_dir/home')
 
       @helper.mount_image('disk.raw', 'mount_dir').should == {"/"=>"/dev/loop1", "/home"=>"/dev/loop0"}
     end
@@ -95,10 +99,16 @@ module BoxGrinder
       @helper.create_disk('disk.raw', 10)
     end
 
-    it "should create filesystem on selected device" do
-      @exec_helper.should_receive(:execute).with('mkfs.ext3 -F /dev/loop0')
+    it "should create default filesystem on selected device" do
+      @exec_helper.should_receive(:execute).with('mke2fs -T ext3 -F /dev/loop0')
 
       @helper.create_filesystem('/dev/loop0')
+    end
+
+    it "should create ext4 filesystem on selected device" do
+      @exec_helper.should_receive(:execute).with('mke2fs -T ext4 -F /dev/loop0')
+
+      @helper.create_filesystem('/dev/loop0', 'ext4')
     end
 
     it "should sync files" do

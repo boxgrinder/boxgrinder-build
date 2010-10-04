@@ -1,6 +1,7 @@
 
 v0.6.0
 
+* [BGBUILD-52] Wrong post section inheritance
 * [BGBUILD-46] Allow building 32 bit images on 64 bit arch
 
 v0.5.1
