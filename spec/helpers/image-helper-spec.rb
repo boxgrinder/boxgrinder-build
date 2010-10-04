@@ -100,16 +100,23 @@ module BoxGrinder
     end
 
     it "should create default filesystem on selected device" do
-      @exec_helper.should_receive(:execute).with('mke2fs -T ext3 -F /dev/loop0')
+      @exec_helper.should_receive(:execute).with("mke2fs -T ext3 -L '/' -F /dev/loop0")
 
       @helper.create_filesystem('/dev/loop0')
     end
 
     it "should create ext4 filesystem on selected device" do
-      @exec_helper.should_receive(:execute).with('mke2fs -T ext4 -F /dev/loop0')
+      @exec_helper.should_receive(:execute).with("mke2fs -T ext4 -L '/' -F /dev/loop0")
 
-      @helper.create_filesystem('/dev/loop0', 'ext4')
+      @helper.create_filesystem('/dev/loop0', :type => 'ext4')
     end
+
+    it "should create ext4 filesystem on selected device with a label" do
+      @exec_helper.should_receive(:execute).with("mke2fs -T ext4 -L '/home' -F /dev/loop0")
+
+      @helper.create_filesystem('/dev/loop0', :type => 'ext4', :label => '/home')
+    end
+
 
     it "should sync files" do
       @exec_helper.should_receive(:execute).with("rsync -u -r -a from_dir/* to_dir")
