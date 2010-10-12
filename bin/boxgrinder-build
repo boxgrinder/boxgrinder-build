@@ -22,7 +22,7 @@
 
 require 'rubygems'
 
-gem 'boxgrinder-core', '>= 0.0.23'
+gem 'boxgrinder-core', '>= 0.1.0'
 gem 'commander', '>= 4.0.3'
 
 require 'boxgrinder-core/helpers/log-helper'
