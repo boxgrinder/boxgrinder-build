@@ -1,4 +1,8 @@
 
+v0.6.1
+
+* Rebuild for RPM
+
 v0.6.0
 
 * [BGBUILD-52] Wrong post section inheritance
