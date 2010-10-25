@@ -18,6 +18,7 @@ module BoxGrinder
 
       guetfs.should_receive(:set_qemu).with('/usr/share/qemu-stable/bin/qemu.wrapper')
       guetfs.should_receive(:add_drive).with('a/raw/disk')
+      guetfs.should_receive(:set_network).with(1)
       guetfs.should_receive(:launch)
       guetfs.should_receive(:list_partitions).and_return( partitions )
 

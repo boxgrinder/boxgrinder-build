@@ -180,7 +180,7 @@ module BoxGrinder
 
       delivery_plugin = mock('S3 Plugin')
       delivery_plugin.should_receive(:init)
-      delivery_plugin.should_receive(:run).with(no_args())
+      delivery_plugin.should_receive(:run).with( :same )
 
       @plugin_manager.should_receive(:plugins).and_return( { :delivery => "something" } )
       @plugin_manager.should_receive(:initialize_plugin).with(:delivery, :same).and_return([ delivery_plugin, {:class => Appliance, :type => :delivery, :name => :same, :full_name  => "A plugin"} ] )

@@ -18,6 +18,7 @@ module BoxGrinder
     end
 
     it "should change configuration for one file" do
+      @guestfs.should_receive(:debug).with("core_pattern", ["/sysroot/core"])
       @guestfs.should_receive(:exists).with('/etc/ssh/sshd_config').and_return(1)
       @guestfs.should_receive(:aug_init).with('/', 32)
       @guestfs.should_receive(:aug_rm).with("/augeas/load//incl[. != '/etc/ssh/sshd_config']")
@@ -31,6 +32,7 @@ module BoxGrinder
     end
 
     it "should change configuration for two files" do
+      @guestfs.should_receive(:debug).with("core_pattern", ["/sysroot/core"])
       @guestfs.should_receive(:exists).with('/etc/ssh/sshd_config').and_return(1)
       @guestfs.should_receive(:exists).with('/etc/sysconfig/selinux').and_return(1)
       @guestfs.should_receive(:aug_init).with('/', 32)
@@ -47,6 +49,7 @@ module BoxGrinder
     end
 
     it "should change one configuration for two files because one file doesn't exists" do
+      @guestfs.should_receive(:debug).with("core_pattern", ["/sysroot/core"])
       @guestfs.should_receive(:exists).with('/etc/ssh/sshd_config').and_return(1)
       @guestfs.should_receive(:exists).with('/etc/sysconfig/selinux').and_return(0)
       @guestfs.should_receive(:aug_init).with('/', 32)
