@@ -14,6 +14,7 @@ lib/boxgrinder-build/helpers/package-helper.rb
 lib/boxgrinder-build/helpers/plugin-helper.rb
 lib/boxgrinder-build/managers/plugin-manager.rb
 lib/boxgrinder-build/plugins/base-plugin.rb
+rubygem-boxgrinder-build.spec
 spec/Rakefile
 spec/appliance-spec.rb
 spec/helpers/appliance-customize-helper-spec.rb

@@ -121,6 +121,7 @@ module BoxGrinder
       # TODO remove this, https://bugzilla.redhat.com/show_bug.cgi?id=502058
       @guestfs.set_append( "noapic" )
 
+      @log.trace "Setting debug + trace..."
       @guestfs.set_verbose(1)
       @guestfs.set_trace(1)
 
@@ -137,6 +138,9 @@ module BoxGrinder
       @log.trace "Adding drive '#{@raw_disk}'..."
       @guestfs.add_drive( @raw_disk )
       @log.trace "Drive added."
+
+      @log.debug "Enabling networking for GuestFS..."
+      @guestfs.set_network( 1 )
 
       @log.debug "Launching guestfs..."
       @guestfs.launch

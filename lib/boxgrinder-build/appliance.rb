@@ -123,12 +123,7 @@ module BoxGrinder
 
       delivery_plugin, delivery_plugin_info = PluginManager.instance.initialize_plugin(:delivery, @options.delivery )
       delivery_plugin.init( @config, @appliance_config, :log => @log, :plugin_info => delivery_plugin_info, :previous_plugin_info => previous_plugin_output[:plugin_info], :previous_deliverables => previous_plugin_output[:deliverables] )
-
-      if @options.delivery != delivery_plugin_info[:name]
-        delivery_plugin.run( @options.delivery )
-      else
-        delivery_plugin.run
-      end
+      delivery_plugin.run( @options.delivery )
     end
   end
 end

@@ -40,6 +40,9 @@ module BoxGrinder
         return
       end
 
+      @log.trace "Enabling coredump catching for augeas..."
+      @guestfs.debug( "core_pattern", [ "/sysroot/core" ] )
+
       @guestfs.aug_init( "/", 32 )
 
       unload = []
