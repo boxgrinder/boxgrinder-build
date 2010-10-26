@@ -188,6 +188,8 @@ module BoxGrinder
 
       @guestfs.list_partitions.each do |partition|
         mount_partition( partition, '/' )
+
+        # TODO: use this http://libguestfs.org/guestfs.3.html#guestfs_vfs_label
         if @guestfs.exists( '/sbin/e2label' ) != 0
           root_partition = partition
           break
