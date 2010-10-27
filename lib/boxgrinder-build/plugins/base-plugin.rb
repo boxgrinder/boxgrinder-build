@@ -28,13 +28,13 @@ require 'logger'
 module BoxGrinder
   class BasePlugin
     def init(config, appliance_config, options = {})
-      @config           = config
-      @appliance_config = appliance_config
-      @options          = options
+      @config                 = config
+      @appliance_config       = appliance_config
+      @options                = options
 
-      @log              = options[:log]           || Logger.new(STDOUT)
-      @exec_helper      = options[:exec_helper]   || ExecHelper.new( :log => @log )
-      @image_helper     = options[:image_helper]  || ImageHelper.new( :log => @log )
+      @log                    = options[:log] || Logger.new(STDOUT)
+      @exec_helper            = options[:exec_helper] || ExecHelper.new(:log => @log)
+      @image_helper           = options[:image_helper] || ImageHelper.new(:log => @log)
 
       @plugin_info            = options[:plugin_info]
       @previous_plugin_info   = options[:previous_plugin_info]
@@ -54,14 +54,14 @@ module BoxGrinder
 
       read_plugin_config
 
-      @initialized = true
+      @initialized            = true
 
       after_init
 
       self
     end
 
-    def register_deliverable( deliverable )
+    def register_deliverable(deliverable)
       raise "You can only register deliverables after the plugin is initialized, please initialize the plugin using init method." if @initialized.nil?
       raise "Please specify deliverables as Hash, not #{deliverable.class}." unless deliverable.is_a?(Hash)
 
@@ -71,7 +71,7 @@ module BoxGrinder
       end
     end
 
-    def register_supported_os( name, versions )
+    def register_supported_os(name, versions)
       raise "You can register supported operating system only after the plugin is initialized, please initialize the plugin using init method." if @initialized.nil?
 
       @supported_oses[name] = OpenHash.new if @supported_oses[name].nil?
@@ -94,6 +94,16 @@ module BoxGrinder
       supported
     end
 
+    def current_platform
+      platform = :raw
+
+      if @previous_plugin_info[:type] == :platform
+        platform = @previous_plugin_info[:name]
+      end unless @previous_plugin_info.nil?
+
+      platform.to_s
+    end
+
     def validate_plugin_config(fields = [], doc = nil)
       more_info = doc.nil? ? '' : "See #{doc} for more info"
 
@@ -108,11 +118,11 @@ module BoxGrinder
       raise "You can only execute the plugin after the plugin is initialized, please initialize the plugin using init method." if @initialized.nil?
     end
 
-    def run( *args )
+    def run(*args)
       FileUtils.rm_rf @dir.tmp
       FileUtils.mkdir_p @dir.tmp
 
-      execute( *args )
+      execute(*args)
 
       after_execute
     end
@@ -123,7 +133,7 @@ module BoxGrinder
     def after_execute
       @deliverables.each do |name, path|
         @log.trace "Moving '#{path}' deliverable to target destination '#{@target_deliverables[name]}'..."
-        FileUtils.mv( path, @target_deliverables[name] )
+        FileUtils.mv(path, @target_deliverables[name])
       end
 
       FileUtils.rm_rf @dir.tmp
