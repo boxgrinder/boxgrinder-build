@@ -29,46 +29,32 @@ module BoxGrinder
       @exec_helper      = options[:exec_helper] || ExecHelper.new({:log => @log})
     end
 
-    def package(deliverables, options = {})
-      type        =  options[:type]     || :tar
-      plugin_info =  options[:plugin_info]
-
-      platform = 'raw'
-
-      unless plugin_info.nil?
-        if plugin_info[:type] == :platform
-          platform = plugin_info[:name].to_s
-        end
-      end
-
+    def package(deliverables, package, type = :tar)
       files = []
 
       deliverables.each_value do |file|
         files << File.basename(file)
       end
 
-      #TODO rewrite this to use deliverables and previous_deliverables
-      package_path = "#{@dir.tmp}/#{@appliance_config.name}-#{@appliance_config.version}.#{@appliance_config.release}-#{@appliance_config.os.name}-#{@appliance_config.os.version}-#{@appliance_config.hardware.arch}-#{platform}.tgz"
-
-      if File.exists?(package_path)
-        @log.info "Package of #{type} type for #{@appliance_config.name} appliance and #{platform} platform already exists, skipping."
-        return package_path
+      if File.exists?(package)
+        @log.info "Package of #{type} type for #{@appliance_config.name} appliance already exists, skipping."
+        return package
       end
 
-      FileUtils.mkdir_p(File.dirname(package_path))
+      FileUtils.mkdir_p(File.dirname(package))
 
-      @log.info "Packaging #{@appliance_config.name} appliance for #{platform} platform to #{type}..."
+      @log.info "Packaging #{@appliance_config.name} appliance to #{type}..."
 
       case type
         when :tar
-          @exec_helper.execute "tar -C #{File.dirname(deliverables[:disk])} -cvzf '#{package_path}' #{files.join(' ')}"
+          @exec_helper.execute "tar -C #{File.dirname(deliverables[:disk])} -cvzf '#{package}' #{files.join(' ')}"
         else
           raise "Only tar format is currently supported."
       end
 
       @log.info "Appliance #{@appliance_config.name} packaged."
 
-      package_path
+      package
     end
   end
 end
