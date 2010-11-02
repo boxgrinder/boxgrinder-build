@@ -1,7 +1,7 @@
 
 v0.6.1
 
-* Rebuild for RPM
+* [BGBUILD-81] post command execution w/ setarch breaks commands which are scripts
 
 v0.6.0
 

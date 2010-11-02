@@ -21,12 +21,16 @@ require 'boxgrinder-build/helpers/guestfs-helper'
 module BoxGrinder
   describe GuestFSHelper do
 
+    before(:all) do
+      @arch = `uname -m`.chomp.strip
+    end
+
     before(:each) do
       @log    = Logger.new('/dev/null')
       @helper = GuestFSHelper.new('a/raw/disk', :log => @log)
     end
 
-    def prepare_and_launch( partitions )
+    def prepare_and_launch(partitions)
       guetfs = mock('Guestfs')
       guetfs.should_receive(:set_append).with('noapic')
       guetfs.should_receive(:set_verbose)
@@ -38,7 +42,7 @@ module BoxGrinder
       guetfs.should_receive(:add_drive).with('a/raw/disk')
       guetfs.should_receive(:set_network).with(1)
       guetfs.should_receive(:launch)
-      guetfs.should_receive(:list_partitions).and_return( partitions )
+      guetfs.should_receive(:list_partitions).and_return(partitions)
 
       Guestfs.should_receive(:create).and_return(guetfs)
 
@@ -142,7 +146,24 @@ module BoxGrinder
       end
     end
 
+    it "execute a command for current arch" do
+      guestfs = mock('Guestfs')
 
+      @helper.should_receive(:`).with('uname -m').and_return('bleh')
+      @helper.instance_variable_set(:@guestfs, guestfs)
 
+      guestfs.should_receive(:sh).with("setarch bleh << SETARCH_EOF\ncommand\nSETARCH_EOF\n")
+
+      @helper.sh("command")
+    end
+
+    it "execute a command for specified arch" do
+      guestfs = mock('Guestfs')
+      @helper.instance_variable_set(:@guestfs, guestfs)
+
+      guestfs.should_receive(:sh).with("setarch arch << SETARCH_EOF\ncommand\nSETARCH_EOF\n")
+
+      @helper.sh("command", :arch => 'arch')
+    end
   end
 end
