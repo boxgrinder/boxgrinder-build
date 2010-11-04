@@ -19,6 +19,7 @@
 require 'boxgrinder-build/helpers/augeas-helper'
 require 'guestfs'
 require 'logger'
+require 'open-uri'
 
 module BoxGrinder
   class SilencerProxy
@@ -87,6 +88,26 @@ module BoxGrinder
 
     attr_reader :guestfs
 
+    def hw_virtualization_available?
+      @log.trace "Checking if HW virtualization is available..."
+
+      begin
+        open('http://169.254.169.254/1.0/meta-data/local-ipv4')
+        ec2 = true
+      rescue
+        ec2 = false
+      end
+
+      if `cat /proc/cpuinfo | grep flags | grep vmx | wc -l`.chomp.strip.to_i > 0 and !ec2
+        @log.trace "HW acceleration available."
+        return true
+      end
+
+      @log.trace "HW acceleration not available."
+
+      false
+    end
+
     def customize
       read_pipe, write_pipe = IO.pipe
 
@@ -116,21 +137,18 @@ module BoxGrinder
 
       @guestfs = pipe.nil? ? Guestfs::create : Guestfs::create.redirect(pipe)
 
-      # TODO remove this, https://bugzilla.redhat.com/show_bug.cgi?id=502058
+      # https://bugzilla.redhat.com/show_bug.cgi?id=502058
       @guestfs.set_append("noapic")
 
       @log.trace "Setting debug + trace..."
       @guestfs.set_verbose(1)
       @guestfs.set_trace(1)
 
-      # workaround for latest qemu
-      # It'll only work if qemu-stable package is installed. It is installed by default on meta-appliance
-      # TODO wait for stable qemu and remove this
-      # Looks like in F13 (qemu-img-0.12.3-8.fc13.i686) this is fixed
-      qemu_wrapper = "/usr/share/qemu-stable/bin/qemu.wrapper"
-
-      if File.exists?(qemu_wrapper)
-        @guestfs.set_qemu(qemu_wrapper)
+      unless hw_virtualization_available?
+        qemu_wrapper =  (`uname -m`.chomp.strip.eql?('x86_64') ? "/usr/bin/qemu-system-x86_64" : "/usr/bin/qemu")
+        @log.trace "Setting QEMU wrapper to #{qemu_wrapper}..."
+        @guestfs.set_qemu(qemu_wrapper) if File.exists?(qemu_wrapper)
+        @log.trace "QEMU wrapper set."
       end
 
       @log.trace "Adding drive '#{@raw_disk}'..."

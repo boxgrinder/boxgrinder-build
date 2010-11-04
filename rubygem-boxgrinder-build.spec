@@ -5,7 +5,7 @@
 
 Summary: A tool for creating appliances from simple plain text files
 Name: rubygem-%{gemname}
-Version: 0.6.1
+Version: 0.6.2
 Release: 1%{?dist}
 Group: Development/Languages
 License: LGPL
@@ -17,7 +17,7 @@ Requires: rubygems >= 1.2
 Requires: ruby >= 0
 Requires: rubygem(commander) => 4.0.3
 Requires: rubygem(commander) < 4.1
-Requires: rubygem(boxgrinder-core) => 0.1.0
+Requires: rubygem(boxgrinder-core) => 0.1.1
 Requires: rubygem(boxgrinder-core) < 0.2
 BuildRequires: rubygems >= 1.2
 BuildRequires: ruby >= 0
@@ -65,5 +65,8 @@ rm -rf %{buildroot}
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 
 %changelog
+* Wed Nov 03 2010  <mgoldman@redhat.com> - 0.6.2-1
+- [BGBUILD-84] Don't use in libguestfs qemu-kvm where hardware accleration isn't available
+
 * Mon Oct 18 2010  <mgoldman@redhat.com> - 0.6.1-1
 - Initial package

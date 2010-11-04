@@ -1,4 +1,8 @@
 
+v0.6.2
+
+* [BGBUILD-84] Don't use in libguestfs qemu-kvm where hardware accleration isn't available
+
 v0.6.1
 
 * [BGBUILD-81] post command execution w/ setarch breaks commands which are scripts
