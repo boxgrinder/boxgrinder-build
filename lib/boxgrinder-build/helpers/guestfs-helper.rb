@@ -20,6 +20,7 @@ require 'boxgrinder-build/helpers/augeas-helper'
 require 'guestfs'
 require 'logger'
 require 'open-uri'
+require 'rbconfig'
 
 module BoxGrinder
   class SilencerProxy
@@ -145,10 +146,13 @@ module BoxGrinder
       @guestfs.set_trace(1)
 
       unless hw_virtualization_available?
-        qemu_wrapper =  (`uname -m`.chomp.strip.eql?('x86_64') ? "/usr/bin/qemu-system-x86_64" : "/usr/bin/qemu")
-        @log.trace "Setting QEMU wrapper to #{qemu_wrapper}..."
-        @guestfs.set_qemu(qemu_wrapper) if File.exists?(qemu_wrapper)
-        @log.trace "QEMU wrapper set."
+        qemu_wrapper =  (RbConfig::CONFIG['host_cpu'].eql?('x86_64') ? "/usr/bin/qemu-system-x86_64" : "/usr/bin/qemu")
+
+        if File.exists?(qemu_wrapper)
+          @log.trace "Setting QEMU wrapper to #{qemu_wrapper}..."
+          @guestfs.set_qemu(qemu_wrapper)
+          @log.trace "QEMU wrapper set."
+        end
       end
 
       @log.trace "Adding drive '#{@raw_disk}'..."
