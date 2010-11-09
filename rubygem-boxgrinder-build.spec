@@ -20,8 +20,9 @@ Requires: rubygem(commander) => 4.0.3
 Requires: rubygem(commander) < 4.1
 Requires: rubygem(boxgrinder-core) => 0.1.1
 Requires: rubygem(boxgrinder-core) < 0.2
-BuildRequires: rubygems >= 1.2
-BuildRequires: ruby >= 0
+
+BuildRequires: rubygem(boxgrinder-core) => 0.1.1
+BuildRequires: rubygem(boxgrinder-core) < 0.2
 
 BuildArch: noarch
 Provides: rubygem(%{gemname}) = %{version}
