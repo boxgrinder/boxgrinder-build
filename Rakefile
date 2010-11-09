@@ -31,6 +31,7 @@ end
 
 desc "Run all tests"
 Spec::Rake::SpecTask.new('spec') do |t|
+  t.libs.unshift "../boxgrinder-core/lib"
   t.rcov = false
   t.spec_files = FileList["spec/**/*-spec.rb"]
   t.spec_opts = ['--colour', '--format', 'specdoc', '-b']
@@ -39,6 +40,7 @@ end
 
 desc "Run all tests and generate code coverage report"
 Spec::Rake::SpecTask.new('spec:coverage') do |t|
+  t.libs.unshift "../boxgrinder-core/lib"
   t.spec_files = FileList["spec/**/*-spec.rb"]
   t.spec_opts = ['--colour', '--format', 'html:pkg/rspec_report.html', '-b']
   t.rcov = true
