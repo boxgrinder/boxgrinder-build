@@ -62,7 +62,7 @@ end
 desc "Create RPM"
 task 'rpm' => ['gem:copy'] do
   Dir["**/rubygem-*.spec"].each do |spec|
-    system "rpmbuild --define '_topdir #{topdir}' -ba #{spec}"
+    puts `rpmbuild --define '_topdir #{topdir}' -ba #{spec}`
     exit 1 unless $? == 0
   end
 end
