@@ -17,14 +17,40 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder-build/helpers/appliance-customize-helper'
-require 'rspec/rspec-config-helper'
 
 module BoxGrinder
   describe ApplianceCustomizeHelper do
-    include RSpecConfigHelper
 
     before(:each) do
-      @helper = ApplianceCustomizeHelper.new(generate_config, generate_appliance_config, 'a/disk', :log => Logger.new('/dev/null'))
+      @config = mock('Config')
+      @config.stub!(:name).and_return('BoxGrinder')
+      @config.stub!(:version_with_release).and_return('0.1.2')
+
+      @appliance_config = mock('ApplianceConfig')
+
+      @appliance_config.stub!(:path).and_return(OpenHash.new({:build => 'build/path'}))
+      @appliance_config.stub!(:name).and_return('full')
+      @appliance_config.stub!(:summary).and_return('asd')
+      @appliance_config.stub!(:version).and_return(1)
+      @appliance_config.stub!(:release).and_return(0)
+      @appliance_config.stub!(:os).and_return(OpenHash.new({:name => 'fedora', :version => '11'}))
+      @appliance_config.stub!(:post).and_return(OpenHash.new({:vmware => []}))
+
+      @appliance_config.stub!(:hardware).and_return(
+          OpenHash.new({
+                           :partitions =>
+                               {
+                                   '/' => {'size' => 2},
+                                   '/home' => {'size' => 3},
+                               },
+                           :arch => 'i686',
+                           :base_arch => 'i386',
+                           :cpus => 1,
+                           :memory => 256,
+                       })
+      )
+
+      @helper = ApplianceCustomizeHelper.new(@config, @appliance_config, 'a/disk', :log => Logger.new('/dev/null'))
 
       @log = @helper.instance_variable_get(:@log)
     end
@@ -37,11 +63,11 @@ module BoxGrinder
       guestfs_helper.should_receive(:guestfs).and_return(guestfs)
       guestfs_helper.should_receive(:clean_close)
 
-      GuestFSHelper.should_receive(:new).with('a/disk', :log =>  @log ).and_return(guestfs_helper)
+      GuestFSHelper.should_receive(:new).with('a/disk', :log =>  @log).and_return(guestfs_helper)
 
       @helper.customize do |gf, gf_helper|
-        gf_helper.should  == guestfs_helper
-        gf.should         == guestfs
+        gf_helper.should == guestfs_helper
+        gf.should == guestfs
       end
     end
   end

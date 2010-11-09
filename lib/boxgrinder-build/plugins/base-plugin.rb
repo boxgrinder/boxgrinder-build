@@ -17,6 +17,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder-core/helpers/exec-helper'
+require 'boxgrinder-core/helpers/log-helper'
 require 'boxgrinder-build/helpers/image-helper'
 require 'ostruct'
 require 'openhash/openhash'
@@ -84,7 +85,7 @@ module BoxGrinder
     def supported_oses
       supported = ""
 
-      @supported_oses.each do |name, versions|
+      @supported_oses.sort.each do |name, versions|
         supported << ", " unless supported.empty?
         supported << "#{name} (versions: #{versions.join(", ")})"
       end

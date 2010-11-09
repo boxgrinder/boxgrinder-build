@@ -1,4 +1,8 @@
 
+v0.6.3
+
+* Release bump
+
 v0.6.2
 
 * [BGBUILD-84] Don't use in libguestfs qemu-kvm where hardware accleration isn't available
