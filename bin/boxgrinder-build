@@ -18,12 +18,9 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'rubygems'
-
-gem 'boxgrinder-core', '>= 0.1.1'
-gem 'commander', '>= 4.0.3'
-
 require 'boxgrinder-core/helpers/log-helper'
 require 'boxgrinder-build/appliance'
+require 'commander/import'
 
 #$stderr.reopen($stdout)
 
@@ -31,8 +28,6 @@ if Process.uid != 0
   puts "This program must be executed with root privileges. Try 'sudo boxgrinder-build'"
   abort
 end
-
-require 'commander/import'
 
 program :name, 'BoxGrinder Build'
 program :version, '0.6.3'

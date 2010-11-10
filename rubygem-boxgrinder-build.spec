@@ -8,7 +8,7 @@ Name: rubygem-%{gemname}
 Version: 0.6.3
 Release: 1%{?dist}
 Group: Development/Languages
-License: LGPL
+License: LGPLv3+
 URL: http://www.jboss.org/boxgrinder
 Source0: http://rubygems.org/gems/%{gemname}-%{version}.gem
 Buildroot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
