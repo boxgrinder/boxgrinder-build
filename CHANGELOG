@@ -1,7 +1,7 @@
 
 v0.6.3
 
-* Release bump
+* [BGBUILD-94] Check if set_network call is avaialbe in libguestfs
 
 v0.6.2
 

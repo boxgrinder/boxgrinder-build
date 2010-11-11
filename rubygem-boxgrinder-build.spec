@@ -85,6 +85,7 @@ rm -rf %{buildroot}
 
 %changelog
 * Tue Nov 09 2010  <mgoldman@redhat.com> - 0.6.3-1
+- [BGBUILD-94] Check if set_network call is avaialbe in libguestfs
 - Added 'check' section that executes tests
 
 * Wed Nov 03 2010  <mgoldman@redhat.com> - 0.6.2-1

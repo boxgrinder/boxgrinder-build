@@ -159,8 +159,10 @@ module BoxGrinder
       @guestfs.add_drive(@raw_disk)
       @log.trace "Drive added."
 
-      @log.debug "Enabling networking for GuestFS..."
-      @guestfs.set_network(1)
+      if @guestfs.respond_to?('set_network')
+        @log.debug "Enabling networking for GuestFS..."
+        @guestfs.set_network(1)
+      end
 
       @log.debug "Launching guestfs..."
       @guestfs.launch
