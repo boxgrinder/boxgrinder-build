@@ -20,7 +20,7 @@ require 'logger'
 
 module BoxGrinder
   class AugeasHelper
-    def initialize( guestfs, guestfs_helper, options = {})
+    def initialize(guestfs, guestfs_helper, options = {})
       @guestfs        = guestfs
       @guestfs_helper = guestfs_helper
       @log            = options[:log] || Logger.new(STDOUT)
@@ -28,7 +28,7 @@ module BoxGrinder
       @files = {}
     end
 
-    def edit( &block )
+    def edit(&block)
       @log.debug "Changing configuration files using augeas..."
 
       instance_eval &block if block
@@ -38,10 +38,12 @@ module BoxGrinder
         return
       end
 
-      @log.trace "Enabling coredump catching for augeas..."
-      @guestfs.debug( "core_pattern", [ "/sysroot/core" ] )
+      if @guestfs.debug("help", []).include?('core_pattern')
+        @log.trace "Enabling coredump catching for augeas..."
+        @guestfs.debug("core_pattern", ["/sysroot/core"])
+      end
 
-      @guestfs.aug_init( "/", 32 )
+      @guestfs.aug_init("/", 32)
 
       unload = []
 
@@ -49,7 +51,7 @@ module BoxGrinder
         unload << ". != '#{file_name}'"
       end
 
-      @guestfs.aug_rm( "/augeas/load//incl[#{unload.join(' and ')}]" )
+      @guestfs.aug_rm("/augeas/load//incl[#{unload.join(' and ')}]")
       @guestfs.aug_load
 
       @files.each do |file, changes|
@@ -64,13 +66,13 @@ module BoxGrinder
       @log.debug "Augeas changes saved."
     end
 
-    def set( name, key, value )
-      unless @guestfs.exists( name ) != 0
+    def set(name, key, value)
+      unless @guestfs.exists(name) != 0
         @log.debug "File '#{name}' doesn't exists, skipping augeas changes..."
         return
       end
 
-      @files[name] = {} unless @files.has_key?( name )
+      @files[name] = {} unless @files.has_key?(name)
       @files[name][key] = value
     end
   end
