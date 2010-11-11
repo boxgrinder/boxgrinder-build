@@ -27,7 +27,7 @@ module BoxGrinder
       @guestfs = mock('GuestFS')
       @guestfs_helper = mock('GuestFSHelper')
 
-      @helper = AugeasHelper.new( @guestfs, @guestfs_helper, :log => @log)
+      @helper = AugeasHelper.new(@guestfs, @guestfs_helper, :log => @log)
     end
 
     it "should not execute augeas commands if there a no files to change" do
@@ -36,6 +36,7 @@ module BoxGrinder
     end
 
     it "should change configuration for one file" do
+      @guestfs.should_receive(:debug).with("help", []).and_return("core_pattern")
       @guestfs.should_receive(:debug).with("core_pattern", ["/sysroot/core"])
       @guestfs.should_receive(:exists).with('/etc/ssh/sshd_config').and_return(1)
       @guestfs.should_receive(:aug_init).with('/', 32)
@@ -45,11 +46,12 @@ module BoxGrinder
       @guestfs.should_receive(:aug_save)
 
       @helper.edit do
-        set( '/etc/ssh/sshd_config', 'UseDNS', 'no')
+        set('/etc/ssh/sshd_config', 'UseDNS', 'no')
       end
     end
 
     it "should change configuration for two files" do
+      @guestfs.should_receive(:debug).with("help", []).and_return("core_pattern")
       @guestfs.should_receive(:debug).with("core_pattern", ["/sysroot/core"])
       @guestfs.should_receive(:exists).with('/etc/ssh/sshd_config').and_return(1)
       @guestfs.should_receive(:exists).with('/etc/sysconfig/selinux').and_return(1)
@@ -61,12 +63,13 @@ module BoxGrinder
       @guestfs.should_receive(:aug_save)
 
       @helper.edit do
-        set( '/etc/ssh/sshd_config', 'UseDNS', 'no')
-        set( '/etc/sysconfig/selinux', 'SELINUX', 'permissive')
+        set('/etc/ssh/sshd_config', 'UseDNS', 'no')
+        set('/etc/sysconfig/selinux', 'SELINUX', 'permissive')
       end
     end
 
     it "should change one configuration for two files because one file doesn't exists" do
+      @guestfs.should_receive(:debug).with("help", []).and_return("core_pattern")
       @guestfs.should_receive(:debug).with("core_pattern", ["/sysroot/core"])
       @guestfs.should_receive(:exists).with('/etc/ssh/sshd_config').and_return(1)
       @guestfs.should_receive(:exists).with('/etc/sysconfig/selinux').and_return(0)
@@ -77,8 +80,23 @@ module BoxGrinder
       @guestfs.should_receive(:aug_save)
 
       @helper.edit do
-        set( '/etc/ssh/sshd_config', 'UseDNS', 'no')
-        set( '/etc/sysconfig/selinux', 'SELINUX', 'permissive')
+        set('/etc/ssh/sshd_config', 'UseDNS', 'no')
+        set('/etc/sysconfig/selinux', 'SELINUX', 'permissive')
+      end
+    end
+
+    it "should not set core_patter debug method because it's not supported" do
+      @guestfs.should_receive(:debug).with("help", []).and_return("something")
+      @guestfs.should_not_receive(:debug).with("core_pattern", ["/sysroot/core"])
+      @guestfs.should_receive(:exists).with('/etc/ssh/sshd_config').and_return(1)
+      @guestfs.should_receive(:aug_init).with('/', 32)
+      @guestfs.should_receive(:aug_rm).with("/augeas/load//incl[. != '/etc/ssh/sshd_config']")
+      @guestfs.should_receive(:aug_load)
+      @guestfs.should_receive(:aug_set).with("/files/etc/ssh/sshd_config/UseDNS", "no")
+      @guestfs.should_receive(:aug_save)
+
+      @helper.edit do
+        set('/etc/ssh/sshd_config', 'UseDNS', 'no')
       end
     end
   end
