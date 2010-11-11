@@ -22,7 +22,26 @@ module BoxGrinder
   describe ImageHelper do
 
     before(:each) do
-      @helper      = ImageHelper.new(:log => Logger.new('/dev/null'))
+      @config = mock('Config')
+
+      @appliance_config = mock('ApplianceConfig')
+
+      @appliance_config.stub!(:name).and_return('full')
+      @appliance_config.stub!(:hardware).and_return(
+          OpenHash.new({
+                           :partitions =>
+                               {
+                                   '/' => {'size' => 2, 'type' => 'ext4'},
+                                   '/home' => {'size' => 3, 'type' => 'ext3'},
+                               },
+                           :arch => 'i686',
+                           :base_arch => 'i386',
+                           :cpus => 1,
+                           :memory => 256,
+                       })
+      )
+
+      @helper      = ImageHelper.new(@config, @appliance_config, :log => Logger.new('/dev/null'))
 
       @log         = @helper.instance_variable_get(:@log)
       @exec_helper = @helper.instance_variable_get(:@exec_helper)
@@ -34,8 +53,7 @@ module BoxGrinder
       @helper.should_receive(:get_loop_device).and_return('/dev/loop0')
       @exec_helper.should_receive(:execute).with('losetup -o 0 /dev/loop0 disk.raw')
       @exec_helper.should_receive(:execute).with('e2label /dev/loop0').and_return('/')
-      @exec_helper.should_receive(:execute).with("df -T /dev/loop0 | tail -1 | awk '{print $2}'").and_return('ext3')
-      @exec_helper.should_receive(:execute).with('mount /dev/loop0 -t ext3 mount_dir')
+      @exec_helper.should_receive(:execute).with('mount /dev/loop0 mount_dir')
 
       @helper.mount_image('disk.raw', 'mount_dir').should == {"/"=>"/dev/loop0"}
     end
@@ -50,11 +68,8 @@ module BoxGrinder
       @exec_helper.should_receive(:execute).with('losetup -o 562 /dev/loop1 disk.raw')
       @exec_helper.should_receive(:execute).with('e2label /dev/loop1').and_return('_/')
 
-      @exec_helper.should_receive(:execute).with("df -T /dev/loop1 | tail -1 | awk '{print $2}'").and_return('ext3')
-      @exec_helper.should_receive(:execute).with("df -T /dev/loop0 | tail -1 | awk '{print $2}'").and_return('ext4')
-
-      @exec_helper.should_receive(:execute).with('mount /dev/loop1 -t ext3 mount_dir')
-      @exec_helper.should_receive(:execute).with('mount /dev/loop0 -t ext4 mount_dir/home')
+      @exec_helper.should_receive(:execute).with('mount /dev/loop1 mount_dir')
+      @exec_helper.should_receive(:execute).with('mount /dev/loop0 mount_dir/home')
 
       @helper.mount_image('disk.raw', 'mount_dir').should == {"/"=>"/dev/loop1", "/home"=>"/dev/loop0"}
     end
@@ -100,15 +115,29 @@ module BoxGrinder
     end
 
     it "should create default filesystem on selected device" do
-      @exec_helper.should_receive(:execute).with("mke2fs -T ext3 -L '/' -F /dev/loop0")
+      @exec_helper.should_receive(:execute).with("mke2fs -T ext4 -L '/' -F /dev/loop0")
 
       @helper.create_filesystem('/dev/loop0')
     end
 
     it "should create ext4 filesystem on selected device" do
-      @exec_helper.should_receive(:execute).with("mke2fs -T ext4 -L '/' -F /dev/loop0")
+      @appliance_config.should_receive(:hardware).and_return(
+          OpenHash.new({
+                           :partitions =>
+                               {
+                                   '/' => {'size' => 2, 'type' => 'ext3'},
+                                   '/home' => {'size' => 3, 'type' => 'ext3'},
+                               },
+                           :arch => 'i686',
+                           :base_arch => 'i386',
+                           :cpus => 1,
+                           :memory => 256,
+                       })
+      )
 
-      @helper.create_filesystem('/dev/loop0', :type => 'ext4')
+      @exec_helper.should_receive(:execute).with("mke2fs -T ext3 -L '/' -F /dev/loop0")
+
+      @helper.create_filesystem('/dev/loop0')
     end
 
     it "should create ext4 filesystem on selected device with a label" do

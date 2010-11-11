@@ -21,7 +21,10 @@ require 'boxgrinder-build/helpers/guestfs-helper'
 
 module BoxGrinder
   class ImageHelper
-    def initialize(options = {})
+    def initialize(config, appliance_config, options = {})
+      @config                 = config
+      @appliance_config       = appliance_config
+
       @log          = options[:log] || Logger.new(STDOUT)
       @exec_helper  = options[:exec_helper] || ExecHelper.new(:log => @log)
     end
@@ -42,21 +45,15 @@ module BoxGrinder
         mounts[label] = loop_device
       end
 
-      @exec_helper.execute("mount #{mounts['/']} -t #{get_filesystem_type(mounts['/'])} #{mount_dir}")
+      @exec_helper.execute("mount #{mounts['/']} #{mount_dir}")
 
       mounts.reject { |key, value| key == '/' }.each do |mount_point, loop_device|
-        @exec_helper.execute("mount #{loop_device} -t #{get_filesystem_type(loop_device)} #{mount_dir}#{mount_point}")
+        @exec_helper.execute("mount #{loop_device} #{mount_dir}#{mount_point}")
       end
 
       @log.trace "Mounts:\n#{mounts}"
 
       mounts
-    end
-
-    def get_filesystem_type(device, default_type = 'ext3')
-      fs_type = @exec_helper.execute("df -T #{device} | tail -1 | awk '{print $2}'")
-      return default_type if fs_type.empty? or fs_type == '-'
-      fs_type
     end
 
     def umount_image(disk, mount_dir, mounts)
@@ -85,6 +82,8 @@ module BoxGrinder
 
       @exec_helper.execute("losetup #{loop_device} #{disk}")
       offsets     = @exec_helper.execute("parted #{loop_device} 'unit B print' | grep -e '^ [0-9]' | awk '{ print $2 }'").scan(/\d+/)
+      # wait one secont before freeing loop device
+      sleep 1
       @exec_helper.execute("losetup -d #{loop_device}")
 
       @log.trace "Offsets:\n#{offsets}"
@@ -99,10 +98,20 @@ module BoxGrinder
     end
 
     def create_filesystem(disk, options = {})
-      options = {:type => 'ext3', :label => '/'}.merge(options)
+      options = {
+          :type   => @appliance_config.hardware.partitions['/']['type'],
+          :label  => '/'
+      }.merge(options)
 
       @log.trace "Creating filesystem..."
-      @exec_helper.execute "mke2fs -T #{options[:type]} -L '#{options[:label]}' -F #{disk}"
+
+      case options[:type]
+        when 'ext3', 'ext4'
+          @exec_helper.execute "mke2fs -T #{options[:type]} -L '#{options[:label]}' -F #{disk}"
+        else
+          raise "Unsupported filesystem specified: #{options[:type]}"
+      end
+
       @log.trace "Filesystem created"
     end
 
