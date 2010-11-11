@@ -26,7 +26,7 @@ Echoe.new("boxgrinder-build") do |p|
   p.summary     = "A tool for creating appliances from simple plain text files for various virtual environments."
   p.url         = "http://www.jboss.org/boxgrinder"
   p.email       = "info@boxgrinder.org"
-  p.runtime_dependencies = ["commander ~>4.0.3", "boxgrinder-core ~>0.1.1"]
+  p.runtime_dependencies = ["commander ~>4.0.3", "boxgrinder-core ~>0.1.2"]
 end
 
 desc "Run all tests"
@@ -51,7 +51,7 @@ end
 topdir = "#{Dir.pwd}/pkg/rpmbuild"
 directory "#{topdir}/SOURCES"
 
-task 'gem:copy' => [:gem, 'rpm:topdir'] do
+task 'gem:copy' => [:clean, :manifest, :gem, 'rpm:topdir'] do
   Dir["**/pkg/*.gem"].each { |gem| FileUtils.cp(gem, "#{topdir}/SOURCES", :verbose => true) }
 end
 
