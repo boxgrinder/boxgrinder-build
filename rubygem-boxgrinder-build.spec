@@ -80,7 +80,7 @@ popd
 %{gemdir}/doc/%{gemname}-%{version}
 
 %changelog
-* Mon Nov 15 2010  <mgoldman@redhat.com> - 0.1.3-1
+* Mon Nov 15 2010  <mgoldman@redhat.com> - 0.6.4-1
 - Removed BuildRoot tag
 - Adjusted Requires and BuildRequires
 - Different approach for testing
