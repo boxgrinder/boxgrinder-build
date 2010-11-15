@@ -28,7 +28,7 @@ module BoxGrinder
 
       @appliance_config.stub!(:name).and_return('full')
       @appliance_config.stub!(:hardware).and_return(
-          OpenHash.new({
+          OpenCascade.new({
                            :partitions =>
                                {
                                    '/' => {'size' => 2, 'type' => 'ext4'},
@@ -122,7 +122,7 @@ module BoxGrinder
 
     it "should create ext4 filesystem on selected device" do
       @appliance_config.should_receive(:hardware).and_return(
-          OpenHash.new({
+          OpenCascade.new({
                            :partitions =>
                                {
                                    '/' => {'size' => 2, 'type' => 'ext3'},

@@ -5,24 +5,20 @@
 
 Summary: A tool for creating appliances from simple plain text files
 Name: rubygem-%{gemname}
-Version: 0.6.3
+Version: 0.6.4
 Release: 1%{?dist}
 Group: Development/Languages
 License: LGPLv3+
 URL: http://www.jboss.org/boxgrinder
 Source0: http://rubygems.org/gems/%{gemname}-%{version}.gem
-Buildroot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 Requires: ruby(abi) = %{rubyabi}
-Requires: rubygems >= 1.2
-Requires: ruby >= 0
-Requires: rubygem(commander) => 4.0.3
-Requires: rubygem(commander) < 4.1
-Requires: rubygem(boxgrinder-core) => 0.1.1
-Requires: rubygem(boxgrinder-core) < 0.2
+Requires: rubygem(commander)
+Requires: rubygem(boxgrinder-core)
 
-BuildRequires: rubygem(boxgrinder-core) => 0.1.1
-BuildRequires: rubygem(boxgrinder-core) < 0.2
+BuildRequires: rubygem(rake)
+BuildRequires: rubygem(rspec)
+BuildRequires: rubygem(boxgrinder-core)
 
 BuildArch: noarch
 Provides: rubygem(%{gemname}) = %{version}
@@ -45,22 +41,22 @@ Documentation for %{name}
 
 %install
 rm -rf %{buildroot}
-mkdir -p %{buildroot}%{gemdir}
-gem install --local --install-dir %{buildroot}%{gemdir} \
-            --force --rdoc %{SOURCE0}
+rm -rf %{_builddir}%{gemdir}
+
+mkdir -p %{_builddir}%{gemdir}
 mkdir -p %{buildroot}/%{_bindir}
-mv %{buildroot}%{gemdir}/bin/* %{buildroot}/%{_bindir}
-rmdir %{buildroot}%{gemdir}/bin
-find %{buildroot}%{geminstdir}/bin -type f | xargs chmod a+x
+mkdir -p %{buildroot}/%{gemdir}
+
+gem install --local --install-dir %{_builddir}%{gemdir} \
+            --force --rdoc %{SOURCE0}
+mv %{_builddir}%{gemdir}/bin/* %{buildroot}/%{_bindir}
+find %{_builddir}%{geminstdir}/bin -type f | xargs chmod a+x
+cp -r %{_builddir}%{gemdir}/* %{buildroot}/%{gemdir}
 
 %check
-pushd %{buildroot}/%{geminstdir}
+pushd %{_builddir}/%{geminstdir}
 rake spec
-rm -rf log
 popd
-
-%clean
-rm -rf %{buildroot}
 
 %files
 %defattr(-, root, root, -)
@@ -84,6 +80,12 @@ rm -rf %{buildroot}
 %{gemdir}/doc/%{gemname}-%{version}
 
 %changelog
+* Mon Nov 15 2010  <mgoldman@redhat.com> - 0.1.3-1
+- Removed BuildRoot tag
+- Adjusted Requires and BuildRequires
+- Different approach for testing
+- [BGBUILD-98] Use hashery gem
+
 * Tue Nov 09 2010  <mgoldman@redhat.com> - 0.6.3-1
 - [BGBUILD-94] Check if set_network call is avaialbe in libguestfs
 - Added 'check' section that executes tests

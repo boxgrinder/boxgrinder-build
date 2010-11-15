@@ -16,11 +16,12 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
+require 'rubygems'
 require 'boxgrinder-core/helpers/exec-helper'
 require 'boxgrinder-core/helpers/log-helper'
 require 'boxgrinder-build/helpers/image-helper'
 require 'ostruct'
-require 'openhash/openhash'
+require 'hashery/opencascade'
 require 'fileutils'
 require 'logger'
 
@@ -41,10 +42,10 @@ module BoxGrinder
       @previous_deliverables  = options[:previous_deliverables] || {}
       @plugin_config          = {}
 
-      @deliverables           = OpenHash.new
-      @supported_oses         = OpenHash.new
-      @target_deliverables    = OpenHash.new
-      @dir                    = OpenHash.new
+      @deliverables           = OpenCascade.new
+      @supported_oses         = OpenCascade.new
+      @target_deliverables    = OpenCascade.new
+      @dir                    = OpenCascade.new
 
       @dir.base               = "#{@appliance_config.path.build}/#{@plugin_info[:name]}-plugin"
       @dir.tmp                = "#{@dir.base}/tmp"
@@ -73,7 +74,7 @@ module BoxGrinder
     def register_supported_os(name, versions)
       raise "You can register supported operating system only after the plugin is initialized, please initialize the plugin using init method." if @initialized.nil?
 
-      @supported_oses[name] = OpenHash.new if @supported_oses[name].nil?
+      @supported_oses[name] = OpenCascade.new if @supported_oses[name].nil?
       @supported_oses[name] = versions
     end
 
