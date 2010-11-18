@@ -85,6 +85,7 @@ popd
 - Adjusted Requires and BuildRequires
 - Different approach for testing
 - [BGBUILD-98] Use hashery gem
+- [BGBUILD-99] Timeout exception is not catched on non-EC2 platfrom in GuestFSHelper
 
 * Tue Nov 09 2010  <mgoldman@redhat.com> - 0.6.3-1
 - [BGBUILD-94] Check if set_network call is avaialbe in libguestfs

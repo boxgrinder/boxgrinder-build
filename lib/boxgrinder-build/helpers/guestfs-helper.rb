@@ -95,7 +95,7 @@ module BoxGrinder
       begin
         open('http://169.254.169.254/1.0/meta-data/local-ipv4')
         ec2 = true
-      rescue
+      rescue Exception
         ec2 = false
       end
 

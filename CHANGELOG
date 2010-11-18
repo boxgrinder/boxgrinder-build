@@ -1,6 +1,7 @@
 v0.6.4
 
 * [BGBUILD-98] Use hashery gem
+* [BGBUILD-99] Timeout exception is not catched on non-EC2 platfrom in GuestFSHelper
 
 v0.6.3
 
