@@ -185,7 +185,7 @@ module BoxGrinder
       end
 
       it "should return false if timeout exception is thrown" do
-        @helper.should_receive(:open).with('http://169.254.169.254/1.0/meta-data/local-ipv4').and_raise(Timeout::Error.new)
+        @helper.should_receive(:open).with('http://169.254.169.254/1.0/meta-data/local-ipv4').and_raise(Timeout::Error.new('something'))
         @helper.should_receive(:`).with('cat /proc/cpuinfo | grep flags | grep vmx | wc -l').and_return("0")
         @helper.hw_virtualization_available?.should == false
       end
