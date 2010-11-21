@@ -15,11 +15,13 @@ Source0: http://rubygems.org/gems/%{gemname}-%{version}.gem
 Requires: ruby(abi) = %{rubyabi}
 Requires: rubygem(commander)
 Requires: rubygem(boxgrinder-core)
+Requires: ruby-libguestfs
 
 BuildRequires: rubygem(rake)
 BuildRequires: rubygem(rspec)
 BuildRequires: rubygem(boxgrinder-core)
 BuildRequires: rubygem(echoe)
+BuildRequires: ruby-libguestfs
 
 BuildArch: noarch
 Provides: rubygem(%{gemname}) = %{version}
