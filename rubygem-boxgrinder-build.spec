@@ -6,7 +6,7 @@
 Summary: A tool for creating appliances from simple plain text files
 Name: rubygem-%{gemname}
 Version: 0.6.4
-Release: 1%{?dist}
+Release: 2%{?dist}
 Group: Development/Languages
 License: LGPLv3+
 URL: http://www.jboss.org/boxgrinder
@@ -80,12 +80,14 @@ popd
 %{gemdir}/doc/%{gemname}-%{version}
 
 %changelog
+* Sat Nov 20 2010  <mgoldman@redhat.com> - 0.6.4-2
+- [BGBUILD-99] Timeout exception is not catched on non-EC2 platfrom in GuestFSHelper
+
 * Mon Nov 15 2010  <mgoldman@redhat.com> - 0.6.4-1
 - Removed BuildRoot tag
 - Adjusted Requires and BuildRequires
 - Different approach for testing
 - [BGBUILD-98] Use hashery gem
-- [BGBUILD-99] Timeout exception is not catched on non-EC2 platfrom in GuestFSHelper
 
 * Tue Nov 09 2010  <mgoldman@redhat.com> - 0.6.3-1
 - [BGBUILD-94] Check if set_network call is avaialbe in libguestfs
