@@ -19,6 +19,7 @@ Requires: rubygem(boxgrinder-core)
 BuildRequires: rubygem(rake)
 BuildRequires: rubygem(rspec)
 BuildRequires: rubygem(boxgrinder-core)
+BuildRequires: rubygem(echoe)
 
 BuildArch: noarch
 Provides: rubygem(%{gemname}) = %{version}
