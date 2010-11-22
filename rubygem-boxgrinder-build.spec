@@ -88,6 +88,7 @@ popd
 * Mon Nov 22 2010  <mgoldman@redhat.com> - 0.6.4-3
 - Added Require: parted and e2fsprogs
 - [BGBUILD-92] Enable --trace switch by default
+- [BGBUILD-91] Log exceptions to log file
 
 * Sat Nov 20 2010  <mgoldman@redhat.com> - 0.6.4-2
 - [BGBUILD-99] Timeout exception is not catched on non-EC2 platfrom in GuestFSHelper

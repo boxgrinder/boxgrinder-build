@@ -3,6 +3,7 @@ v0.6.4
 * [BGBUILD-98] Use hashery gem
 * [BGBUILD-99] Timeout exception is not catched on non-EC2 platfrom in GuestFSHelper
 * [BGBUILD-92] Enable --trace switch by default
+* [BGBUILD-91] Log exceptions to log file
 
 v0.6.3
 
@@ -19,7 +20,7 @@ v0.6.1
 v0.6.0
 
 * [BGBUILD-52] Wrong post section inheritance
-* [BGBUILD-46] Allow building 32 bit images on 64 bit arch
+* [BGBUILD-46] Allow building 32 bit image  s on 64 bit arch
 
 v0.5.1
 
