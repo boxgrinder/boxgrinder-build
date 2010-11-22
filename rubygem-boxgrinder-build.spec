@@ -6,7 +6,7 @@
 Summary: A tool for creating appliances from simple plain text files
 Name: rubygem-%{gemname}
 Version: 0.6.4
-Release: 2%{?dist}
+Release: 3%{?dist}
 Group: Development/Languages
 License: LGPLv3+
 URL: http://www.jboss.org/boxgrinder
@@ -16,6 +16,8 @@ Requires: ruby(abi) = %{rubyabi}
 Requires: rubygem(commander)
 Requires: rubygem(boxgrinder-core)
 Requires: ruby-libguestfs
+Requires: parted
+Requires: e2fsprogs
 
 BuildRequires: rubygem(rake)
 BuildRequires: rubygem(rspec)
@@ -83,6 +85,10 @@ popd
 %{gemdir}/doc/%{gemname}-%{version}
 
 %changelog
+* Mon Nov 22 2010  <mgoldman@redhat.com> - 0.6.4-3
+- Added Require: parted and e2fsprogs
+- [BGBUILD-92] Enable --trace switch by default
+
 * Sat Nov 20 2010  <mgoldman@redhat.com> - 0.6.4-2
 - [BGBUILD-99] Timeout exception is not catched on non-EC2 platfrom in GuestFSHelper
 

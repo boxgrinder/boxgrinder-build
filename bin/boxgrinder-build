@@ -30,8 +30,23 @@ end
 
 require 'commander/import'
 
+module Commander
+  class Runner
+    def run!
+      require_program :version, :description
+      trap('INT') { abort program(:int_message) } if program(:int_message)
+      trap('INT') { program(:int_block).call } if program(:int_block)
+      global_option('-h', '--help', 'Display help documentation') { command(:help).run *@args[1..-1]; return }
+      global_option('-v', '--version', 'Display version information') { say version; return }
+      parse_global_options
+      remove_global_options options, @args
+      run_active_command
+    end
+  end
+end
+
 program :name, 'BoxGrinder Build'
-program :version, '0.6.3'
+program :version, '0.6.4'
 program :description, "A tool for building VM images from simple definition files."
 program :help, 'Homepage', 'http://www.jboss.org/boxgrinder/build.html'
 program :help, 'Documentation', 'http://community.jboss.org/docs/DOC-14358'
@@ -40,8 +55,8 @@ default_command :build
 
 $log_level = :info
 
-global_option('-V', '--verbose', TrueClass, "Prints debug information while building. Default: false.") { $log_level = :debug}
-global_option('-W', '--very-verbose', TrueClass, "Prints trace information while building. Default: false.") { $log_level = :trace}
+global_option('-V', '--verbose', TrueClass, "Prints debug information while building. Default: false.") { $log_level = :debug }
+global_option('-W', '--very-verbose', TrueClass, "Prints trace information while building. Default: false.") { $log_level = :trace }
 
 module BoxGrinder
   command :build do |c|
@@ -49,27 +64,28 @@ module BoxGrinder
     c.description = 'Creates an image from selected appliance definition for selected platform.'
     c.examples    = "boxgrinder-build test.appl -p vmware\nboxgrinder-build test.appl -p ec2 -d ami\nboxgrinder-build test.appl -d sftp"
 
+    force = false
+
     c.option '-p STRING', '--platform STRING', String, "The type of platform. Default: none." # Valid types are: #{PlatformPluginManager.instance.plugins.keys.join(', ')}. Default: none."
     c.option '-d STRING', '--delivery STRING', String, "The delivery type for selected image. Default: none." # Valid types are: #{DeliveryPluginManager.instance.types.keys.join(', ')}. Default: none."
-    c.option '-f STRING', '--force', TrueClass, "Force image creation - removes all previous builds for selected appliance. Default: false."
+    c.option('-f', '--force', "Force image creation - removes all previous builds for selected appliance.") { force = true }
     c.option '-l STRING', '--plugins STRING', String, "Comma separated list of plugins. Default: default plugins will be available."
 
     c.action do |args, options|
       options.default :platform => :none
       options.default :delivery => :none
-      options.default :force    => false
 
+      options.force     = force
       options.name      = program(:name)
       options.version   = program(:version)
-
       options.platform  = options.platform.to_s.downcase.to_sym
       options.delivery  = options.delivery.to_s.downcase.to_sym
 
       appliance_definition_file = args.shift or raise("You need to specify appliance definition file. Run 'boxgrinder-build -h' for more info")
 
-      raise "Appliance definition file '#{appliance_definition_file}' could not be found" unless File.exists?( appliance_definition_file )
+      raise "Appliance definition file '#{appliance_definition_file}' could not be found" unless File.exists?(appliance_definition_file)
 
-      Appliance.new( appliance_definition_file, :options => options, :log => LogHelper.new( :threshold => $log_level ) ).create
+      Appliance.new(appliance_definition_file, :options => options, :log => LogHelper.new(:threshold => $log_level)).create
     end
   end
 end
