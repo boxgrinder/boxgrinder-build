@@ -104,6 +104,7 @@ module BoxGrinder
       @exec_helper.should_receive(:execute).ordered.with('losetup /dev/loop0 disk.raw')
       @exec_helper.should_receive(:execute).ordered.with("parted /dev/loop0 'unit B print' | grep -e '^ [0-9]' | awk '{ print $2 }'").and_return("0B\n1234B\n")
       @exec_helper.should_receive(:execute).ordered.with('losetup -d /dev/loop0')
+      @helper.should_receive(:sleep).with(1)
 
       @helper.calculate_disk_offsets('disk.raw').should == ["0", "1234"]
     end
