@@ -86,18 +86,21 @@ popd
 
 %changelog
 * Mon Nov 22 2010  <mgoldman@redhat.com> - 0.6.4-3
+- Changelog rewritten
 - Added Require: parted and e2fsprogs
-- [BGBUILD-92] Enable --trace switch by default
-- [BGBUILD-91] Log exceptions to log file
 
 * Sat Nov 20 2010  <mgoldman@redhat.com> - 0.6.4-2
-- [BGBUILD-99] Timeout exception is not catched on non-EC2 platfrom in GuestFSHelper
+- Small set of spec file adjustments
 
 * Mon Nov 15 2010  <mgoldman@redhat.com> - 0.6.4-1
+- Updated to new upstream release: 0.6.4
 - Removed BuildRoot tag
 - Adjusted Requires and BuildRequires
 - Different approach for testing
 - [BGBUILD-98] Use hashery gem
+- [BGBUILD-99] Timeout exception is not catched on non-EC2 platfrom in GuestFSHelper
+- [BGBUILD-92] Enable --trace switch by default
+- [BGBUILD-91] Log exceptions to log file
 
 * Tue Nov 09 2010  <mgoldman@redhat.com> - 0.6.3-1
 - [BGBUILD-94] Check if set_network call is avaialbe in libguestfs
