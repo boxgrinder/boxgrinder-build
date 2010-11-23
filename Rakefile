@@ -50,10 +50,10 @@ Spec::Rake::SpecTask.new('spec:coverage') do |t|
 end
 
 desc "Create RPM"
-task :rpm, :target, :version, :arch, :needs => ['gem'] do |t, args|
-  target  = args[:target]   || 'fedora'
-  version = args[:version]  || 'rawhide'
-  arch    = args[:arch]     || RbConfig::CONFIG['host_cpu']
+task :rpm, :target, :version, :arch, :needs => ['clean', 'gem'] do |t, args|
+  target  = args[:target] || 'fedora'
+  version = args[:version] || 'rawhide'
+  arch    = args[:arch] || RbConfig::CONFIG['host_cpu']
 
   Dir["**/rubygem-*.spec"].each do |spec|
     `mock -v -r #{target}-#{version}-#{arch} --buildsrpm --sources pkg/*.gem --spec #{spec} --resultdir pkg/`
@@ -61,4 +61,11 @@ task :rpm, :target, :version, :arch, :needs => ['gem'] do |t, args|
     `mock -v -r #{target}-#{version}-#{arch} --rebuild pkg/*.rpm --resultdir pkg/`
     exit 1 unless $? == 0
   end
+end
+
+desc "Install RPM"
+task 'rpm:install' => [:rpm] do
+  system "sudo yum -y remove rubygem-boxgrinder-build"
+  system "sudo yum -y localinstall --nogpgcheck pkg/*.rpm"
+  exit 1 unless $? == 0
 end
