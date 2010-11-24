@@ -19,7 +19,6 @@
 require 'rubygems'
 require 'spec/rake/spectask'
 require 'echoe'
-require 'rbconfig'
 
 Echoe.new("boxgrinder-build") do |p|
   p.project     = "BoxGrinder Build"
@@ -47,25 +46,4 @@ Spec::Rake::SpecTask.new('spec:coverage') do |t|
   t.rcov = true
   t.rcov_opts = ['--exclude', 'spec,teamcity/*,/usr/lib/ruby/,.gem/ruby,/boxgrinder-core/,/gems/']
   t.verbose = true
-end
-
-desc "Create RPM"
-task :rpm, :target, :version, :arch, :needs => ['clean', 'gem'] do |t, args|
-  target  = args[:target] || 'fedora'
-  version = args[:version] || 'rawhide'
-  arch    = args[:arch] || RbConfig::CONFIG['host_cpu']
-
-  Dir["**/rubygem-*.spec"].each do |spec|
-    `mock -v -r #{target}-#{version}-#{arch} --buildsrpm --sources pkg/*.gem --spec #{spec} --resultdir pkg/`
-    exit 1 unless $? == 0
-    `mock -v -r #{target}-#{version}-#{arch} --rebuild pkg/*.rpm --resultdir pkg/`
-    exit 1 unless $? == 0
-  end
-end
-
-desc "Install RPM"
-task 'rpm:install' => [:rpm] do
-  system "sudo yum -y remove rubygem-boxgrinder-build"
-  system "sudo yum -y localinstall --nogpgcheck pkg/*.rpm"
-  exit 1 unless $? == 0
 end
