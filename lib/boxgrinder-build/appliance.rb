@@ -28,23 +28,32 @@ module BoxGrinder
   class Appliance
 
     def initialize(appliance_definition_file, options = {})
-      @config                     = Config.new
-      @appliance_definition_file  = appliance_definition_file
-      @log                        = options[:log] || Logger.new(STDOUT)
-      @options                    = options[:options]
+      @config = Config.new
+      @appliance_definition_file = appliance_definition_file
+      @log = options[:log] || Logger.new(STDOUT)
+      @options = options[:options]
 
-      @config.name            = @options.name
+      @config.name = @options.name
       @config.version.version = @options.version
       @config.version.release = nil
     end
 
-    def read_and_validate_definition
+    def read_definition
       appliance_configs, appliance_config = ApplianceHelper.new(:log => @log).read_definitions(@appliance_definition_file)
-      appliance_config_helper             = ApplianceConfigHelper.new(appliance_configs)
+      appliance_config_helper = ApplianceConfigHelper.new(appliance_configs)
 
       @appliance_config = appliance_config_helper.merge(appliance_config.clone.init_arch).initialize_paths
+    end
 
+    def validate_definition
       ApplianceConfigValidator.new(@appliance_config).validate
+
+      raise "No operating system plugins installed. Install one or more operating system plugin. See http://community.jboss.org/docs/DOC-15081 and http://community.jboss.org/docs/DOC-15214 for more info" if PluginManager.instance.plugins[:os].empty?
+
+      os_plugin = PluginManager.instance.plugins[:os][@appliance_config.os.name.to_sym]
+
+      raise ApplianceValidationError, "Not supported operating system selected: #{@appliance_config.os.name}. Make sure you have installed right operating system plugin, see http://community.jboss.org/docs/DOC-15214. Supported OSes are: #{PluginManager.instance.plugins[:os].keys.join(", ")}" if os_plugin.nil?
+      raise ApplianceValidationError, "Not supported operating system version selected: #{@appliance_config.os.version}. Supported versions are: #{os_plugin[:versions].join(", ")}" unless @appliance_config.os.version.nil? or os_plugin[:versions].include?(@appliance_config.os.version)
     end
 
     def remove_old_builds
@@ -56,8 +65,8 @@ module BoxGrinder
     def execute_plugin_chain
       @log.info "Building '#{@appliance_config.name}' appliance for #{@appliance_config.hardware.arch} architecture."
 
-      base_plugin_output       = execute_os_plugin
-      platform_plugin_output   = execute_platform_plugin(base_plugin_output)
+      base_plugin_output = execute_os_plugin
+      platform_plugin_output = execute_platform_plugin(base_plugin_output)
 
       execute_delivery_plugin(platform_plugin_output)
     end
@@ -65,7 +74,8 @@ module BoxGrinder
     def create
       begin
         PluginHelper.new(:options => @options, :log => @log).load_plugins
-        read_and_validate_definition
+        read_definition
+        validate_definition
         remove_old_builds if @options.force
         execute_plugin_chain
       rescue

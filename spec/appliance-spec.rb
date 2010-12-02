@@ -18,15 +18,14 @@
 
 require 'rubygems'
 require 'boxgrinder-build/appliance'
-#require 'rspec/rspec-config-helper'
 require 'ostruct'
 require 'logger'
 
 module BoxGrinder
   describe Appliance do
     def prepare_appliance(options = OpenStruct.new)
-      options.name      = 'boxgrinder'
-      options.version   = '1.0'
+      options.name = 'boxgrinder'
+      options.version = '1.0'
 
       @options = options
       @log = Logger.new('/dev/null')
@@ -50,16 +49,16 @@ module BoxGrinder
 
       @appliance_config.stub!(:hardware).and_return(
           OpenCascade.new({
-                           :partitions =>
-                               {
-                                   '/' => {'size' => 2},
-                                   '/home' => {'size' => 3},
-                               },
-                           :arch => 'i686',
-                           :base_arch => 'i386',
-                           :cpus => 1,
-                           :memory => 256,
-                       })
+                              :partitions =>
+                                  {
+                                      '/' => {'size' => 2},
+                                      '/home' => {'size' => 3},
+                                  },
+                              :arch => 'i686',
+                              :base_arch => 'i386',
+                              :cpus => 1,
+                              :memory => 256,
+                          })
       )
 
       @appliance_config
@@ -77,7 +76,8 @@ module BoxGrinder
 
       PluginHelper.should_receive(:new).with(:options => @options, :log => @log).and_return(plugin_helper)
 
-      @appliance.should_receive(:read_and_validate_definition)
+      @appliance.should_receive(:read_definition)
+      @appliance.should_receive(:validate_definition)
       @appliance.should_not_receive(:remove_old_builds)
       @appliance.should_receive(:execute_plugin_chain)
 
@@ -92,14 +92,15 @@ module BoxGrinder
 
       PluginHelper.should_receive(:new).with(:options => @options, :log => @log).and_return(plugin_helper)
 
-      @appliance.should_receive(:read_and_validate_definition)
+      @appliance.should_receive(:read_definition)
+      @appliance.should_receive(:validate_definition)
       @appliance.should_receive(:remove_old_builds)
       @appliance.should_receive(:execute_plugin_chain)
 
       @appliance.create
     end
 
-    it "should read and validate definition" do
+    it "should read definition" do
       prepare_appliance
 
       appliance_config = ApplianceConfig.new
@@ -119,12 +120,98 @@ module BoxGrinder
 
       ApplianceConfigHelper.should_receive(:new).with({}).and_return(appliance_config_helper)
 
-      appliance_config_validator = mock(ApplianceConfigValidator)
-      appliance_config_validator.should_receive(:validate)
+      @appliance.read_definition
+    end
 
-      ApplianceConfigValidator.should_receive(:new).with(appliance_config).and_return(appliance_config_validator)
+    describe ".validate_definition" do
+      it "should validate definition and pass" do
+        prepare_appliance
+        @appliance.instance_variable_set(:@appliance_config, prepare_appliance_config)
 
-      @appliance.read_and_validate_definition
+        appliance_config_validator = mock(ApplianceConfigValidator)
+        appliance_config_validator.should_receive(:validate)
+
+        ApplianceConfigValidator.should_receive(:new).with(@appliance_config).and_return(appliance_config_validator)
+
+        puts @appliance_config
+
+        plugin_manager = mock(PluginManager)
+        plugin_manager.stub!(:plugins).and_return({:os => {:fedora => {:type => :os, :name => :fedora, :full_name => "Fedora", :versions => ["11", "12", "13", "14", "rawhide"]}}})
+
+        PluginManager.stub!(:instance).and_return(plugin_manager)
+
+        @appliance.validate_definition
+      end
+
+      it "should validate definition and fail because no operating system plugins are installed" do
+        prepare_appliance
+        @appliance.instance_variable_set(:@appliance_config, prepare_appliance_config)
+
+        appliance_config_validator = mock(ApplianceConfigValidator)
+        appliance_config_validator.should_receive(:validate)
+
+        ApplianceConfigValidator.should_receive(:new).with(@appliance_config).and_return(appliance_config_validator)
+
+        plugin_manager = mock(PluginManager)
+        plugin_manager.stub!(:plugins).and_return({:os => {}})
+
+        PluginManager.stub!(:instance).and_return(plugin_manager)
+
+        begin
+          @appliance.validate_definition
+          raise "Shouldn't raise"
+        rescue => e
+          e.message.should == "No operating system plugins installed. Install one or more operating system plugin. See http://community.jboss.org/docs/DOC-15081 and http://community.jboss.org/docs/DOC-15214 for more info"
+        end
+      end
+
+      it "should validate definition and fail because no supported operating system plugins is installed" do
+        prepare_appliance
+        @appliance.instance_variable_set(:@appliance_config, prepare_appliance_config)
+
+        appliance_config_validator = mock(ApplianceConfigValidator)
+        appliance_config_validator.should_receive(:validate)
+
+        ApplianceConfigValidator.should_receive(:new).with(@appliance_config).and_return(appliance_config_validator)
+
+        puts @appliance_config
+
+        plugin_manager = mock(PluginManager)
+        plugin_manager.stub!(:plugins).and_return({:os => {:rhel => {}}})
+
+        PluginManager.stub!(:instance).and_return(plugin_manager)
+
+        begin
+          @appliance.validate_definition
+          raise "Shouldn't raise"
+        rescue => e
+          e.message.should == "Not supported operating system selected: fedora. Make sure you have installed right operating system plugin, see http://community.jboss.org/docs/DOC-15214. Supported OSes are: rhel"
+        end
+      end
+
+      it "should validate definition and fail because no supported operating system version plugins is installed" do
+        prepare_appliance
+        @appliance.instance_variable_set(:@appliance_config, prepare_appliance_config)
+
+        appliance_config_validator = mock(ApplianceConfigValidator)
+        appliance_config_validator.should_receive(:validate)
+
+        ApplianceConfigValidator.should_receive(:new).with(@appliance_config).and_return(appliance_config_validator)
+
+        puts @appliance_config
+
+        plugin_manager = mock(PluginManager)
+        plugin_manager.stub!(:plugins).and_return({:os => {:fedora => {:type => :os, :name => :fedora, :full_name => "Fedora", :versions => ["xyz"]}}})
+
+        PluginManager.stub!(:instance).and_return(plugin_manager)
+
+        begin
+          @appliance.validate_definition
+          raise "Shouldn't raise"
+        rescue => e
+          e.message.should == "Not supported operating system version selected: 11. Supported versions are: xyz"
+        end
+      end
     end
 
     it "should remove old builds" do
@@ -147,7 +234,7 @@ module BoxGrinder
       os_plugin.should_receive(:deliverables).and_return({:disk => 'abc'})
 
       @plugin_manager.should_receive(:plugins).and_return({:os => "something"})
-      @plugin_manager.should_receive(:initialize_plugin).once.with(:os, :fedora).and_return([os_plugin, {:class => Appliance, :type => :os, :name => :fedora, :full_name  => "Fedora", :versions   => ["11", "12", "13", "rawhide"]}])
+      @plugin_manager.should_receive(:initialize_plugin).once.with(:os, :fedora).and_return([os_plugin, {:class => Appliance, :type => :os, :name => :fedora, :full_name => "Fedora", :versions => ["11", "12", "13", "rawhide"]}])
 
       @appliance.execute_plugin_chain
     end
@@ -164,7 +251,7 @@ module BoxGrinder
       os_plugin.should_receive(:deliverables).and_return({:disk => 'abc'})
 
       @plugin_manager.should_receive(:plugins).and_return({:os => "something"})
-      @plugin_manager.should_receive(:initialize_plugin).once.with(:os, :fedora).and_return([os_plugin, {:class => Appliance, :type => :os, :name => :fedora, :full_name  => "Fedora", :versions   => ["11", "12", "13", "rawhide"]}])
+      @plugin_manager.should_receive(:initialize_plugin).once.with(:os, :fedora).and_return([os_plugin, {:class => Appliance, :type => :os, :name => :fedora, :full_name => "Fedora", :versions => ["11", "12", "13", "rawhide"]}])
 
       @appliance.execute_plugin_chain
     end
@@ -182,7 +269,7 @@ module BoxGrinder
       platform_plugin.should_receive(:deliverables).and_return({:disk => 'abc'})
 
       @plugin_manager.should_receive(:plugins).and_return({:platform => "something"})
-      @plugin_manager.should_receive(:initialize_plugin).once.with(:platform, :vmware).and_return([platform_plugin, {:class => Appliance, :type => :platform, :name => :vmware, :full_name  => "VMware"}])
+      @plugin_manager.should_receive(:initialize_plugin).once.with(:platform, :vmware).and_return([platform_plugin, {:class => Appliance, :type => :platform, :name => :vmware, :full_name => "VMware"}])
 
       @appliance.execute_plugin_chain
     end
@@ -200,7 +287,7 @@ module BoxGrinder
       platform_plugin.should_receive(:deliverables).and_return({:disk => 'abc'})
 
       @plugin_manager.should_receive(:plugins).and_return({:platform => "something"})
-      @plugin_manager.should_receive(:initialize_plugin).once.with(:platform, :vmware).and_return([platform_plugin, {:class => Appliance, :type => :platform, :name => :vmware, :full_name  => "VMware"}])
+      @plugin_manager.should_receive(:initialize_plugin).once.with(:platform, :vmware).and_return([platform_plugin, {:class => Appliance, :type => :platform, :name => :vmware, :full_name => "VMware"}])
 
       @appliance.execute_plugin_chain
     end
@@ -217,7 +304,7 @@ module BoxGrinder
       delivery_plugin.should_receive(:run).with(:ami)
 
       @plugin_manager.should_receive(:plugins).and_return({:delivery => "something"})
-      @plugin_manager.should_receive(:initialize_plugin).with(:delivery, :ami).and_return([delivery_plugin, {:class => Appliance, :type => :delivery, :name => :s3, :full_name  => "Amazon Simple Storage Service (Amazon S3)", :types => [:s3, :cloudfront, :ami]}])
+      @plugin_manager.should_receive(:initialize_plugin).with(:delivery, :ami).and_return([delivery_plugin, {:class => Appliance, :type => :delivery, :name => :s3, :full_name => "Amazon Simple Storage Service (Amazon S3)", :types => [:s3, :cloudfront, :ami]}])
 
       @appliance.execute_plugin_chain
     end
@@ -234,7 +321,7 @@ module BoxGrinder
       delivery_plugin.should_receive(:run).with(:same)
 
       @plugin_manager.should_receive(:plugins).and_return({:delivery => "something"})
-      @plugin_manager.should_receive(:initialize_plugin).with(:delivery, :same).and_return([delivery_plugin, {:class => Appliance, :type => :delivery, :name => :same, :full_name  => "A plugin"}])
+      @plugin_manager.should_receive(:initialize_plugin).with(:delivery, :same).and_return([delivery_plugin, {:class => Appliance, :type => :delivery, :name => :same, :full_name => "A plugin"}])
 
       @appliance.execute_plugin_chain
     end

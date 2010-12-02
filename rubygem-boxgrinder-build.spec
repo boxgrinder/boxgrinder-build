@@ -5,8 +5,8 @@
 
 Summary: A tool for creating appliances from simple plain text files
 Name: rubygem-%{gemname}
-Version: 0.6.4
-Release: 3%{?dist}
+Version: 0.6.5
+Release: 1%{?dist}
 Group: Development/Languages
 License: LGPLv3+
 URL: http://www.jboss.org/boxgrinder
@@ -85,6 +85,9 @@ popd
 %{gemdir}/doc/%{gemname}-%{version}
 
 %changelog
+* Thu Dec 02 2010  <mgoldman@redhat.com> - 0.6.5-1
+- Updated to new upstream release: 0.6.5
+
 * Mon Nov 22 2010  <mgoldman@redhat.com> - 0.6.4-3
 - Changelog rewritten
 - Added Require: parted and e2fsprogs
