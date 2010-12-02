@@ -16,9 +16,8 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require 'boxgrinder-core/validators/errors'
 require 'boxgrinder-build/helpers/guestfs-helper'
-require 'tempfile'
+require 'boxgrinder-core/helpers/exec-helper'
 require 'logger'
 
 module BoxGrinder
