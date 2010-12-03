@@ -1,5 +1,7 @@
 v0.6.5
 
+* Release bump required for plugins
+
 v0.6.4
 
 * [BGBUILD-98] Use hashery gem
