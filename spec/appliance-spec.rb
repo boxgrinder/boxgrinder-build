@@ -23,18 +23,18 @@ require 'logger'
 
 module BoxGrinder
   describe Appliance do
-    def prepare_appliance(options = OpenStruct.new)
-      options.name = 'boxgrinder'
+    def prepare_appliance(options = OpenStruct.new, definition_file = "#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.appl")
+      options.name    = 'boxgrinder'
       options.version = '1.0'
 
-      @options = options
-      @log = Logger.new('/dev/null')
+      @options        = options
+      @log            = Logger.new('/dev/null')
 
       @plugin_manager = mock(PluginManager)
 
       PluginManager.stub!(:instance).and_return(@plugin_manager)
 
-      @appliance = Appliance.new("#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.appl", :log => @log, :options => @options)
+      @appliance = Appliance.new(definition_file, :log => @log, :options => @options)
     end
 
     def prepare_appliance_config
@@ -51,13 +51,13 @@ module BoxGrinder
           OpenCascade.new({
                               :partitions =>
                                   {
-                                      '/' => {'size' => 2},
+                                      '/'     => {'size' => 2},
                                       '/home' => {'size' => 3},
                                   },
-                              :arch => 'i686',
-                              :base_arch => 'i386',
-                              :cpus => 1,
-                              :memory => 256,
+                              :arch       => 'i686',
+                              :base_arch  => 'i386',
+                              :cpus       => 1,
+                              :memory     => 256,
                           })
       )
 
@@ -100,27 +100,84 @@ module BoxGrinder
       @appliance.create
     end
 
-    it "should read definition" do
-      prepare_appliance
+    describe ".validate_definition" do
+      it "should read definition with standard appliance definition file" do
+        prepare_appliance
 
-      appliance_config = ApplianceConfig.new
+        appliance_config = ApplianceConfig.new
 
-      appliance_helper = mock(ApplianceHelper)
-      appliance_helper.should_receive(:read_definitions).with("#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.appl").and_return([{}, appliance_config])
+        appliance_helper = mock(ApplianceHelper)
+        appliance_helper.should_receive(:read_definitions).with("#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.appl").and_return([{}, appliance_config])
 
-      ApplianceHelper.should_receive(:new).with(:log => @log).and_return(appliance_helper)
+        ApplianceHelper.should_receive(:new).with(:log => @log).and_return(appliance_helper)
 
-      appliance_config_helper = mock(ApplianceConfigHelper)
+        appliance_config_helper = mock(ApplianceConfigHelper)
 
-      appliance_config.should_receive(:clone).and_return(appliance_config)
-      appliance_config.should_receive(:init_arch).and_return(appliance_config)
-      appliance_config.should_receive(:initialize_paths).and_return(appliance_config)
+        appliance_config.should_receive(:clone).and_return(appliance_config)
+        appliance_config.should_receive(:init_arch).and_return(appliance_config)
+        appliance_config.should_receive(:initialize_paths).and_return(appliance_config)
 
-      appliance_config_helper.should_receive(:merge).with(appliance_config).and_return(appliance_config)
+        appliance_config_helper.should_receive(:merge).with(appliance_config).and_return(appliance_config)
 
-      ApplianceConfigHelper.should_receive(:new).with({}).and_return(appliance_config_helper)
+        ApplianceConfigHelper.should_receive(:new).with({}).and_return(appliance_config_helper)
 
-      @appliance.read_definition
+        @appliance.read_definition
+      end
+
+      it "should read definition with kickstart appliance definition file" do
+        prepare_appliance(OpenStruct.new, "#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.ks")
+
+        appliance_config = ApplianceConfig.new
+
+        appliance_helper = mock(ApplianceHelper)
+        appliance_helper.should_receive(:read_definitions).with("#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.ks").and_raise("Unknown format")
+
+        clazz          = mock('PluginClass')
+
+        plugin_manager = mock(PluginManager)
+        plugin_manager.should_receive(:plugins).and_return({:os => {:fedora => {:class => clazz, :type => :os, :name => :fedora, :full_name => "Fedora", :versions => ["11", "12", "13", "14", "rawhide"]}}})
+
+        plugin = mock('Plugin')
+        plugin.should_receive(:respond_to?).with(:read_file).and_return(true)
+        plugin.should_receive(:read_file).and_return(appliance_config)
+
+        clazz.should_receive(:new).and_return(plugin)
+
+        PluginManager.should_receive(:instance).and_return(plugin_manager)
+
+        ApplianceHelper.should_receive(:new).with(:log => @log).and_return(appliance_helper)
+
+        appliance_config_helper = mock(ApplianceConfigHelper)
+
+        appliance_config.should_receive(:clone).and_return(appliance_config)
+        appliance_config.should_receive(:init_arch).and_return(appliance_config)
+        appliance_config.should_receive(:initialize_paths).and_return(appliance_config)
+
+        appliance_config_helper.should_receive(:merge).with(appliance_config).and_return(appliance_config)
+
+        ApplianceConfigHelper.should_receive(:new).with([appliance_config]).and_return(appliance_config_helper)
+
+        @appliance.read_definition
+      end
+
+      it "should read definition with kickstart appliance definition file and fail because there was no plugin able to read .ks" do
+        prepare_appliance(OpenStruct.new, "#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.ks")
+
+        appliance_helper = mock(ApplianceHelper)
+        appliance_helper.should_receive(:read_definitions).with("#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.ks").and_raise("Unknown format")
+
+        plugin_manager = mock(PluginManager)
+        plugin_manager.should_receive(:plugins).and_return({:os => {}})
+
+
+        PluginManager.should_receive(:instance).and_return(plugin_manager)
+
+        ApplianceHelper.should_receive(:new).with(:log => @log).and_return(appliance_helper)
+
+        lambda {
+          @appliance.read_definition
+        }.should raise_error("Couldn't read appliance definition file: jeos-f13.ks")
+      end
     end
 
     describe ".validate_definition" do
@@ -132,8 +189,6 @@ module BoxGrinder
         appliance_config_validator.should_receive(:validate)
 
         ApplianceConfigValidator.should_receive(:new).with(@appliance_config).and_return(appliance_config_validator)
-
-        puts @appliance_config
 
         plugin_manager = mock(PluginManager)
         plugin_manager.stub!(:plugins).and_return({:os => {:fedora => {:type => :os, :name => :fedora, :full_name => "Fedora", :versions => ["11", "12", "13", "14", "rawhide"]}}})
@@ -157,12 +212,9 @@ module BoxGrinder
 
         PluginManager.stub!(:instance).and_return(plugin_manager)
 
-        begin
+        lambda {
           @appliance.validate_definition
-          raise "Shouldn't raise"
-        rescue => e
-          e.message.should == "No operating system plugins installed. Install one or more operating system plugin. See http://community.jboss.org/docs/DOC-15081 and http://community.jboss.org/docs/DOC-15214 for more info"
-        end
+        }.should raise_error(SystemExit, "No operating system plugins installed. Install one or more operating system plugin. See http://community.jboss.org/docs/DOC-15081 and http://community.jboss.org/docs/DOC-15214 for more info")
       end
 
       it "should validate definition and fail because no supported operating system plugins is installed" do
@@ -174,19 +226,14 @@ module BoxGrinder
 
         ApplianceConfigValidator.should_receive(:new).with(@appliance_config).and_return(appliance_config_validator)
 
-        puts @appliance_config
-
         plugin_manager = mock(PluginManager)
         plugin_manager.stub!(:plugins).and_return({:os => {:rhel => {}}})
 
         PluginManager.stub!(:instance).and_return(plugin_manager)
 
-        begin
+        lambda {
           @appliance.validate_definition
-          raise "Shouldn't raise"
-        rescue => e
-          e.message.should == "Not supported operating system selected: fedora. Make sure you have installed right operating system plugin, see http://community.jboss.org/docs/DOC-15214. Supported OSes are: rhel"
-        end
+        }.should raise_error(SystemExit, "Not supported operating system selected: fedora. Make sure you have installed right operating system plugin, see http://community.jboss.org/docs/DOC-15214. Supported OSes are: rhel")
       end
 
       it "should validate definition and fail because no supported operating system version plugins is installed" do
@@ -198,19 +245,14 @@ module BoxGrinder
 
         ApplianceConfigValidator.should_receive(:new).with(@appliance_config).and_return(appliance_config_validator)
 
-        puts @appliance_config
-
         plugin_manager = mock(PluginManager)
         plugin_manager.stub!(:plugins).and_return({:os => {:fedora => {:type => :os, :name => :fedora, :full_name => "Fedora", :versions => ["xyz"]}}})
 
         PluginManager.stub!(:instance).and_return(plugin_manager)
 
-        begin
+        lambda {
           @appliance.validate_definition
-          raise "Shouldn't raise"
-        rescue => e
-          e.message.should == "Not supported operating system version selected: 11. Supported versions are: xyz"
-        end
+        }.should raise_error(SystemExit, "Not supported operating system version selected: 11. Supported versions are: xyz")
       end
     end
 

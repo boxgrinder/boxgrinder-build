@@ -27,7 +27,7 @@ module BoxGrinder
     end
 
     before(:each) do
-      @plugin_helper = PluginHelper.new( :options => OpenStruct.new )
+      @plugin_helper = PluginHelper.new(:options => OpenStruct.new)
     end
 
     it "should parse plugin list and return empty array when no plugins are provided" do
@@ -35,23 +35,22 @@ module BoxGrinder
     end
 
     it "should parse plugin list with double quotes" do
-      @plugin_helper = PluginHelper.new( :options => OpenStruct.new( :plugins => '"abc,def"' ) )
+      @plugin_helper = PluginHelper.new(:options => OpenStruct.new(:plugins => '"abc,def"'))
       @plugin_helper.parse_plugin_list.should == ['abc', 'def']
     end
 
     it "should parse plugin list with single quotes" do
-      @plugin_helper = PluginHelper.new( :options => OpenStruct.new( :plugins => "'abc,def'" ) )
+      @plugin_helper = PluginHelper.new(:options => OpenStruct.new(:plugins => "'abc,def'"))
       @plugin_helper.parse_plugin_list.should == ['abc', 'def']
     end
 
     it "should parse plugin list with single quotes and clean up it" do
-      @plugin_helper = PluginHelper.new( :options => OpenStruct.new( :plugins => "'    abc ,    def'" ) )
+      @plugin_helper = PluginHelper.new(:options => OpenStruct.new(:plugins => "'    abc ,    def'"))
       @plugin_helper.parse_plugin_list.should == ['abc', 'def']
     end
 
     it "should require default plugins" do
       @plugin_array.each do |plugin|
-        @plugin_helper.should_receive(:gem).ordered.with(plugin)
         @plugin_helper.should_receive(:require).once.with(plugin)
       end
 
@@ -59,16 +58,13 @@ module BoxGrinder
     end
 
     it "should read plugins specified in command line" do
-      @plugin_helper = PluginHelper.new( :options => OpenStruct.new( :plugins => 'abc,def' ) )
+      @plugin_helper = PluginHelper.new(:options => OpenStruct.new(:plugins => 'abc,def'))
 
       @plugin_array.each do |plugin|
-        @plugin_helper.should_receive(:gem).ordered.with(plugin)
         @plugin_helper.should_receive(:require).once.with(plugin)
       end
 
-      @plugin_helper.should_receive(:gem).ordered.with('abc')
       @plugin_helper.should_receive(:require).ordered.with('abc')
-      @plugin_helper.should_receive(:gem).ordered.with('def')
       @plugin_helper.should_receive(:require).ordered.with('def')
 
       @plugin_helper.read_and_require
