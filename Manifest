@@ -28,3 +28,4 @@ spec/helpers/plugin-helper-spec.rb
 spec/managers/plugin-manager-spec.rb
 spec/plugins/base-plugin-spec.rb
 spec/rspec/src/appliances/jeos-f13.appl
+spec/rspec/src/appliances/jeos-f13.ks

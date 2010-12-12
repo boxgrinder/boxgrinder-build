@@ -1,3 +1,9 @@
+
+v0.6.6
+
+* [BGBUILD-113] Allow to specify supported file formats for operating system plugin
+* [BGBUILD-73] Add support for kickstart files
+
 v0.6.5
 
 * Release bump required for plugins

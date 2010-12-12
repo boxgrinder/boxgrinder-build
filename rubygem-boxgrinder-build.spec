@@ -5,7 +5,7 @@
 
 Summary: A tool for creating appliances from simple plain text files
 Name: rubygem-%{gemname}
-Version: 0.6.5
+Version: 0.6.6
 Release: 1%{?dist}
 Group: Development/Languages
 License: LGPLv3+
@@ -85,6 +85,11 @@ popd
 %{gemdir}/doc/%{gemname}-%{version}
 
 %changelog
+* Sun Dec 12 2010  <mgoldman@redhat.com> - 0.6.6-1
+- Updated to upstream version: 0.6.6
+- [BGBUILD-113] Allow to specify supported file formats for operating system plugin
+- [BGBUILD-73] Add support for kickstart files
+
 * Thu Dec 02 2010  <mgoldman@redhat.com> - 0.6.5-1
 - Updated to new upstream release: 0.6.5
 
