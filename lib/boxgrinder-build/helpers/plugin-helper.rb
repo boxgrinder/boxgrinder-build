@@ -58,9 +58,8 @@ module BoxGrinder
         @log.trace "Requiring plugin '#{plugin}'..."
 
         begin
-          gem plugin
           require plugin
-        rescue Gem::LoadError
+        rescue LoadError
           @log.warn "Specified gem: '#{plugin}' wasn't found. Make sure its name is correct, skipping..." unless plugin.match(/^boxgrinder-build-(.*)-plugin/)
         end
       end
