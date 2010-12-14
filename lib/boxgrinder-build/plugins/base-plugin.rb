@@ -27,34 +27,35 @@ require 'logger'
 
 module BoxGrinder
   class BasePlugin
+    def initialize
+      @plugin_config       = {}
+
+      @deliverables        = OpenCascade.new
+      @supported_oses      = OpenCascade.new
+      @target_deliverables = OpenCascade.new
+      @dir                 = OpenCascade.new
+    end
+
     def init(config, appliance_config, options = {})
-      @config                 = config
-      @appliance_config       = appliance_config
-      @options                = options
+      @config                = config
+      @appliance_config      = appliance_config
+      @options               = options
+      @log                   = options[:log] || Logger.new(STDOUT)
+      @exec_helper           = options[:exec_helper] || ExecHelper.new(:log => @log)
+      @image_helper          = options[:image_helper] || ImageHelper.new(@config, @appliance_config, :log => @log)
+      @plugin_info           = options[:plugin_info]
+      @previous_plugin_info  = options[:previous_plugin_info]
+      @previous_deliverables = options[:previous_deliverables] || {}
 
-      @log                    = options[:log] || Logger.new(STDOUT)
-      @exec_helper            = options[:exec_helper] || ExecHelper.new(:log => @log)
-      @image_helper           = options[:image_helper] || ImageHelper.new(@config, @appliance_config, :log => @log)
+      @dir.base              = "#{@appliance_config.path.build}/#{@plugin_info[:name]}-plugin"
+      @dir.tmp               = "#{@dir.base}/tmp"
 
-      @plugin_info            = options[:plugin_info]
-      @previous_plugin_info   = options[:previous_plugin_info]
-
-      @previous_deliverables  = options[:previous_deliverables] || {}
-      @plugin_config          = {}
-
-      @deliverables           = OpenCascade.new
-      @supported_oses         = OpenCascade.new
-      @target_deliverables    = OpenCascade.new
-      @dir                    = OpenCascade.new
-
-      @dir.base               = "#{@appliance_config.path.build}/#{@plugin_info[:name]}-plugin"
-      @dir.tmp                = "#{@dir.base}/tmp"
-
-      @config_file            = "#{ENV['HOME']}/.boxgrinder/plugins/#{@plugin_info[:name]}"
+      @config_file           = "#{ENV['HOME']}/.boxgrinder/plugins/#{@plugin_info[:name]}"
 
       read_plugin_config
 
-      @initialized            = true
+      @move_deliverables = true
+      @initialized = true
 
       after_init
 
@@ -66,8 +67,8 @@ module BoxGrinder
       raise "Please specify deliverables as Hash, not #{deliverable.class}." unless deliverable.is_a?(Hash)
 
       deliverable.each do |name, path|
-        @deliverables[name]          = "#{@dir.tmp}/#{path}"
-        @target_deliverables[name]   = "#{@dir.base}/#{path}"
+        @deliverables[name]        = "#{@dir.tmp}/#{path}"
+        @target_deliverables[name] = "#{@dir.base}/#{path}"
       end
     end
 
@@ -134,7 +135,7 @@ module BoxGrinder
       @deliverables.each do |name, path|
         @log.trace "Moving '#{path}' deliverable to target destination '#{@target_deliverables[name]}'..."
         FileUtils.mv(path, @target_deliverables[name])
-      end
+      end if @move_deliverables
 
       FileUtils.rm_rf @dir.tmp
     end
