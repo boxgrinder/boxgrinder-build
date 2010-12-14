@@ -1,6 +1,7 @@
 
 v0.6.6
 
+* [BGBUILD-80] VMware .tgz Bundle Should Expand Into Subdirectory, Not Current Directory
 * [BGBUILD-113] Allow to specify supported file formats for operating system plugin
 * [BGBUILD-73] Add support for kickstart files
 

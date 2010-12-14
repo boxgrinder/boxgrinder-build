@@ -27,25 +27,26 @@ module BoxGrinder
       @exec_helper      = options[:exec_helper] || ExecHelper.new({:log => @log})
     end
 
-    def package(deliverables, package, type = :tar)
-      files = []
-
-      deliverables.each_value do |file|
-        files << File.basename(file)
-      end
-
+    def package(dir, package, type = :tar)
       if File.exists?(package)
         @log.info "Package of #{type} type for #{@appliance_config.name} appliance already exists, skipping."
         return package
       end
 
-      FileUtils.mkdir_p(File.dirname(package))
-
       @log.info "Packaging #{@appliance_config.name} appliance to #{type}..."
 
       case type
         when :tar
-          @exec_helper.execute "tar -C #{File.dirname(deliverables[:disk])} -cvzf '#{package}' #{files.join(' ')}"
+          package_name = File.basename(package, '.tgz')
+          symlink      = "#{File.dirname(package)}/#{package_name}"
+
+          FileUtils.ln_s(File.expand_path(dir), symlink, :verbose => true)
+
+          Dir.chdir(File.dirname(package)) do
+            @exec_helper.execute "tar -hcvzf #{package_name}.tgz #{package_name}"
+          end
+
+          FileUtils.rm(symlink)
         else
           raise "Only tar format is currently supported."
       end
