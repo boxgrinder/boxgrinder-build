@@ -40,7 +40,7 @@ module BoxGrinder
           package_name = File.basename(package, '.tgz')
           symlink      = "#{File.dirname(package)}/#{package_name}"
 
-          FileUtils.ln_s(File.expand_path(dir), symlink, :verbose => true)
+          FileUtils.ln_s(File.expand_path(dir), symlink)
 
           Dir.chdir(File.dirname(package)) do
             @exec_helper.execute "tar -hcvzf #{package_name}.tgz #{package_name}"
