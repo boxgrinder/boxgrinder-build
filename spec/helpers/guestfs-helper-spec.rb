@@ -26,7 +26,7 @@ module BoxGrinder
     end
 
     before(:each) do
-      @log    = Logger.new('/dev/null')
+      @log = Logger.new('/dev/null')
       @helper = GuestFSHelper.new('a/raw/disk', :log => @log)
     end
 
@@ -35,8 +35,10 @@ module BoxGrinder
       guetfs.should_receive(:set_append).with('noapic')
       guetfs.should_receive(:set_verbose)
       guetfs.should_receive(:set_trace)
+      guetfs.should_receive(:set_selinux).with(1)
 
       @helper.should_receive(:hw_virtualization_available?).and_return(true)
+      @helper.should_receive(:load_selinux_policy)
 
       guetfs.should_receive(:set_qemu).with(wrapper) unless wrapper.nil?
       guetfs.should_receive(:add_drive).with('a/raw/disk')
@@ -188,6 +190,38 @@ module BoxGrinder
         @helper.should_receive(:open).with('http://169.254.169.254/1.0/meta-data/local-ipv4').and_raise(Timeout::Error.new('something'))
         @helper.should_receive(:`).with('cat /proc/cpuinfo | grep flags | grep vmx | wc -l').and_return("0")
         @helper.hw_virtualization_available?.should == false
+      end
+    end
+
+    describe ".load_selinux_policy" do
+      it "should load SElinux policy for SElinux enabled guests" do
+        guestfs = mock('Guestfs')
+        @helper.instance_variable_set(:@guestfs, guestfs)
+
+        guestfs.should_receive(:exists).with('/etc/sysconfig/selinux').and_return(1)
+        guestfs.should_receive(:aug_init).with("/", 32)
+        guestfs.should_receive(:aug_rm).with("/augeas/load//incl[. != '/etc/sysconfig/selinux']")
+        guestfs.should_receive(:aug_load)
+        guestfs.should_receive(:aug_get).with("/files/etc/sysconfig/selinux/SELINUX").and_return('permissive')
+        guestfs.should_receive(:sh).with("/usr/sbin/load_policy")
+        guestfs.should_receive(:aug_close)
+
+        @helper.load_selinux_policy
+      end
+
+      it "should not load SElinux policy for SElinux disabled guests" do
+        guestfs = mock('Guestfs')
+        @helper.instance_variable_set(:@guestfs, guestfs)
+
+        guestfs.should_receive(:exists).with('/etc/sysconfig/selinux').and_return(1)
+        guestfs.should_receive(:aug_init).with("/", 32)
+        guestfs.should_receive(:aug_rm).with("/augeas/load//incl[. != '/etc/sysconfig/selinux']")
+        guestfs.should_receive(:aug_load)
+        guestfs.should_receive(:aug_get).with("/files/etc/sysconfig/selinux/SELINUX").and_return('disabled')
+        guestfs.should_not_receive(:sh).with("/usr/sbin/load_policy")
+        guestfs.should_receive(:aug_close)
+
+        @helper.load_selinux_policy
       end
     end
   end

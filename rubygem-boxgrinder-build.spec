@@ -90,6 +90,7 @@ popd
 - [BGBUILD-113] Allow to specify supported file formats for operating system plugin
 - [BGBUILD-73] Add support for kickstart files
 - [BGBUILD-80] VMware .tgz Bundle Should Expand Into Subdirectory, Not Current Directory
+- [BGBUILD-118] Enable SElinux in guestfs
 
 * Thu Dec 02 2010  <mgoldman@redhat.com> - 0.6.5-1
 - Updated to new upstream release: 0.6.5

@@ -62,6 +62,7 @@ module BoxGrinder
       end
 
       @guestfs.aug_save
+      @guestfs.aug_close
 
       @log.debug "Augeas changes saved."
     end

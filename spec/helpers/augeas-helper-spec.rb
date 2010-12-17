@@ -44,6 +44,7 @@ module BoxGrinder
       @guestfs.should_receive(:aug_load)
       @guestfs.should_receive(:aug_set).with("/files/etc/ssh/sshd_config/UseDNS", "no")
       @guestfs.should_receive(:aug_save)
+      @guestfs.should_receive(:aug_close)
 
       @helper.edit do
         set('/etc/ssh/sshd_config', 'UseDNS', 'no')
@@ -61,6 +62,7 @@ module BoxGrinder
       @guestfs.should_receive(:aug_set).with("/files/etc/ssh/sshd_config/UseDNS", "no")
       @guestfs.should_receive(:aug_set).with("/files/etc/sysconfig/selinux/SELINUX", "permissive")
       @guestfs.should_receive(:aug_save)
+      @guestfs.should_receive(:aug_close)
 
       @helper.edit do
         set('/etc/ssh/sshd_config', 'UseDNS', 'no')
@@ -78,6 +80,7 @@ module BoxGrinder
       @guestfs.should_receive(:aug_load)
       @guestfs.should_receive(:aug_set).with("/files/etc/ssh/sshd_config/UseDNS", "no")
       @guestfs.should_receive(:aug_save)
+      @guestfs.should_receive(:aug_close)
 
       @helper.edit do
         set('/etc/ssh/sshd_config', 'UseDNS', 'no')
@@ -94,6 +97,7 @@ module BoxGrinder
       @guestfs.should_receive(:aug_load)
       @guestfs.should_receive(:aug_set).with("/files/etc/ssh/sshd_config/UseDNS", "no")
       @guestfs.should_receive(:aug_save)
+      @guestfs.should_receive(:aug_close)
 
       @helper.edit do
         set('/etc/ssh/sshd_config', 'UseDNS', 'no')

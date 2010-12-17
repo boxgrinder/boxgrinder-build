@@ -25,8 +25,8 @@ require 'rbconfig'
 module BoxGrinder
   class SilencerProxy
     def initialize(o, destination)
-      @o            = o
-      @destination  = destination
+      @o = o
+      @destination = destination
     end
 
     def method_missing(m, *args, &block)
@@ -82,7 +82,7 @@ module BoxGrinder
   class GuestFSHelper
     def initialize(raw_disk, options = {})
       @raw_disk = raw_disk
-      @log      = options[:log] || Logger.new(STDOUT)
+      @log = options[:log] || Logger.new(STDOUT)
 
       @partitions = {}
     end
@@ -145,8 +145,11 @@ module BoxGrinder
       @guestfs.set_verbose(1)
       @guestfs.set_trace(1)
 
+      @log.trace "Enabling SElinux support in guestfs..."
+      @guestfs.set_selinux(1)
+
       unless hw_virtualization_available?
-        qemu_wrapper =  (RbConfig::CONFIG['host_cpu'].eql?('x86_64') ? "/usr/bin/qemu-system-x86_64" : "/usr/bin/qemu")
+        qemu_wrapper = (RbConfig::CONFIG['host_cpu'].eql?('x86_64') ? "/usr/bin/qemu-system-x86_64" : "/usr/bin/qemu")
 
         if File.exists?(qemu_wrapper)
           @log.trace "Setting QEMU wrapper to #{qemu_wrapper}..."
@@ -176,9 +179,28 @@ module BoxGrinder
           mount_partitions
       end
 
+      load_selinux_policy
+
       @log.trace "Guestfs launched."
 
       self
+    end
+
+    def load_selinux_policy
+      return unless @guestfs.exists('/etc/sysconfig/selinux') != 0
+
+      @log.trace "Loading SElinux policy..."
+
+      @guestfs.aug_init("/", 32)
+      @guestfs.aug_rm("/augeas/load//incl[. != '/etc/sysconfig/selinux']")
+      @guestfs.aug_load
+
+      selinux = @guestfs.aug_get("/files/etc/sysconfig/selinux/SELINUX")
+
+      @guestfs.sh("/usr/sbin/load_policy") if !selinux.nil? and !selinux.eql?('disabled')
+      @guestfs.aug_close
+
+      @log.trace "SElinux policy loaded."
     end
 
     def clean_close
