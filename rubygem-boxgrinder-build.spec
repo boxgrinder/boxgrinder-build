@@ -5,7 +5,7 @@
 
 Summary: A tool for creating appliances from simple plain text files
 Name: rubygem-%{gemname}
-Version: 0.6.6
+Version: 0.7.0
 Release: 1%{?dist}
 Group: Development/Languages
 License: LGPLv3+
@@ -14,14 +14,14 @@ Source0: http://rubygems.org/gems/%{gemname}-%{version}.gem
 
 Requires: ruby(abi) = %{rubyabi}
 Requires: rubygem(commander)
-Requires: rubygem(boxgrinder-core)
+Requires: rubygem(boxgrinder-core) >= 0.1.5
 Requires: ruby-libguestfs
 Requires: parted
 Requires: e2fsprogs
 
 BuildRequires: rubygem(rake)
 BuildRequires: rubygem(rspec)
-BuildRequires: rubygem(boxgrinder-core)
+BuildRequires: rubygem(boxgrinder-core) >= 0.1.5
 BuildRequires: rubygem(echoe)
 BuildRequires: ruby-libguestfs
 
@@ -85,8 +85,8 @@ popd
 %{gemdir}/doc/%{gemname}-%{version}
 
 %changelog
-* Sun Dec 12 2010  <mgoldman@redhat.com> - 0.6.6-1
-- Updated to upstream version: 0.6.6
+* Fri Dec 17 2010  <mgoldman@redhat.com> - 0.7.0-1
+- Updated to upstream version: 0.7.0
 - [BGBUILD-113] Allow to specify supported file formats for operating system plugin
 - [BGBUILD-73] Add support for kickstart files
 - [BGBUILD-80] VMware .tgz Bundle Should Expand Into Subdirectory, Not Current Directory
