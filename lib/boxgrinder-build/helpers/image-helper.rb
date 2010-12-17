@@ -117,7 +117,7 @@ module BoxGrinder
 
     def sync_files(from_dir, to_dir)
       @log.debug "Syncing files between #{from_dir} and #{to_dir}..."
-      @exec_helper.execute "rsync -u -r -a #{from_dir}/* #{to_dir}"
+      @exec_helper.execute "rsync -Xura #{from_dir}/* #{to_dir}"
       @log.debug "Sync finished."
     end
 

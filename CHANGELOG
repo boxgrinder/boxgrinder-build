@@ -1,6 +1,7 @@
 
 v0.6.6
 
+* [BGBUILD-119] Fix SElinux issues on EC2 appliances
 * [BGBUILD-118] Enable SElinux in guestfs
 * [BGBUILD-80] VMware .tgz Bundle Should Expand Into Subdirectory, Not Current Directory
 * [BGBUILD-113] Allow to specify supported file formats for operating system plugin

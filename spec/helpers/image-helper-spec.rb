@@ -149,7 +149,7 @@ module BoxGrinder
 
 
     it "should sync files" do
-      @exec_helper.should_receive(:execute).with("rsync -u -r -a from_dir/* to_dir")
+      @exec_helper.should_receive(:execute).with("rsync -Xura from_dir/* to_dir")
 
       @helper.sync_files('from_dir', 'to_dir')
     end
