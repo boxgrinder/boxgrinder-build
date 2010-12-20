@@ -98,16 +98,6 @@ module BoxGrinder
       @helper.mount_partition("/dev/sda", "/")
     end
 
-    it "should rebuild RPM database for Fedora" do
-      guestfs = mock('Guestfs')
-
-      guestfs.should_receive(:sh).with("rm -f /var/lib/rpm/__db.*")
-      guestfs.should_receive(:sh).with("rpm --rebuilddb")
-
-      @helper.instance_variable_set(:@guestfs, guestfs)
-      @helper.rebuild_rpm_database
-    end
-
     it "should mount partitions" do
       guestfs = mock('Guestfs')
 
