@@ -46,7 +46,7 @@ module Commander
 end
 
 program :name, 'BoxGrinder Build'
-program :version, '0.6.5'
+program :version, '0.7.1'
 program :description, "A tool for building VM images from simple definition files."
 program :help, 'Homepage', 'http://www.jboss.org/boxgrinder/build.html'
 program :help, 'Documentation', 'http://community.jboss.org/docs/DOC-14358'
