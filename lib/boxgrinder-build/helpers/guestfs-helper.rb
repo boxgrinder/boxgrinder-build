@@ -237,7 +237,7 @@ module BoxGrinder
 
       @guestfs.list_partitions.each do |partition|
         next if partition == root_partition
-        mount_partition(partition, @guestfs.sh("/sbin/e2label #{partition}").chomp.strip)
+        mount_partition(partition, @guestfs.sh("/sbin/e2label #{partition}").strip.chomp.gsub('_', ''))
       end
     end
 

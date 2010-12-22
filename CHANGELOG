@@ -1,5 +1,6 @@
 v0.7.1
 
+* [BGBUILD-124] Guestfs fails while mounting multiple partitions with '_' prefix
 * [BGBUILD-123] Remove RPM database recreation code
 
 v0.7.0

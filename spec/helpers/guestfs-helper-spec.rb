@@ -117,6 +117,25 @@ module BoxGrinder
       @helper.mount_partitions
     end
 
+    it "should mount partitions with new type of labels" do
+      guestfs = mock('Guestfs')
+
+      guestfs.should_receive(:list_partitions).and_return(['/boot', '/'])
+
+      @helper.should_receive(:mount_partition).with('/boot', '/')
+      guestfs.should_receive(:exists).with('/sbin/e2label').and_return(0)
+      guestfs.should_receive(:umount).with('/boot')
+      @helper.should_receive(:mount_partition).with('/', '/')
+      guestfs.should_receive(:exists).with('/sbin/e2label').and_return(1)
+
+      guestfs.should_receive(:list_partitions).and_return(['/boot', '/'])
+      guestfs.should_receive(:sh).with('/sbin/e2label /boot').and_return('_/boot')
+      @helper.should_receive(:mount_partition).with('/boot', '/boot')
+
+      @helper.instance_variable_set(:@guestfs, guestfs)
+      @helper.mount_partitions
+    end
+
     it "should raise when no root partition is found" do
       guestfs = mock('Guestfs')
 

@@ -88,6 +88,7 @@ popd
 * Mon Dec 20 2010  <mgoldman@redhat.com> - 0.7.1-1
 - Upstream release: 0.7.1
 - [BGBUILD-123] Remove RPM database recreation code
+- [BGBUILD-124] Guestfs fails while mounting multiple partitions with '_' prefix
 
 * Fri Dec 17 2010  <mgoldman@redhat.com> - 0.7.0-1
 - Updated to upstream version: 0.7.0
