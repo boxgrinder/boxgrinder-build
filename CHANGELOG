@@ -1,3 +1,5 @@
+v0.7.2
+
 v0.7.1
 
 * [BGBUILD-124] Guestfs fails while mounting multiple partitions with '_' prefix

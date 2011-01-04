@@ -5,7 +5,7 @@
 
 Summary: A tool for creating appliances from simple plain text files
 Name: rubygem-%{gemname}
-Version: 0.7.1
+Version: 0.7.2
 Release: 1%{?dist}
 Group: Development/Languages
 License: LGPLv3+
@@ -85,6 +85,9 @@ popd
 %{gemdir}/doc/%{gemname}-%{version}
 
 %changelog
+* Mon Dec 20 2010  <mgoldman@redhat.com> - 0.7.2-1
+- Upstream release: 0.7.2
+
 * Mon Dec 20 2010  <mgoldman@redhat.com> - 0.7.1-1
 - Upstream release: 0.7.1
 - [BGBUILD-123] Remove RPM database recreation code
