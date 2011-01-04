@@ -23,18 +23,15 @@ require 'logger'
 
 module BoxGrinder
   describe Appliance do
-    def prepare_appliance(options = OpenStruct.new, definition_file = "#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.appl")
-      options.name    = 'boxgrinder'
-      options.version = '1.0'
-
-      @options        = options
+    def prepare_appliance(options = {}, definition_file = "#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.appl")
       @log            = Logger.new('/dev/null')
+      @options        = OpenCascade.new(:log => @log, :platform => :none, :delivery => :none, :force => false).merge(options)    
 
       @plugin_manager = mock(PluginManager)
 
       PluginManager.stub!(:instance).and_return(@plugin_manager)
 
-      @appliance = Appliance.new(definition_file, :log => @log, :options => @options)
+      @appliance = Appliance.new(definition_file, @options)
     end
 
     def prepare_appliance_config
@@ -64,17 +61,13 @@ module BoxGrinder
       @appliance_config
     end
 
-#    before(:each) do
-#      prepare_appliance
-#    end
-
     it "should prepare appliance to build" do
       prepare_appliance
 
       plugin_helper = mock(PluginHelper)
       plugin_helper.should_receive(:load_plugins)
 
-      PluginHelper.should_receive(:new).with(:options => @options, :log => @log).and_return(plugin_helper)
+      PluginHelper.should_receive(:new).with( :options => @options ).and_return(plugin_helper)
 
       @appliance.should_receive(:read_definition)
       @appliance.should_receive(:validate_definition)
@@ -85,12 +78,12 @@ module BoxGrinder
     end
 
     it "should prepare appliance to build with removing old files" do
-      prepare_appliance(OpenStruct.new(:force => true))
+      prepare_appliance(:force => true)
 
       plugin_helper = mock(PluginHelper)
       plugin_helper.should_receive(:load_plugins)
 
-      PluginHelper.should_receive(:new).with(:options => @options, :log => @log).and_return(plugin_helper)
+      PluginHelper.should_receive(:new).with(:options => @options).and_return(plugin_helper)
 
       @appliance.should_receive(:read_definition)
       @appliance.should_receive(:validate_definition)
@@ -125,7 +118,7 @@ module BoxGrinder
       end
 
       it "should read definition with kickstart appliance definition file" do
-        prepare_appliance(OpenStruct.new, "#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.ks")
+        prepare_appliance({}, "#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.ks")
 
         appliance_config = ApplianceConfig.new
 
@@ -161,7 +154,7 @@ module BoxGrinder
       end
 
       it "should read definition with kickstart appliance definition file and fail because there was no plugin able to read .ks" do
-        prepare_appliance(OpenStruct.new, "#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.ks")
+        prepare_appliance({}, "#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.ks")
 
         appliance_helper = mock(ApplianceHelper)
         appliance_helper.should_receive(:read_definitions).with("#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.ks").and_raise("Unknown format")
@@ -214,7 +207,7 @@ module BoxGrinder
 
         lambda {
           @appliance.validate_definition
-        }.should raise_error(SystemExit, "No operating system plugins installed. Install one or more operating system plugin. See http://community.jboss.org/docs/DOC-15081 and http://community.jboss.org/docs/DOC-15214 for more info")
+        }.should raise_error(RuntimeError, "No operating system plugins installed. Install one or more operating system plugin. See http://community.jboss.org/docs/DOC-15081 and http://community.jboss.org/docs/DOC-15214 for more info")
       end
 
       it "should validate definition and fail because no supported operating system plugins is installed" do
@@ -233,7 +226,7 @@ module BoxGrinder
 
         lambda {
           @appliance.validate_definition
-        }.should raise_error(SystemExit, "Not supported operating system selected: fedora. Make sure you have installed right operating system plugin, see http://community.jboss.org/docs/DOC-15214. Supported OSes are: rhel")
+        }.should raise_error(RuntimeError, "Not supported operating system selected: fedora. Make sure you have installed right operating system plugin, see http://community.jboss.org/docs/DOC-15214. Supported OSes are: rhel")
       end
 
       it "should validate definition and fail because no supported operating system version plugins is installed" do
@@ -252,7 +245,7 @@ module BoxGrinder
 
         lambda {
           @appliance.validate_definition
-        }.should raise_error(SystemExit, "Not supported operating system version selected: 11. Supported versions are: xyz")
+        }.should raise_error(RuntimeError, "Not supported operating system version selected: 11. Supported versions are: xyz")
       end
     end
 
@@ -299,7 +292,7 @@ module BoxGrinder
     end
 
     it "should build appliance and convert it to VMware format" do
-      prepare_appliance(OpenStruct.new({:platform => :vmware}))
+      prepare_appliance(:platform => :vmware)
 
       @appliance.instance_variable_set(:@appliance_config, prepare_appliance_config)
       @appliance.should_receive(:execute_os_plugin).and_return({})
@@ -317,7 +310,7 @@ module BoxGrinder
     end
 
     it "should build appliance and convert it to VMware format because deliverable already exists" do
-      prepare_appliance(OpenStruct.new({:platform => :vmware}))
+      prepare_appliance(:platform => :vmware)
 
       @appliance.instance_variable_set(:@appliance_config, prepare_appliance_config)
       @appliance.should_receive(:execute_os_plugin).and_return({})
@@ -335,7 +328,7 @@ module BoxGrinder
     end
 
     it "should build appliance, convert it to EC2 format and deliver it using S3 ami type" do
-      prepare_appliance(OpenStruct.new({:platform => :ec2, :delivery => :ami}))
+      prepare_appliance(:platform => :ec2, :delivery => :ami)
 
       @appliance.instance_variable_set(:@appliance_config, prepare_appliance_config)
       @appliance.should_receive(:execute_os_plugin).and_return({:abc => 'def'})
@@ -352,7 +345,7 @@ module BoxGrinder
     end
 
     it "should build appliance, convert it to EC2 format and deliver it using delivery plugin with only one delivery type" do
-      prepare_appliance(OpenStruct.new({:platform => :ec2, :delivery => :same}))
+      prepare_appliance(:platform => :ec2, :delivery => :same)
 
       @appliance.instance_variable_set(:@appliance_config, prepare_appliance_config)
       @appliance.should_receive(:execute_os_plugin).and_return({:abc => 'def'})

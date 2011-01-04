@@ -17,6 +17,8 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'rubygems'
+require 'hashery/opencascade'
+require 'boxgrinder-core/helpers/log-helper'
 require 'boxgrinder-core/models/appliance-config'
 require 'boxgrinder-core/models/config'
 require 'boxgrinder-core/helpers/appliance-helper'
@@ -27,16 +29,12 @@ require 'boxgrinder-core/validators/appliance-config-validator'
 
 module BoxGrinder
   class Appliance
-
     def initialize(appliance_definition_file, options = {})
-      @config                    = Config.new
       @appliance_definition_file = appliance_definition_file
-      @log                       = options[:log] || Logger.new(STDOUT)
-      @options                   = options[:options]
+      @config                    = Config.new
+      @options                   = OpenCascade.new(:log => LogHelper.new, :platform => :none, :delivery => :none, :force => false).merge(options)
 
-      @config.name               = @options.name
-      @config.version.version    = @options.version
-      @config.version.release    = nil
+      @log = @options.log
     end
 
     def read_definition
@@ -62,12 +60,12 @@ module BoxGrinder
     def validate_definition
       ApplianceConfigValidator.new(@appliance_config).validate
 
-      abort "No operating system plugins installed. Install one or more operating system plugin. See http://community.jboss.org/docs/DOC-15081 and http://community.jboss.org/docs/DOC-15214 for more info" if PluginManager.instance.plugins[:os].empty?
+      raise "No operating system plugins installed. Install one or more operating system plugin. See http://community.jboss.org/docs/DOC-15081 and http://community.jboss.org/docs/DOC-15214 for more info" if PluginManager.instance.plugins[:os].empty?
 
       os_plugin = PluginManager.instance.plugins[:os][@appliance_config.os.name.to_sym]
 
-      abort "Not supported operating system selected: #{@appliance_config.os.name}. Make sure you have installed right operating system plugin, see http://community.jboss.org/docs/DOC-15214. Supported OSes are: #{PluginManager.instance.plugins[:os].keys.join(", ")}" if os_plugin.nil?
-      abort "Not supported operating system version selected: #{@appliance_config.os.version}. Supported versions are: #{os_plugin[:versions].join(", ")}" unless @appliance_config.os.version.nil? or os_plugin[:versions].include?(@appliance_config.os.version)
+      raise "Not supported operating system selected: #{@appliance_config.os.name}. Make sure you have installed right operating system plugin, see http://community.jboss.org/docs/DOC-15214. Supported OSes are: #{PluginManager.instance.plugins[:os].keys.join(", ")}" if os_plugin.nil?
+      raise "Not supported operating system version selected: #{@appliance_config.os.version}. Supported versions are: #{os_plugin[:versions].join(", ")}" unless @appliance_config.os.version.nil? or os_plugin[:versions].include?(@appliance_config.os.version)
     end
 
     def remove_old_builds
@@ -84,7 +82,7 @@ module BoxGrinder
 
     def create
       begin
-        PluginHelper.new(:options => @options, :log => @log).load_plugins
+        PluginHelper.new(:options => @options).load_plugins
         read_definition
         validate_definition
         remove_old_builds if @options.force
@@ -113,7 +111,7 @@ module BoxGrinder
     end
 
     def execute_platform_plugin(previous_plugin_output)
-      if @options.platform == :none or @options.platform == nil
+      if @options.platform == :none or @options.platform.to_s.empty? == nil
         @log.debug "No platform selected, skipping platform conversion."
         return previous_plugin_output
       end
@@ -136,7 +134,7 @@ module BoxGrinder
     end
 
     def execute_delivery_plugin(previous_plugin_output)
-      if @options.delivery == :none or @options.delivery == nil
+      if @options.delivery == :none or @options.delivery.to_s.empty? == nil
         @log.debug "No delivery method selected, skipping delivering."
         return
       end

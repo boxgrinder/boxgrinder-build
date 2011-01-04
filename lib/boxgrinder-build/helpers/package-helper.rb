@@ -16,6 +16,8 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
+require 'boxgrinder-core/helpers/log-helper'
+
 module BoxGrinder
   class PackageHelper
     def initialize(config, appliance_config, dir, options = {})
@@ -23,7 +25,7 @@ module BoxGrinder
       @appliance_config = appliance_config
       @dir              = dir
 
-      @log              = options[:log] || Logger.new(STDOUT)
+      @log              = options[:log] || LogHelper.new
       @exec_helper      = options[:exec_helper] || ExecHelper.new({:log => @log})
     end
 

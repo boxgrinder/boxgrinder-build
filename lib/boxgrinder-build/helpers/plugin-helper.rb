@@ -16,13 +16,14 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require 'boxgrinder-build/managers/plugin-manager'
 require 'rubygems'
+require 'boxgrinder-build/managers/plugin-manager'
+require 'boxgrinder-core/helpers/log-helper'
 
 module BoxGrinder
   class PluginHelper
     def initialize( options = {} )
-      @log      = options[:log] || Logger.new(STDOUT)
+      @log      = options[:log] || LogHelper.new
       @options  = options[:options]
     end
 
@@ -43,7 +44,7 @@ module BoxGrinder
     def parse_plugin_list
       plugins = []
 
-      unless @options.plugins.nil?
+      unless @options.plugins.nil? or @options.plugins.empty? 
         plugins = @options.plugins.gsub('\'', '').gsub('"', '').split(',')
         plugins.each { |plugin| plugin.chomp!; plugin.strip! }
       end

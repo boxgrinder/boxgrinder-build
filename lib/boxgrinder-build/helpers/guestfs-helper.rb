@@ -17,8 +17,8 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder-build/helpers/augeas-helper'
+require 'boxgrinder-core/helpers/log-helper'
 require 'guestfs'
-require 'logger'
 require 'open-uri'
 require 'rbconfig'
 
@@ -82,7 +82,7 @@ module BoxGrinder
   class GuestFSHelper
     def initialize(raw_disk, options = {})
       @raw_disk = raw_disk
-      @log = options[:log] || Logger.new(STDOUT)
+      @log = options[:log] || LogHelper.new
 
       @partitions = {}
     end

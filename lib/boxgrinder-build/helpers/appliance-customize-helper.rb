@@ -19,7 +19,7 @@
 require 'rubygems'
 require 'boxgrinder-build/helpers/guestfs-helper'
 require 'boxgrinder-core/helpers/exec-helper'
-require 'logger'
+require 'boxgrinder-core/helpers/log-helper'
 
 module BoxGrinder
   class ApplianceCustomizeHelper
@@ -29,7 +29,7 @@ module BoxGrinder
       @appliance_config = appliance_config
       @disk             = disk
 
-      @log          = options[:log]         || Logger.new(STDOUT)
+      @log          = options[:log]         || LogHelper.new
       @exec_helper  = options[:exec_helper] || ExecHelper.new( { :log => @log } )
     end
 

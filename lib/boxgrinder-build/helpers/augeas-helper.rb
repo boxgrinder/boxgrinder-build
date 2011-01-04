@@ -16,14 +16,14 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require 'logger'
+require 'boxgrinder-core/helpers/log-helper'
 
 module BoxGrinder
   class AugeasHelper
     def initialize(guestfs, guestfs_helper, options = {})
       @guestfs        = guestfs
       @guestfs_helper = guestfs_helper
-      @log            = options[:log] || Logger.new(STDOUT)
+      @log            = options[:log] || LogHelper.new
 
       @files = {}
     end

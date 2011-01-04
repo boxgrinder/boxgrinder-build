@@ -17,6 +17,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'fileutils'
+require 'boxgrinder-core/helpers/log-helper'
 require 'boxgrinder-build/helpers/guestfs-helper'
 
 module BoxGrinder
@@ -25,7 +26,7 @@ module BoxGrinder
       @config                 = config
       @appliance_config       = appliance_config
 
-      @log          = options[:log] || Logger.new(STDOUT)
+      @log          = options[:log] || LogHelper.new
       @exec_helper  = options[:exec_helper] || ExecHelper.new(:log => @log)
     end
 
