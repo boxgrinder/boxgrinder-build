@@ -85,8 +85,9 @@ popd
 %{gemdir}/doc/%{gemname}-%{version}
 
 %changelog
-* Mon Dec 20 2010  <mgoldman@redhat.com> - 0.7.2-1
+* Tue Jan 04 2010  <mgoldman@redhat.com> - 0.7.2-1
 - Upstream release: 0.7.2
+- [BGBUILD-79] Allow to use BoxGrinder Build as a library
 
 * Mon Dec 20 2010  <mgoldman@redhat.com> - 0.7.1-1
 - Upstream release: 0.7.1
