@@ -20,47 +20,96 @@ require 'boxgrinder-build/helpers/guestfs-helper'
 
 module BoxGrinder
   describe GuestFSHelper do
-
-    before(:all) do
-      @arch = `uname -m`.chomp.strip
-    end
-
     before(:each) do
       @log = Logger.new('/dev/null')
       @helper = GuestFSHelper.new('a/raw/disk', :log => @log)
     end
 
-    def prepare_and_launch(partitions, wrapper = nil)
-      guetfs = mock('Guestfs')
-      guetfs.should_receive(:set_append).with('noapic')
-      guetfs.should_receive(:set_verbose)
-      guetfs.should_receive(:set_trace)
-      guetfs.should_receive(:set_selinux).with(1)
+    it "should prepare and run guestfs" do
+      guestfs = mock('Guestfs')
+      guestfs.should_receive(:set_append).with('noapic')
+      guestfs.should_receive(:set_verbose)
+      guestfs.should_receive(:set_trace)
+      guestfs.should_receive(:set_selinux).with(1)
 
       @helper.should_receive(:hw_virtualization_available?).and_return(true)
       @helper.should_receive(:load_selinux_policy)
 
-      guetfs.should_receive(:set_qemu).with(wrapper) unless wrapper.nil?
-      guetfs.should_receive(:add_drive).with('a/raw/disk')
-      guetfs.should_receive(:set_network).with(1)
-      guetfs.should_receive(:launch)
-      guetfs.should_receive(:list_partitions).and_return(partitions)
+      guestfs.should_receive(:add_drive).with('a/raw/disk')
+      guestfs.should_receive(:set_network).with(1)
+      guestfs.should_receive(:launch)
+      guestfs.should_receive(:list_partitions).and_return(['/', '/boot'])
 
-      Guestfs.should_receive(:create).and_return(guetfs)
-
-      guetfs
-    end
-
-    it "should prepare and run guestfs" do
-      prepare_and_launch(['/', '/boot'])
+      Guestfs.should_receive(:create).and_return(guestfs)
 
       @helper.should_receive(:mount_partitions).with(no_args)
+      @helper.execute.should == @helper
+    end
 
+    it "should prepare and run guestfs without HW accelerarion enabled for 64 bit host" do
+      guestfs = mock('Guestfs')
+      guestfs.should_receive(:set_append).with('noapic')
+      guestfs.should_receive(:set_verbose)
+      guestfs.should_receive(:set_trace)
+      guestfs.should_receive(:set_selinux).with(1)
+
+      @helper.should_receive(:hw_virtualization_available?).and_return(false)
+      @helper.should_receive(:load_selinux_policy)
+
+      RbConfig::CONFIG.should_receive(:[]).with('host_cpu').and_return('x86_64')
+
+      guestfs.should_receive(:set_qemu).with('/usr/bin/qemu-system-x86_64')
+      guestfs.should_receive(:add_drive).with('a/raw/disk')
+      guestfs.should_receive(:set_network).with(1)
+      guestfs.should_receive(:launch)
+      guestfs.should_receive(:list_partitions).and_return(['/', '/boot'])
+
+      Guestfs.should_receive(:create).and_return(guestfs)
+
+      @helper.should_receive(:mount_partitions).with(no_args)
+      @helper.execute.should == @helper
+    end
+
+    it "should prepare and run guestfs without HW accelerarion enabled for 32 bit host" do
+      guestfs = mock('Guestfs')
+      guestfs.should_receive(:set_append).with('noapic')
+      guestfs.should_receive(:set_verbose)
+      guestfs.should_receive(:set_trace)
+      guestfs.should_receive(:set_selinux).with(1)
+
+      @helper.should_receive(:hw_virtualization_available?).and_return(false)
+      @helper.should_receive(:load_selinux_policy)
+
+      RbConfig::CONFIG.should_receive(:[]).with('host_cpu').and_return('i386')
+
+      guestfs.should_receive(:set_qemu).with('/usr/bin/qemu')
+      guestfs.should_receive(:add_drive).with('a/raw/disk')
+      guestfs.should_receive(:set_network).with(1)
+      guestfs.should_receive(:launch)
+      guestfs.should_receive(:list_partitions).and_return(['/', '/boot'])
+
+      Guestfs.should_receive(:create).and_return(guestfs)
+
+      @helper.should_receive(:mount_partitions).with(no_args)
       @helper.execute.should == @helper
     end
 
     it "should prepare and run guestfs with one partition" do
-      guestfs = prepare_and_launch(['/'])
+      guestfs = mock('Guestfs')
+      guestfs.should_receive(:set_append).with('noapic')
+      guestfs.should_receive(:set_verbose)
+      guestfs.should_receive(:set_trace)
+      guestfs.should_receive(:set_selinux).with(1)
+
+      @helper.should_receive(:hw_virtualization_available?).and_return(true)
+      @helper.should_receive(:load_selinux_policy)
+
+      guestfs.should_receive(:add_drive).with('a/raw/disk')
+      guestfs.should_receive(:set_network).with(1)
+      guestfs.should_receive(:launch)
+      guestfs.should_receive(:list_partitions).and_return(['/'])
+
+      Guestfs.should_receive(:create).and_return(guestfs)
 
       guestfs.should_receive(:list_partitions).and_return(['/'])
       @helper.should_receive(:mount_partition).with("/", "/")
@@ -69,7 +118,21 @@ module BoxGrinder
     end
 
     it "should prepare and run guestfs with no partitions" do
-      guestfs = prepare_and_launch([])
+      guestfs = mock('Guestfs')
+      guestfs.should_receive(:set_append).with('noapic')
+      guestfs.should_receive(:set_verbose)
+      guestfs.should_receive(:set_trace)
+      guestfs.should_receive(:set_selinux).with(1)
+
+      @helper.should_receive(:hw_virtualization_available?).and_return(true)
+      @helper.should_receive(:load_selinux_policy)
+
+      guestfs.should_receive(:add_drive).with('a/raw/disk')
+      guestfs.should_receive(:set_network).with(1)
+      guestfs.should_receive(:launch)
+      guestfs.should_receive(:list_partitions).and_return([])
+
+      Guestfs.should_receive(:create).and_return(guestfs)
 
       guestfs.should_receive(:list_devices).and_return(['/dev/sda'])
       @helper.should_receive(:mount_partition).with("/dev/sda", "/")
