@@ -120,7 +120,7 @@ module BoxGrinder
     it "should return that the OS is supported" do
       @plugin.register_supported_os('fedora', ['12', '13'])
 
-      @plugin.instance_variable_get(:@appliance_config).os.name    = 'fedora'
+      @plugin.instance_variable_get(:@appliance_config).os.name = 'fedora'
       @plugin.instance_variable_get(:@appliance_config).os.version = '12'
 
       @plugin.is_supported_os?.should == true
@@ -129,7 +129,7 @@ module BoxGrinder
     it "should return that the OS is not supported" do
       @plugin.register_supported_os('fedora', ['1223'])
 
-      @plugin.instance_variable_get(:@appliance_config).os.name    = 'fedora'
+      @plugin.instance_variable_get(:@appliance_config).os.name = 'fedora'
       @plugin.instance_variable_get(:@appliance_config).os.version = '12'
 
       @plugin.is_supported_os?.should == false
@@ -171,6 +171,47 @@ module BoxGrinder
       rescue => e
         e.message.should == "An error occurred while reading configuration file 'configfile' for BoxGrinder::BasePlugin. Is it a valid YAML file?"
       end
+    end
+
+    describe ".current_platform" do
+      it "should return raw" do
+        @plugin.current_platform.should == 'raw'
+      end
+
+      it "should return vmware" do
+        @plugin.instance_variable_set(:@previous_plugin_info, {:type => :platform, :name => :vmware})
+
+        @plugin.current_platform.should == 'vmware'
+      end
+    end
+
+    describe ".validate_plugin_config" do
+      it "should validate plugn config" do
+        @plugin.instance_variable_set(:@plugin_config, {'one' => :platform, 'two' => :vmware})
+
+        @plugin.validate_plugin_config(['one', 'two'])
+      end
+
+      it "should raise because some data isn't provided" do
+        @plugin.instance_variable_set(:@plugin_config, {'one' => :platform, 'two' => :vmware})
+
+        lambda {
+          @plugin.validate_plugin_config(['one', 'two', 'three'])
+        }.should raise_error(RuntimeError, /^Please specify a valid 'three' key in plugin configuration file:/)
+      end
+    end
+
+    it "should not allow to execute the plugin before initialization" do
+      @plugin = BasePlugin.new
+
+      lambda {
+        @plugin.execute
+      }.should raise_error(RuntimeError, "You can only execute the plugin after the plugin is initialized, please initialize the plugin using init method.")
+    end
+
+    it "should return target deliverables" do
+      @plugin.register_deliverable(:disk => "disk", :vmx => "vmx")
+      @plugin.deliverables.should == {:disk => "build/path/plugin_name-plugin/disk", :vmx => "build/path/plugin_name-plugin/vmx"}
     end
   end
 end
