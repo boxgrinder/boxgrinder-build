@@ -22,7 +22,6 @@ require 'ostruct'
 module BoxGrinder
   describe PluginHelper do
     before(:all) do
-      @current_arch = (-1.size) == 8 ? "x86_64" : "i386"
       @plugin_array = %w(boxgrinder-build-fedora-os-plugin boxgrinder-build-rhel-os-plugin boxgrinder-build-centos-os-plugin boxgrinder-build-ec2-platform-plugin boxgrinder-build-vmware-platform-plugin boxgrinder-build-s3-delivery-plugin boxgrinder-build-sftp-delivery-plugin boxgrinder-build-local-delivery-plugin boxgrinder-build-ebs-delivery-plugin)
     end
 
@@ -57,6 +56,21 @@ module BoxGrinder
       @plugin_helper.read_and_require
     end
 
+    it "should require default plugins and fail silently" do
+      @log = mock('Logger')
+
+      @plugin_helper.instance_variable_set(:@log, @log)
+
+      @plugin_array.each do |plugin|
+        @log.should_receive(:trace).with("Requiring plugin '#{plugin}'...")
+        @plugin_helper.should_receive(:require).once.with(plugin).and_raise(LoadError)
+      end
+
+      @log.should_not_receive(:warn)
+
+      @plugin_helper.read_and_require
+    end
+
     it "should read plugins specified in command line" do
       @plugin_helper = PluginHelper.new(:options => OpenStruct.new(:plugins => 'abc,def'))
 
@@ -68,6 +82,50 @@ module BoxGrinder
       @plugin_helper.should_receive(:require).ordered.with('def')
 
       @plugin_helper.read_and_require
+    end
+
+    it "should read plugins specified in command line and warn if plugin cannot be loaded" do
+      @log = mock('Logger')
+      @plugin_helper = PluginHelper.new(:options => OpenStruct.new(:plugins => 'abc'), :log => @log)
+
+      @plugin_array.each do |plugin|
+        @log.should_receive(:trace).with("Requiring plugin '#{plugin}'...")
+        @plugin_helper.should_receive(:require).once.with(plugin)
+      end
+
+      @log.should_receive(:trace).with("Requiring plugin 'abc'...")
+      @plugin_helper.should_receive(:require).ordered.with('abc').and_raise(LoadError)
+      @log.should_receive(:warn).with("Specified plugin: 'abc' wasn't found. Make sure its name is correct, skipping...")
+
+      @plugin_helper.read_and_require
+    end
+
+    it "should print os plugins" do
+      @log = mock('Logger')
+
+      @plugin_helper.instance_variable_set(:@log, @log)
+
+      @log.should_receive(:debug).with('Loading os plugins...')
+      @log.should_receive(:debug).with('We have 1 os plugin(s) registered')
+      @log.should_receive(:debug).with("- fedora plugin for Fedora.")
+      @log.should_receive(:debug).with('Plugins loaded.')
+
+      @plugin_helper.print_plugins('os') { {'fedora' => {:full_name => "Fedora"}} }
+    end
+
+    it "should load all plugins" do
+      @plugin_helper.should_receive(:read_and_require)
+
+      plugin_manager = mock('PluginManager')
+      plugin_manager.stub!(:plugins).and_return({:os =>{}, :platform =>{}, :delivery =>{}})
+
+      PluginManager.stub!(:instance).and_return(plugin_manager)
+
+      @plugin_helper.should_receive(:print_plugins).with('os')
+      @plugin_helper.should_receive(:print_plugins).with('platform')
+      @plugin_helper.should_receive(:print_plugins).with('delivery')
+
+      @plugin_helper.load_plugins
     end
   end
 end

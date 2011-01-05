@@ -61,7 +61,7 @@ module BoxGrinder
         begin
           require plugin
         rescue LoadError
-          @log.warn "Specified gem: '#{plugin}' wasn't found. Make sure its name is correct, skipping..." unless plugin.match(/^boxgrinder-build-(.*)-plugin/)
+          @log.warn "Specified plugin: '#{plugin}' wasn't found. Make sure its name is correct, skipping..." unless plugin.match(/^boxgrinder-build-(.*)-plugin/)
         end
       end
     end
