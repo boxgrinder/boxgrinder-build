@@ -26,20 +26,42 @@ module BoxGrinder
     end
 
     it "should register simple plugin" do
-      @manager.register_plugin( { :class => PluginManager, :type => :delivery, :name => :abc, :full_name  => "Amazon Simple Storage Service (Amazon S3)" } )
+      @manager.register_plugin({:class => PluginManager, :type => :delivery, :name => :abc, :full_name => "Amazon Simple Storage Service (Amazon S3)"})
 
       @manager.plugins[:delivery].size.should == 1
       @manager.plugins[:delivery][:abc][:class].should == PluginManager
     end
 
     it "should register plugin with many types" do
-      @manager.register_plugin( { :class => PluginManager, :type => :delivery, :name => :s3, :full_name  => "Amazon Simple Storage Service (Amazon S3)", :types => [:s3, :cloudfront, :ami] } )
+      @manager.register_plugin({:class => PluginManager, :type => :delivery, :name => :s3, :full_name => "Amazon Simple Storage Service (Amazon S3)", :types => [:s3, :cloudfront, :ami]})
 
       @manager.plugins[:delivery].size.should == 4
       @manager.plugins[:delivery][:abc][:class].should == PluginManager
       @manager.plugins[:delivery][:ami][:class].should == PluginManager
       @manager.plugins[:delivery][:s3][:class].should == PluginManager
       @manager.plugins[:delivery][:cloudfront][:class].should == PluginManager
+    end
+
+    it "should initialize a plugin" do
+      plugin = mock('Plugin')
+
+      clazz = mock('Class')
+      clazz.should_receive(:new).and_return(plugin)
+
+      @manager.instance_variable_set(:@plugins, {:delivery => {}, :os => {:fedora => {:class => clazz}}, :platform => {}})
+      @manager.initialize_plugin(:os, :fedora).should == [plugin, {:class => clazz}]
+    end
+
+    it "should raise if plugin initialization cannot be finished" do
+      clazz = mock('Class')
+      clazz.should_receive(:new).and_raise("Something")
+      clazz.should_receive(:to_s).and_return("Fedora")
+
+      @manager.instance_variable_set(:@plugins, {:delivery => {}, :os => {:fedora => {:class => clazz}}, :platform => {}})
+
+      lambda {
+        @manager.initialize_plugin(:os, :fedora)
+      }.should raise_error("Error while initializing 'Fedora' plugin.")
     end
   end
 end

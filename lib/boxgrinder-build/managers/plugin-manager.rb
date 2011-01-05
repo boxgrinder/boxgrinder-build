@@ -20,8 +20,8 @@ require 'singleton'
 
 module BoxGrinder
   module Plugins
-    def plugin( args )
-      PluginManager.instance.register_plugin( args )
+    def plugin(args)
+      PluginManager.instance.register_plugin(args)
     end
   end
 end
@@ -34,11 +34,11 @@ module BoxGrinder
     include Singleton
 
     def initialize
-      @plugins = { :delivery => {}, :os => {}, :platform => {}}
+      @plugins = {:delivery => {}, :os => {}, :platform => {}}
     end
 
-    def register_plugin( info )
-      validate_plugin_info( info )
+    def register_plugin(info)
+      validate_plugin_info(info)
 
       raise "We already have registered plugin for #{info[:name]}." unless @plugins[info[:name]].nil?
 
@@ -53,13 +53,13 @@ module BoxGrinder
       self
     end
 
-    def validate_plugin_info( info )
+    def validate_plugin_info(info)
       raise "No name specified for your plugin" if info[:name].nil?
       raise "No class specified for your plugin" if info[:class].nil?
       raise "No type specified for your plugin" if info[:type].nil?
     end
 
-    def initialize_plugin( type, name )
+    def initialize_plugin(type, name)
       plugins = @plugins[type]
       # this should never happen
       raise "There are no #{type} plugins." if plugins.nil?
@@ -68,26 +68,11 @@ module BoxGrinder
 
       begin
         plugin = plugin_info[:class].new
-      rescue => e
-        raise "Error while initializing #{plugin_info[:class]} plugin.", e
+      rescue
+        raise "Error while initializing '#{plugin_info[:class].to_s}' plugin."
       end
 
-      [ plugin, plugin_info ]
-    end
-
-    def plugin_types( type )
-      types = []
-
-      available_plugins_for_selected_type = @plugins[type]
-
-      unless available_plugins_for_selected_type.nil?
-        available_plugins_for_selected_type.each_value do |info|
-          types << info[:types] unless info[:types].nil?
-          types << info[:name]
-        end
-      end
-
-      types.flatten
+      [plugin, plugin_info]
     end
 
     attr_reader :plugins
