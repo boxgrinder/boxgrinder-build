@@ -20,13 +20,12 @@ require 'boxgrinder-core/helpers/log-helper'
 
 module BoxGrinder
   class PackageHelper
-    def initialize(config, appliance_config, dir, options = {})
-      @config           = config
+    def initialize(config, appliance_config, options = {})
+      @config = config
       @appliance_config = appliance_config
-      @dir              = dir
 
-      @log              = options[:log] || LogHelper.new
-      @exec_helper      = options[:exec_helper] || ExecHelper.new({:log => @log})
+      @log = options[:log] || LogHelper.new
+      @exec_helper = options[:exec_helper] || ExecHelper.new(:log => @log)
     end
 
     def package(dir, package, type = :tar)
@@ -40,17 +39,13 @@ module BoxGrinder
       case type
         when :tar
           package_name = File.basename(package, '.tgz')
-          symlink      = "#{File.dirname(package)}/#{package_name}"
+          symlink = "#{File.dirname(package)}/#{package_name}"
 
           FileUtils.ln_s(File.expand_path(dir), symlink)
-
-          Dir.chdir(File.dirname(package)) do
-            @exec_helper.execute "tar -hcvzf #{package_name}.tgz #{package_name}"
-          end
-
+          @exec_helper.execute "tar -C #{File.dirname(package)} -hcvzf #{package} #{package_name}"
           FileUtils.rm(symlink)
         else
-          raise "Only tar format is currently supported."
+          raise "Specified format: '#{type}' is currently unsupported."
       end
 
       @log.info "Appliance #{@appliance_config.name} packaged."
