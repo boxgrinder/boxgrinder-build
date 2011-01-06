@@ -67,7 +67,7 @@ module BoxGrinder
       plugin_helper = mock(PluginHelper)
       plugin_helper.should_receive(:load_plugins)
 
-      PluginHelper.should_receive(:new).with( :options => @options ).and_return(plugin_helper)
+      PluginHelper.should_receive(:new).with( :options => @options, :log => @log ).and_return(plugin_helper)
 
       @appliance.should_receive(:read_definition)
       @appliance.should_receive(:validate_definition)
@@ -83,7 +83,7 @@ module BoxGrinder
       plugin_helper = mock(PluginHelper)
       plugin_helper.should_receive(:load_plugins)
 
-      PluginHelper.should_receive(:new).with(:options => @options).and_return(plugin_helper)
+      PluginHelper.should_receive(:new).with(:options => @options, :log => @log).and_return(plugin_helper)
 
       @appliance.should_receive(:read_definition)
       @appliance.should_receive(:validate_definition)

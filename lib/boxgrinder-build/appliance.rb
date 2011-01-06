@@ -29,8 +29,8 @@ require 'boxgrinder-core/validators/appliance-config-validator'
 
 module BoxGrinder
   class Appliance
-    def initialize(appliance_definition_file, options = {})
-      @appliance_definition_file = appliance_definition_file
+    def initialize(appliance_definition, options = {})
+      @appliance_definition      = appliance_definition
       @config                    = Config.new
       @options                   = OpenCascade.new(:log => LogHelper.new, :platform => :none, :delivery => :none, :force => false).merge(options)
 
@@ -40,18 +40,18 @@ module BoxGrinder
     def read_definition
       begin
         # first try to read as appliance definition file
-        appliance_configs, appliance_config = ApplianceHelper.new(:log => @log).read_definitions(@appliance_definition_file)
+        appliance_configs, appliance_config = ApplianceHelper.new(:log => @log).read_definitions(@appliance_definition)
       rescue
         # then try to read OS plugin specific format
         PluginManager.instance.plugins[:os].each_value do |info|
           plugin = info[:class].new
-          appliance_config = plugin.read_file(@appliance_definition_file) if plugin.respond_to?(:read_file)
+          appliance_config = plugin.read_file(@appliance_definition) if plugin.respond_to?(:read_file)
           break unless appliance_config.nil?
         end
         appliance_configs = [appliance_config]
       end
 
-      raise "Couldn't read appliance definition file: #{File.basename(@appliance_definition_file)}" if appliance_config.nil?
+      raise "Couldn't read appliance definition file: #{File.basename(@appliance_definition)}" if appliance_config.nil?
 
       appliance_config_helper = ApplianceConfigHelper.new(appliance_configs)
       @appliance_config       = appliance_config_helper.merge(appliance_config.clone.init_arch).initialize_paths
@@ -82,7 +82,7 @@ module BoxGrinder
 
     def create
       begin
-        PluginHelper.new(:options => @options).load_plugins
+        PluginHelper.new(:options => @options, :log => @log).load_plugins
         read_definition
         validate_definition
         remove_old_builds if @options.force
@@ -104,7 +104,7 @@ module BoxGrinder
       end
 
       @log.debug "Executing operating system plugin for #{@appliance_config.os.name}..."
-      os_plugin.run(@appliance_definition_file)
+      os_plugin.run(@appliance_definition)
       @log.debug "Operating system plugin executed."
 
       {:deliverables => os_plugin.deliverables, :plugin_info => os_plugin_info}

@@ -88,6 +88,7 @@ popd
 * Tue Jan 04 2011  <mgoldman@redhat.com> - 0.7.2-1
 - Upstream release: 0.7.2
 - [BGBUILD-79] Allow to use BoxGrinder Build as a library
+- [BGBUILD-127] Use appliance definition object instead of a file when using BG as a library
 
 * Mon Dec 20 2010  <mgoldman@redhat.com> - 0.7.1-1
 - Upstream release: 0.7.1
