@@ -22,9 +22,9 @@ require 'boxgrinder-core/helpers/log-helper'
 
 module BoxGrinder
   class PluginHelper
-    def initialize( options = {} )
+    def initialize( config, options = {} )
+      @options  = config
       @log      = options[:log] || LogHelper.new
-      @options  = options[:options]
     end
 
     def load_plugins

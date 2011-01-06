@@ -30,11 +30,11 @@ require 'boxgrinder-core/validators/appliance-config-validator'
 module BoxGrinder
   class Appliance
     def initialize(appliance_definition, options = {})
-      @appliance_definition      = appliance_definition
-      @config                    = Config.new
-      @options                   = OpenCascade.new(:log => LogHelper.new, :platform => :none, :delivery => :none, :force => false).merge(options)
+      @appliance_definition = appliance_definition
+      @config = Config.new.merge(options)
+      @log = options[:log] ||LogHelper.new(:level => @config.log_level)
 
-      @log = @options.log
+      @config.delete(:log)
     end
 
     def read_definition
@@ -54,7 +54,7 @@ module BoxGrinder
       raise "Couldn't read appliance definition file: #{File.basename(@appliance_definition)}" if appliance_config.nil?
 
       appliance_config_helper = ApplianceConfigHelper.new(appliance_configs)
-      @appliance_config       = appliance_config_helper.merge(appliance_config.clone.init_arch).initialize_paths
+      @appliance_config = appliance_config_helper.merge(appliance_config.clone.init_arch).initialize_paths
     end
 
     def validate_definition
@@ -82,10 +82,10 @@ module BoxGrinder
 
     def create
       begin
-        PluginHelper.new(:options => @options, :log => @log).load_plugins
+        PluginHelper.new(@config, :log => @log).load_plugins
         read_definition
         validate_definition
-        remove_old_builds if @options.force
+        remove_old_builds if @config.force
         execute_plugin_chain
       rescue
         @log.fatal $!
@@ -111,14 +111,14 @@ module BoxGrinder
     end
 
     def execute_platform_plugin(previous_plugin_output)
-      if @options.platform == :none or @options.platform.to_s.empty? == nil
+      if @config.platform == :none or @config.platform.to_s.empty? == nil
         @log.debug "No platform selected, skipping platform conversion."
         return previous_plugin_output
       end
 
       raise "No platform plugins installed. Install one or more platform plugin. See http://community.jboss.org/docs/DOC-15081 and http://community.jboss.org/docs/DOC-15214 for more info" if PluginManager.instance.plugins[:platform].empty?
 
-      platform_plugin, platform_plugin_info = PluginManager.instance.initialize_plugin(:platform, @options.platform)
+      platform_plugin, platform_plugin_info = PluginManager.instance.initialize_plugin(:platform, @config.platform)
       platform_plugin.init(@config, @appliance_config, :log => @log, :plugin_info => platform_plugin_info, :previous_plugin_info => previous_plugin_output[:plugin_info], :previous_deliverables => previous_plugin_output[:deliverables])
 
       if platform_plugin.deliverables_exists?
@@ -126,7 +126,7 @@ module BoxGrinder
         return {:deliverables => platform_plugin.deliverables, :plugin_info => platform_plugin_info}
       end
 
-      @log.debug "Executing platform plugin for #{@options.platform}..."
+      @log.debug "Executing platform plugin for #{@config.platform}..."
       platform_plugin.run
       @log.debug "Platform plugin executed."
 
@@ -134,16 +134,16 @@ module BoxGrinder
     end
 
     def execute_delivery_plugin(previous_plugin_output)
-      if @options.delivery == :none or @options.delivery.to_s.empty? == nil
+      if @config.delivery == :none or @config.delivery.to_s.empty? == nil
         @log.debug "No delivery method selected, skipping delivering."
         return
       end
 
       raise "No delivery plugins installed. Install one or more delivery plugin. See http://community.jboss.org/docs/DOC-15081 and http://community.jboss.org/docs/DOC-15214 for more info" if PluginManager.instance.plugins[:delivery].empty?
 
-      delivery_plugin, delivery_plugin_info = PluginManager.instance.initialize_plugin(:delivery, @options.delivery)
+      delivery_plugin, delivery_plugin_info = PluginManager.instance.initialize_plugin(:delivery, @config.delivery)
       delivery_plugin.init(@config, @appliance_config, :log => @log, :plugin_info => delivery_plugin_info, :previous_plugin_info => previous_plugin_output[:plugin_info], :previous_deliverables => previous_plugin_output[:deliverables])
-      delivery_plugin.run(@options.delivery)
+      delivery_plugin.run(@config.delivery)
     end
   end
 end

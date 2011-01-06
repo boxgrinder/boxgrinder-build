@@ -24,14 +24,15 @@ require 'logger'
 module BoxGrinder
   describe Appliance do
     def prepare_appliance(options = {}, definition_file = "#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.appl")
-      @log            = Logger.new('/dev/null')
-      @options        = OpenCascade.new(:log => @log, :platform => :none, :delivery => :none, :force => false).merge(options)    
+      @log = Logger.new('/dev/null')
+      @options = OpenCascade.new(:log => @log, :platform => :none, :delivery => :none, :force => false).merge(options)
 
       @plugin_manager = mock(PluginManager)
 
       PluginManager.stub!(:instance).and_return(@plugin_manager)
 
       @appliance = Appliance.new(definition_file, @options)
+      @config = @appliance.instance_variable_get(:@config)
     end
 
     def prepare_appliance_config
@@ -48,17 +49,24 @@ module BoxGrinder
           OpenCascade.new({
                               :partitions =>
                                   {
-                                      '/'     => {'size' => 2},
+                                      '/' => {'size' => 2},
                                       '/home' => {'size' => 3},
                                   },
-                              :arch       => 'i686',
-                              :base_arch  => 'i386',
-                              :cpus       => 1,
-                              :memory     => 256,
+                              :arch => 'i686',
+                              :base_arch => 'i386',
+                              :cpus => 1,
+                              :memory => 256,
                           })
       )
 
       @appliance_config
+    end
+
+    it "should create @config object without log" do
+      config = Appliance.new("file", :platform => :ec2, :log => "ALOG").instance_variable_get(:@config)
+
+      config.size.should == 6
+      config[:log].should == nil
     end
 
     it "should prepare appliance to build" do
@@ -67,7 +75,7 @@ module BoxGrinder
       plugin_helper = mock(PluginHelper)
       plugin_helper.should_receive(:load_plugins)
 
-      PluginHelper.should_receive(:new).with( :options => @options, :log => @log ).and_return(plugin_helper)
+      PluginHelper.should_receive(:new).with(@config, :log => @log).and_return(plugin_helper)
 
       @appliance.should_receive(:read_definition)
       @appliance.should_receive(:validate_definition)
@@ -83,7 +91,7 @@ module BoxGrinder
       plugin_helper = mock(PluginHelper)
       plugin_helper.should_receive(:load_plugins)
 
-      PluginHelper.should_receive(:new).with(:options => @options, :log => @log).and_return(plugin_helper)
+      PluginHelper.should_receive(:new).with(@config, :log => @log).and_return(plugin_helper)
 
       @appliance.should_receive(:read_definition)
       @appliance.should_receive(:validate_definition)
@@ -125,7 +133,7 @@ module BoxGrinder
         appliance_helper = mock(ApplianceHelper)
         appliance_helper.should_receive(:read_definitions).with("#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.ks").and_raise("Unknown format")
 
-        clazz          = mock('PluginClass')
+        clazz = mock('PluginClass')
 
         plugin_manager = mock(PluginManager)
         plugin_manager.should_receive(:plugins).and_return({:os => {:fedora => {:class => clazz, :type => :os, :name => :fedora, :full_name => "Fedora", :versions => ["11", "12", "13", "14", "rawhide"]}}})

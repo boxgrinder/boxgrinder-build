@@ -26,7 +26,7 @@ module BoxGrinder
     end
 
     before(:each) do
-      @plugin_helper = PluginHelper.new(:options => OpenStruct.new)
+      @plugin_helper = PluginHelper.new(OpenStruct.new)
     end
 
     it "should parse plugin list and return empty array when no plugins are provided" do
@@ -34,17 +34,17 @@ module BoxGrinder
     end
 
     it "should parse plugin list with double quotes" do
-      @plugin_helper = PluginHelper.new(:options => OpenStruct.new(:plugins => '"abc,def"'))
+      @plugin_helper = PluginHelper.new(OpenStruct.new(:plugins => '"abc,def"'))
       @plugin_helper.parse_plugin_list.should == ['abc', 'def']
     end
 
     it "should parse plugin list with single quotes" do
-      @plugin_helper = PluginHelper.new(:options => OpenStruct.new(:plugins => "'abc,def'"))
+      @plugin_helper = PluginHelper.new(OpenStruct.new(:plugins => "'abc,def'"))
       @plugin_helper.parse_plugin_list.should == ['abc', 'def']
     end
 
     it "should parse plugin list with single quotes and clean up it" do
-      @plugin_helper = PluginHelper.new(:options => OpenStruct.new(:plugins => "'    abc ,    def'"))
+      @plugin_helper = PluginHelper.new(OpenStruct.new(:plugins => "'    abc ,    def'"))
       @plugin_helper.parse_plugin_list.should == ['abc', 'def']
     end
 
@@ -72,7 +72,7 @@ module BoxGrinder
     end
 
     it "should read plugins specified in command line" do
-      @plugin_helper = PluginHelper.new(:options => OpenStruct.new(:plugins => 'abc,def'))
+      @plugin_helper = PluginHelper.new(OpenStruct.new(:plugins => 'abc,def'))
 
       @plugin_array.each do |plugin|
         @plugin_helper.should_receive(:require).once.with(plugin)
@@ -86,7 +86,7 @@ module BoxGrinder
 
     it "should read plugins specified in command line and warn if plugin cannot be loaded" do
       @log = mock('Logger')
-      @plugin_helper = PluginHelper.new(:options => OpenStruct.new(:plugins => 'abc'), :log => @log)
+      @plugin_helper = PluginHelper.new(OpenStruct.new(:plugins => 'abc'), :log => @log)
 
       @plugin_array.each do |plugin|
         @log.should_receive(:trace).with("Requiring plugin '#{plugin}'...")
