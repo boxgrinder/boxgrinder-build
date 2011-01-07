@@ -83,7 +83,7 @@ module BoxGrinder
 
       raise "Appliance definition file '#{appliance_definition_file}' could not be found" unless File.exists?(appliance_definition_file)
 
-      Appliance.new(appliance_definition_file, :platfom => options.platform, :delivery => options.delivery, :force => options.force, :log => LogHelper.new(:threshold => $log_level)).create
+      Appliance.new(appliance_definition_file, :platfom => options.platform, :delivery => options.delivery, :force => options.force, :log => LogHelper.new(:level => $log_level)).create
     end
   end
 end
