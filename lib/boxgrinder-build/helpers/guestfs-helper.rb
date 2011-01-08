@@ -20,6 +20,7 @@ require 'boxgrinder-build/helpers/augeas-helper'
 require 'boxgrinder-core/helpers/log-helper'
 require 'guestfs'
 require 'open-uri'
+require 'timeout'
 require 'rbconfig'
 
 module BoxGrinder
@@ -93,7 +94,8 @@ module BoxGrinder
       @log.trace "Checking if HW virtualization is available..."
 
       begin
-        open('http://169.254.169.254/1.0/meta-data/local-ipv4')
+        Timeout::timeout(2) { open('http://169.254.169.254/1.0/meta-data/local-ipv4') }
+
         ec2 = true
       rescue Exception
         ec2 = false
