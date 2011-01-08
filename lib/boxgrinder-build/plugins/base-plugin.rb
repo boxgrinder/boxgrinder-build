@@ -45,7 +45,7 @@ module BoxGrinder
       @image_helper          = options[:image_helper] || ImageHelper.new(@config, @appliance_config, :log => @log)
       @plugin_info           = options[:plugin_info]
       @previous_plugin_info  = options[:previous_plugin_info]
-      @previous_deliverables = options[:previous_deliverables] || {}
+      @previous_deliverables = options[:previous_deliverables] || OpenCascade.new
 
       @dir.base              = "#{@appliance_config.path.build}/#{@plugin_info[:name]}-plugin"
       @dir.tmp               = "#{@dir.base}/tmp"
