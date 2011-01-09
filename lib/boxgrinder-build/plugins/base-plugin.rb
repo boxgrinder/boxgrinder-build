@@ -80,7 +80,8 @@ module BoxGrinder
     end
 
     def is_supported_os?
-      return false unless !@supported_oses[@appliance_config.os.name].nil? and @supported_oses[@appliance_config.os.name].include?(@appliance_config.os.version) 
+      return true if @supported_oses.empty?
+      return false unless !@supported_oses[@appliance_config.os.name].nil? and @supported_oses[@appliance_config.os.name].include?(@appliance_config.os.version)
       true
     end
 

@@ -149,7 +149,7 @@ module BoxGrinder
     end
 
     it "should return false when no operating systems are specified" do
-      @plugin.is_supported_os?.should == false
+      @plugin.is_supported_os?.should == true
     end
 
     it "should return supported os string" do
