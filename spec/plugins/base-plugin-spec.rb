@@ -18,6 +18,7 @@
 
 require 'rubygems'
 require 'boxgrinder-build/plugins/base-plugin'
+require 'boxgrinder-core/helpers/log-helper'
 require 'yaml'
 
 module BoxGrinder
@@ -30,10 +31,12 @@ module BoxGrinder
       @appliance_config = mock('ApplianceConfig')
 
       @appliance_config.stub!(:path).and_return(OpenCascade.new({:build => 'build/path'}))
-      @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '11'}))
+      @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '13'}))
+
+      @log = LogHelper.new(:level => :trace, :type => :stdout)
 
       @plugin = BasePlugin.new
-      @plugin.init(@config, @appliance_config, :plugin_info => {:name => :plugin_name}, :log => Logger.new('/dev/null'))
+      @plugin.init(@config, @appliance_config, :plugin_info => {:name => :plugin_name}, :log => @log)
     end
 
     it "should be initialized after running init method" do
@@ -93,18 +96,28 @@ module BoxGrinder
       @plugin.deliverables_exists?.should == false
     end
 
-    it "should run the plugin" do
-      @plugin.register_deliverable(:disk => "disk")
+    describe ".run" do
+      it "should run the plugin" do
+        @plugin.register_supported_os('fedora', ['12', '13'])
+        @plugin.register_deliverable(:disk => "disk")
 
-      FileUtils.should_receive(:rm_rf).with("build/path/plugin_name-plugin/tmp")
-      FileUtils.should_receive(:mkdir_p).with("build/path/plugin_name-plugin/tmp")
+        FileUtils.should_receive(:rm_rf).with("build/path/plugin_name-plugin/tmp")
+        FileUtils.should_receive(:mkdir_p).with("build/path/plugin_name-plugin/tmp")
 
-      @plugin.should_receive(:execute).with('a', 3)
+        @plugin.should_receive(:execute).with('a', 3)
 
-      FileUtils.should_receive(:mv).with("build/path/plugin_name-plugin/tmp/disk", "build/path/plugin_name-plugin/disk")
-      FileUtils.should_receive(:rm_rf).with("build/path/plugin_name-plugin/tmp")
+        FileUtils.should_receive(:mv).with("build/path/plugin_name-plugin/tmp/disk", "build/path/plugin_name-plugin/disk")
+        FileUtils.should_receive(:rm_rf).with("build/path/plugin_name-plugin/tmp")
 
-      @plugin.run('a', 3)
+        @plugin.run('a', 3)
+      end
+
+      it "should fail if OS is not supported" do
+        @plugin.register_supported_os('fedora', ['12', '13'])
+        @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '14'}))
+        @log.should_receive(:error).with('plugin_name plugin supports following operating systems: fedora (versions: 12, 13). Your appliance contains fedora 14 operating system which is not supported by this plugin, sorry.')
+        @plugin.run
+      end
     end
 
     it "should register a supported os" do
@@ -132,6 +145,10 @@ module BoxGrinder
       @plugin.instance_variable_get(:@appliance_config).os.name = 'fedora'
       @plugin.instance_variable_get(:@appliance_config).os.version = '12'
 
+      @plugin.is_supported_os?.should == false
+    end
+
+    it "should return false when no operating systems are specified" do
       @plugin.is_supported_os?.should == false
     end
 

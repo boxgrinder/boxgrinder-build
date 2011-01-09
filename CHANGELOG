@@ -1,5 +1,6 @@
 v0.7.2
 
+* [BGBUILD-131] Check if OS is supported before executing the plugin
 * [BGBUILD-68] Global .boxgrinder/config or rc style file for config
 * [BGBUILD-79] Allow to use BoxGrinder Build as a library
 * [BGBUILD-127] Use appliance definition object instead of a file when using BG as a library

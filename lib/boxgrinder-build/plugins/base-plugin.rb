@@ -54,8 +54,8 @@ module BoxGrinder
 
       read_plugin_config
 
-      @move_deliverables = true
-      @initialized = true
+      @move_deliverables     = true
+      @initialized           = true
 
       after_init
 
@@ -80,7 +80,7 @@ module BoxGrinder
     end
 
     def is_supported_os?
-      return false unless !@supported_oses[@appliance_config.os.name].nil? and @supported_oses[@appliance_config.os.name].include?(@appliance_config.os.version)
+      return false unless !@supported_oses[@appliance_config.os.name].nil? and @supported_oses[@appliance_config.os.name].include?(@appliance_config.os.version) 
       true
     end
 
@@ -123,7 +123,11 @@ module BoxGrinder
       FileUtils.rm_rf @dir.tmp
       FileUtils.mkdir_p @dir.tmp
 
-      execute(*args)
+      if is_supported_os?
+        execute(*args)
+      else
+        @log.error "#{@plugin_info[:name]} plugin supports following operating systems: #{supported_oses}. Your appliance contains #{@appliance_config.os.name} #{@appliance_config.os.version} operating system which is not supported by this plugin, sorry."
+      end
 
       after_execute
     end
