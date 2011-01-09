@@ -126,11 +126,10 @@ module BoxGrinder
 
       if is_supported_os?
         execute(*args)
+        after_execute
       else
         @log.error "#{@plugin_info[:name]} plugin supports following operating systems: #{supported_oses}. Your appliance contains #{@appliance_config.os.name} #{@appliance_config.os.version} operating system which is not supported by this plugin, sorry."
-      end
-
-      after_execute
+      end     
     end
 
     def after_init
