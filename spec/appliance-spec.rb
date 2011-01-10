@@ -69,36 +69,50 @@ module BoxGrinder
       config[:log].should == nil
     end
 
-    it "should prepare appliance to build" do
-      prepare_appliance
+    describe ".create" do
 
-      plugin_helper = mock(PluginHelper)
-      plugin_helper.should_receive(:load_plugins)
+      it "should prepare appliance to build" do
+        prepare_appliance
 
-      PluginHelper.should_receive(:new).with(@config, :log => @log).and_return(plugin_helper)
+        plugin_helper = mock(PluginHelper)
+        plugin_helper.should_receive(:load_plugins)
 
-      @appliance.should_receive(:read_definition)
-      @appliance.should_receive(:validate_definition)
-      @appliance.should_not_receive(:remove_old_builds)
-      @appliance.should_receive(:execute_plugin_chain)
+        PluginHelper.should_receive(:new).with(@config, :log => @log).and_return(plugin_helper)
 
-      @appliance.create
-    end
+        @appliance.should_receive(:read_definition)
+        @appliance.should_receive(:validate_definition)
+        @appliance.should_not_receive(:remove_old_builds)
+        @appliance.should_receive(:execute_plugin_chain)
 
-    it "should prepare appliance to build with removing old files" do
-      prepare_appliance(:force => true)
+        @appliance.create
+      end
 
-      plugin_helper = mock(PluginHelper)
-      plugin_helper.should_receive(:load_plugins)
+      it "should prepare appliance to build with removing old files" do
+        prepare_appliance(:force => true)
 
-      PluginHelper.should_receive(:new).with(@config, :log => @log).and_return(plugin_helper)
+        plugin_helper = mock(PluginHelper)
+        plugin_helper.should_receive(:load_plugins)
 
-      @appliance.should_receive(:read_definition)
-      @appliance.should_receive(:validate_definition)
-      @appliance.should_receive(:remove_old_builds)
-      @appliance.should_receive(:execute_plugin_chain)
+        PluginHelper.should_receive(:new).with(@config, :log => @log).and_return(plugin_helper)
 
-      @appliance.create
+        @appliance.should_receive(:read_definition)
+        @appliance.should_receive(:validate_definition)
+        @appliance.should_receive(:remove_old_builds)
+        @appliance.should_receive(:execute_plugin_chain)
+
+        @appliance.create
+      end
+
+      it "should not fail nicely when an error occurs" do
+        prepare_appliance(:force => true)
+
+        error = RuntimeError.new('something')
+        PluginHelper.should_receive(:new).with(@config, :log => @log).and_raise(error)
+
+        @log.should_receive(:fatal).with(error)
+
+        @appliance.create
+      end
     end
 
     describe ".validate_definition" do

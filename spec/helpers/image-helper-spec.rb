@@ -29,21 +29,21 @@ module BoxGrinder
       @appliance_config.stub!(:name).and_return('full')
       @appliance_config.stub!(:hardware).and_return(
           OpenCascade.new({
-                           :partitions =>
-                               {
-                                   '/' => {'size' => 2, 'type' => 'ext4'},
-                                   '/home' => {'size' => 3, 'type' => 'ext3'},
-                               },
-                           :arch => 'i686',
-                           :base_arch => 'i386',
-                           :cpus => 1,
-                           :memory => 256,
-                       })
+                              :partitions =>
+                                  {
+                                      '/' => {'size' => 2, 'type' => 'ext4'},
+                                      '/home' => {'size' => 3, 'type' => 'ext3'},
+                                  },
+                              :arch => 'i686',
+                              :base_arch => 'i386',
+                              :cpus => 1,
+                              :memory => 256,
+                          })
       )
 
-      @helper      = ImageHelper.new(@config, @appliance_config, :log => Logger.new('/dev/null'))
+      @helper = ImageHelper.new(@config, @appliance_config, :log => Logger.new('/dev/null'))
 
-      @log         = @helper.instance_variable_get(:@log)
+      @log = @helper.instance_variable_get(:@log)
       @exec_helper = @helper.instance_variable_get(:@exec_helper)
     end
 
@@ -115,38 +115,46 @@ module BoxGrinder
       @helper.create_disk('disk.raw', 10)
     end
 
-    it "should create default filesystem on selected device" do
-      @exec_helper.should_receive(:execute).with("mke2fs -T ext4 -L '/' -F /dev/loop0")
+    describe ".create_filesystem" do
 
-      @helper.create_filesystem('/dev/loop0')
+      it "should create default filesystem on selected device" do
+        @exec_helper.should_receive(:execute).with("mke2fs -T ext4 -L '/' -F /dev/loop0")
+
+        @helper.create_filesystem('/dev/loop0')
+      end
+
+      it "should create ext4 filesystem on selected device" do
+        @appliance_config.should_receive(:hardware).and_return(
+            OpenCascade.new({
+                                :partitions =>
+                                    {
+                                        '/' => {'size' => 2, 'type' => 'ext3'},
+                                        '/home' => {'size' => 3, 'type' => 'ext3'},
+                                    },
+                                :arch => 'i686',
+                                :base_arch => 'i386',
+                                :cpus => 1,
+                                :memory => 256,
+                            })
+        )
+
+        @exec_helper.should_receive(:execute).with("mke2fs -T ext3 -L '/' -F /dev/loop0")
+
+        @helper.create_filesystem('/dev/loop0')
+      end
+
+      it "should create ext4 filesystem on selected device with a label" do
+        @exec_helper.should_receive(:execute).with("mke2fs -T ext4 -L '/home' -F /dev/loop0")
+
+        @helper.create_filesystem('/dev/loop0', :type => 'ext4', :label => '/home')
+      end
+
+      it "should create ext4 filesystem on selected device with a label" do
+        lambda {
+        @helper.create_filesystem('/dev/loop0', :type => 'ext256', :label => '/home')
+        }.should raise_error(RuntimeError, "Unsupported filesystem specified: ext256")
+      end
     end
-
-    it "should create ext4 filesystem on selected device" do
-      @appliance_config.should_receive(:hardware).and_return(
-          OpenCascade.new({
-                           :partitions =>
-                               {
-                                   '/' => {'size' => 2, 'type' => 'ext3'},
-                                   '/home' => {'size' => 3, 'type' => 'ext3'},
-                               },
-                           :arch => 'i686',
-                           :base_arch => 'i386',
-                           :cpus => 1,
-                           :memory => 256,
-                       })
-      )
-
-      @exec_helper.should_receive(:execute).with("mke2fs -T ext3 -L '/' -F /dev/loop0")
-
-      @helper.create_filesystem('/dev/loop0')
-    end
-
-    it "should create ext4 filesystem on selected device with a label" do
-      @exec_helper.should_receive(:execute).with("mke2fs -T ext4 -L '/home' -F /dev/loop0")
-
-      @helper.create_filesystem('/dev/loop0', :type => 'ext4', :label => '/home')
-    end
-
 
     it "should sync files" do
       @exec_helper.should_receive(:execute).with("rsync -Xura from_dir/* to_dir")
@@ -155,7 +163,7 @@ module BoxGrinder
     end
 
     it "should customize the disk image suing GuestFS" do
-      guestfs        = mock('GuestFS')
+      guestfs = mock('GuestFS')
       guestfs.should_receive(:abc)
 
       guestfs_helper = mock(GuestFSHelper)

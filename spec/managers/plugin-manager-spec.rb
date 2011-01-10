@@ -63,5 +63,14 @@ module BoxGrinder
         @manager.initialize_plugin(:os, :fedora)
       }.should raise_error("Error while initializing 'Fedora' plugin.")
     end
+
+    it "should register the plugin with 'plugin' method" do
+      plugin_manager = mock(PluginManager)
+      plugin_manager.should_receive(:register_plugin).with(:class => String, :type => :platform, :name => :ec2, :full_name  => "Amazon Elastic Compute Cloud (Amazon EC2)")
+
+      PluginManager.should_receive(:instance).and_return(plugin_manager)
+
+      plugin :class => String, :type => :platform, :name => :ec2, :full_name  => "Amazon Elastic Compute Cloud (Amazon EC2)"
+    end
   end
 end
