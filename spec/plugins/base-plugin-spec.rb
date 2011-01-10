@@ -36,7 +36,7 @@ module BoxGrinder
       @log = LogHelper.new(:level => :trace, :type => :stdout)
 
       @plugin = BasePlugin.new
-      @plugin.init(@config, @appliance_config, :plugin_info => {:name => :plugin_name}, :log => @log)
+      @plugin.init(@config, @appliance_config, :plugin_info => {:name => :plugin_name, :full_name => "Amazon Simple Storage Service (Amazon S3)"}, :log => @log)
     end
 
     it "should be initialized after running init method" do
@@ -115,7 +115,7 @@ module BoxGrinder
       it "should fail if OS is not supported" do
         @plugin.register_supported_os('fedora', ['12', '13'])
         @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '14'}))
-        @log.should_receive(:error).with('plugin_name plugin supports following operating systems: fedora (versions: 12, 13). Your appliance contains fedora 14 operating system which is not supported by this plugin, sorry.')
+        @log.should_receive(:error).with('Amazon Simple Storage Service (Amazon S3) plugin supports following operating systems: fedora (versions: 12, 13). Your appliance contains fedora 14 operating system which is not supported by this plugin, sorry.')
         @plugin.run
       end
     end
