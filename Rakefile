@@ -26,7 +26,7 @@ Echoe.new("boxgrinder-build") do |p|
   p.summary     = "A tool for creating appliances from simple plain text files for various virtual environments."
   p.url         = "http://www.jboss.org/boxgrinder"
   p.email       = "info@boxgrinder.org"
-  p.runtime_dependencies = ["commander ~>4.0.3", "boxgrinder-core ~>0.1.5"]
+  p.runtime_dependencies = ["commander ~>4.0.3", "boxgrinder-core ~>0.2.0"]
 end
 
 desc "Run all tests"

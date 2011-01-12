@@ -14,14 +14,14 @@ Source0: http://rubygems.org/gems/%{gemname}-%{version}.gem
 
 Requires: ruby(abi) = %{rubyabi}
 Requires: rubygem(commander)
-Requires: rubygem(boxgrinder-core) >= 0.1.5
+Requires: rubygem(boxgrinder-core) >= 0.2.0
 Requires: ruby-libguestfs
 Requires: parted
 Requires: e2fsprogs
 
 BuildRequires: rubygem(rake)
 BuildRequires: rubygem(rspec)
-BuildRequires: rubygem(boxgrinder-core) >= 0.1.5
+BuildRequires: rubygem(boxgrinder-core) >= 0.2.0
 BuildRequires: rubygem(echoe)
 BuildRequires: ruby-libguestfs
 
