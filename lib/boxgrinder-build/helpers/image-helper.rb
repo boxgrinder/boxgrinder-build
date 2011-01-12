@@ -23,25 +23,25 @@ require 'boxgrinder-build/helpers/guestfs-helper'
 module BoxGrinder
   class ImageHelper
     def initialize(config, appliance_config, options = {})
-      @config                 = config
-      @appliance_config       = appliance_config
+      @config = config
+      @appliance_config = appliance_config
 
-      @log          = options[:log] || LogHelper.new
-      @exec_helper  = options[:exec_helper] || ExecHelper.new(:log => @log)
+      @log = options[:log] || LogHelper.new
+      @exec_helper = options[:exec_helper] || ExecHelper.new(:log => @log)
     end
 
     def mount_image(disk, mount_dir)
-      offsets      = calculate_disk_offsets(disk)
+      offsets = calculate_disk_offsets(disk)
 
       @log.debug "Mounting image #{File.basename(disk)} in #{mount_dir}..."
       FileUtils.mkdir_p(mount_dir)
 
-      mounts       = {}
+      mounts = {}
 
       offsets.each do |offset|
-        loop_device   = get_loop_device
+        loop_device = get_loop_device
         @exec_helper.execute("losetup -o #{offset.to_s} #{loop_device} #{disk}")
-        label         = @exec_helper.execute("e2label #{loop_device}").strip.chomp.gsub('_', '')
+        label = @exec_helper.execute("e2label #{loop_device}").strip.chomp.gsub('_', '')
         label = '/' if label == ''
         mounts[label] = loop_device
       end
@@ -67,6 +67,24 @@ module BoxGrinder
       FileUtils.rm_rf(mount_dir)
     end
 
+    def disk_info(disk)
+      YAML.load(@exec_helper.execute("qemu-img info #{disk}"))
+    end
+
+    def convert_disk(disk, format, destination)
+      unless File.exists?(destination)
+        info = disk_info(disk)
+
+        if info['file format'] == format
+          @exec_helper.execute "cp #{disk} #{destination}"
+        else
+          @exec_helper.execute "qemu-img convert -f #{info['file format']} -O #{format} #{disk} #{destination}"
+        end
+      else
+        @log.debug "Destination already exists"
+      end
+    end
+
     def get_loop_device
       begin
         loop_device = @exec_helper.execute("losetup -f 2>&1").strip
@@ -82,7 +100,7 @@ module BoxGrinder
       loop_device = get_loop_device
 
       @exec_helper.execute("losetup #{loop_device} #{disk}")
-      offsets     = @exec_helper.execute("parted #{loop_device} 'unit B print' | grep -e '^ [0-9]' | awk '{ print $2 }'").scan(/\d+/)
+      offsets = @exec_helper.execute("parted #{loop_device} 'unit B print' | grep -e '^ [0-9]' | awk '{ print $2 }'").scan(/\d+/)
       # wait one secont before freeing loop device
       sleep 1
       @exec_helper.execute("losetup -d #{loop_device}")
@@ -100,8 +118,8 @@ module BoxGrinder
 
     def create_filesystem(disk, options = {})
       options = {
-          :type   => @appliance_config.hardware.partitions['/']['type'],
-          :label  => '/'
+          :type => @appliance_config.hardware.partitions['/']['type'],
+          :label => '/'
       }.merge(options)
 
       @log.trace "Creating filesystem..."

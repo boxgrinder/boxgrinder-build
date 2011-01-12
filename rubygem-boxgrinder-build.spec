@@ -91,6 +91,7 @@ popd
 - [BGBUILD-127] Use appliance definition object instead of a file when using BG as a library
 - [BGBUILD-68] Global .boxgrinder/config or rc style file for config
 - [BGBUILD-131] Check if OS is supported before executing the plugin
+- [BGBUILD-72] Add support for growing (not pre-allocated) disks for KVM/Xen
 
 * Mon Dec 20 2010  <mgoldman@redhat.com> - 0.7.1-1
 - Upstream release: 0.7.1

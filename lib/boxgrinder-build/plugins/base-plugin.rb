@@ -43,9 +43,10 @@ module BoxGrinder
       @log = options[:log] || Logger.new(STDOUT)
       @exec_helper = options[:exec_helper] || ExecHelper.new(:log => @log)
       @image_helper = options[:image_helper] || ImageHelper.new(@config, @appliance_config, :log => @log)
-      @plugin_info = options[:plugin_info]
       @previous_plugin_info = options[:previous_plugin_info]
       @previous_deliverables = options[:previous_deliverables] || OpenCascade.new
+
+      @plugin_info = options[:plugin_info]
 
       @dir.base = "#{@appliance_config.path.build}/#{@plugin_info[:name]}-plugin"
       @dir.tmp = "#{@dir.base}/tmp"
@@ -121,23 +122,24 @@ module BoxGrinder
     end
 
     def run(*args)
+      unless is_supported_os?
+        @log.error "#{@plugin_info[:full_name]} plugin supports following operating systems: #{supported_oses}. Your appliance contains #{@appliance_config.os.name} #{@appliance_config.os.version} operating system which is not supported by this plugin, sorry."
+        return
+      end
+
       FileUtils.rm_rf @dir.tmp
       FileUtils.mkdir_p @dir.tmp
 
-      if is_supported_os?
-        execute(*args)
+      execute(*args)
 
-        # TODO execute post commands for platform plugins here?
+      # TODO execute post commands for platform plugins here?
 
-        @deliverables.each do |name, path|
-          @log.trace "Moving '#{path}' deliverable to target destination '#{@target_deliverables[name]}'..."
-          FileUtils.mv(path, @target_deliverables[name])
-        end if @move_deliverables
+      @deliverables.each do |name, path|
+        @log.trace "Moving '#{path}' deliverable to target destination '#{@target_deliverables[name]}'..."
+        FileUtils.mv(path, @target_deliverables[name])
+      end if @move_deliverables
 
-        FileUtils.rm_rf @dir.tmp
-      else
-        @log.error "#{@plugin_info[:full_name]} plugin supports following operating systems: #{supported_oses}. Your appliance contains #{@appliance_config.os.name} #{@appliance_config.os.version} operating system which is not supported by this plugin, sorry."
-      end
+      FileUtils.rm_rf @dir.tmp
     end
 
     def after_init

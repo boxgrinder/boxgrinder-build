@@ -151,7 +151,7 @@ module BoxGrinder
 
       it "should create ext4 filesystem on selected device with a label" do
         lambda {
-        @helper.create_filesystem('/dev/loop0', :type => 'ext256', :label => '/home')
+          @helper.create_filesystem('/dev/loop0', :type => 'ext256', :label => '/home')
         }.should raise_error(RuntimeError, "Unsupported filesystem specified: ext256")
       end
     end
@@ -175,6 +175,25 @@ module BoxGrinder
       @helper.customize('disk.raw') do |guestfs, guestfs_helper|
         guestfs.abc
         guestfs_helper.def
+      end
+    end
+
+    describe ".convert_disk" do
+      it "should not convert the disk because it's in RAW format already" do
+        @exec_helper.should_receive(:execute).with("qemu-img info a/disk").and_return("image: build/appliances/x86_64/fedora/13/f13-basic/fedora-plugin/f13-basic-sda.qcow2\nfile format: raw\nvirtual size: 2.0G (2147483648 bytes)\ndisk size: 531M\ncluster_size: 65536")
+        @exec_helper.should_receive(:execute).with("cp a/disk destination")
+        @helper.convert_disk('a/disk', 'raw', 'destination')
+      end
+
+      it "should convert disk from vmdk to RAW format" do
+        @exec_helper.should_receive(:execute).with("qemu-img info a/disk").and_return("image: build/appliances/x86_64/fedora/13/f13-basic/fedora-plugin/f13-basic-sda.vmdk\nfile format: raw\nvirtual size: 2.0G (2147483648 bytes)\ndisk size: 531M\ncluster_size: 65536")
+        @exec_helper.should_receive(:execute).with("qemu-img convert -f raw -O vmdk a/disk destination")
+        @helper.convert_disk('a/disk', 'vmdk', 'destination')
+      end
+
+      it "should do nothing because destination already exists" do
+        File.should_receive(:exists?).with('destination').and_return(true)
+        @helper.convert_disk('a/disk', 'vmdk', 'destination')
       end
     end
   end
