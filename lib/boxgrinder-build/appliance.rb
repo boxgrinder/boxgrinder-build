@@ -60,7 +60,7 @@ module BoxGrinder
     def validate_definition
       ApplianceConfigValidator.new(@appliance_config).validate
 
-      raise "No operating system plugins installed. Install one or more operating system plugin. See http://community.jboss.org/docs/DOC-15081 and http://community.jboss.org/docs/DOC-15214 for more info" if PluginManager.instance.plugins[:os].empty?
+      raise "No operating system plugins installed. Install one or more operating system plugin. See http://community.jboss.org/docs/DOC-15081 and http://community.jboss.org/docs/DOC-15214 for more info." if PluginManager.instance.plugins[:os].empty?
 
       os_plugin = PluginManager.instance.plugins[:os][@appliance_config.os.name.to_sym]
 
@@ -81,19 +81,15 @@ module BoxGrinder
     end
 
     def create
-      begin
-        PluginHelper.new(@config, :log => @log).load_plugins
-        read_definition
-        validate_definition
-        remove_old_builds if @config.force
-        execute_plugin_chain
-      rescue
-        @log.fatal $!
-      end
+      PluginHelper.new(@config, :log => @log).load_plugins
+      read_definition
+      validate_definition
+      remove_old_builds if @config.force
+      execute_plugin_chain
     end
 
     def execute_os_plugin
-      raise "No operating system plugins installed. Install one or more operating system plugin. See http://community.jboss.org/docs/DOC-15081 and http://community.jboss.org/docs/DOC-15214 for more info" if PluginManager.instance.plugins[:os].empty?
+      raise "No operating system plugins installed. Install one or more operating system plugin. See http://community.jboss.org/docs/DOC-15081 and http://community.jboss.org/docs/DOC-15214 for more info." if PluginManager.instance.plugins[:os].empty?
 
       os_plugin, os_plugin_info = PluginManager.instance.initialize_plugin(:os, @appliance_config.os.name.to_sym)
       os_plugin.init(@config, @appliance_config, :log => @log, :plugin_info => os_plugin_info)
@@ -116,7 +112,7 @@ module BoxGrinder
         return previous_plugin_output
       end
 
-      raise "No platform plugins installed. Install one or more platform plugin. See http://community.jboss.org/docs/DOC-15081 and http://community.jboss.org/docs/DOC-15214 for more info" if PluginManager.instance.plugins[:platform].empty?
+      raise "No platform plugins installed. Install one or more platform plugin. See http://community.jboss.org/docs/DOC-15081 and http://community.jboss.org/docs/DOC-15214 for more info." if PluginManager.instance.plugins[:platform].empty?
 
       platform_plugin, platform_plugin_info = PluginManager.instance.initialize_plugin(:platform, @config.platform)
       platform_plugin.init(@config, @appliance_config, :log => @log, :plugin_info => platform_plugin_info, :previous_plugin_info => previous_plugin_output[:plugin_info], :previous_deliverables => previous_plugin_output[:deliverables])

@@ -13,7 +13,7 @@ URL: http://www.jboss.org/boxgrinder
 Source0: http://rubygems.org/gems/%{gemname}-%{version}.gem
 
 Requires: ruby(abi) = %{rubyabi}
-Requires: rubygem(commander)
+Requires: rubygem(thor)
 Requires: rubygem(boxgrinder-core) >= 0.2.0
 Requires: ruby-libguestfs
 Requires: parted
@@ -87,6 +87,7 @@ popd
 %changelog
 * Tue Jan 04 2011  <mgoldman@redhat.com> - 0.8.0-1
 - Upstream release: 0.8.0
+- [BGBUILD-134] Replace rubygem-commander with rubygem-thor
 - [BGBUILD-79] Allow to use BoxGrinder Build as a library
 - [BGBUILD-127] Use appliance definition object instead of a file when using BG as a library
 - [BGBUILD-68] Global .boxgrinder/config or rc style file for config
