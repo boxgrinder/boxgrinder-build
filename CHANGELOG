@@ -1,5 +1,6 @@
 v0.8.0
 
+* [BGBUILD-128] Allow to specify plugin configuration using CLI
 * [BGBUILD-134] Replace rubygem-commander with rubygem-thor
 * [BGBUILD-131] Check if OS is supported before executing the plugin
 * [BGBUILD-68] Global .boxgrinder/config or rc style file for config

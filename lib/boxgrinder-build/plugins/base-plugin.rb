@@ -54,6 +54,7 @@ module BoxGrinder
       @config_file = "#{ENV['HOME']}/.boxgrinder/plugins/#{@plugin_info[:name]}"
 
       read_plugin_config
+      merge_plugin_config
 
       @move_deliverables = true
       @initialized = true
@@ -171,6 +172,7 @@ module BoxGrinder
       @plugin_config[key] = @plugin_config[key].nil? ? value : @plugin_config[key]
     end
 
+    # This reads the plugin config from file
     def read_plugin_config
       return unless File.exists?(@config_file)
 
@@ -179,8 +181,23 @@ module BoxGrinder
       begin
         @plugin_config = YAML.load_file(@config_file)
       rescue
-        raise "An error occurred while reading configuration file '#{@config_file}' for #{self.class.name}. Is it a valid YAML file?"
+        @log.warn "An error occurred while reading configuration file '#{@config_file}' for #{self.class.name}. Is it a valid YAML file?"
       end
+    end
+
+    # This merges the plugin config with configuration provided in command line
+    def merge_plugin_config
+      config =
+          case @plugin_info[:type]
+            when :os
+              @config.os_config
+            when :platform
+              @config.platform_config
+            when :delivery
+              @config.delivery_config
+          end
+
+      @plugin_config.merge!(config)
     end
   end
 end

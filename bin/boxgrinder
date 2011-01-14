@@ -32,11 +32,11 @@ end
 module BoxGrinder
   class App < ThorHelper
     desc "build [appliance definition file] [options]", "Create an image from selected appliance definition for selected platform and deliver it using selected method."
-    method_option :platform, :type => :string, :default => 'none', :aliases => '-p', :desc => "The name of platform you want to convert to."
-    method_option :delivery, :type => :string, :default => 'none', :aliases => '-d', :desc => "The delivery method for selected appliance."
-    method_option :os_options, :type => :hash, :desc => "Operating system plugin options."
-    method_option :platform_options, :type => :hash, :desc => "Platform plugin options."
-    method_option :delivery_options, :type => :hash, :desc => "Delivery plugin options."
+    method_option :platform, :type => :string, :default => :none, :aliases => '-p', :desc => "The name of platform you want to convert to."
+    method_option :delivery, :type => :string, :default => :none, :aliases => '-d', :desc => "The delivery method for selected appliance."
+    method_option :os_config, :type => :hash, :default => {}, :desc => "Operating system plugin options."
+    method_option :platform_config, :type => :hash, :default => {}, :desc => "Platform plugin options."
+    method_option :delivery_config, :type => :hash, :default => {}, :desc => "Delivery plugin options."
     method_option :plugins, :type => :array, :banner => 'plugin1 plugin2', :aliases => '-l', :desc => "Space separated list of plugins. Default: default plugins will be available."
     method_option :force, :type => :boolean, :default => false, :aliases => '-f', :desc => "Force image creation - removes all previous builds for selected appliance. Default: false."
     method_option :debug, :type => :boolean, :default => false, :desc => "Prints debug information while building. Default: false."
@@ -54,12 +54,9 @@ module BoxGrinder
         abort
       end
 
-      log.warn "Invalid format for operating system plugin options, using defaults." if !options.os_options.nil? and options.os_options.empty?
-      log.warn "Invalid format for platform plugin options, using defaults." if !options.platform_options.nil? and options.platform_options.empty?
-      log.warn "Invalid format for delivery plugin options, using defaults." if !options.delivery_options.nil? and options.delivery_options.empty?
-
       begin
-        Appliance.new(appliance_definition_file, :platform => options.platform, :delivery => options.delivery, :os_options => options.os_options, :platform_options => options.platform_options, :delivery_options => options.delivery_options, :force => options.force, :log => log).create
+        Appliance.new(
+            appliance_definition_file, options.merge(:platform => options.platform.to_sym, :delivery => options.delivery.to_sym), :log => log).create
       rescue Exception => e
         log.fatal e.message
       end

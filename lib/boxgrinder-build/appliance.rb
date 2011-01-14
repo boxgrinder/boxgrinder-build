@@ -29,12 +29,10 @@ require 'boxgrinder-core/validators/appliance-config-validator'
 
 module BoxGrinder
   class Appliance
-    def initialize(appliance_definition, options = {})
+    def initialize(appliance_definition, config, options = {})
       @appliance_definition = appliance_definition
-      @config = Config.new.merge(options)
+      @config = Config.new(config)
       @log = options[:log] ||LogHelper.new(:level => @config.log_level)
-
-      @config.delete(:log)
     end
 
     def read_definition
@@ -81,6 +79,9 @@ module BoxGrinder
     end
 
     def create
+      @log.debug "Launching new BoxGrinder build..."
+      @log.trace "Used configuration: #{@config.to_yaml}"
+
       PluginHelper.new(@config, :log => @log).load_plugins
       read_definition
       validate_definition

@@ -36,6 +36,7 @@ module BoxGrinder
       @log = LogHelper.new(:level => :trace, :type => :stdout)
 
       @plugin = BasePlugin.new
+      @plugin.should_receive(:merge_plugin_config)
       @plugin.init(@config, @appliance_config, :plugin_info => {:name => :plugin_name, :full_name => "Amazon Simple Storage Service (Amazon S3)"}, :log => @log)
     end
 
@@ -176,18 +177,19 @@ module BoxGrinder
       @plugin.instance_variable_get(:@plugin_config).should == 'abcdef'
     end
 
-    it "should read plugin config and raise an exception" do
+    it "should read plugin config and log warning an exception" do
+      log = mock("Log")
+
+      log.should_receive(:debug).with("Reading configuration file for BoxGrinder::BasePlugin.")
+      log.should_receive(:warn).with("An error occurred while reading configuration file 'configfile' for BoxGrinder::BasePlugin. Is it a valid YAML file?")
+
+      @plugin.instance_variable_set(:@log, log)
       @plugin.instance_variable_set(:@config_file, "configfile")
 
       File.should_receive(:exists?).with('configfile').and_return(true)
       YAML.should_receive(:load_file).with('configfile').and_raise('something')
 
-      begin
-        @plugin.read_plugin_config
-        raise "Should raise"
-      rescue => e
-        e.message.should == "An error occurred while reading configuration file 'configfile' for BoxGrinder::BasePlugin. Is it a valid YAML file?"
-      end
+      @plugin.read_plugin_config
     end
 
     describe ".current_platform" do

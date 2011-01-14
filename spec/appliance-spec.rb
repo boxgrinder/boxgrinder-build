@@ -25,13 +25,13 @@ module BoxGrinder
   describe Appliance do
     def prepare_appliance(options = {}, definition_file = "#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.appl")
       @log = Logger.new('/dev/null')
-      @options = OpenCascade.new(:log => @log, :platform => :none, :delivery => :none, :force => false).merge(options)
+      @options = OpenCascade.new(:platform => :none, :delivery => :none, :force => false).merge(options)
 
       @plugin_manager = mock(PluginManager)
 
       PluginManager.stub!(:instance).and_return(@plugin_manager)
 
-      @appliance = Appliance.new(definition_file, @options)
+      @appliance = Appliance.new(definition_file, @options, :log => @log)
       @config = @appliance.instance_variable_get(:@config)
     end
 
@@ -63,9 +63,9 @@ module BoxGrinder
     end
 
     it "should create @config object without log" do
-      config = Appliance.new("file", :platform => :ec2, :log => "ALOG").instance_variable_get(:@config)
+      config = Appliance.new("file", {:platform => :ec2}, :log => "ALOG").instance_variable_get(:@config)
 
-      config.size.should == 6
+      config.size.should == 9
       config[:log].should == nil
     end
 
@@ -103,15 +103,14 @@ module BoxGrinder
         @appliance.create
       end
 
-      it "should not fail nicely when an error occurs" do
+      it "should not catch exceptions while building appliance" do
         prepare_appliance(:force => true)
 
-        error = RuntimeError.new('something')
-        PluginHelper.should_receive(:new).with(@config, :log => @log).and_raise(error)
+        PluginHelper.should_receive(:new).with(@config, :log => @log).and_raise('something')
 
-        @log.should_receive(:fatal).with(error)
-
-        @appliance.create
+        lambda {
+          @appliance.create
+        }.should raise_error(RuntimeError, 'something')
       end
     end
 
@@ -229,7 +228,7 @@ module BoxGrinder
 
         lambda {
           @appliance.validate_definition
-        }.should raise_error(RuntimeError, "No operating system plugins installed. Install one or more operating system plugin. See http://community.jboss.org/docs/DOC-15081 and http://community.jboss.org/docs/DOC-15214 for more info")
+        }.should raise_error(RuntimeError, "No operating system plugins installed. Install one or more operating system plugin. See http://community.jboss.org/docs/DOC-15081 and http://community.jboss.org/docs/DOC-15214 for more info.")
       end
 
       it "should validate definition and fail because no supported operating system plugins is installed" do

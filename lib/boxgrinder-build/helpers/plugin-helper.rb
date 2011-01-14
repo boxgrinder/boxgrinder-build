@@ -56,11 +56,13 @@ module BoxGrinder
       plugins = %w(boxgrinder-build-fedora-os-plugin boxgrinder-build-rhel-os-plugin boxgrinder-build-centos-os-plugin boxgrinder-build-ec2-platform-plugin boxgrinder-build-vmware-platform-plugin boxgrinder-build-virtualbox-platform-plugin boxgrinder-build-s3-delivery-plugin boxgrinder-build-sftp-delivery-plugin boxgrinder-build-local-delivery-plugin boxgrinder-build-ebs-delivery-plugin) + parse_plugin_list
 
       plugins.flatten.each do |plugin|
-        @log.trace "Requiring plugin '#{plugin}'..."
+        @log.trace "Loading plugin '#{plugin}'..."
 
         begin
           require plugin
+          @log.trace "- OK"
         rescue LoadError
+          @log.trace "- Not found"
           @log.warn "Specified plugin: '#{plugin}' wasn't found. Make sure its name is correct, skipping..." unless plugin.match(/^boxgrinder-build-(.*)-plugin/)
         end
       end

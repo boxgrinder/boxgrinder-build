@@ -17,6 +17,39 @@
 
 require 'thor'
 
+class Thor
+  module CoreExt
+    class HashWithIndifferentAccess < ::Hash
+      def initialize(hash={})
+        super()
+        hash.each do |key, value|
+          self[convert_key(key)] = value
+        end
+
+        to_boolean(self)
+      end
+
+      def to_boolean(h)
+        h.each do |k, v|
+          if v.is_a?(Hash)
+            to_boolean(v)
+            next
+          end
+
+          next unless v.is_a?(String)
+
+          case v
+            when /^true$/i then
+              h[k] = true
+            when /^false$/i then
+              h[k] = false
+          end
+        end
+      end
+    end
+  end
+end
+
 module BoxGrinder
   class ThorHelper < Thor
     class << self
@@ -31,6 +64,8 @@ module BoxGrinder
         examples = {
             "$ boxgrinder build jeos.appl" => "# Build KVM image for jeos.appl",
             "$ boxgrinder build jeos.appl -f" => "# Build KVM image for jeos.appl with removing previous build for this image",
+            "$ boxgrinder build jeos.appl --os-config format:qcow2" => "# Build KVM image for jeos.appl with a qcow2 disk",
+            "$ boxgrinder build jeos.appl -p vmware --platform-config type:personal thin_disk:true" => "# Build VMware image for VMware Server, Player, Fusion using thin (growing) disk",
             "$ boxgrinder build jeos.appl -p ec2 -d ami" => "# Build and register AMI for jeos.appl",
             "$ boxgrinder build jeos.appl -p vmware -d local" => "# Build VMware image for jeos.appl and deliver it to local directory"
         }.sort { |a, b| a[0] <=> b[0] }

@@ -65,7 +65,7 @@ popd
 
 %files
 %defattr(-, root, root, -)
-%{_bindir}/boxgrinder-build
+%{_bindir}/boxgrinder
 %dir %{geminstdir}
 %{geminstdir}/bin
 %{geminstdir}/lib
@@ -87,6 +87,7 @@ popd
 %changelog
 * Tue Jan 04 2011  <mgoldman@redhat.com> - 0.8.0-1
 - Upstream release: 0.8.0
+- [BGBUILD-128] Allow to specify plugin configuration using CLI
 - [BGBUILD-134] Replace rubygem-commander with rubygem-thor
 - [BGBUILD-79] Allow to use BoxGrinder Build as a library
 - [BGBUILD-127] Use appliance definition object instead of a file when using BG as a library

@@ -16,6 +16,7 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
+require 'boxgrinder-core/helpers/log-helper'
 require 'boxgrinder-build/helpers/plugin-helper'
 require 'ostruct'
 
@@ -26,7 +27,8 @@ module BoxGrinder
     end
 
     before(:each) do
-      @plugin_helper = PluginHelper.new(OpenStruct.new)
+      @log = LogHelper.new(:level => :trace, :type => :stdout)
+      @plugin_helper = PluginHelper.new(OpenStruct.new, :log => @log)
     end
 
     it "should parse plugin list and return empty array when no plugins are provided" do
@@ -34,17 +36,17 @@ module BoxGrinder
     end
 
     it "should parse plugin list with double quotes" do
-      @plugin_helper = PluginHelper.new(OpenStruct.new(:plugins => '"abc,def"'))
+      @plugin_helper = PluginHelper.new(OpenStruct.new(:plugins => '"abc,def"'), :log => @log)
       @plugin_helper.parse_plugin_list.should == ['abc', 'def']
     end
 
     it "should parse plugin list with single quotes" do
-      @plugin_helper = PluginHelper.new(OpenStruct.new(:plugins => "'abc,def'"))
+      @plugin_helper = PluginHelper.new(OpenStruct.new(:plugins => "'abc,def'"), :log => @log)
       @plugin_helper.parse_plugin_list.should == ['abc', 'def']
     end
 
     it "should parse plugin list with single quotes and clean up it" do
-      @plugin_helper = PluginHelper.new(OpenStruct.new(:plugins => "'    abc ,    def'"))
+      @plugin_helper = PluginHelper.new(OpenStruct.new(:plugins => "'    abc ,    def'"), :log => @log)
       @plugin_helper.parse_plugin_list.should == ['abc', 'def']
     end
 
@@ -62,8 +64,9 @@ module BoxGrinder
       @plugin_helper.instance_variable_set(:@log, @log)
 
       @plugin_array.each do |plugin|
-        @log.should_receive(:trace).with("Requiring plugin '#{plugin}'...")
+        @log.should_receive(:trace).with("Loading plugin '#{plugin}'...")
         @plugin_helper.should_receive(:require).once.with(plugin).and_raise(LoadError)
+        @log.should_receive(:trace).with("- Not found")
       end
 
       @log.should_not_receive(:warn)
@@ -72,7 +75,7 @@ module BoxGrinder
     end
 
     it "should read plugins specified in command line" do
-      @plugin_helper = PluginHelper.new(OpenStruct.new(:plugins => 'abc,def'))
+      @plugin_helper = PluginHelper.new(OpenStruct.new(:plugins => 'abc,def'), :log => @log)
 
       @plugin_array.each do |plugin|
         @plugin_helper.should_receive(:require).once.with(plugin)
@@ -89,12 +92,14 @@ module BoxGrinder
       @plugin_helper = PluginHelper.new(OpenStruct.new(:plugins => 'abc'), :log => @log)
 
       @plugin_array.each do |plugin|
-        @log.should_receive(:trace).with("Requiring plugin '#{plugin}'...")
+        @log.should_receive(:trace).with("Loading plugin '#{plugin}'...")
         @plugin_helper.should_receive(:require).once.with(plugin)
+        @log.should_receive(:trace).with("- OK")
       end
 
-      @log.should_receive(:trace).with("Requiring plugin 'abc'...")
+      @log.should_receive(:trace).with("Loading plugin 'abc'...")
       @plugin_helper.should_receive(:require).ordered.with('abc').and_raise(LoadError)
+      @log.should_receive(:trace).with("- Not found")
       @log.should_receive(:warn).with("Specified plugin: 'abc' wasn't found. Make sure its name is correct, skipping...")
 
       @plugin_helper.read_and_require
