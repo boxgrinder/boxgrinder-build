@@ -3,7 +3,7 @@ LICENSE
 Manifest
 README
 Rakefile
-bin/boxgrinder-build
+bin/boxgrinder
 boxgrinder-build.gemspec
 lib/boxgrinder-build.rb
 lib/boxgrinder-build/appliance.rb
@@ -14,6 +14,7 @@ lib/boxgrinder-build/helpers/image-helper.rb
 lib/boxgrinder-build/helpers/linux-helper.rb
 lib/boxgrinder-build/helpers/package-helper.rb
 lib/boxgrinder-build/helpers/plugin-helper.rb
+lib/boxgrinder-build/helpers/thor-helper.rb
 lib/boxgrinder-build/managers/plugin-manager.rb
 lib/boxgrinder-build/plugins/base-plugin.rb
 rubygem-boxgrinder-build.spec
