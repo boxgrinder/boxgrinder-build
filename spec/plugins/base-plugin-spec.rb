@@ -27,6 +27,8 @@ module BoxGrinder
       @config = mock('Config')
       @config.stub!(:name).and_return('BoxGrinder')
       @config.stub!(:version_with_release).and_return('0.1.2')
+      @config.stub!(:[]).with('plugin_name').and_return({})
+      @config.stub!(:file).and_return('/home/abc/boxgrinder_config_file')
 
       @appliance_config = mock('ApplianceConfig')
 
@@ -166,30 +168,17 @@ module BoxGrinder
       @plugin.instance_variable_get(:@plugin_config)['key'].should == 'avalue'
     end
 
-    it "should read plugin config" do
-      @plugin.instance_variable_set(:@config_file, "configfile")
+    describe ".read_plugin_config" do
+      it "should read plugin config" do
+        @config.stub!(:[]).with('plugin_name').and_return({'abc' => 'def'})
+        @plugin.read_plugin_config
+        @plugin.instance_variable_get(:@plugin_config)['abc'].should == 'def'
+      end
 
-      File.should_receive(:exists?).with('configfile').and_return(true)
-      YAML.should_receive(:load_file).with('configfile').and_return('abcdef')
-
-      @plugin.read_plugin_config
-
-      @plugin.instance_variable_get(:@plugin_config).should == 'abcdef'
-    end
-
-    it "should read plugin config and log warning an exception" do
-      log = mock("Log")
-
-      log.should_receive(:debug).with("Reading configuration file for BoxGrinder::BasePlugin.")
-      log.should_receive(:warn).with("An error occurred while reading configuration file 'configfile' for BoxGrinder::BasePlugin. Is it a valid YAML file?")
-
-      @plugin.instance_variable_set(:@log, log)
-      @plugin.instance_variable_set(:@config_file, "configfile")
-
-      File.should_receive(:exists?).with('configfile').and_return(true)
-      YAML.should_receive(:load_file).with('configfile').and_raise('something')
-
-      @plugin.read_plugin_config
+      it "should read plugin config and exit early" do
+        @config.stub!(:[]).with(:plugin_name).and_return(nil)
+        @plugin.read_plugin_config
+      end
     end
 
     describe ".current_platform" do
@@ -216,7 +205,7 @@ module BoxGrinder
 
         lambda {
           @plugin.validate_plugin_config(['one', 'two', 'three'])
-        }.should raise_error(RuntimeError, /^Please specify a valid 'three' key in plugin configuration file:/)
+        }.should raise_error(RuntimeError, "Please specify a valid 'three' key in BoxGrinder configuration file: '/home/abc/boxgrinder_config_file'. ")
       end
     end
 

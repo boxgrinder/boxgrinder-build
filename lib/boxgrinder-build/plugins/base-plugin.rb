@@ -51,8 +51,6 @@ module BoxGrinder
       @dir.base = "#{@appliance_config.path.build}/#{@plugin_info[:name]}-plugin"
       @dir.tmp = "#{@dir.base}/tmp"
 
-      @config_file = "#{ENV['HOME']}/.boxgrinder/plugins/#{@plugin_info[:name]}"
-
       read_plugin_config
       merge_plugin_config
 
@@ -111,10 +109,8 @@ module BoxGrinder
     def validate_plugin_config(fields = [], doc = nil)
       more_info = doc.nil? ? '' : "See #{doc} for more info"
 
-      raise "Not valid configuration file for #{info[:name]} plugin. Please create valid '#{@config_file}' file. #{more_info}" if @plugin_config.nil?
-
       fields.each do |field|
-        raise "Please specify a valid '#{field}' key in plugin configuration file: '#{@config_file}'. #{more_info}" if @plugin_config[field].nil?
+        raise "Please specify a valid '#{field}' key in BoxGrinder configuration file: '#{@config.file}'. #{more_info}" if @plugin_config[field].nil?
       end
     end
 
@@ -174,15 +170,11 @@ module BoxGrinder
 
     # This reads the plugin config from file
     def read_plugin_config
-      return unless File.exists?(@config_file)
+      return if @config[@plugin_info[:name].to_s].nil?
 
-      @log.debug "Reading configuration file for #{self.class.name}."
+      @log.debug "Reading configuration for #{@plugin_info[:full_name]} plugin."
 
-      begin
-        @plugin_config = YAML.load_file(@config_file)
-      rescue
-        @log.warn "An error occurred while reading configuration file '#{@config_file}' for #{self.class.name}. Is it a valid YAML file?"
-      end
+      @plugin_config = @config[@plugin_info[:name].to_s]
     end
 
     # This merges the plugin config with configuration provided in command line

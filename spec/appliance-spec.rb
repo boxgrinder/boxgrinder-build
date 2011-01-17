@@ -65,7 +65,7 @@ module BoxGrinder
     it "should create @config object without log" do
       config = Appliance.new("file", {:platform => :ec2}, :log => "ALOG").instance_variable_get(:@config)
 
-      config.size.should == 9
+      config.size.should == 10
       config[:log].should == nil
     end
 
