@@ -66,7 +66,7 @@ module BoxGrinder
       @plugin_array.each do |plugin|
         @log.should_receive(:trace).with("Loading plugin '#{plugin}'...")
         @plugin_helper.should_receive(:require).once.with(plugin).and_raise(LoadError)
-        @log.should_receive(:trace).with("- Not found")
+        @log.should_receive(:trace).with("- Not found: LoadError")
       end
 
       @log.should_not_receive(:warn)
@@ -99,7 +99,7 @@ module BoxGrinder
 
       @log.should_receive(:trace).with("Loading plugin 'abc'...")
       @plugin_helper.should_receive(:require).ordered.with('abc').and_raise(LoadError)
-      @log.should_receive(:trace).with("- Not found")
+      @log.should_receive(:trace).with("- Not found: LoadError")
       @log.should_receive(:warn).with("Specified plugin: 'abc' wasn't found. Make sure its name is correct, skipping...")
 
       @plugin_helper.read_and_require
