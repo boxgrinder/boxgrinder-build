@@ -72,6 +72,8 @@ module BoxGrinder
     end
 
     def convert_disk(disk, format, destination)
+      @log.debug "Conveting #{disk} disk to #{format} format and moving it to #{destination}..."
+
       unless File.exists?(destination)
         info = disk_info(disk)
 
@@ -81,7 +83,7 @@ module BoxGrinder
           @exec_helper.execute "qemu-img convert -f #{info['file format']} -O #{format} #{disk} #{destination}"
         end
       else
-        @log.debug "Destination already exists"
+        @log.debug "Destination already exists, skipping disk conversion."
       end
     end
 
