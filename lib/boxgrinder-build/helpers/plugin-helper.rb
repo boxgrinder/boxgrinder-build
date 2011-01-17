@@ -61,8 +61,8 @@ module BoxGrinder
         begin
           require plugin
           @log.trace "- OK"
-        rescue LoadError
-          @log.trace "- Not found"
+        rescue LoadError => e
+          @log.trace "- Not found: #{e.message.strip.chomp}"
           @log.warn "Specified plugin: '#{plugin}' wasn't found. Make sure its name is correct, skipping..." unless plugin.match(/^boxgrinder-build-(.*)-plugin/)
         end
       end
