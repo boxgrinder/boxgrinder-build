@@ -44,7 +44,7 @@ module BoxGrinder
     def parse_plugin_list
       plugins = []
 
-      unless @options.plugins.nil? or @options.plugins.empty? 
+      unless @options.additional_plugins.nil? or @options.additional_plugins.empty? 
         plugins = @options.plugins.gsub('\'', '').gsub('"', '').split(',')
         plugins.each { |plugin| plugin.chomp!; plugin.strip! }
       end

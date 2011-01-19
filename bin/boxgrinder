@@ -37,7 +37,7 @@ module BoxGrinder
     method_option :os_config, :type => :hash, :default => {}, :desc => "Operating system plugin options."
     method_option :platform_config, :type => :hash, :default => {}, :desc => "Platform plugin options."
     method_option :delivery_config, :type => :hash, :default => {}, :desc => "Delivery plugin options."
-    method_option :plugins, :type => :array, :banner => 'plugin1 plugin2', :aliases => '-l', :desc => "Space separated list of plugins. Default: default plugins will be available."
+    method_option :additional_plugins, :type => :array, :default => [], :banner => 'plugin1 plugin2', :aliases => '-l', :desc => "Space separated list of additional plugins. Default: empty."
     method_option :force, :type => :boolean, :default => false, :aliases => '-f', :desc => "Force image creation - removes all previous builds for selected appliance. Default: false."
     method_option :debug, :type => :boolean, :default => false, :desc => "Prints debug information while building. Default: false."
     method_option :trace, :type => :boolean, :default => false, :desc => "Prints trace information while building. Default: false."
@@ -58,7 +58,7 @@ module BoxGrinder
         Appliance.new(
             appliance_definition_file, options.merge(:platform => options.platform.to_sym, :delivery => options.delivery.to_sym), :log => log).create
       rescue Exception => e
-        log.fatal e.message
+        log.fatal e
       end
     end
   end
