@@ -27,7 +27,11 @@ module BoxGrinder
       @config = mock('Config')
       @config.stub!(:name).and_return('BoxGrinder')
       @config.stub!(:version_with_release).and_return('0.1.2')
-      @config.stub!(:[]).with('plugin_name').and_return({})
+
+      plugins = mock('Plugins')
+      plugins.stub!(:[]).with('plugin_name').and_return({})
+
+      @config.stub!(:[]).with(:plugins).and_return(plugins)
       @config.stub!(:file).and_return('/home/abc/boxgrinder_config_file')
 
       @appliance_config = mock('ApplianceConfig')
@@ -170,13 +174,16 @@ module BoxGrinder
 
     describe ".read_plugin_config" do
       it "should read plugin config" do
-        @config.stub!(:[]).with('plugin_name').and_return({'abc' => 'def'})
+        plugins = mock('Plugins')
+        plugins.stub!(:[]).with('plugin_name').and_return({'abc' => 'def'})
+        @config.stub!(:[]).with(:plugins).and_return(plugins)
+
         @plugin.read_plugin_config
         @plugin.instance_variable_get(:@plugin_config)['abc'].should == 'def'
       end
 
       it "should read plugin config and exit early" do
-        @config.stub!(:[]).with(:plugin_name).and_return(nil)
+        @config.stub!(:[]).with(:plugins).and_return(nil)
         @plugin.read_plugin_config
       end
     end
