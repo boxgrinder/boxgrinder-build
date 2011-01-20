@@ -29,10 +29,10 @@ require 'boxgrinder-core/validators/appliance-config-validator'
 
 module BoxGrinder
   class Appliance
-    def initialize(appliance_definition, config, options = {})
+    def initialize(appliance_definition, config = Config.new, options = {})
       @appliance_definition = appliance_definition
-      @config = Config.new(config)
-      @log = options[:log] ||LogHelper.new(:level => @config.log_level)
+      @config = config
+      @log = options[:log] || LogHelper.new(:level => @config.log_level)
     end
 
     def read_definition

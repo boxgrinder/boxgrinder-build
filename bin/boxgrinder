@@ -43,11 +43,16 @@ module BoxGrinder
     method_option :trace, :type => :boolean, :default => false, :desc => "Prints trace information while building. Default: false."
 
     def build(appliance_definition_file)
-      log_level = :info
       log_level = :debug if options.debug?
       log_level = :trace if options.trace?
 
-      log = LogHelper.new(:level => log_level)
+      options.delete(:debug)
+      options.delete(:trace)
+      
+      config = Config.new(options.merge(:platform => options.platform.to_sym, :delivery => options.delivery.to_sym))
+      config.merge!(:log_level => log_level) unless log_level.nil?
+
+      log = LogHelper.new(:level => config.log_level)
 
       unless File.exists?(appliance_definition_file)
         log.fatal "Appliance definition file '#{appliance_definition_file}' could not be found."
@@ -55,8 +60,7 @@ module BoxGrinder
       end
 
       begin
-        Appliance.new(
-            appliance_definition_file, options.merge(:platform => options.platform.to_sym, :delivery => options.delivery.to_sym), :log => log).create
+        Appliance.new(appliance_definition_file, config, :log => log ).create
       rescue Exception => e
         log.fatal e
       end

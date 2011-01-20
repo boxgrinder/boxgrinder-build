@@ -24,14 +24,14 @@ require 'logger'
 module BoxGrinder
   describe Appliance do
     def prepare_appliance(options = {}, definition_file = "#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.appl")
-      @log = Logger.new('/dev/null')
-      @options = OpenCascade.new(:platform => :none, :delivery => :none, :force => false).merge(options)
+      @log = LogHelper.new(:level => :trace, :type => :stdout)
+      @config = OpenCascade.new(:platform => :none, :delivery => :none, :force => false).merge(options)
 
       @plugin_manager = mock(PluginManager)
 
       PluginManager.stub!(:instance).and_return(@plugin_manager)
 
-      @appliance = Appliance.new(definition_file, @options, :log => @log)
+      @appliance = Appliance.new(definition_file, @config, :log => @log)
       @config = @appliance.instance_variable_get(:@config)
     end
 
@@ -63,9 +63,9 @@ module BoxGrinder
     end
 
     it "should create @config object without log" do
-      config = Appliance.new("file", {:platform => :ec2}, :log => "ALOG").instance_variable_get(:@config)
+      config = Appliance.new("file", OpenCascade.new(:platform => :ec2), :log => "ALOG").instance_variable_get(:@config)
 
-      config.size.should == 10
+      config.size.should == 1
       config[:log].should == nil
     end
 
