@@ -45,9 +45,6 @@ module BoxGrinder
     def build(appliance_definition_file)
       log_level = :debug if options.debug?
       log_level = :trace if options.trace?
-
-      options.delete(:debug)
-      options.delete(:trace)
       
       config = Config.new(options.merge(:platform => options.platform.to_sym, :delivery => options.delivery.to_sym))
       config.merge!(:log_level => log_level) unless log_level.nil?
