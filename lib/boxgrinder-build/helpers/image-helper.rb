@@ -34,7 +34,7 @@ module BoxGrinder
       offsets = calculate_disk_offsets(disk)
 
       @log.debug "Mounting image #{File.basename(disk)} in #{mount_dir}..."
-      FileUtils.mkdir_p("'#{mount_dir}'")
+      FileUtils.mkdir_p(mount_dir)
 
       mounts = {}
 

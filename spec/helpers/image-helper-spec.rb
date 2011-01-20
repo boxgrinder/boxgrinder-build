@@ -49,7 +49,7 @@ module BoxGrinder
 
     it "should mount image with one root partition" do
       @helper.should_receive(:calculate_disk_offsets).with('disk.raw').and_return(['0'])
-      FileUtils.should_receive(:mkdir_p).with("'mount_dir'")
+      FileUtils.should_receive(:mkdir_p).with('mount_dir')
       @helper.should_receive(:get_loop_device).and_return('/dev/loop0')
       @exec_helper.should_receive(:execute).with("losetup -o 0 /dev/loop0 'disk.raw'")
       @exec_helper.should_receive(:execute).with('e2label /dev/loop0').and_return('/')
@@ -60,7 +60,7 @@ module BoxGrinder
 
     it "should mount image with two partitions with support for new livecd-tools partitions labels starting with '_'" do
       @helper.should_receive(:calculate_disk_offsets).with('disk.raw').and_return(['322', '562'])
-      FileUtils.should_receive(:mkdir_p).with("'mount_dir'")
+      FileUtils.should_receive(:mkdir_p).with('mount_dir')
       @helper.should_receive(:get_loop_device).and_return('/dev/loop0')
       @exec_helper.should_receive(:execute).with("losetup -o 322 /dev/loop0 'disk.raw'")
       @exec_helper.should_receive(:execute).with('e2label /dev/loop0').and_return('_/home')
