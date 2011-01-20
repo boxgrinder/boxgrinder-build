@@ -95,6 +95,7 @@ popd
 - [BGBUILD-131] Check if OS is supported before executing the plugin
 - [BGBUILD-72] Add support for growing (not pre-allocated) disks for KVM/Xen
 - [BGBUILD-133] Support a consolidated configuration file
+- [BGBUILD-138] enablerepo path is not escaped when calling repoquery
 
 * Mon Dec 20 2010  <mgoldman@redhat.com> - 0.7.1-1
 - Upstream release: 0.7.1

@@ -34,22 +34,22 @@ module BoxGrinder
       offsets = calculate_disk_offsets(disk)
 
       @log.debug "Mounting image #{File.basename(disk)} in #{mount_dir}..."
-      FileUtils.mkdir_p(mount_dir)
+      FileUtils.mkdir_p("'#{mount_dir}'")
 
       mounts = {}
 
       offsets.each do |offset|
         loop_device = get_loop_device
-        @exec_helper.execute("losetup -o #{offset.to_s} #{loop_device} #{disk}")
+        @exec_helper.execute("losetup -o #{offset.to_s} #{loop_device} '#{disk}'")
         label = @exec_helper.execute("e2label #{loop_device}").strip.chomp.gsub('_', '')
         label = '/' if label == ''
         mounts[label] = loop_device
       end
 
-      @exec_helper.execute("mount #{mounts['/']} #{mount_dir}")
+      @exec_helper.execute("mount #{mounts['/']} '#{mount_dir}'")
 
       mounts.reject { |key, value| key == '/' }.each do |mount_point, loop_device|
-        @exec_helper.execute("mount #{loop_device} #{mount_dir}#{mount_point}")
+        @exec_helper.execute("mount #{loop_device} '#{mount_dir}#{mount_point}'")
       end
 
       @log.trace "Mounts:\n#{mounts}"
@@ -68,19 +68,19 @@ module BoxGrinder
     end
 
     def disk_info(disk)
-      YAML.load(@exec_helper.execute("qemu-img info #{disk}"))
+      YAML.load(@exec_helper.execute("qemu-img info '#{disk}'"))
     end
 
     def convert_disk(disk, format, destination)
-      @log.debug "Conveting #{disk} disk to #{format} format and moving it to #{destination}..."
+      @log.debug "Conveting '#{disk}' disk to #{format} format and moving it to '#{destination}'..."
 
       unless File.exists?(destination)
         info = disk_info(disk)
 
         if info['file format'] == format
-          @exec_helper.execute "cp #{disk} #{destination}"
+          @exec_helper.execute "cp '#{disk}' '#{destination}'"
         else
-          @exec_helper.execute "qemu-img convert -f #{info['file format']} -O #{format} #{disk} #{destination}"
+          @exec_helper.execute "qemu-img convert -f #{info['file format']} -O #{format} '#{disk}' '#{destination}'"
         end
       else
         @log.debug "Destination already exists, skipping disk conversion."
@@ -101,7 +101,7 @@ module BoxGrinder
       @log.debug "Calculating offsets for '#{File.basename(disk)}' disk..."
       loop_device = get_loop_device
 
-      @exec_helper.execute("losetup #{loop_device} #{disk}")
+      @exec_helper.execute("losetup #{loop_device} '#{disk}'")
       offsets = @exec_helper.execute("parted #{loop_device} 'unit B print' | grep -e '^ [0-9]' | awk '{ print $2 }'").scan(/\d+/)
       # wait one secont before freeing loop device
       sleep 1
@@ -114,11 +114,11 @@ module BoxGrinder
 
     def create_disk(disk, size)
       @log.trace "Preparing disk..."
-      @exec_helper.execute "dd if=/dev/zero of=#{disk} bs=1 count=0 seek=#{size * 1024}M"
+      @exec_helper.execute "dd if=/dev/zero of='#{disk}' bs=1 count=0 seek=#{size * 1024}M"
       @log.trace "Disk prepared"
     end
 
-    def create_filesystem(disk, options = {})
+    def create_filesystem(loop_device, options = {})
       options = {
           :type => @appliance_config.hardware.partitions['/']['type'],
           :label => '/'
@@ -128,7 +128,7 @@ module BoxGrinder
 
       case options[:type]
         when 'ext3', 'ext4'
-          @exec_helper.execute "mke2fs -T #{options[:type]} -L '#{options[:label]}' -F #{disk}"
+          @exec_helper.execute "mke2fs -T #{options[:type]} -L '#{options[:label]}' -F #{loop_device}"
         else
           raise "Unsupported filesystem specified: #{options[:type]}"
       end
@@ -138,7 +138,7 @@ module BoxGrinder
 
     def sync_files(from_dir, to_dir)
       @log.debug "Syncing files between #{from_dir} and #{to_dir}..."
-      @exec_helper.execute "rsync -Xura #{from_dir}/* #{to_dir}"
+      @exec_helper.execute "rsync -Xura #{from_dir.gsub(' ', '\ ')}/* '#{to_dir}'"
       @log.debug "Sync finished."
     end
 

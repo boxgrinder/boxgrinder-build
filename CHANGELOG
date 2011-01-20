@@ -1,5 +1,6 @@
 v0.8.0
 
+* [BGBUILD-138] enablerepo path is not escaped when calling repoquery
 * [BGBUILD-133] Support a consolidated configuration file
 * [BGBUILD-128] Allow to specify plugin configuration using CLI
 * [BGBUILD-134] Replace rubygem-commander with rubygem-thor

@@ -49,27 +49,27 @@ module BoxGrinder
 
     it "should mount image with one root partition" do
       @helper.should_receive(:calculate_disk_offsets).with('disk.raw').and_return(['0'])
-      FileUtils.should_receive(:mkdir_p).with('mount_dir')
+      FileUtils.should_receive(:mkdir_p).with("'mount_dir'")
       @helper.should_receive(:get_loop_device).and_return('/dev/loop0')
-      @exec_helper.should_receive(:execute).with('losetup -o 0 /dev/loop0 disk.raw')
+      @exec_helper.should_receive(:execute).with("losetup -o 0 /dev/loop0 'disk.raw'")
       @exec_helper.should_receive(:execute).with('e2label /dev/loop0').and_return('/')
-      @exec_helper.should_receive(:execute).with('mount /dev/loop0 mount_dir')
+      @exec_helper.should_receive(:execute).with("mount /dev/loop0 'mount_dir'")
 
       @helper.mount_image('disk.raw', 'mount_dir').should == {"/"=>"/dev/loop0"}
     end
 
     it "should mount image with two partitions with support for new livecd-tools partitions labels starting with '_'" do
       @helper.should_receive(:calculate_disk_offsets).with('disk.raw').and_return(['322', '562'])
-      FileUtils.should_receive(:mkdir_p).with('mount_dir')
+      FileUtils.should_receive(:mkdir_p).with("'mount_dir'")
       @helper.should_receive(:get_loop_device).and_return('/dev/loop0')
-      @exec_helper.should_receive(:execute).with('losetup -o 322 /dev/loop0 disk.raw')
+      @exec_helper.should_receive(:execute).with("losetup -o 322 /dev/loop0 'disk.raw'")
       @exec_helper.should_receive(:execute).with('e2label /dev/loop0').and_return('_/home')
       @helper.should_receive(:get_loop_device).and_return('/dev/loop1')
-      @exec_helper.should_receive(:execute).with('losetup -o 562 /dev/loop1 disk.raw')
+      @exec_helper.should_receive(:execute).with("losetup -o 562 /dev/loop1 'disk.raw'")
       @exec_helper.should_receive(:execute).with('e2label /dev/loop1').and_return('_/')
 
-      @exec_helper.should_receive(:execute).with('mount /dev/loop1 mount_dir')
-      @exec_helper.should_receive(:execute).with('mount /dev/loop0 mount_dir/home')
+      @exec_helper.should_receive(:execute).with("mount /dev/loop1 'mount_dir'")
+      @exec_helper.should_receive(:execute).with("mount /dev/loop0 'mount_dir/home'")
 
       @helper.mount_image('disk.raw', 'mount_dir').should == {"/"=>"/dev/loop1", "/home"=>"/dev/loop0"}
     end
@@ -101,7 +101,7 @@ module BoxGrinder
 
     it "should calculate disks offsets" do
       @helper.should_receive(:get_loop_device).and_return('/dev/loop0')
-      @exec_helper.should_receive(:execute).ordered.with('losetup /dev/loop0 disk.raw')
+      @exec_helper.should_receive(:execute).ordered.with("losetup /dev/loop0 'disk.raw'")
       @exec_helper.should_receive(:execute).ordered.with("parted /dev/loop0 'unit B print' | grep -e '^ [0-9]' | awk '{ print $2 }'").and_return("0B\n1234B\n")
       @exec_helper.should_receive(:execute).ordered.with('losetup -d /dev/loop0')
       @helper.should_receive(:sleep).with(1)
@@ -110,7 +110,7 @@ module BoxGrinder
     end
 
     it "should create a new empty disk image" do
-      @exec_helper.should_receive(:execute).with('dd if=/dev/zero of=disk.raw bs=1 count=0 seek=10240M')
+      @exec_helper.should_receive(:execute).with("dd if=/dev/zero of='disk.raw' bs=1 count=0 seek=10240M")
 
       @helper.create_disk('disk.raw', 10)
     end
@@ -156,10 +156,16 @@ module BoxGrinder
       end
     end
 
-    it "should sync files" do
-      @exec_helper.should_receive(:execute).with("rsync -Xura from_dir/* to_dir")
+    describe ".sync_files" do
+      it "should sync files" do
+        @exec_helper.should_receive(:execute).with("rsync -Xura from_dir/* 'to_dir'")
+        @helper.sync_files('from_dir', 'to_dir')
+      end
 
-      @helper.sync_files('from_dir', 'to_dir')
+      it "should sync files with a space in path" do
+        @exec_helper.should_receive(:execute).with("rsync -Xura from\\ /dir/* 'to_dir'")
+        @helper.sync_files('from /dir', 'to_dir')
+      end
     end
 
     it "should customize the disk image suing GuestFS" do
@@ -180,14 +186,14 @@ module BoxGrinder
 
     describe ".convert_disk" do
       it "should not convert the disk because it's in RAW format already" do
-        @exec_helper.should_receive(:execute).with("qemu-img info a/disk").and_return("image: build/appliances/x86_64/fedora/13/f13-basic/fedora-plugin/f13-basic-sda.qcow2\nfile format: raw\nvirtual size: 2.0G (2147483648 bytes)\ndisk size: 531M\ncluster_size: 65536")
-        @exec_helper.should_receive(:execute).with("cp a/disk destination")
+        @exec_helper.should_receive(:execute).with("qemu-img info 'a/disk'").and_return("image: build/appliances/x86_64/fedora/13/f13-basic/fedora-plugin/f13-basic-sda.qcow2\nfile format: raw\nvirtual size: 2.0G (2147483648 bytes)\ndisk size: 531M\ncluster_size: 65536")
+        @exec_helper.should_receive(:execute).with("cp 'a/disk' 'destination'")
         @helper.convert_disk('a/disk', 'raw', 'destination')
       end
 
       it "should convert disk from vmdk to RAW format" do
-        @exec_helper.should_receive(:execute).with("qemu-img info a/disk").and_return("image: build/appliances/x86_64/fedora/13/f13-basic/fedora-plugin/f13-basic-sda.vmdk\nfile format: raw\nvirtual size: 2.0G (2147483648 bytes)\ndisk size: 531M\ncluster_size: 65536")
-        @exec_helper.should_receive(:execute).with("qemu-img convert -f raw -O vmdk a/disk destination")
+        @exec_helper.should_receive(:execute).with("qemu-img info 'a/disk'").and_return("image: build/appliances/x86_64/fedora/13/f13-basic/fedora-plugin/f13-basic-sda.vmdk\nfile format: raw\nvirtual size: 2.0G (2147483648 bytes)\ndisk size: 531M\ncluster_size: 65536")
+        @exec_helper.should_receive(:execute).with("qemu-img convert -f raw -O vmdk 'a/disk' 'destination'")
         @helper.convert_disk('a/disk', 'vmdk', 'destination')
       end
 
