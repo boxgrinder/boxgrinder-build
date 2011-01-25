@@ -27,6 +27,7 @@ module BoxGrinder
       @appliance_config = mock('ApplianceConfig')
 
       @appliance_config.stub!(:name).and_return('full')
+      @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '14'}))
       @appliance_config.stub!(:hardware).and_return(
           OpenCascade.new({
                               :partitions =>
@@ -168,19 +169,39 @@ module BoxGrinder
       end
     end
 
-    it "should customize the disk image suing GuestFS" do
-      guestfs = mock('GuestFS')
-      guestfs.should_receive(:abc)
+    describe ".customize" do
+      it "should customize the disk image using GuestFS" do
+        guestfs = mock('GuestFS')
+        guestfs.should_receive(:abc)
 
-      guestfs_helper = mock(GuestFSHelper)
-      guestfs_helper.should_receive(:customize).ordered.and_yield(guestfs, guestfs_helper)
-      guestfs_helper.should_receive(:def)
+        guestfs_helper = mock(GuestFSHelper)
+        guestfs_helper.should_receive(:customize).with(:ide_disk => false).ordered.and_yield(guestfs, guestfs_helper)
+        guestfs_helper.should_receive(:def)
 
-      GuestFSHelper.should_receive(:new).with('disk.raw', :log => @log).and_return(guestfs_helper)
+        GuestFSHelper.should_receive(:new).with('disk.raw', :log => @log).and_return(guestfs_helper)
 
-      @helper.customize('disk.raw') do |guestfs, guestfs_helper|
-        guestfs.abc
-        guestfs_helper.def
+        @helper.customize('disk.raw') do |guestfs, guestfs_helper|
+          guestfs.abc
+          guestfs_helper.def
+        end
+      end
+
+      it "should customize the disk image using GuestFS and selectind ide_disk option for RHEL/CentOS 5" do
+        @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'rhel', :version => '5'}))
+
+        guestfs = mock('GuestFS')
+        guestfs.should_receive(:abc)
+
+        guestfs_helper = mock(GuestFSHelper)
+        guestfs_helper.should_receive(:customize).with(:ide_disk => true).ordered.and_yield(guestfs, guestfs_helper)
+        guestfs_helper.should_receive(:def)
+
+        GuestFSHelper.should_receive(:new).with('disk.raw', :log => @log).and_return(guestfs_helper)
+
+        @helper.customize('disk.raw') do |guestfs, guestfs_helper|
+          guestfs.abc
+          guestfs_helper.def
+        end
       end
     end
 

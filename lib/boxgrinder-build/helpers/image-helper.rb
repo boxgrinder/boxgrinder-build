@@ -143,7 +143,7 @@ module BoxGrinder
     end
 
     def customize(disk_path)
-      GuestFSHelper.new(disk_path, :log => @log).customize do |guestfs, guestfs_helper|
+      GuestFSHelper.new(disk_path, :log => @log).customize(:ide_disk => ((@appliance_config.os.name == 'rhel' or @appliance_config.os.name == 'centos') and @appliance_config.os.version == '5') ? true : false) do |guestfs, guestfs_helper|
         yield guestfs, guestfs_helper
       end
     end

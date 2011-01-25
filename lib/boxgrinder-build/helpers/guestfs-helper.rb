@@ -111,7 +111,7 @@ module BoxGrinder
       false
     end
 
-    def customize
+    def customize(options = {})
       read_pipe, write_pipe = IO.pipe
 
       fork do
@@ -124,7 +124,7 @@ module BoxGrinder
         end
       end
 
-      helper = execute(write_pipe)
+      helper = execute(write_pipe, options)
 
       yield @guestfs, helper
 
@@ -135,7 +135,9 @@ module BoxGrinder
       Process.wait
     end
 
-    def execute(pipe = nil)
+    def execute(pipe = nil, options = {})
+      options = {:ide_disk => false}.merge(options)
+
       @log.debug "Preparing guestfs..."
 
       @guestfs = pipe.nil? ? Guestfs::create : Guestfs::create.redirect(pipe)
@@ -162,7 +164,11 @@ module BoxGrinder
       end
 
       @log.trace "Adding drive '#{@raw_disk}'..."
-      @guestfs.add_drive(@raw_disk)
+      if options[:ide_disk]
+        @guestfs.add_drive_with_if(@raw_disk, 'ide')
+      else
+        @guestfs.add_drive(@raw_disk)
+      end
       @log.trace "Drive added."
 
       if @guestfs.respond_to?('set_network')
