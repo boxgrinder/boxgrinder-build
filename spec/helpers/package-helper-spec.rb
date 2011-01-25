@@ -34,8 +34,8 @@ module BoxGrinder
     it "should package deliverables" do
       File.should_receive(:exists?).with('destination/package.tgz').and_return(false)
       File.should_receive(:expand_path).with('a/dir').and_return('a/dir/expanded')
-      FileUtils.should_receive(:ln_s).with("'a/dir/expanded'", "'destination/package'")
-      FileUtils.should_receive(:rm).with("'destination/package'")
+      FileUtils.should_receive(:ln_s).with('a/dir/expanded', 'destination/package')
+      FileUtils.should_receive(:rm).with('destination/package')
 
       @exec_helper.should_receive(:execute).with("tar -C 'destination' -hcvzf 'destination/package.tgz' 'package'")
 
