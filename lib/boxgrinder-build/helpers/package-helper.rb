@@ -41,9 +41,9 @@ module BoxGrinder
           package_name = File.basename(package, '.tgz')
           symlink = "#{File.dirname(package)}/#{package_name}"
 
-          FileUtils.ln_s("'#{File.expand_path(dir)}'", "'#{symlink}'")
+          FileUtils.ln_s(File.expand_path(dir), symlink)
           @exec_helper.execute "tar -C '#{File.dirname(package)}' -hcvzf '#{package}' '#{package_name}'"
-          FileUtils.rm("'#{symlink}'")
+          FileUtils.rm(symlink)
         else
           raise "Specified format: '#{type}' is currently unsupported."
       end
