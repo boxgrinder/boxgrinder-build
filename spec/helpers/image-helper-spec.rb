@@ -209,18 +209,34 @@ module BoxGrinder
       it "should not convert the disk because it's in RAW format already" do
         @exec_helper.should_receive(:execute).with("qemu-img info 'a/disk'").and_return("image: build/appliances/x86_64/fedora/13/f13-basic/fedora-plugin/f13-basic-sda.qcow2\nfile format: raw\nvirtual size: 2.0G (2147483648 bytes)\ndisk size: 531M\ncluster_size: 65536")
         @exec_helper.should_receive(:execute).with("cp 'a/disk' 'destination'")
-        @helper.convert_disk('a/disk', 'raw', 'destination')
+        @helper.convert_disk('a/disk', :raw, 'destination')
       end
 
       it "should convert disk from vmdk to RAW format" do
+        @exec_helper.should_receive(:execute).with("qemu-img info 'a/disk'").and_return("image: build/appliances/x86_64/fedora/13/f13-basic/fedora-plugin/f13-basic-sda.vmdk\nfile format: vmdk\nvirtual size: 2.0G (2147483648 bytes)\ndisk size: 531M\ncluster_size: 65536")
+        @exec_helper.should_receive(:execute).with("qemu-img convert -f vmdk -O raw 'a/disk' 'destination'")
+        @helper.convert_disk('a/disk', :raw, 'destination')
+      end
+
+      it "should convert disk from raw to vmdk format using old qemu-img" do
         @exec_helper.should_receive(:execute).with("qemu-img info 'a/disk'").and_return("image: build/appliances/x86_64/fedora/13/f13-basic/fedora-plugin/f13-basic-sda.vmdk\nfile format: raw\nvirtual size: 2.0G (2147483648 bytes)\ndisk size: 531M\ncluster_size: 65536")
-        @exec_helper.should_receive(:execute).with("qemu-img convert -f raw -O vmdk 'a/disk' 'destination'")
-        @helper.convert_disk('a/disk', 'vmdk', 'destination')
+        @helper.should_receive(:`).with("qemu-img --help | grep '\\-6'").and_return('something')
+
+        @exec_helper.should_receive(:execute).with("qemu-img convert -f raw -O vmdk -6 'a/disk' 'destination'")
+        @helper.convert_disk('a/disk', :vmdk, 'destination')
+      end
+
+      it "should convert disk from raw to vmdk format using new qemu-img" do
+        @exec_helper.should_receive(:execute).with("qemu-img info 'a/disk'").and_return("image: build/appliances/x86_64/fedora/13/f13-basic/fedora-plugin/f13-basic-sda.vmdk\nfile format: raw\nvirtual size: 2.0G (2147483648 bytes)\ndisk size: 531M\ncluster_size: 65536")
+        @helper.should_receive(:`).with("qemu-img --help | grep '\\-6'").and_return('')
+
+        @exec_helper.should_receive(:execute).with("qemu-img convert -f raw -O vmdk -o compat6 'a/disk' 'destination'")
+        @helper.convert_disk('a/disk', :vmdk, 'destination')
       end
 
       it "should do nothing because destination already exists" do
         File.should_receive(:exists?).with('destination').and_return(true)
-        @helper.convert_disk('a/disk', 'vmdk', 'destination')
+        @helper.convert_disk('a/disk', :vmdk, 'destination')
       end
     end
   end

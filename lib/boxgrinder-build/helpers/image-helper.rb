@@ -77,10 +77,17 @@ module BoxGrinder
       unless File.exists?(destination)
         info = disk_info(disk)
 
-        if info['file format'] == format
+        if info['file format'] == format.to_s
           @exec_helper.execute "cp '#{disk}' '#{destination}'"
         else
-          @exec_helper.execute "qemu-img convert -f #{info['file format']} -O #{format} '#{disk}' '#{destination}'"
+
+          format_with_options = format.to_s
+
+          if format == :vmdk
+            format_with_options += (`qemu-img --help | grep '\\-6'`.strip.chomp.empty? ? ' -o compat6' : ' -6')
+          end
+
+          @exec_helper.execute "qemu-img convert -f #{info['file format']} -O #{format_with_options} '#{disk}' '#{destination}'"
         end
       else
         @log.debug "Destination already exists, skipping disk conversion."
