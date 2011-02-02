@@ -212,7 +212,7 @@ module BoxGrinder
 
         lambda {
           @plugin.validate_plugin_config(['one', 'two', 'three'])
-        }.should raise_error(RuntimeError, "Please specify a valid 'three' key in BoxGrinder configuration file: '/home/abc/boxgrinder_config_file'. ")
+        }.should raise_error(RuntimeError, "Please specify a valid 'three' key in BoxGrinder configuration file: '/home/abc/boxgrinder_config_file' or use CLI '---config three:DATA' argument. ")
       end
     end
 
