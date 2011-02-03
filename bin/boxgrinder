@@ -31,7 +31,7 @@ end
 
 module BoxGrinder
   class App < ThorHelper
-    desc "build [appliance definition file] [options]", "Create an image from selected appliance definition for selected platform and deliver it using selected method."
+    desc "build [appliance definition file] [options]", "Create an image from selected appliance definition for selected platform and deliver it using selected method"
     method_option :platform, :type => :string, :default => :none, :aliases => '-p', :desc => "The name of platform you want to convert to."
     method_option :delivery, :type => :string, :default => :none, :aliases => '-d', :desc => "The delivery method for selected appliance."
     method_option :os_config, :type => :hash, :default => {}, :desc => "Operating system plugin options."
@@ -45,7 +45,7 @@ module BoxGrinder
     def build(appliance_definition_file)
       log_level = :debug if options.debug?
       log_level = :trace if options.trace?
-      
+
       config = Config.new(options.merge(:platform => options.platform.to_sym, :delivery => options.delivery.to_sym))
       config.merge!(:log_level => log_level) unless log_level.nil?
 
@@ -57,9 +57,57 @@ module BoxGrinder
       end
 
       begin
-        Appliance.new(appliance_definition_file, config, :log => log ).create
+        Appliance.new(appliance_definition_file, config, :log => log).create
       rescue Exception => e
         log.fatal e
+      end
+    end
+
+    desc 'info', "Prints out the program details"
+    method_option :plugins, :type => :boolean, :default => false, :aliases => '-p', :desc => "List also available plugins. Default: false."
+
+    def info
+      PluginHelper.new(Config.new).load_plugins if options.plugins
+
+      shell.say
+      shell.say "BoxGrinder Build #{File.read("#{File.dirname(__FILE__)}/../CHANGELOG").match(/^v(.*)/)[1]}"
+
+      if options.plugins
+
+        shell.say
+        shell.say "Plugin summary:"
+
+        [:os, :platform, :delivery].each do |type|
+          shell.say
+
+          if PluginManager.instance.plugins[type].empty?
+            shell.say "No #{type} plugins available"
+          else
+            shell.say "Available #{type} plugins:"
+            PluginManager.instance.plugins[type].each do |name, plugin_info|
+              shell.say " - #{name} plugin for #{plugin_info[:full_name]}."
+            end
+          end
+        end
+      end
+
+      shell.say
+    end
+
+    class << self
+      def build_help(shell)
+        examples = {
+            "$ boxgrinder build jeos.appl" => "# Build KVM image for jeos.appl",
+            "$ boxgrinder build jeos.appl -f" => "# Build KVM image for jeos.appl with removing previous build for this image",
+            "$ boxgrinder build jeos.appl --os-config format:qcow2" => "# Build KVM image for jeos.appl with a qcow2 disk",
+            "$ boxgrinder build jeos.appl -p vmware --platform-config type:personal thin_disk:true" => "# Build VMware image for VMware Server, Player, Fusion using thin (growing) disk",
+            "$ boxgrinder build jeos.appl -p ec2 -d ami" => "# Build and register AMI for jeos.appl",
+            "$ boxgrinder build jeos.appl -p vmware -d local" => "# Build VMware image for jeos.appl and deliver it to local directory"
+        }.sort { |a, b| a[0] <=> b[0] }
+
+        shell.say "Examples:"
+        shell.print_table(examples, :ident => 2, :truncate => true)
+        shell.say
       end
     end
   end

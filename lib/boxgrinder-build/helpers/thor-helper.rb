@@ -61,20 +61,11 @@ module BoxGrinder
       def task_help(shell, task_name)
         boxgrinder_header(shell)
 
-        examples = {
-            "$ boxgrinder build jeos.appl" => "# Build KVM image for jeos.appl",
-            "$ boxgrinder build jeos.appl -f" => "# Build KVM image for jeos.appl with removing previous build for this image",
-            "$ boxgrinder build jeos.appl --os-config format:qcow2" => "# Build KVM image for jeos.appl with a qcow2 disk",
-            "$ boxgrinder build jeos.appl -p vmware --platform-config type:personal thin_disk:true" => "# Build VMware image for VMware Server, Player, Fusion using thin (growing) disk",
-            "$ boxgrinder build jeos.appl -p ec2 -d ami" => "# Build and register AMI for jeos.appl",
-            "$ boxgrinder build jeos.appl -p vmware -d local" => "# Build VMware image for jeos.appl and deliver it to local directory"
-        }.sort { |a, b| a[0] <=> b[0] }
-
-        shell.say "Examples:"
-        shell.print_table(examples, :ident => 2, :truncate => true)
-        shell.say
-
+        help_method = "#{task_name}_help".to_sym
+        send(help_method, shell) if respond_to?(help_method) and method(help_method).arity == 1
         super(shell, task_name)
+
+        shell.say
       end
 
       def boxgrinder_header(shell)

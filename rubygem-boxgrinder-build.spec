@@ -98,6 +98,7 @@ popd
 - [BGBUILD-72] Add support for growing (not pre-allocated) disks for KVM/Xen
 - [BGBUILD-133] Support a consolidated configuration file
 - [BGBUILD-138] enablerepo path is not escaped when calling repoquery
+- [BGBUILD-147] Allow to list installed plugins and version information
 
 * Mon Dec 20 2010  <mgoldman@redhat.com> - 0.7.1-1
 - Upstream release: 0.7.1
