@@ -5,7 +5,7 @@
 
 Summary: A tool for creating appliances from simple plain text files
 Name: rubygem-%{gemname}
-Version: 0.8.0
+Version: 0.8.1
 Release: 1%{?dist}
 Group: Development/Languages
 License: LGPLv3+
@@ -86,6 +86,10 @@ popd
 %{gemdir}/doc/%{gemname}-%{version}
 
 %changelog
+* Tue Feb 16 2011  <mgoldman@redhat.com> - 0.8.1-1
+- Upstream release: 0.8.1
+- [BGBUILD-141] Long delay after "Preparing guestfs" message when creating new image
+
 * Tue Jan 04 2011  <mgoldman@redhat.com> - 0.8.0-1
 - Upstream release: 0.8.0
 - Added BuildRoot tag to build for EPEL 5

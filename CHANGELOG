@@ -1,3 +1,7 @@
+v0.8.1
+
+* [BGBUILD-141] Long delay after "Preparing guestfs" message when creating new image
+
 v0.8.0
 
 * [BGBUILD-138] enablerepo path is not escaped when calling repoquery
