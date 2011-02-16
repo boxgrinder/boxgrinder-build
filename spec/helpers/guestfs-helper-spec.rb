@@ -265,25 +265,19 @@ module BoxGrinder
 
     describe ".hw_virtualization_available?" do
       it "should return true if HW acceleration is available" do
-        @helper.should_receive(:open).with('http://169.254.169.254/1.0/meta-data/local-ipv4').and_raise("blah")
+        Resolv.should_receive(:getname).with("169.254.169.254").and_return("blah")
         @helper.should_receive(:`).with('cat /proc/cpuinfo | grep flags | grep vmx | wc -l').and_return("2")
         @helper.hw_virtualization_available?.should == true
       end
 
       it "should return false if no vmx flag is present" do
-        @helper.should_receive(:open).with('http://169.254.169.254/1.0/meta-data/local-ipv4').and_raise("blah")
+        Resolv.should_receive(:getname).with("169.254.169.254").and_return("blah")
         @helper.should_receive(:`).with('cat /proc/cpuinfo | grep flags | grep vmx | wc -l').and_return("0")
         @helper.hw_virtualization_available?.should == false
       end
 
       it "should return false if we're on EC2" do
-        @helper.should_receive(:open).with('http://169.254.169.254/1.0/meta-data/local-ipv4').and_return("IP")
-        @helper.hw_virtualization_available?.should == false
-      end
-
-      it "should return false if timeout exception is thrown" do
-        @helper.should_receive(:open).with('http://169.254.169.254/1.0/meta-data/local-ipv4').and_raise(Timeout::Error.new('something'))
-        @helper.should_receive(:`).with('cat /proc/cpuinfo | grep flags | grep vmx | wc -l').and_return("0")
+        Resolv.should_receive(:getname).with("169.254.169.254").and_return("instance-data.ec2.internal")
         @helper.hw_virtualization_available?.should == false
       end
     end

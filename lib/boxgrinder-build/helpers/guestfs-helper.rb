@@ -19,9 +19,8 @@
 require 'boxgrinder-build/helpers/augeas-helper'
 require 'boxgrinder-core/helpers/log-helper'
 require 'guestfs'
-require 'open-uri'
-require 'timeout'
 require 'rbconfig'
+require 'resolv'
 
 module BoxGrinder
   class SilencerProxy
@@ -94,10 +93,8 @@ module BoxGrinder
       @log.trace "Checking if HW virtualization is available..."
 
       begin
-        Timeout::timeout(2) { open('http://169.254.169.254/1.0/meta-data/local-ipv4') }
-
-        ec2 = true
-      rescue Exception
+        ec2 = Resolv.getname("169.254.169.254").include?(".ec2.internal")
+      rescue Resolv::ResolvError
         ec2 = false
       end
 
