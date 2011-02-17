@@ -41,10 +41,13 @@ module BoxGrinder
     method_option :force, :type => :boolean, :default => false, :aliases => '-f', :desc => "Force image creation - removes all previous builds for selected appliance. Default: false."
     method_option :debug, :type => :boolean, :default => false, :desc => "Prints debug information while building. Default: false."
     method_option :trace, :type => :boolean, :default => false, :desc => "Prints trace information while building. Default: false."
+    method_option :backtrace, :type => :boolean, :default => false, :aliases => '-b', :desc => "Prints full backtrace if errors occur whilst building. Default: true if -debug or -trace, else false."
 
     def build(appliance_definition_file)
       log_level = :debug if options.debug?
       log_level = :trace if options.trace?
+      #TODO want to be able to compare log levels like Logger::LVL_X<=>Logger::LVL_Y (as with inbuilt logger CONST values)
+      backtrace = options.backtrace || !log_level.nil?
 
       config = Config.new(options.merge(:platform => options.platform.to_sym, :delivery => options.delivery.to_sym))
       config.merge!(:log_level => log_level) unless log_level.nil?
@@ -59,7 +62,13 @@ module BoxGrinder
       begin
         Appliance.new(appliance_definition_file, config, :log => log).create
       rescue Exception => e
-        log.fatal e
+          if backtrace
+            p "went here"
+            log.fatal e
+          else #demote backtrace to debug so that it is in file log only
+            log.fatal e.message
+            log.debug e.backtrace.join($/)
+          end  
       end
     end
 
@@ -118,4 +127,3 @@ begin
 rescue Thor::Error => e
   puts e.message
 end
-
