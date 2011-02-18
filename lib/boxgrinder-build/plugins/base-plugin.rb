@@ -171,9 +171,6 @@ module BoxGrinder
     # This reads the plugin config from file
     def read_plugin_config
       return if @config[:plugins].nil? or @config[:plugins][@plugin_info[:name].to_s].nil?
-
-      @log.debug "Reading configuration for #{@plugin_info[:full_name]} plugin."
-
       @plugin_config = @config[:plugins][@plugin_info[:name].to_s]
     end
 
