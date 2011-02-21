@@ -89,6 +89,7 @@ popd
 * Tue Feb 16 2011  <mgoldman@redhat.com> - 0.8.1-1
 - Upstream release: 0.8.1
 - [BGBUILD-141] Long delay after "Preparing guestfs" message when creating new image
+- [BGBUILD-150] Cyclical inclusion dependencies in appliance definition files are not detected/handled
 
 * Tue Jan 04 2011  <mgoldman@redhat.com> - 0.8.0-1
 - Upstream release: 0.8.0
