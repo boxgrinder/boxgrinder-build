@@ -120,10 +120,11 @@ module BoxGrinder
 
         appliance_config = ApplianceConfig.new
 
-        appliance_helper = mock(ApplianceHelper)
-        appliance_helper.should_receive(:read_definitions).with("#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.appl").and_return([{}, appliance_config])
+        appliance_helper = mock(ApplianceDefinitionHelper)
+        appliance_helper.should_receive(:read_definitions).with("#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.appl")
+        appliance_helper.should_receive(:appliance_configs).and_return([appliance_config])
 
-        ApplianceHelper.should_receive(:new).with(:log => @log).and_return(appliance_helper)
+        ApplianceDefinitionHelper.should_receive(:new).with(:log => @log).and_return(appliance_helper)
 
         appliance_config_helper = mock(ApplianceConfigHelper)
 
@@ -133,7 +134,7 @@ module BoxGrinder
 
         appliance_config_helper.should_receive(:merge).with(appliance_config).and_return(appliance_config)
 
-        ApplianceConfigHelper.should_receive(:new).with({}).and_return(appliance_config_helper)
+        ApplianceConfigHelper.should_receive(:new).with([appliance_config]).and_return(appliance_config_helper)
 
         @appliance.read_definition
       end
@@ -143,7 +144,7 @@ module BoxGrinder
 
         appliance_config = ApplianceConfig.new
 
-        appliance_helper = mock(ApplianceHelper)
+        appliance_helper = mock(ApplianceDefinitionHelper)
         appliance_helper.should_receive(:read_definitions).with("#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.ks").and_raise("Unknown format")
 
         clazz = mock('PluginClass')
@@ -159,7 +160,7 @@ module BoxGrinder
 
         PluginManager.should_receive(:instance).and_return(plugin_manager)
 
-        ApplianceHelper.should_receive(:new).with(:log => @log).and_return(appliance_helper)
+        ApplianceDefinitionHelper.should_receive(:new).with(:log => @log).and_return(appliance_helper)
 
         appliance_config_helper = mock(ApplianceConfigHelper)
 
@@ -177,7 +178,7 @@ module BoxGrinder
       it "should read definition with kickstart appliance definition file and fail because there was no plugin able to read .ks" do
         prepare_appliance({}, "#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.ks")
 
-        appliance_helper = mock(ApplianceHelper)
+        appliance_helper = mock(ApplianceDefinitionHelper)
         appliance_helper.should_receive(:read_definitions).with("#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.ks").and_raise("Unknown format")
 
         plugin_manager = mock(PluginManager)
@@ -186,7 +187,7 @@ module BoxGrinder
 
         PluginManager.should_receive(:instance).and_return(plugin_manager)
 
-        ApplianceHelper.should_receive(:new).with(:log => @log).and_return(appliance_helper)
+        ApplianceDefinitionHelper.should_receive(:new).with(:log => @log).and_return(appliance_helper)
 
         lambda {
           @appliance.read_definition
