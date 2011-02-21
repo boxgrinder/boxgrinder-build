@@ -9,20 +9,22 @@ Version: 0.8.1
 Release: 1%{?dist}
 Group: Development/Languages
 License: LGPLv3+
-URL: http://www.jboss.org/boxgrinder
+URL: http://boxgrinder.org/
 Source0: http://rubygems.org/gems/%{gemname}-%{version}.gem
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 Requires: ruby(abi) = %{rubyabi}
 Requires: rubygem(thor)
-Requires: rubygem(boxgrinder-core) >= 0.2.0
+Requires: rubygem(boxgrinder-core) >= 0.2.1
+Requires: rubygem(boxgrinder-core) < 0.3.0
 Requires: ruby-libguestfs
 Requires: parted
 Requires: e2fsprogs
 
 BuildRequires: rubygem(rake)
 BuildRequires: rubygem(rspec)
-BuildRequires: rubygem(boxgrinder-core) >= 0.2.0
+BuildRequires: rubygem(boxgrinder-core) >= 0.2.1
+BuildRequires: rubygem(boxgrinder-core) < 0.3.0
 BuildRequires: rubygem(echoe)
 BuildRequires: ruby-libguestfs
 
@@ -90,6 +92,7 @@ popd
 - Upstream release: 0.8.1
 - [BGBUILD-141] Long delay after "Preparing guestfs" message when creating new image
 - [BGBUILD-150] Cyclical inclusion dependencies in appliance definition files are not detected/handled
+- [BGBUILD-165] Use version in dependencies in gem and in RPM only where necessary
 
 * Tue Jan 04 2011  <mgoldman@redhat.com> - 0.8.0-1
 - Upstream release: 0.8.0
