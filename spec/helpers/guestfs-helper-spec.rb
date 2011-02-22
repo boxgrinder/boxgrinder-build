@@ -80,6 +80,7 @@ module BoxGrinder
 
         RbConfig::CONFIG.should_receive(:[]).with('host_cpu').and_return('x86_64')
 
+        File.should_receive(:exists?).with('/usr/bin/qemu-system-x86_64').and_return(true)
         guestfs.should_receive(:set_qemu).with('/usr/bin/qemu-system-x86_64')
         guestfs.should_receive(:add_drive).with('a/raw/disk')
         guestfs.should_receive(:set_network).with(1)
@@ -104,6 +105,7 @@ module BoxGrinder
 
         RbConfig::CONFIG.should_receive(:[]).with('host_cpu').and_return('i386')
 
+        File.should_receive(:exists?).with('/usr/bin/qemu').and_return(true)
         guestfs.should_receive(:set_qemu).with('/usr/bin/qemu')
         guestfs.should_receive(:add_drive).with('a/raw/disk')
         guestfs.should_receive(:set_network).with(1)
