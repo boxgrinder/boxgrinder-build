@@ -233,3 +233,5 @@ module BoxGrinder
     end
   end
 end
+
+plugin :class => BoxGrinder::EC2Plugin, :type => :platform, :name => :ec2, :full_name  => "Amazon Elastic Compute Cloud (Amazon EC2)"

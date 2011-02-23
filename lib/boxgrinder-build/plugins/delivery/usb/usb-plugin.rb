@@ -39,3 +39,5 @@ module BoxGrinder
 
   end
 end
+
+# plugin :class => BoxGrinder::USBPlugin, :type => :delivery, :name => :usb, :full_name  => "USB"

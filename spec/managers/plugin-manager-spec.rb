@@ -28,18 +28,18 @@ module BoxGrinder
     it "should register simple plugin" do
       @manager.register_plugin({:class => PluginManager, :type => :delivery, :name => :abc, :full_name => "Amazon Simple Storage Service (Amazon S3)"})
 
-      @manager.plugins[:delivery].size.should == 1
+      @manager.plugins[:delivery].size.should == 7
       @manager.plugins[:delivery][:abc][:class].should == PluginManager
     end
 
     it "should register plugin with many types" do
-      @manager.register_plugin({:class => PluginManager, :type => :delivery, :name => :s3, :full_name => "Amazon Simple Storage Service (Amazon S3)", :types => [:s3, :cloudfront, :ami]})
+      @manager.register_plugin({:class => PluginManager, :type => :delivery, :name => :def, :full_name => "Amazon Simple Storage Service (Amazon S3)", :types => [:aaa, :bbb, :ccc]})
 
-      @manager.plugins[:delivery].size.should == 4
+      @manager.plugins[:delivery].size.should == 10
       @manager.plugins[:delivery][:abc][:class].should == PluginManager
-      @manager.plugins[:delivery][:ami][:class].should == PluginManager
-      @manager.plugins[:delivery][:s3][:class].should == PluginManager
-      @manager.plugins[:delivery][:cloudfront][:class].should == PluginManager
+      @manager.plugins[:delivery][:aaa][:class].should == PluginManager
+      @manager.plugins[:delivery][:bbb][:class].should == PluginManager
+      @manager.plugins[:delivery][:ccc][:class].should == PluginManager
     end
 
     it "should initialize a plugin" do

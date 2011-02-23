@@ -62,3 +62,5 @@ module BoxGrinder
     end
   end
 end
+
+plugin :class => BoxGrinder::LocalPlugin, :type => :delivery, :name => :local, :full_name  => "Local file system"

@@ -57,3 +57,5 @@ module BoxGrinder
     end
   end
 end
+
+plugin :class => BoxGrinder::FedoraPlugin, :type => :os, :name => :fedora, :full_name  => "Fedora", :versions   => ["13", "14", "rawhide"]

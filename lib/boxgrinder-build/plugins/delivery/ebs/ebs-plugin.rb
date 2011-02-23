@@ -276,3 +276,5 @@ module BoxGrinder
     end
   end
 end
+
+plugin :class => BoxGrinder::EBSPlugin, :type => :delivery, :name => :ebs, :full_name  => "Elastic Block Storage"

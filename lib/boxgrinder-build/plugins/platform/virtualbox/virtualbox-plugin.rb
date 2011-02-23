@@ -58,3 +58,5 @@ module BoxGrinder
     end
   end
 end
+
+plugin :class => BoxGrinder::VirtualBoxPlugin, :type => :platform, :name => :virtualbox, :full_name  => "VirtualBox"

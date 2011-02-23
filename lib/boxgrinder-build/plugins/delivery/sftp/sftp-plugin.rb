@@ -148,3 +148,5 @@ module BoxGrinder
     end
   end
 end
+
+plugin :class => BoxGrinder::SFTPPlugin, :type => :delivery, :name => :sftp, :full_name  => "SSH File Transfer Protocol"

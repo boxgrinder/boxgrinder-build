@@ -190,3 +190,5 @@ module BoxGrinder
     end
   end
 end
+
+plugin :class => BoxGrinder::VMwarePlugin, :type => :platform, :name => :vmware, :full_name  => "VMware"

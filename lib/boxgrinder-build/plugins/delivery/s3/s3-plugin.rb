@@ -233,3 +233,5 @@ module BoxGrinder
     end
   end
 end
+
+plugin :class => BoxGrinder::S3Plugin, :type => :delivery, :name => :s3, :full_name  => "Amazon Simple Storage Service (Amazon S3)", :types => [:s3, :cloudfront, :ami]

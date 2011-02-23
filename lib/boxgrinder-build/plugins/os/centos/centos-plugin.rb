@@ -42,3 +42,5 @@ module BoxGrinder
     end
   end
 end
+
+plugin :class => BoxGrinder::CentOSPlugin, :type => :os, :name => :centos, :full_name  => "CentOS", :versions   => ["5"]

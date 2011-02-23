@@ -62,3 +62,5 @@ module BoxGrinder
     end
   end
 end
+
+plugin :class => BoxGrinder::RHELPlugin, :type => :os, :name => :rhel, :full_name  => "Red Hat Enterprise Linux", :versions => ['5', '6']
