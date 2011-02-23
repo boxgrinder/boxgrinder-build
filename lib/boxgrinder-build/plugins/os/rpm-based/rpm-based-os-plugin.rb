@@ -18,8 +18,8 @@
 
 require 'boxgrinder-core/models/appliance-config'
 require 'boxgrinder-build/plugins/base-plugin'
-require 'boxgrinder-build-rpm-based-os-plugin/kickstart'
-require 'boxgrinder-build-rpm-based-os-plugin/rpm-dependency-validator'
+require 'boxgrinder-build/plugins/os/rpm-based/kickstart'
+require 'boxgrinder-build/plugins/os/rpm-based/rpm-dependency-validator'
 require 'boxgrinder-build/helpers/linux-helper'
 
 module BoxGrinder
