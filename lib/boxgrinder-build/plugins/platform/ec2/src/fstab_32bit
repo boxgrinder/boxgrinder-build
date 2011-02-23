@@ -1,0 +1,7 @@
+LABEL=/    /         #FILESYSTEM_TYPE#    defaults         1 1
+/dev/#DISK_DEVICE_PREFIX#da2  /mnt      ext3    defaults         1 2
+/dev/#DISK_DEVICE_PREFIX#da3  swap      swap    defaults         0 0
+none       /dev/pts  devpts  gid=5,mode=620   0 0
+none       /dev/shm  tmpfs   defaults         0 0
+none       /proc     proc    defaults         0 0
+none       /sys      sysfs   defaults         0 0

@@ -28,8 +28,56 @@ BuildRequires: rubygem(boxgrinder-core) < 0.3.0
 BuildRequires: rubygem(echoe)
 BuildRequires: ruby-libguestfs
 
+# EBS and S3
+
+Requires: rubygem(amazon-ec2)
+# Fixes blankslate error
+Requires: rubygem(builder)
+Requires: rubygem(aws)
+Requires: euca2ools >= 1.3.1-4
+
+BuildRequires: rubygem(amazon-ec2)
+BuildRequires: rubygem(aws)
+# Fixes blankslate error
+BuildRequires: rubygem(builder)
+
+# SFTP
+
+Requires: rubygem(net-sftp)
+Requires: rubygem(net-ssh)
+Requires: rubygem(progressbar)
+
+BuildRequires: rubygem(net-sftp)
+BuildRequires: rubygem(net-ssh)
+BuildRequires: rubygem(progressbar)
+
+# RPM-BASED
+
+Requires: appliance-tools
+Requires: yum-utils
+
+# EC2
+
+Requires: rsync
+Requires: wget
+Requires: util-linux
+
 BuildArch: noarch
 Provides: rubygem(%{gemname}) = %{version}
+
+Obsoletes: rubygem(boxgrinder-build-ebs-delivery-plugin)
+Obsoletes: rubygem(boxgrinder-build-s3-delivery-plugin)
+Obsoletes: rubygem(boxgrinder-build-local-delivery-plugin)
+Obsoletes: rubygem(boxgrinder-build-sftp-delivery-plugin)
+
+Obsoletes: rubygem(boxgrinder-build-centos-os-plugin)
+Obsoletes: rubygem(boxgrinder-build-rhel-os-plugin)
+Obsoletes: rubygem(boxgrinder-build-fedora-os-plugin)
+Obsoletes: rubygem(boxgrinder-build-rpm-based-os-plugin)
+
+Obsoletes: rubygem(boxgrinder-build-ec2-platform-plugin)
+Obsoletes: rubygem(boxgrinder-build-vmware-platform-plugin)
+Obsoletes: rubygem(boxgrinder-build-virtualbox-platform-plugin)
 
 %description
 A tool for creating appliances from simple plain text files for various

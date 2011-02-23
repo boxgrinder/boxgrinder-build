@@ -20,6 +20,19 @@ require 'rubygems'
 require 'boxgrinder-build/managers/plugin-manager'
 require 'boxgrinder-core/helpers/log-helper'
 
+require 'boxgrinder-build/plugins/delivery/s3/s3-plugin'
+require 'boxgrinder-build/plugins/delivery/sftp/sftp-plugin'
+require 'boxgrinder-build/plugins/delivery/ebs/ebs-plugin'
+require 'boxgrinder-build/plugins/delivery/local/local-plugin'
+
+require 'boxgrinder-build/plugins/platform/vmware/vmware-plugin'
+require 'boxgrinder-build/plugins/platform/ec2/ec2-plugin'
+require 'boxgrinder-build/plugins/platform/virtualbox/virtualbox-plugin'
+
+require 'boxgrinder-build/plugins/os/centos/centos-plugin'
+require 'boxgrinder-build/plugins/os/rhel/rhel-plugin'
+require 'boxgrinder-build/plugins/os/fedora/fedora-plugin'
+
 module BoxGrinder
   class PluginHelper
     def initialize( config, options = {} )
@@ -42,9 +55,7 @@ module BoxGrinder
     end
 
     def read_and_require
-      plugins = %w(boxgrinder-build-fedora-os-plugin boxgrinder-build-rhel-os-plugin boxgrinder-build-centos-os-plugin boxgrinder-build-ec2-platform-plugin boxgrinder-build-vmware-platform-plugin boxgrinder-build-virtualbox-platform-plugin boxgrinder-build-s3-delivery-plugin boxgrinder-build-sftp-delivery-plugin boxgrinder-build-local-delivery-plugin boxgrinder-build-ebs-delivery-plugin) + @options.additional_plugins
-
-      plugins.flatten.each do |plugin|
+      @options.additional_plugins.each do |plugin|
         @log.trace "Loading plugin '#{plugin}'..."
 
         begin
@@ -52,7 +63,7 @@ module BoxGrinder
           @log.trace "- OK"
         rescue LoadError => e
           @log.trace "- Not found: #{e.message.strip.chomp}"
-          @log.warn "Specified plugin: '#{plugin}' wasn't found. Make sure its name is correct, skipping..." unless plugin.match(/^boxgrinder-build-(.*)-plugin/)
+          @log.warn "Specified plugin: '#{plugin}' wasn't found. Make sure its name is correct, skipping..."
         end
       end
     end

@@ -1,0 +1,37 @@
+lang en_US.UTF-8
+keyboard us
+timezone US/Eastern
+auth --useshadow --enablemd5
+selinux --permissive
+firewall --disabled
+bootloader --timeout=1
+firstboot --disabled
+
+<% if graphical %>
+xconfig --startxonboot
+services --enabled=NetworkManager --disabled=network
+<% else %>
+network --bootproto=dhcp --device=eth0 --onboot=on
+services --enabled=network
+<% end %>
+
+rootpw --iscrypted <%= appliance_config.os.password.crypt((0...8).map { 65.+(rand(25)).chr }.join) %>
+
+<% appliance_config.hardware.partitions.each do |root, partition| %>
+part <%= root %> --size <%= (partition['size'].to_f * 1024).to_i %> --fstype <%= partition['type'] %> <% unless partition['options'].nil? %> --fsoptions '<%= partition['options'] %>' <% end %> <% if partition['passphrase'] %> --encrypted --passphrase='<%= partition['passphrase'] %>' <% end %> --ondisk sda --label <%= root %><% end %>
+
+<% for repo in repos %>
+<%= repo %><% end %>
+
+%packages
+
+<% appliance_config.packages.each do |package| %>
+  <%= package %><% end %>
+%end
+%post
+
+<% if graphical %>
+chkconfig --level 345 firstboot off 2>/dev/null<% end %>
+
+%end
+

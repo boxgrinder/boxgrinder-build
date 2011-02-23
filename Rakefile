@@ -21,12 +21,17 @@ require 'spec/rake/spectask'
 require 'echoe'
 
 Echoe.new("boxgrinder-build") do |p|
-  p.project     = "BoxGrinder Build"
-  p.author      = "Marek Goldmann"
-  p.summary     = "A tool for creating appliances from simple plain text files for various virtual environments."
-  p.url         = "http://www.jboss.org/boxgrinder"
-  p.email       = "info@boxgrinder.org"
-  p.runtime_dependencies = ["thor >=0.13", "boxgrinder-core ~>0.2.1"]
+  p.project = "BoxGrinder Build"
+  p.author = "Marek Goldmann"
+  p.summary = "A tool for creating appliances from simple plain text files for various virtual environments."
+  p.url = "http://www.jboss.org/boxgrinder"
+  p.email = "info@boxgrinder.org"
+  p.runtime_dependencies = [
+      "thor >=0.13", "boxgrinder-core ~>0.2.1", # BoxGrinder Build
+      'aws', # S3
+      'amazon-ec2', # EBS and S3
+      'net-sftp', 'net-ssh', 'progressbar', #SFTP
+  ]
 end
 
 desc "Run all tests"

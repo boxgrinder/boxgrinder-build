@@ -1,0 +1,18 @@
+This package contains #APPLIANCE_NAME# image for VMware.
+
+VMware Enterprise (VMware ESX/ESXi/, VMware vSphere)
+====================================================
+
+Required files:
+---------------
+
+#APPLIANCE_NAME#.raw
+#APPLIANCE_NAME#-enterprise.vmx
+#APPLIANCE_NAME#-enterprise.vmdk
+
+Required steps:
+---------------
+
+1. Upload all files to ESX server using vSpehere/VI client.
+2. Add #APPLIANCE_NAME#.vmx to inventory.
+3. Run appliance.

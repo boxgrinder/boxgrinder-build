@@ -22,45 +22,13 @@ require 'ostruct'
 
 module BoxGrinder
   describe PluginHelper do
-    before(:all) do
-      @plugin_array = %w(boxgrinder-build-fedora-os-plugin boxgrinder-build-rhel-os-plugin boxgrinder-build-centos-os-plugin boxgrinder-build-ec2-platform-plugin boxgrinder-build-vmware-platform-plugin boxgrinder-build-virtualbox-platform-plugin boxgrinder-build-s3-delivery-plugin boxgrinder-build-sftp-delivery-plugin boxgrinder-build-local-delivery-plugin boxgrinder-build-ebs-delivery-plugin)
-    end
-
     before(:each) do
       @log = LogHelper.new(:level => :trace, :type => :stdout)
       @plugin_helper = PluginHelper.new(OpenStruct.new(:additional_plugins => []), :log => @log)
     end
 
-    it "should require default plugins" do
-      @plugin_array.each do |plugin|
-        @plugin_helper.should_receive(:require).once.with(plugin)
-      end
-
-      @plugin_helper.read_and_require
-    end
-
-    it "should require default plugins and fail silently" do
-      @log = mock('Logger')
-
-      @plugin_helper.instance_variable_set(:@log, @log)
-
-      @plugin_array.each do |plugin|
-        @log.should_receive(:trace).with("Loading plugin '#{plugin}'...")
-        @plugin_helper.should_receive(:require).once.with(plugin).and_raise(LoadError)
-        @log.should_receive(:trace).with("- Not found: LoadError")
-      end
-
-      @log.should_not_receive(:warn)
-
-      @plugin_helper.read_and_require
-    end
-
     it "should read plugins specified in command line" do
       @plugin_helper = PluginHelper.new(OpenStruct.new(:additional_plugins => ['abc', 'def']), :log => @log)
-
-      @plugin_array.each do |plugin|
-        @plugin_helper.should_receive(:require).once.with(plugin)
-      end
 
       @plugin_helper.should_receive(:require).ordered.with('abc')
       @plugin_helper.should_receive(:require).ordered.with('def')
@@ -71,12 +39,6 @@ module BoxGrinder
     it "should read plugins specified in command line and warn if plugin cannot be loaded" do
       @log = mock('Logger')
       @plugin_helper = PluginHelper.new(OpenStruct.new(:additional_plugins => ['abc']), :log => @log)
-
-      @plugin_array.each do |plugin|
-        @log.should_receive(:trace).with("Loading plugin '#{plugin}'...")
-        @plugin_helper.should_receive(:require).once.with(plugin)
-        @log.should_receive(:trace).with("- OK")
-      end
 
       @log.should_receive(:trace).with("Loading plugin 'abc'...")
       @plugin_helper.should_receive(:require).ordered.with('abc').and_raise(LoadError)

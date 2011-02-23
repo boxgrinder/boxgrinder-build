@@ -1,0 +1,20 @@
+# Disk DescriptorFile
+version=1
+CID=fffffffe
+parentCID=ffffffff
+createType="#TYPE#"
+
+# Extent description
+RW #TOTAL_SECTORS# #EXTENT_TYPE# "#NAME#.raw" #NUMBER#
+
+# The Disk Data Base
+#DDB
+
+ddb.toolsVersion = "0"
+ddb.adapterType = "lsilogic"
+ddb.geometry.sectors = "#SECTORS#"
+ddb.geometry.heads = "#HEADS#"
+ddb.geometry.cylinders = "#CYLINDERS#"
+ddb.encoding = "UTF-8"
+ddb.virtualHWVersion = "#HW_VERSION#"
+ddb.thinProvisioned = "#THIN_PROVISIONED#"
