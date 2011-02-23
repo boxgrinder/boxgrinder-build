@@ -39,7 +39,6 @@ lib/boxgrinder-build/plugins/platform/ec2/src/ifcfg-eth0
 lib/boxgrinder-build/plugins/platform/ec2/src/menu.lst
 lib/boxgrinder-build/plugins/platform/ec2/src/rc_local
 lib/boxgrinder-build/plugins/platform/virtualbox/virtualbox-plugin.rb
-lib/boxgrinder-build/plugins/platform/vmware/lib/boxgrinder-build-vmware-platform-plugin.rb
 lib/boxgrinder-build/plugins/platform/vmware/src/README-enterprise
 lib/boxgrinder-build/plugins/platform/vmware/src/README-personal
 lib/boxgrinder-build/plugins/platform/vmware/src/base.vmdk
