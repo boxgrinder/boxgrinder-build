@@ -88,6 +88,11 @@ popd
 %{gemdir}/doc/%{gemname}-%{version}
 
 %changelog
+
+* Tue Mar 01 2011 <msavy@redhat.com> - 0.8.2-1
+- Upstream release: 0.8.2
+- [BGBUILD-169] README to indicate supported operating systems / requirements
+
 * Tue Feb 16 2011  <mgoldman@redhat.com> - 0.8.1-1
 - Upstream release: 0.8.1
 - [BGBUILD-141] Long delay after "Preparing guestfs" message when creating new image
