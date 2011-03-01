@@ -74,7 +74,7 @@ popd
 %{geminstdir}/lib
 %doc %{geminstdir}/CHANGELOG
 %doc %{geminstdir}/LICENSE
-%doc %{geminstdir}/README
+%doc %{geminstdir}/README.md
 %doc %{geminstdir}/Manifest
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
