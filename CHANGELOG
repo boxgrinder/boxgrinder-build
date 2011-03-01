@@ -1,3 +1,7 @@
+v0.8.2
+
+* [BGBUILD-169] README to indicate supported operating systems / requirements
+
 v0.8.1
 
 * [BGBUILD-141] Long delay after "Preparing guestfs" message when creating new image
