@@ -22,6 +22,11 @@ require 'boxgrinder-core/helpers/log-helper'
 require 'boxgrinder-build/appliance'
 require 'boxgrinder-build/helpers/thor-helper'
 
+# TODO remove this when it'll become not necessary
+# quick fix for old active_support require issue in EPEL 5
+require 'active_support/basic_object'
+require 'active_support/duration'
+
 #$stderr.reopen($stdout)
 
 if Process.uid != 0
