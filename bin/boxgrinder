@@ -25,7 +25,7 @@ require 'boxgrinder-build/helpers/thor-helper'
 #$stderr.reopen($stdout)
 
 if Process.uid != 0
-  puts "This program must be executed with root privileges. Try 'sudo boxgrinder-build'"
+  puts "This program must be executed with root privileges. Try 'sudo boxgrinder'"
   abort
 end
 
@@ -41,7 +41,7 @@ module BoxGrinder
     method_option :force, :type => :boolean, :default => false, :aliases => '-f', :desc => "Force image creation - removes all previous builds for selected appliance. Default: false."
     method_option :debug, :type => :boolean, :default => false, :desc => "Prints debug information while building. Default: false."
     method_option :trace, :type => :boolean, :default => false, :desc => "Prints trace information while building. Default: false."
-    method_option :backtrace, :type => :boolean, :default => false, :aliases => '-b', :desc => "Prints full backtrace if errors occur whilst building. Default: true if -debug or -trace, else false."
+    method_option :backtrace, :type => :boolean, :default => false, :aliases => '-b', :desc => "Prints full backtrace if errors occur whilst building. Default: False, always true if console log is set to debug or trace."
 
     def build(appliance_definition_file)
       log_level = :debug if options.debug?
@@ -65,7 +65,7 @@ module BoxGrinder
           if backtrace
             log.fatal e
           else #demote backtrace to debug so that it is in file log only
-            log.fatal e.message
+            log.fatal "#{e.message}. See the log file for detailed information."
             log.debug e.backtrace.join($/)
           end  
       end
