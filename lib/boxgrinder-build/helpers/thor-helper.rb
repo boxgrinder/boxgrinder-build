@@ -73,8 +73,11 @@ module BoxGrinder
         shell.say "BoxGrinder Build:"
         shell.say "  A tool for building VM images from simple definition files."
         shell.say
+        shell.say "Homepage:"
+        shell.say "  http://boxgrinder.org/"
+        shell.say
         shell.say "Documentation:"
-        shell.say "  http://community.jboss.org/docs/DOC-14358"
+        shell.say "  http://boxgrinder.org/tutorials/"
         shell.say
       end
     end

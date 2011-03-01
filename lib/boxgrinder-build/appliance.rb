@@ -21,7 +21,7 @@ require 'hashery/opencascade'
 require 'boxgrinder-core/helpers/log-helper'
 require 'boxgrinder-core/models/appliance-config'
 require 'boxgrinder-core/models/config'
-require 'boxgrinder-core/helpers/appliance-helper'
+require 'boxgrinder-core/helpers/appliance-definition-helper'
 require 'boxgrinder-core/helpers/appliance-config-helper'
 require 'boxgrinder-build/helpers/plugin-helper'
 require 'boxgrinder-build/managers/plugin-manager'
@@ -38,7 +38,11 @@ module BoxGrinder
     def read_definition
       begin
         # first try to read as appliance definition file
-        appliance_configs, appliance_config = ApplianceHelper.new(:log => @log).read_definitions(@appliance_definition)
+        appliance_helper = ApplianceDefinitionHelper.new(:log => @log)
+        appliance_helper.read_definitions(@appliance_definition)
+
+        appliance_configs = appliance_helper.appliance_configs
+        appliance_config = appliance_configs.first
       rescue
         # then try to read OS plugin specific format
         PluginManager.instance.plugins[:os].each_value do |info|

@@ -1,6 +1,8 @@
 v0.8.1
 
 * [BGBUILD-141] Long delay after "Preparing guestfs" message when creating new image
+* [BGBUILD-150] Cyclical inclusion dependencies in appliance definition files are not detected/handled
+* [BGBUILD-165] Use version in dependencies in gem and in RPM only where necessary
 
 v0.8.0
 
