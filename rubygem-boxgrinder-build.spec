@@ -5,7 +5,7 @@
 
 Summary: A tool for creating appliances from simple plain text files
 Name: rubygem-%{gemname}
-Version: 0.8.1
+Version: 0.8.2
 Release: 1%{?dist}
 Group: Development/Languages
 License: LGPLv3+
@@ -122,7 +122,7 @@ popd
 %{geminstdir}/lib
 %doc %{geminstdir}/CHANGELOG
 %doc %{geminstdir}/LICENSE
-%doc %{geminstdir}/README
+%doc %{geminstdir}/README.md
 %doc %{geminstdir}/Manifest
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
@@ -136,6 +136,11 @@ popd
 %{gemdir}/doc/%{gemname}-%{version}
 
 %changelog
+
+* Tue Mar 01 2011 <msavy@redhat.com> - 0.8.2-1
+- Upstream release: 0.8.2
+- [BGBUILD-169] README to indicate supported operating systems / requirements
+
 * Tue Feb 16 2011  <mgoldman@redhat.com> - 0.8.1-1
 - Upstream release: 0.8.1
 - [BGBUILD-141] Long delay after "Preparing guestfs" message when creating new image
