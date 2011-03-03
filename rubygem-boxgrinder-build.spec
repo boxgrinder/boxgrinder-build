@@ -140,6 +140,7 @@ popd
 * Tue Mar 01 2011 <msavy@redhat.com> - 0.8.2-1
 - Upstream release: 0.8.2
 - [BGBUILD-169] README to indicate supported operating systems / requirements
+- [BGBUILD-174] Move plugins to boxgrinder-build gem
 
 * Tue Feb 16 2011  <mgoldman@redhat.com> - 0.8.1-1
 - Upstream release: 0.8.1
