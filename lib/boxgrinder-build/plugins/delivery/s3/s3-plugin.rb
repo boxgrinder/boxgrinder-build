@@ -22,6 +22,11 @@ require 'boxgrinder-build/helpers/package-helper'
 require 'AWS'
 require 'aws'
 
+# TODO remove this when it'll become not necessary
+# quick fix for old active_support require issue in EPEL 5
+require 'active_support/basic_object'
+require 'active_support/duration'
+
 module BoxGrinder
   class S3Plugin < BasePlugin
     REGION_OPTIONS = {

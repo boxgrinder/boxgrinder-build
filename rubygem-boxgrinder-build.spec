@@ -138,7 +138,8 @@ popd
 
 * Tue Mar 01 2011 <msavy@redhat.com> - 0.8.2-1
 - Upstream release: 0.8.2
-- [BGBUILD-169] README to indicate supported operating systems / requirements
+- [BGBUILD-103] README to indicate supported operating systems / requirements
+- [BGBUILD-169] S3 plugin temporary work-around for EL5
 - [BGBUILD-174] Move plugins to boxgrinder-build gem
 - [BGBUILD-175] Rewrite boxgrinder CLI to remove thor dependency
 
