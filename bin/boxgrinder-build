@@ -1,0 +1,185 @@
+#!/usr/bin/env ruby
+
+# Copyright 2010 Red Hat, Inc.
+#
+# This is free software; you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation; either version 3 of
+# the License, or (at your option) any later version.
+#
+# This software is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this software; if not, write to the Free
+# Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+# 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+
+require 'optparse'
+require 'rubygems'
+require 'hashery/opencascade'
+require 'boxgrinder-core/models/config'
+require 'boxgrinder-core/helpers/log-helper'
+require 'boxgrinder-build/appliance'
+
+if Process.uid != 0
+  puts "This program must be executed with root privileges. Try 'sudo #{File.basename($0)}'."
+  abort
+end
+
+options = OpenCascade.new(
+    :platform => :none,
+    :delivery => :none,
+    :force => false,
+    :os_config => {},
+    :platform_config => {},
+    :delivery_config => {},
+    :additional_plugins => [],
+    :debug => false,
+    :trace => false,
+    :backtrace => false,
+    :log_level => :info
+)
+
+def validate_hash_option(options, name, value)
+  value.each do |entry|
+    if entry =~ /^(\w+):(\w+)$/
+      options[name][$1] = $2
+    else
+      yield entry if block_given?
+      abort
+    end
+  end
+end
+
+def process_options(options)
+  OptionParser.new do |opts|
+    program = File.basename($0)
+
+    opts.banner = <<EOB
+Usage: #{program} [appliance definition file] [options]
+
+A tool for building VM images from simple definition files.
+        
+Homepage:
+    http://boxgrinder.org/
+
+Documentation:
+    http://boxgrinder.org/tutorials/
+
+Examples:
+    $ #{program} jeos.appl                                                           # Build KVM image for jeos.appl
+    $ #{program} jeos.appl -f                                                        # Build KVM image for jeos.appl with removing previous build for this image
+    $ #{program} jeos.appl --os-config format:qcow2                                  # Build KVM image for jeos.appl with a qcow2 disk
+    $ #{program} jeos.appl -p vmware --platform-config type:personal,thin_disk:true  # Build VMware image for VMware Server, Player, Fusion using thin (growing) disk
+    $ #{program} jeos.appl -p ec2 -d ami                                             # Build and register AMI for jeos.appl
+    $ #{program} jeos.appl -p vmware -d local                                        # Build VMware image for jeos.appl and deliver it to local directory
+EOB
+
+
+    opts.separator ""
+    opts.separator "Options:"
+
+    opts.on("-p", "--platform [TYPE]", "The name of platform you want to convert to.") { |v| options.platform = v.to_sym }
+    opts.on("-d", "--delivery [METHOD]", "The delivery method for selected appliance.") { |v| options.delivery = v.to_sym }
+    opts.on("-f", "--force", "Force image creation - removes all previous builds for selected appliance. Default: false.") { |v| options.force = v }
+
+    opts.separator ""
+    opts.separator "Plugin configuration options:"
+
+    opts.on("-l", "--plugins [PLUGINS]", Array, "Comma separated list of additional plugins. Default: empty.") do |v|
+      options[:additional_plugins] = v
+    end
+
+    opts.separator ""
+
+    opts.on("--os-config [CONFIG]", Array, "Operating system plugin configuration in format: key1:value1,key2:value2.") do |v|
+      validate_hash_option(options, :os_config, v) do |entry|
+        puts "Operating system plugin configuration is not valid at '#{entry}'. Valid format is: 'key:value'."
+      end
+    end
+
+    opts.on("--platform-config [CONFIG]", Array, "Platform plugin configuration in format: key1:value1,key2:value2.") do |v|
+      validate_hash_option(options, :platform_config, v) do |entry|
+        puts "Platform plugin configuration is not valid at '#{entry}'. Valid format is: 'key:value'."
+      end
+    end
+
+    opts.on("--delivery-config [CONFIG]", Array, "Delivery plugin configuration in format: key1:value1,key2:value2.") do |v|
+      validate_hash_option(options, :platform_config, v) do |entry|
+        puts "Delivery plugin configuration is not valid at '#{entry}'. Valid format is: 'key:value'."
+      end
+    end
+
+    opts.separator ""
+    opts.separator "Logging options:"
+
+    opts.on("--debug", "Prints debug information while building. Default: false.") { |v| options[:debug] = v }
+    opts.on("--trace", "Prints trace information while building. Default: false.") { |v| options[:trace] = v }
+    opts.on("-b", "--backtrace", "Prints full backtrace if errors occur whilst building. Default: true if console log is set to debug or trace, otherwise false.") { |v| options[:backtrace] = v }
+
+    opts.separator ""
+    opts.separator 'Common options:'
+
+    opts.on_tail('--help', 'Show this message.') do
+      puts opts
+      exit
+    end
+    opts.on_tail('--version', 'Print the version.') do
+      puts "BoxGrinder Build #{File.read("#{File.dirname(__FILE__)}/../CHANGELOG").match(/^v(.*)/)[1]}"
+
+      [:os, :platform, :delivery].each do |type|
+        puts
+        puts "Available #{type} plugins:"
+        BoxGrinder::PluginManager.instance.plugins[type].each do |name, plugin_info|
+          puts " - #{name} plugin for #{plugin_info[:full_name]}"
+        end
+      end
+
+      exit
+    end
+  end
+end
+
+opts = process_options(options)
+
+begin
+  opts.parse!
+  if ARGV.empty? or ARGV.size > 1
+    puts opts
+    puts
+    puts 'No or more than one appliance definition file specified.'
+    abort
+  end
+
+  appliance_definition_file = ARGV.first
+
+  unless File.exists?(appliance_definition_file)
+    puts "Appliance definition file '#{appliance_definition_file}' could not be found."
+    abort
+  end
+
+  options.log_level = :debug if options.debug
+  options.log_level = :trace if options.trace
+  options.backtrace = :true if [:debug, :trace].include?(options.log_level)
+
+  log = BoxGrinder::LogHelper.new(:level => options.log_level)
+
+  begin
+    BoxGrinder::Appliance.new(appliance_definition_file, BoxGrinder::Config.new(options), :log => log).create
+  rescue Exception => e
+    if options.backtrace
+      log.fatal e
+    else # demote backtrace to debug so that it is in file log only
+      log.fatal "#{e.message}. See the log file for detailed information."
+      log.debug e.backtrace.join($/)
+    end
+  end
+rescue => e
+  puts opts
+  puts
+  puts e.message
+  abort
+end

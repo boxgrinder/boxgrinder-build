@@ -27,10 +27,10 @@ Echoe.new("boxgrinder-build") do |p|
   p.url = "http://boxgrinder.org/"
   p.email = "info@boxgrinder.org"
   p.runtime_dependencies = [
-      "thor >=0.13", "boxgrinder-core ~>0.2.1", # BoxGrinder Build
+      "boxgrinder-core ~>0.2.1",
       'aws', # S3
       'amazon-ec2', # EBS and S3
-      'net-sftp', 'net-ssh', 'progressbar', #SFTP
+      'net-sftp', 'net-ssh', 'progressbar', # SFTP
   ]
 end
 

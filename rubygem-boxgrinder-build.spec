@@ -14,7 +14,6 @@ Source0: http://rubygems.org/gems/%{gemname}-%{version}.gem
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 Requires: ruby(abi) = %{rubyabi}
-Requires: rubygem(thor)
 Requires: rubygem(boxgrinder-core) >= 0.2.1
 Requires: rubygem(boxgrinder-core) < 0.3.0
 Requires: ruby-libguestfs
@@ -141,6 +140,7 @@ popd
 - Upstream release: 0.8.2
 - [BGBUILD-169] README to indicate supported operating systems / requirements
 - [BGBUILD-174] Move plugins to boxgrinder-build gem
+- [BGBUILD-175] Rewrite boxgrinder CLI to remove thor dependency
 
 * Tue Feb 16 2011  <mgoldman@redhat.com> - 0.8.1-1
 - Upstream release: 0.8.1
