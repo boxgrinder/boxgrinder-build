@@ -115,7 +115,7 @@ popd
 
 %files
 %defattr(-, root, root, -)
-%{_bindir}/boxgrinder
+%{_bindir}/boxgrinder-build
 %dir %{geminstdir}
 %{geminstdir}/bin
 %{geminstdir}/lib
