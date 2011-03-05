@@ -186,7 +186,7 @@ module BoxGrinder
 
     it "should bundle the image" do
       File.should_receive(:exists?).with('build/path/s3-plugin/ami').and_return(false)
-      @exec_helper.should_receive(:execute).with(/euca-bundle-image --ec2cert (.*)src\/cert-ec2\.pem -i a\/path\/to\/disk\.ec2 --kernel aki-427d952b -c \/path\/to\/cert\/file -k \/path\/to\/key\/file -u 0000-0000-0000 -r x86_64 -d build\/path\/s3-plugin\/ami/)
+      @exec_helper.should_receive(:execute).with(/euca-bundle-image --ec2cert (.*)src\/cert-ec2\.pem -i a\/path\/to\/disk\.ec2 --kernel aki-427d952b -c \/path\/to\/cert\/file -k \/path\/to\/key\/file -u 0000-0000-0000 -r x86_64 -d build\/path\/s3-plugin\/ami/, :redacted=>["0000-0000-0000", "/path/to/key/file", "/path/to/cert/file"])
       @plugin.bundle_image(:disk => "a/path/to/disk.ec2")
     end
 
@@ -194,7 +194,7 @@ module BoxGrinder
       @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'centos', :version => '5'}))
 
       File.should_receive(:exists?).with('build/path/s3-plugin/ami').and_return(false)
-      @exec_helper.should_receive(:execute).with(/euca-bundle-image --ec2cert (.*)src\/cert-ec2\.pem -i a\/path\/to\/disk\.ec2 --kernel aki-427d952b -c \/path\/to\/cert\/file -k \/path\/to\/key\/file -u 0000-0000-0000 -r x86_64 -d build\/path\/s3-plugin\/ami/)
+      @exec_helper.should_receive(:execute).with(/euca-bundle-image --ec2cert (.*)src\/cert-ec2\.pem -i a\/path\/to\/disk\.ec2 --kernel aki-427d952b -c \/path\/to\/cert\/file -k \/path\/to\/key\/file -u 0000-0000-0000 -r x86_64 -d build\/path\/s3-plugin\/ami/, :redacted=>["0000-0000-0000", "/path/to/key/file", "/path/to/cert/file"])
       @plugin.bundle_image(:disk => "a/path/to/disk.ec2")
     end
 
@@ -203,7 +203,7 @@ module BoxGrinder
       @plugin.instance_variable_get(:@plugin_config).merge!({'region' => 'us-west-1'})
 
       File.should_receive(:exists?).with('build/path/s3-plugin/ami').and_return(false)
-      @exec_helper.should_receive(:execute).with(/euca-bundle-image --ec2cert (.*)src\/cert-ec2\.pem -i a\/path\/to\/disk\.ec2 --kernel aki-9ba0f1de -c \/path\/to\/cert\/file -k \/path\/to\/key\/file -u 0000-0000-0000 -r x86_64 -d build\/path\/s3-plugin\/ami/)
+      @exec_helper.should_receive(:execute).with(/euca-bundle-image --ec2cert (.*)src\/cert-ec2\.pem -i a\/path\/to\/disk\.ec2 --kernel aki-9ba0f1de -c \/path\/to\/cert\/file -k \/path\/to\/key\/file -u 0000-0000-0000 -r x86_64 -d build\/path\/s3-plugin\/ami/, :redacted=>["0000-0000-0000", "/path/to/key/file", "/path/to/cert/file"])
       @plugin.bundle_image(:disk => "a/path/to/disk.ec2")
     end
 
@@ -284,7 +284,7 @@ module BoxGrinder
     describe ".upload_image" do
       it "should upload image for default region" do
         @plugin.should_receive(:bucket)
-        @exec_helper.should_receive(:execute).with("euca-upload-bundle -U http://s3.amazonaws.com -b bucket/ami/key -m build/path/s3-plugin/ami/appliance.ec2.manifest.xml -a access_key -s secret_access_key")
+        @exec_helper.should_receive(:execute).with("euca-upload-bundle -U http://s3.amazonaws.com -b bucket/ami/key -m build/path/s3-plugin/ami/appliance.ec2.manifest.xml -a access_key -s secret_access_key", :redacted=>["access_key", "secret_access_key"])
         @plugin.upload_image("ami/key")
       end
 
@@ -292,7 +292,7 @@ module BoxGrinder
         @plugin_config.merge!('region' => 'us-west-1')
 
         @plugin.should_receive(:bucket)
-        @exec_helper.should_receive(:execute).with("euca-upload-bundle -U http://s3-us-west-1.amazonaws.com -b bucket/ami/key -m build/path/s3-plugin/ami/appliance.ec2.manifest.xml -a access_key -s secret_access_key")
+        @exec_helper.should_receive(:execute).with("euca-upload-bundle -U http://s3-us-west-1.amazonaws.com -b bucket/ami/key -m build/path/s3-plugin/ami/appliance.ec2.manifest.xml -a access_key -s secret_access_key", :redacted=>["access_key", "secret_access_key"])
         @plugin.upload_image("ami/key")
       end
     end
