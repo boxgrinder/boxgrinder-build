@@ -108,7 +108,7 @@ EOB
     end
 
     opts.on("--delivery-config [CONFIG]", Array, "Delivery plugin configuration in format: key1:value1,key2:value2.") do |v|
-      validate_hash_option(options, :platform_config, v) do |entry|
+      validate_hash_option(options, :delivery_config, v) do |entry|
         puts "Delivery plugin configuration is not valid at '#{entry}'. Valid format is: 'key:value'."
       end
     end
