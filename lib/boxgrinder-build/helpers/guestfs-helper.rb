@@ -251,7 +251,7 @@ module BoxGrinder
       arch = options[:arch] || `uname -m`.chomp.strip
 
       @log.debug "Executing #{cmd}"
-      @guestfs.sh("setarch #{arch} << SETARCH_EOF\n#{cmd}\nSETARCH_EOF")
+      @guestfs.sh("setarch #{arch} << 'SETARCH_EOF'\n#{cmd}\nSETARCH_EOF")
     end
 
     def augeas(&block)

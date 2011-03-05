@@ -251,7 +251,7 @@ module BoxGrinder
       @helper.should_receive(:`).with('uname -m').and_return('bleh')
       @helper.instance_variable_set(:@guestfs, guestfs)
 
-      guestfs.should_receive(:sh).with("setarch bleh << SETARCH_EOF\ncommand\nSETARCH_EOF")
+      guestfs.should_receive(:sh).with("setarch bleh << 'SETARCH_EOF'\ncommand\nSETARCH_EOF")
 
       @helper.sh("command")
     end
@@ -260,7 +260,7 @@ module BoxGrinder
       guestfs = mock('Guestfs')
       @helper.instance_variable_set(:@guestfs, guestfs)
 
-      guestfs.should_receive(:sh).with("setarch arch << SETARCH_EOF\ncommand\nSETARCH_EOF")
+      guestfs.should_receive(:sh).with("setarch arch << 'SETARCH_EOF'\ncommand\nSETARCH_EOF")
 
       @helper.sh("command", :arch => 'arch')
     end
