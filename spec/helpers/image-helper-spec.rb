@@ -55,6 +55,7 @@ module BoxGrinder
       @exec_helper.should_receive(:execute).with("losetup -o 0 /dev/loop0 'disk.raw'")
       @exec_helper.should_receive(:execute).with('e2label /dev/loop0').and_return('/')
       @exec_helper.should_receive(:execute).with("mount /dev/loop0 'mount_dir'")
+      @helper.should_receive(:sleep).with(2)
 
       @helper.mount_image('disk.raw', 'mount_dir').should == {"/"=>"/dev/loop0"}
     end
@@ -71,6 +72,7 @@ module BoxGrinder
 
       @exec_helper.should_receive(:execute).with("mount /dev/loop1 'mount_dir'")
       @exec_helper.should_receive(:execute).with("mount /dev/loop0 'mount_dir/home'")
+      @helper.should_receive(:sleep).with(2)
 
       @helper.mount_image('disk.raw', 'mount_dir').should == {"/"=>"/dev/loop1", "/home"=>"/dev/loop0"}
     end
@@ -79,6 +81,8 @@ module BoxGrinder
       @exec_helper.should_receive(:execute).ordered.with('umount -d /dev/loop0')
       @exec_helper.should_receive(:execute).ordered.with('umount -d /dev/loop1')
       FileUtils.should_receive(:rm_rf).with('mount_dir')
+
+      @helper.should_receive(:sleep).with(2)
 
       @helper.umount_image('disk.raw', 'mount_dir', {"/"=>"/dev/loop1", "/home"=>"/dev/loop0"})
     end

@@ -144,6 +144,7 @@ popd
 - [BGBUILD-175] Rewrite boxgrinder CLI to remove thor dependency
 - [BGBUILD-81] post command execution w/ setarch breaks commands which are scripts
 - [BGBUILD-173] Include setarch package in default package list for RPM-based OSes
+- [BGBUILD-177] Fedora 13 builds have enabled firewall although they shouldn't have it
 
 * Tue Feb 16 2011  <mgoldman@redhat.com> - 0.8.1-1
 - Upstream release: 0.8.1

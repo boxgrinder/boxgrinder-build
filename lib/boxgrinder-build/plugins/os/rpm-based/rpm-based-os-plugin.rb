@@ -91,6 +91,9 @@ module BoxGrinder
         apply_root_password(guestfs)
         fix_partition_labels(guestfs)
         use_labels_for_partitions(guestfs)
+        disable_firewall(guestfs)
+        set_motd(guestfs)
+        install_repos(guestfs)
 
         guestfs.sh("chkconfig firstboot off") if guestfs.exists('/etc/init.d/firstboot') != 0
 
@@ -105,15 +108,19 @@ module BoxGrinder
           @log.debug "No commands specified, skipping."
         end
 
-        set_motd(guestfs)
-        install_repos(guestfs)
-
         yield guestfs, guestfs_helper if block_given?
 
         @log.info "Post operations executed."
       end
 
       @log.info "Base image for #{@appliance_config.name} appliance was built successfully."
+    end
+
+    # https://issues.jboss.org/browse/BGBUILD-177
+    def disable_firewall(guestfs)
+      @log.debug "Disabling firewall..."
+      guestfs.sh("lokkit --disabled")
+      @log.debug "Firewall disabled."
     end
 
     def fix_partition_labels(guestfs)

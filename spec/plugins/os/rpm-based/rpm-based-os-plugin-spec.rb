@@ -150,6 +150,13 @@ module BoxGrinder
         @plugin.use_labels_for_partitions(guestfs)
       end
     end
+
+    it "should disable the firewall" do
+      guestfs = mock("guestfs")
+      guestfs.should_receive(:sh).with('lokkit --disabled')
+
+      @plugin.disable_firewall(guestfs)
+    end
   end
 end
 
