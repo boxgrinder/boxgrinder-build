@@ -5,7 +5,7 @@
 
 Summary: A tool for creating appliances from simple plain text files
 Name: rubygem-%{gemname}
-Version: 0.8.2
+Version: 0.9.0
 Release: 1%{?dist}
 Group: Development/Languages
 License: LGPLv3+
@@ -136,12 +136,13 @@ popd
 
 %changelog
 
-* Tue Mar 01 2011 <msavy@redhat.com> - 0.8.2-1
+* Tue Mar 01 2011 <msavy@redhat.com> - 0.9.0-1
 - Upstream release: 0.8.2
 - [BGBUILD-103] README to indicate supported operating systems / requirements
 - [BGBUILD-169] S3 plugin temporary work-around for EL5
 - [BGBUILD-174] Move plugins to boxgrinder-build gem
 - [BGBUILD-175] Rewrite boxgrinder CLI to remove thor dependency
+- [BGBUILD-81] post command execution w/ setarch breaks commands which are scripts
 
 * Tue Feb 16 2011  <mgoldman@redhat.com> - 0.8.1-1
 - Upstream release: 0.8.1
