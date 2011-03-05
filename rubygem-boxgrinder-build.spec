@@ -14,16 +14,16 @@ Source0: http://rubygems.org/gems/%{gemname}-%{version}.gem
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 Requires: ruby(abi) = %{rubyabi}
-Requires: rubygem(boxgrinder-core) >= 0.2.1
-Requires: rubygem(boxgrinder-core) < 0.3.0
+Requires: rubygem(boxgrinder-core) >= 0.3.0
+Requires: rubygem(boxgrinder-core) < 0.4.0
 Requires: ruby-libguestfs
 Requires: parted
 Requires: e2fsprogs
 
 BuildRequires: rubygem(rake)
 BuildRequires: rubygem(rspec)
-BuildRequires: rubygem(boxgrinder-core) >= 0.2.1
-BuildRequires: rubygem(boxgrinder-core) < 0.3.0
+BuildRequires: rubygem(boxgrinder-core) >= 0.3.0
+BuildRequires: rubygem(boxgrinder-core) < 0.4.0
 BuildRequires: rubygem(echoe)
 BuildRequires: ruby-libguestfs
 
@@ -145,6 +145,7 @@ popd
 - [BGBUILD-81] post command execution w/ setarch breaks commands which are scripts
 - [BGBUILD-173] Include setarch package in default package list for RPM-based OSes
 - [BGBUILD-177] Fedora 13 builds have enabled firewall although they shouldn't have it
+- [BGBUILD-178] Remove sensitive data from logs
 
 * Tue Feb 16 2011  <mgoldman@redhat.com> - 0.8.1-1
 - Upstream release: 0.8.1

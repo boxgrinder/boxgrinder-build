@@ -162,7 +162,7 @@ module BoxGrinder
 
       FileUtils.mkdir_p(@ami_build_dir)
 
-      @exec_helper.execute("euca-bundle-image --ec2cert #{File.dirname(__FILE__)}/src/cert-ec2.pem -i #{deliverables[:disk]} --kernel #{REGION_OPTIONS[@plugin_config['region']][:kernel][@appliance_config.hardware.base_arch][:aki]} -c #{@plugin_config['cert_file']} -k #{@plugin_config['key_file']} -u #{@plugin_config['account_number']} -r #{@appliance_config.hardware.base_arch} -d #{@ami_build_dir}")
+      @exec_helper.execute("euca-bundle-image --ec2cert #{File.dirname(__FILE__)}/src/cert-ec2.pem -i #{deliverables[:disk]} --kernel #{REGION_OPTIONS[@plugin_config['region']][:kernel][@appliance_config.hardware.base_arch][:aki]} -c #{@plugin_config['cert_file']} -k #{@plugin_config['key_file']} -u #{@plugin_config['account_number']} -r #{@appliance_config.hardware.base_arch} -d #{@ami_build_dir}", :redacted => [@plugin_config['account_number'], @plugin_config['key_file'], @plugin_config['cert_file']])
 
       @log.info "Bundling AMI finished."
     end
@@ -171,7 +171,7 @@ module BoxGrinder
       bucket # this will create the bucket if needed
       @log.info "Uploading #{@appliance_config.name} AMI to bucket '#{@plugin_config['bucket']}'..."
 
-      @exec_helper.execute("euca-upload-bundle -U #{@plugin_config['url'].nil? ? "http://#{REGION_OPTIONS[@plugin_config['region']][:endpoint]}" : @plugin_config['url']} -b #{@plugin_config['bucket']}/#{ami_dir} -m #{@ami_manifest} -a #{@plugin_config['access_key']} -s #{@plugin_config['secret_access_key']}")
+      @exec_helper.execute("euca-upload-bundle -U #{@plugin_config['url'].nil? ? "http://#{REGION_OPTIONS[@plugin_config['region']][:endpoint]}" : @plugin_config['url']} -b #{@plugin_config['bucket']}/#{ami_dir} -m #{@ami_manifest} -a #{@plugin_config['access_key']} -s #{@plugin_config['secret_access_key']}", :redacted => [@plugin_config['access_key'], @plugin_config['secret_access_key']])
     end
 
     def register_image(ami_manifest_key)
@@ -239,4 +239,4 @@ module BoxGrinder
   end
 end
 
-plugin :class => BoxGrinder::S3Plugin, :type => :delivery, :name => :s3, :full_name  => "Amazon Simple Storage Service (Amazon S3)", :types => [:s3, :cloudfront, :ami]
+plugin :class => BoxGrinder::S3Plugin, :type => :delivery, :name => :s3, :full_name => "Amazon Simple Storage Service (Amazon S3)", :types => [:s3, :cloudfront, :ami]
