@@ -38,18 +38,19 @@ module BoxGrinder
 
     def normalize_packages(packages)
       # https://issues.jboss.org/browse/BGBUILD-89
-      packages << '@core'
-      packages << 'curl'
+      add_packages(packages, ['@core', 'curl'])
 
       case @appliance_config.os.version
         when '5'
-          packages << "kernel" unless packages.include?("kernel") or packages.include?("kernel-xen")
-          packages << "system-config-securitylevel-tui" unless packages.include?("system-config-securitylevel-tui")
-          packages << 'util-linux' unless packages.include?('util-linux')
+          packages << 'kernel' unless packages.include?('kernel-xen')
+          add_packages(packages, ['system-config-securitylevel-tui', 'util-linux', 'setarch'])
         when '6'
-          packages << "kernel" unless packages.include?("kernel")
-          packages << "system-config-firewall-base" unless packages.include?("system-config-firewall-base")
+          add_packages(packages, ['kernel', 'system-config-firewall-base'])
       end
+    end
+
+    def add_packages(packages, package_array)
+      package_array.each { |package| packages << package unless packages.include?(package) }
     end
 
     # https://bugzilla.redhat.com/show_bug.cgi?id=466275
@@ -63,4 +64,4 @@ module BoxGrinder
   end
 end
 
-plugin :class => BoxGrinder::RHELPlugin, :type => :os, :name => :rhel, :full_name  => "Red Hat Enterprise Linux", :versions => ['5', '6']
+plugin :class => BoxGrinder::RHELPlugin, :type => :os, :name => :rhel, :full_name => "Red Hat Enterprise Linux", :versions => ['5', '6']
