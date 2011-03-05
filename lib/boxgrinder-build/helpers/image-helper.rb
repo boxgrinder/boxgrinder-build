@@ -52,6 +52,9 @@ module BoxGrinder
         @exec_helper.execute("mount #{loop_device} '#{mount_dir}#{mount_point}'")
       end
 
+      # Give some time to mount the images
+      sleep 2
+
       @log.trace "Mounts:\n#{mounts}"
 
       mounts
@@ -63,6 +66,9 @@ module BoxGrinder
       mounts.each { |mount_point, loop_device| @exec_helper.execute("umount -d #{loop_device}") unless mount_point == '/' }
 
       @exec_helper.execute("umount -d #{mounts['/']}")
+
+      # Give some time to umount the image
+      sleep 2
 
       FileUtils.rm_rf(mount_dir)
     end
