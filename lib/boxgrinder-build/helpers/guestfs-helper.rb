@@ -66,7 +66,8 @@ module Guestfs
         output = sh_original(command)
         puts output
       rescue => e
-        puts "Error occurred while executing above command. Appliance may not work properly."
+        puts "Error occurred while executing above command, aborting."
+        raise e
       end
 
       output
@@ -250,8 +251,9 @@ module BoxGrinder
     def sh(cmd, options = {})
       arch = options[:arch] || `uname -m`.chomp.strip
 
-      @log.debug "Executing #{cmd}"
+      @log.debug "Executing '#{cmd}' command..."
       @guestfs.sh("setarch #{arch} << 'SETARCH_EOF'\n#{cmd}\nSETARCH_EOF")
+      @log.debug "Command '#{cmd}' executed."
     end
 
     def augeas(&block)
