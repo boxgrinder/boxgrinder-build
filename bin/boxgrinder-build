@@ -45,8 +45,22 @@ options = OpenCascade.new(
 
 def validate_hash_option(options, name, value)
   value.each do |entry|
-    if entry =~ /^(\w+):(\w+)$/
-      options[name][$1] = $2
+    if entry =~ /^(\S+):(\S+)$/
+
+      k = $1.strip
+      v = $2.strip
+
+      if v =~ /^[-+]?(0|[1-9][0-9_]*)$/
+        v = v.to_i
+      elsif v =~ /^y|Y|yes|Yes|YES|true|True|TRUE|on|On|ON$/
+        v = true
+      elsif v =~ /^n|N|no|No|NO|false|False|FALSE|off|Off|OFF$/
+        v = false
+      elsif v =~ /^[-+]?([0-9][0-9_]*)?\.[0-9.]*([eE][-+][0-9]+)?$/
+        v = v.to_f
+      end
+
+      options[name][k] = v
     else
       yield entry if block_given?
       abort

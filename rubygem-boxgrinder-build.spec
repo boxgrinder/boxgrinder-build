@@ -146,6 +146,7 @@ popd
 - [BGBUILD-173] Include setarch package in default package list for RPM-based OSes
 - [BGBUILD-177] Fedora 13 builds have enabled firewall although they shouldn't have it
 - [BGBUILD-178] Remove sensitive data from logs
+- [BGBUILD-179] Boolean and numeric parameters in hash-like values are not recognized
 
 * Tue Feb 16 2011  <mgoldman@redhat.com> - 0.8.1-1
 - Upstream release: 0.8.1
