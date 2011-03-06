@@ -66,6 +66,7 @@ module BoxGrinder
     it "should create devices" do
       guestfs = mock("guestfs")
 
+      guestfs.should_receive(:exists).with("/sbin/MAKEDEV").and_return(1)
       guestfs.should_receive(:sh).once.with("/sbin/MAKEDEV -d /dev -x console")
       guestfs.should_receive(:sh).once.with("/sbin/MAKEDEV -d /dev -x null")
       guestfs.should_receive(:sh).once.with("/sbin/MAKEDEV -d /dev -x zero")

@@ -134,6 +134,8 @@ module BoxGrinder
     end
 
     def create_devices(guestfs)
+      return if guestfs.exists('/sbin/MAKEDEV') == 0
+
       @log.debug "Creating required devices..."
       guestfs.sh("/sbin/MAKEDEV -d /dev -x console")
       guestfs.sh("/sbin/MAKEDEV -d /dev -x null")
@@ -234,4 +236,4 @@ module BoxGrinder
   end
 end
 
-plugin :class => BoxGrinder::EC2Plugin, :type => :platform, :name => :ec2, :full_name  => "Amazon Elastic Compute Cloud (Amazon EC2)"
+plugin :class => BoxGrinder::EC2Plugin, :type => :platform, :name => :ec2, :full_name => "Amazon Elastic Compute Cloud (Amazon EC2)"
