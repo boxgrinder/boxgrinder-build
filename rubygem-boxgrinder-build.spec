@@ -148,6 +148,7 @@ popd
 - [BGBUILD-178] Remove sensitive data from logs
 - [BGBUILD-179] Boolean and numeric parameters in hash-like values are not recognized
 - [BGBUILD-176] Fail the build with appropriate message if any of post section commands fails to execute
+- [BGBUILD-183] Add support for Fedora 15
 
 * Tue Feb 16 2011  <mgoldman@redhat.com> - 0.8.1-1
 - Upstream release: 0.8.1

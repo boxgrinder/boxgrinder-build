@@ -22,7 +22,7 @@ module BoxGrinder
   class FedoraPlugin < RPMBasedOSPlugin
     def after_init
       super
-      register_supported_os('fedora', ["13", "14", "rawhide"])
+      register_supported_os('fedora', ["13", "14", "15", "rawhide"])
     end
 
     def execute(appliance_definition_file)
@@ -58,4 +58,4 @@ module BoxGrinder
   end
 end
 
-plugin :class => BoxGrinder::FedoraPlugin, :type => :os, :name => :fedora, :full_name  => "Fedora", :versions   => ["13", "14", "rawhide"]
+plugin :class => BoxGrinder::FedoraPlugin, :type => :os, :name => :fedora, :full_name  => "Fedora", :versions   => ["13", "14", "15", "rawhide"]

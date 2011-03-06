@@ -82,7 +82,7 @@ module BoxGrinder
       supportes_oses.size.should == 2
       supportes_oses.keys.sort.should == ['fedora', 'rhel']
       supportes_oses['rhel'].should == ['6']
-      supportes_oses['fedora'].should == ['13', '14']
+      supportes_oses['fedora'].should == ['13', '14', '15']
     end
 
     describe ".after_init" do

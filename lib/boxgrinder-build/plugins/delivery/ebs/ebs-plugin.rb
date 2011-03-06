@@ -54,7 +54,7 @@ module BoxGrinder
       set_default_config_value('availability_zone', @current_avaibility_zone)
       set_default_config_value('delete_on_termination', true)
 
-      register_supported_os('fedora', ['13', '14'])
+      register_supported_os('fedora', ['13', '14', '15'])
       register_supported_os('rhel', ['6'])
     end
 

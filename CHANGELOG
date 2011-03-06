@@ -10,6 +10,7 @@ v0.9.0
 * [BGBUILD-178] Remove sensitive data from logs
 * [BGBUILD-179] Boolean and numeric parameters in hash-like values are not recognized
 * [BGBUILD-176] Fail the build with appropriate message if any of post section commands fails to execute
+* [BGBUILD-183] Add support for Fedora 15
 
 v0.8.1
 

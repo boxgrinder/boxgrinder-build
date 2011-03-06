@@ -72,7 +72,7 @@ module BoxGrinder
       set_default_config_value('path', '/')
       set_default_config_value('region', 'us-east-1')
 
-      register_supported_os("fedora", ['13', '14'])
+      register_supported_os("fedora", ['13', '14', '15'])
       register_supported_os("centos", ['5'])
       register_supported_os("rhel", ['5', '6'])
 

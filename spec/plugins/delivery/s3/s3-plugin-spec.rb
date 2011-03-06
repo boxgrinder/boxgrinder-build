@@ -73,7 +73,7 @@ module BoxGrinder
       supportes_oses.keys.sort.should == ['centos', 'fedora', 'rhel']
       supportes_oses['centos'].should == ['5']
       supportes_oses['rhel'].should == ['5', '6']
-      supportes_oses['fedora'].should == ['13', '14']
+      supportes_oses['fedora'].should == ['13', '14', '15']
     end
 
     it "should generate valid s3 path" do
