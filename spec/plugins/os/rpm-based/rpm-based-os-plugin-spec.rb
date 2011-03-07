@@ -153,7 +153,7 @@ module BoxGrinder
 
     it "should disable the firewall" do
       guestfs = mock("guestfs")
-      guestfs.should_receive(:sh).with('lokkit --disabled')
+      guestfs.should_receive(:sh).with('lokkit -q --disabled')
 
       @plugin.disable_firewall(guestfs)
     end
