@@ -19,6 +19,8 @@ Requires: ruby-libguestfs
 Requires: parted
 Requires: e2fsprogs
 
+# For EL5
+BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
 
 BuildRequires: rubygem(rake)
@@ -66,17 +68,17 @@ Obsoletes: rubygem(boxgrinder-build-local-delivery-plugin) < 0.0.6-2
 Obsoletes: rubygem(boxgrinder-build-sftp-delivery-plugin) < 0.0.5-2
 Obsoletes: rubygem(boxgrinder-build-fedora-os-plugin) < 0.0.6-2
 Obsoletes: rubygem(boxgrinder-build-rpm-based-os-plugin) < 0.0.11-1
-Obsoletes: rubygem(boxgrinder-build-ec2-platform-plugin) < 0.0.4-2
+Obsoletes: rubygem(boxgrinder-build-ec2-platform-plugin) < 0.0.10-2
 Obsoletes: rubygem(boxgrinder-build-vmware-platform-plugin) < 0.0.10-2
 
-Provides: rubygem(boxgrinder-build-ebs-delivery-plugin) = %{version}
-Provides: rubygem(boxgrinder-build-s3-delivery-plugin) = %{version}
-Provides: rubygem(boxgrinder-build-local-delivery-plugin) = %{version}
-Provides: rubygem(boxgrinder-build-sftp-delivery-plugin) = %{version}
-Provides: rubygem(boxgrinder-build-fedora-os-plugin) = %{version}
-Provides: rubygem(boxgrinder-build-rpm-based-os-plugin) = %{version}
-Provides: rubygem(boxgrinder-build-ec2-platform-plugin) = %{version}
-Provides: rubygem(boxgrinder-build-vmware-platform-plugin) = %{version}
+Provides: rubygem(boxgrinder-build-ebs-delivery-plugin) = %{version}-%{release}
+Provides: rubygem(boxgrinder-build-s3-delivery-plugin) = %{version}-%{release}
+Provides: rubygem(boxgrinder-build-local-delivery-plugin) = %{version}-%{release}
+Provides: rubygem(boxgrinder-build-sftp-delivery-plugin) = %{version}-%{release}
+Provides: rubygem(boxgrinder-build-fedora-os-plugin) = %{version}-%{release}
+Provides: rubygem(boxgrinder-build-rpm-based-os-plugin) = %{version}-%{release}
+Provides: rubygem(boxgrinder-build-ec2-platform-plugin) = %{version}-%{release}
+Provides: rubygem(boxgrinder-build-vmware-platform-plugin) = %{version}-%{release}
 
 %description
 A tool for creating appliances from simple plain text files for various
