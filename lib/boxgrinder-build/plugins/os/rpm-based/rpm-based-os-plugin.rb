@@ -119,7 +119,7 @@ module BoxGrinder
     # https://issues.jboss.org/browse/BGBUILD-177
     def disable_firewall(guestfs)
       @log.debug "Disabling firewall..."
-      guestfs.sh("lokkit --disabled")
+      guestfs.sh("lokkit -q --disabled")
       @log.debug "Firewall disabled."
     end
 
