@@ -84,7 +84,7 @@ module BoxGrinder
 
     def create
       @log.debug "Launching new BoxGrinder build..."
-      @log.trace "Used configuration: #{@config.to_yaml.gsub(/(\S*(key|account|cert)\S*).*:(.*)/, '\1' + ": <REDACTED>")}"
+      @log.trace "Used configuration: #{@config.to_yaml.gsub(/(\S*(key|account|cert|username|host)\S*).*:(.*)/, '\1' + ": <REDACTED>")}"
 
       PluginHelper.new(@config, :log => @log).load_plugins
       read_definition
