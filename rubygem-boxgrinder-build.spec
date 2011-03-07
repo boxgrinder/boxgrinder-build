@@ -68,15 +68,25 @@ Obsoletes: rubygem(boxgrinder-build-ebs-delivery-plugin)
 Obsoletes: rubygem(boxgrinder-build-s3-delivery-plugin)
 Obsoletes: rubygem(boxgrinder-build-local-delivery-plugin)
 Obsoletes: rubygem(boxgrinder-build-sftp-delivery-plugin)
-
 Obsoletes: rubygem(boxgrinder-build-centos-os-plugin)
 Obsoletes: rubygem(boxgrinder-build-rhel-os-plugin)
 Obsoletes: rubygem(boxgrinder-build-fedora-os-plugin)
 Obsoletes: rubygem(boxgrinder-build-rpm-based-os-plugin)
-
 Obsoletes: rubygem(boxgrinder-build-ec2-platform-plugin)
 Obsoletes: rubygem(boxgrinder-build-vmware-platform-plugin)
 Obsoletes: rubygem(boxgrinder-build-virtualbox-platform-plugin)
+
+Provides: rubygem(boxgrinder-build-ebs-delivery-plugin)
+Provides: rubygem(boxgrinder-build-s3-delivery-plugin)
+Provides: rubygem(boxgrinder-build-local-delivery-plugin)
+Provides: rubygem(boxgrinder-build-sftp-delivery-plugin)
+Provides: rubygem(boxgrinder-build-centos-os-plugin)
+Provides: rubygem(boxgrinder-build-rhel-os-plugin)
+Provides: rubygem(boxgrinder-build-fedora-os-plugin)
+Provides: rubygem(boxgrinder-build-rpm-based-os-plugin)
+Provides: rubygem(boxgrinder-build-ec2-platform-plugin)
+Provides: rubygem(boxgrinder-build-vmware-platform-plugin)
+Provides: rubygem(boxgrinder-build-virtualbox-platform-plugin)
 
 %description
 A tool for creating appliances from simple plain text files for various
