@@ -11,7 +11,6 @@ Group: Development/Languages
 License: LGPLv3+
 URL: http://boxgrinder.org/
 Source0: http://rubygems.org/gems/%{gemname}-%{version}.gem
-BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 Requires: ruby(abi) = %{rubyabi}
 Requires: rubygem(boxgrinder-core) >= 0.3.0
@@ -19,6 +18,8 @@ Requires: rubygem(boxgrinder-core) < 0.4.0
 Requires: ruby-libguestfs
 Requires: parted
 Requires: e2fsprogs
+
+BuildArch: noarch
 
 BuildRequires: rubygem(rake)
 BuildRequires: rubygem(rspec)
@@ -28,7 +29,6 @@ BuildRequires: rubygem(echoe)
 BuildRequires: ruby-libguestfs
 
 # EBS and S3
-
 Requires: rubygem(amazon-ec2)
 # Fixes blankslate error
 Requires: rubygem(builder)
@@ -41,7 +41,6 @@ BuildRequires: rubygem(aws)
 BuildRequires: rubygem(builder)
 
 # SFTP
-
 Requires: rubygem(net-sftp)
 Requires: rubygem(net-ssh)
 Requires: rubygem(progressbar)
@@ -51,42 +50,33 @@ BuildRequires: rubygem(net-ssh)
 BuildRequires: rubygem(progressbar)
 
 # RPM-BASED
-
 Requires: appliance-tools
 Requires: yum-utils
 
 # EC2
-
 Requires: rsync
 Requires: wget
 Requires: util-linux
 
-BuildArch: noarch
 Provides: rubygem(%{gemname}) = %{version}
 
-Obsoletes: rubygem(boxgrinder-build-ebs-delivery-plugin)
-Obsoletes: rubygem(boxgrinder-build-s3-delivery-plugin)
-Obsoletes: rubygem(boxgrinder-build-local-delivery-plugin)
-Obsoletes: rubygem(boxgrinder-build-sftp-delivery-plugin)
-Obsoletes: rubygem(boxgrinder-build-centos-os-plugin)
-Obsoletes: rubygem(boxgrinder-build-rhel-os-plugin)
-Obsoletes: rubygem(boxgrinder-build-fedora-os-plugin)
-Obsoletes: rubygem(boxgrinder-build-rpm-based-os-plugin)
-Obsoletes: rubygem(boxgrinder-build-ec2-platform-plugin)
-Obsoletes: rubygem(boxgrinder-build-vmware-platform-plugin)
-Obsoletes: rubygem(boxgrinder-build-virtualbox-platform-plugin)
+Obsoletes: rubygem(boxgrinder-build-ebs-delivery-plugin) < 0.0.4-2
+Obsoletes: rubygem(boxgrinder-build-s3-delivery-plugin) < 0.0.6-1
+Obsoletes: rubygem(boxgrinder-build-local-delivery-plugin) < 0.0.6-2
+Obsoletes: rubygem(boxgrinder-build-sftp-delivery-plugin) < 0.0.5-2
+Obsoletes: rubygem(boxgrinder-build-fedora-os-plugin) < 0.0.6-2
+Obsoletes: rubygem(boxgrinder-build-rpm-based-os-plugin) < 0.0.11-1
+Obsoletes: rubygem(boxgrinder-build-ec2-platform-plugin) < 0.0.4-2
+Obsoletes: rubygem(boxgrinder-build-vmware-platform-plugin) < 0.0.10-2
 
-Provides: rubygem(boxgrinder-build-ebs-delivery-plugin)
-Provides: rubygem(boxgrinder-build-s3-delivery-plugin)
-Provides: rubygem(boxgrinder-build-local-delivery-plugin)
-Provides: rubygem(boxgrinder-build-sftp-delivery-plugin)
-Provides: rubygem(boxgrinder-build-centos-os-plugin)
-Provides: rubygem(boxgrinder-build-rhel-os-plugin)
-Provides: rubygem(boxgrinder-build-fedora-os-plugin)
-Provides: rubygem(boxgrinder-build-rpm-based-os-plugin)
-Provides: rubygem(boxgrinder-build-ec2-platform-plugin)
-Provides: rubygem(boxgrinder-build-vmware-platform-plugin)
-Provides: rubygem(boxgrinder-build-virtualbox-platform-plugin)
+Provides: rubygem(boxgrinder-build-ebs-delivery-plugin) = %{version}
+Provides: rubygem(boxgrinder-build-s3-delivery-plugin) = %{version}
+Provides: rubygem(boxgrinder-build-local-delivery-plugin) = %{version}
+Provides: rubygem(boxgrinder-build-sftp-delivery-plugin) = %{version}
+Provides: rubygem(boxgrinder-build-fedora-os-plugin) = %{version}
+Provides: rubygem(boxgrinder-build-rpm-based-os-plugin) = %{version}
+Provides: rubygem(boxgrinder-build-ec2-platform-plugin) = %{version}
+Provides: rubygem(boxgrinder-build-vmware-platform-plugin) = %{version}
 
 %description
 A tool for creating appliances from simple plain text files for various
@@ -145,7 +135,6 @@ popd
 %{gemdir}/doc/%{gemname}-%{version}
 
 %changelog
-
 * Tue Mar 01 2011 <msavy@redhat.com> - 0.9.0-1
 - Upstream release: 0.8.2
 - [BGBUILD-103] README to indicate supported operating systems / requirements
