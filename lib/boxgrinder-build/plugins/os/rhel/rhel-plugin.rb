@@ -43,7 +43,7 @@ module BoxGrinder
       case @appliance_config.os.version
         when '5'
           packages << 'kernel' unless packages.include?('kernel-xen')
-          add_packages(packages, ['system-config-securitylevel-tui', 'util-linux', 'setarch'])
+          add_packages(packages, ['system-config-securitylevel-tui', 'util-linux', 'setarch', 'sudo'])
         when '6'
           add_packages(packages, ['kernel', 'system-config-firewall-base'])
       end
