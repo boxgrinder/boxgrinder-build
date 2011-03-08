@@ -229,7 +229,7 @@ module BoxGrinder
 
         lambda {
           @appliance.validate_definition
-        }.should raise_error(RuntimeError, "No operating system plugins installed. Install one or more operating system plugin. See http://community.jboss.org/docs/DOC-15081 and http://community.jboss.org/docs/DOC-15214 for more info.")
+        }.should raise_error(RuntimeError, "No operating system plugins installed. Install one or more operating system plugin. See http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#Operating_system_plugins for more info.")
       end
 
       it "should validate definition and fail because no supported operating system plugins is installed" do
@@ -248,7 +248,7 @@ module BoxGrinder
 
         lambda {
           @appliance.validate_definition
-        }.should raise_error(RuntimeError, "Not supported operating system selected: fedora. Make sure you have installed right operating system plugin, see http://community.jboss.org/docs/DOC-15214. Supported OSes are: rhel")
+        }.should raise_error(RuntimeError, "Not supported operating system selected: fedora. Make sure you have installed right operating system plugin, see http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#Operating_system_plugins. Supported OSes are: rhel")
       end
 
       it "should validate definition and fail because no supported operating system version plugins is installed" do

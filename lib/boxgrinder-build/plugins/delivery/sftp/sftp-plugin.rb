@@ -33,7 +33,7 @@ module BoxGrinder
     end
 
     def execute( type = :sftp )
-      validate_plugin_config(['path', 'username', 'host'], 'http://community.jboss.org/docs/DOC-15524')
+      validate_plugin_config(['path', 'username', 'host'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#SFTP_Delivery_Plugin')
 
       PackageHelper.new(@config, @appliance_config, :log => @log, :exec_helper => @exec_helper).package( File.dirname(@previous_deliverables[:disk]), @deliverables[:package] )
 

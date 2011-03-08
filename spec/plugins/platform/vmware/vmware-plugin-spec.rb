@@ -253,7 +253,7 @@ module BoxGrinder
 
         lambda {
           @plugin.execute
-        }.should raise_error(RuntimeError, "Not known VMware format specified. Available are: personal and enterprise. See http://community.jboss.org/docs/DOC-15528 for more info.")
+        }.should raise_error(RuntimeError, "Not known VMware format specified. Available are: personal and enterprise. See http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#VMware_Platform_Plugin for more info.")
       end
     end
 

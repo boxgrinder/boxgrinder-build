@@ -211,8 +211,8 @@ module BoxGrinder
       it "should create AMI" do
         @plugin.instance_variable_set(:@previous_deliverables, {:disk => 'a/disk'})
 
-        @plugin.should_receive(:validate_plugin_config).with(["bucket", "access_key", "secret_access_key"], "http://community.jboss.org/docs/DOC-15217")
-        @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://community.jboss.org/docs/DOC-15217")
+        @plugin.should_receive(:validate_plugin_config).with(["bucket", "access_key", "secret_access_key"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
+        @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
         @plugin.should_receive(:ami_key).with("appliance", "/").and_return('ami/key')
         @plugin.should_receive(:s3_object_exists?).with("ami/key/appliance.ec2.manifest.xml").and_return(false)
         @plugin.should_receive(:bundle_image).with(:disk => 'a/disk')
@@ -224,8 +224,8 @@ module BoxGrinder
       end
 
       it "should not upload AMI because it's already there" do
-        @plugin.should_receive(:validate_plugin_config).with(["bucket", "access_key", "secret_access_key"], "http://community.jboss.org/docs/DOC-15217")
-        @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://community.jboss.org/docs/DOC-15217")
+        @plugin.should_receive(:validate_plugin_config).with(["bucket", "access_key", "secret_access_key"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
+        @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
         @plugin.should_receive(:ami_key).with("appliance", "/").and_return('ami/key')
         @plugin.should_receive(:s3_object_exists?).with("ami/key/appliance.ec2.manifest.xml").and_return(true)
         @plugin.should_not_receive(:upload_image)
@@ -237,8 +237,8 @@ module BoxGrinder
       it "should upload AMI even if it's already there because we want a snapshot" do
         @plugin_config.merge!('snapshot' => true)
 
-        @plugin.should_receive(:validate_plugin_config).with(["bucket", "access_key", "secret_access_key"], "http://community.jboss.org/docs/DOC-15217")
-        @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://community.jboss.org/docs/DOC-15217")
+        @plugin.should_receive(:validate_plugin_config).with(["bucket", "access_key", "secret_access_key"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
+        @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
 
         @plugin.should_receive(:ami_key).with("appliance", "/").and_return('ami/key')
         @plugin.should_receive(:s3_object_exists?).with("ami/key/appliance.ec2.manifest.xml").and_return(true)

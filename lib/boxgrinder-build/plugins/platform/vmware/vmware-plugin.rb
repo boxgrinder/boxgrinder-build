@@ -23,7 +23,7 @@ module BoxGrinder
   class VMwarePlugin < BasePlugin
     def after_init
       set_default_config_value('thin_disk', false)
-      validate_plugin_config(['type'], 'http://community.jboss.org/docs/DOC-15528')
+      validate_plugin_config(['type'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#VMware_Platform_Plugin')
 
       register_deliverable(:vmx    => "#{@appliance_config.name}.vmx",
                            :readme => "README")
@@ -45,7 +45,7 @@ module BoxGrinder
         when 'enterprise'
           build_vmware_enterprise
         else
-          raise "Not known VMware format specified. Available are: personal and enterprise. See http://community.jboss.org/docs/DOC-15528 for more info."
+          raise "Not known VMware format specified. Available are: personal and enterprise. See http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#VMware_Platform_Plugin for more info."
       end
 
       customize_image

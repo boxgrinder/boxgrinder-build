@@ -81,7 +81,7 @@ module BoxGrinder
     end
 
     def execute(type = :ami)
-      validate_plugin_config(['bucket', 'access_key', 'secret_access_key'], 'http://community.jboss.org/docs/DOC-15217')
+      validate_plugin_config(['bucket', 'access_key', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
 
       case type
         when :s3
@@ -90,7 +90,7 @@ module BoxGrinder
           upload_to_bucket(@previous_deliverables, 'public-read')
         when :ami
           set_default_config_value('snapshot', false)
-          validate_plugin_config(['cert_file', 'key_file', 'account_number'], 'http://community.jboss.org/docs/DOC-15217')
+          validate_plugin_config(['cert_file', 'key_file', 'account_number'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
 
           @plugin_config['account_number'] = @plugin_config['account_number'].to_s.gsub(/-/, '')
 

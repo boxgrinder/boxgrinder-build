@@ -62,11 +62,11 @@ module BoxGrinder
     def validate_definition
       ApplianceConfigValidator.new(@appliance_config).validate
 
-      raise "No operating system plugins installed. Install one or more operating system plugin. See http://community.jboss.org/docs/DOC-15081 and http://community.jboss.org/docs/DOC-15214 for more info." if PluginManager.instance.plugins[:os].empty?
+      raise "No operating system plugins installed. Install one or more operating system plugin. See http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#Operating_system_plugins for more info." if PluginManager.instance.plugins[:os].empty?
 
       os_plugin = PluginManager.instance.plugins[:os][@appliance_config.os.name.to_sym]
 
-      raise "Not supported operating system selected: #{@appliance_config.os.name}. Make sure you have installed right operating system plugin, see http://community.jboss.org/docs/DOC-15214. Supported OSes are: #{PluginManager.instance.plugins[:os].keys.join(", ")}" if os_plugin.nil?
+      raise "Not supported operating system selected: #{@appliance_config.os.name}. Make sure you have installed right operating system plugin, see http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#Operating_system_plugins. Supported OSes are: #{PluginManager.instance.plugins[:os].keys.join(", ")}" if os_plugin.nil?
       raise "Not supported operating system version selected: #{@appliance_config.os.version}. Supported versions are: #{os_plugin[:versions].join(", ")}" unless @appliance_config.os.version.nil? or os_plugin[:versions].include?(@appliance_config.os.version)
     end
 
@@ -94,7 +94,7 @@ module BoxGrinder
     end
 
     def execute_os_plugin
-      raise "No operating system plugins installed. Install one or more operating system plugin. See http://community.jboss.org/docs/DOC-15081 and http://community.jboss.org/docs/DOC-15214 for more info." if PluginManager.instance.plugins[:os].empty?
+      raise "No operating system plugins installed. Install one or more operating system plugin. See http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#Operating_system_plugins for more info." if PluginManager.instance.plugins[:os].empty?
 
       os_plugin, os_plugin_info = PluginManager.instance.initialize_plugin(:os, @appliance_config.os.name.to_sym)
       os_plugin.init(@config, @appliance_config, :log => @log, :plugin_info => os_plugin_info)
@@ -117,7 +117,7 @@ module BoxGrinder
         return previous_plugin_output
       end
 
-      raise "No platform plugins installed. Install one or more platform plugin. See http://community.jboss.org/docs/DOC-15081 and http://community.jboss.org/docs/DOC-15214 for more info." if PluginManager.instance.plugins[:platform].empty?
+      raise "No platform plugins installed. Install one or more platform plugin. See http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#Platform_plugins for more info." if PluginManager.instance.plugins[:platform].empty?
 
       platform_plugin, platform_plugin_info = PluginManager.instance.initialize_plugin(:platform, @config.platform)
       platform_plugin.init(@config, @appliance_config, :log => @log, :plugin_info => platform_plugin_info, :previous_plugin_info => previous_plugin_output[:plugin_info], :previous_deliverables => previous_plugin_output[:deliverables])
@@ -140,7 +140,7 @@ module BoxGrinder
         return
       end
 
-      raise "No delivery plugins installed. Install one or more delivery plugin. See http://community.jboss.org/docs/DOC-15081 and http://community.jboss.org/docs/DOC-15214 for more info" if PluginManager.instance.plugins[:delivery].empty?
+      raise "No delivery plugins installed. Install one or more delivery plugin. See http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#Delivery_plugins for more info" if PluginManager.instance.plugins[:delivery].empty?
 
       delivery_plugin, delivery_plugin_info = PluginManager.instance.initialize_plugin(:delivery, @config.delivery)
       delivery_plugin.init(@config, @appliance_config, :log => @log, :plugin_info => delivery_plugin_info, :previous_plugin_info => previous_plugin_output[:plugin_info], :previous_deliverables => previous_plugin_output[:deliverables])
