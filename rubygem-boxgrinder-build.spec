@@ -138,7 +138,7 @@ popd
 
 %changelog
 * Tue Mar 01 2011 <msavy@redhat.com> - 0.9.0-1
-- Upstream release: 0.8.2
+- Upstream release: 0.9.0
 - [BGBUILD-103] README to indicate supported operating systems / requirements
 - [BGBUILD-169] S3 plugin temporary work-around for EL5
 - [BGBUILD-174] Move plugins to boxgrinder-build gem
