@@ -17,7 +17,6 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'rubygems'
-require 'spec/rake/spectask'
 require 'echoe'
 
 Echoe.new("boxgrinder-build") do |p|
@@ -34,7 +33,6 @@ Echoe.new("boxgrinder-build") do |p|
   ]
 end
 
-desc "Run all tests"
 Spec::Rake::SpecTask.new('spec') do |t|
   t.libs.unshift "../boxgrinder-core/lib"
   t.rcov = false
@@ -43,7 +41,6 @@ Spec::Rake::SpecTask.new('spec') do |t|
   t.verbose = true
 end
 
-desc "Run all tests and generate code coverage report"
 Spec::Rake::SpecTask.new('spec:coverage') do |t|
   t.libs.unshift "../boxgrinder-core/lib"
   t.spec_files = FileList["spec/**/*-spec.rb"]
