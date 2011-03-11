@@ -43,6 +43,7 @@ module BoxGrinder
       @config = @plugin.instance_variable_get(:@config)
       @appliance_config = @plugin.instance_variable_get(:@appliance_config)
       @exec_helper = @plugin.instance_variable_get(:@exec_helper)
+      @image_helper = @plugin.instance_variable_get(:@image_helper)
       @log = @plugin.instance_variable_get(:@log)
     end
 
@@ -156,6 +157,29 @@ module BoxGrinder
       guestfs.should_receive(:sh).with('lokkit -q --disabled')
 
       @plugin.disable_firewall(guestfs)
+    end
+
+    describe ".recreate_rpm_database" do
+      it "should recreate RPM database" do
+        @image_helper.should_receive(:mount_image)
+
+        @exec_helper.should_receive(:execute).with(/\/usr\/lib\/rpm\/rpmdb_dump .*\/var\/lib\/rpm\/Packages > .*\/tmp\/Packages.dump/)
+        @exec_helper.should_receive(:execute).with(/rm -rf .*\/var\/lib\/rpm\/\*/)
+        @exec_helper.should_receive(:execute).with(/chroot .* \/bin\/sh -c 'cd \/var\/lib\/rpm\/ && cat \/tmp\/Packages.dump | \/usr\/lib\/rpm\/rpmdb_load Packages'/)
+        @exec_helper.should_receive(:execute).with(/chroot .* rpm --rebuilddb/)
+
+        @image_helper.should_receive(:umount_image)
+
+        @plugin.recreate_rpm_database
+      end
+
+      it "should umount devices when something bad happens" do
+        @image_helper.should_receive(:mount_image).and_raise('Kaboom')
+
+        lambda {
+          @plugin.recreate_rpm_database
+        }.should raise_error(RuntimeError, 'Error while mounting image. See logs for more info.')
+      end
     end
   end
 end

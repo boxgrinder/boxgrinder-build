@@ -113,7 +113,37 @@ module BoxGrinder
         @log.info "Post operations executed."
       end
 
+      # https://issues.jboss.org/browse/BGBUILD-148
+      recreate_rpm_database if @config.os.name != @appliance_config.os.name or @config.os.version != @appliance_config.os.version
+
       @log.info "Base image for #{@appliance_config.name} appliance was built successfully."
+    end
+
+    # https://issues.jboss.org/browse/BGBUILD-148
+    def recreate_rpm_database
+      @log.debug "Recreating RPM database..."
+
+      raw_disk_mount_dir = "#{@dir.tmp}/raw-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
+
+      begin
+        raw_mounts = @image_helper.mount_image(@deliverables.disk, raw_disk_mount_dir)
+      rescue => e
+        @log.error e
+        @log.error "Mouting failed, trying to clean up."
+
+        @image_helper.umount_image(@deliverables.disk, raw_disk_mount_dir, raw_mounts) unless raw_mounts.nil?
+
+        raise "Error while mounting image. See logs for more info."
+      end
+
+      @exec_helper.execute("/usr/lib/rpm/rpmdb_dump #{raw_disk_mount_dir}/var/lib/rpm/Packages > #{raw_disk_mount_dir}/tmp/Packages.dump")
+      @exec_helper.execute("rm -rf #{raw_disk_mount_dir}/var/lib/rpm/*")
+      @exec_helper.execute("chroot #{raw_disk_mount_dir} /bin/sh -c 'cd /var/lib/rpm/ && cat /tmp/Packages.dump | /usr/lib/rpm/rpmdb_load Packages'")
+      @exec_helper.execute("chroot #{raw_disk_mount_dir} rpm --rebuilddb")
+
+      @image_helper.umount_image(@deliverables.disk, raw_disk_mount_dir, raw_mounts)
+
+      @log.debug "RPM database recreated..."
     end
 
     # https://issues.jboss.org/browse/BGBUILD-177
