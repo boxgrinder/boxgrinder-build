@@ -1,7 +1,3 @@
-v0.9.1
-
-* [BGBUILD-148] Add support for building CentOS/RHEL images on Fedora
-
 v0.9.0
 
 * [BGBUILD-174] Move plugins to boxgrinder-build gem
