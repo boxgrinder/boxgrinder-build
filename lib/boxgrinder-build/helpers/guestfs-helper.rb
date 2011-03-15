@@ -204,7 +204,12 @@ module BoxGrinder
 
       selinux = @guestfs.aug_get("/files/etc/sysconfig/selinux/SELINUX")
 
-      @guestfs.sh("/usr/sbin/load_policy") if !selinux.nil? and !selinux.eql?('disabled')
+      begin
+        @guestfs.sh("/usr/sbin/load_policy") if !selinux.nil? and !selinux.eql?('disabled')
+      rescue
+        @log.warn "Loading SELinux policy failed. SELinux may be not fully initialized."
+      end
+
       @guestfs.aug_close
 
       @log.trace "SElinux policy loaded."
