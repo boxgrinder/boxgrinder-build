@@ -1,3 +1,7 @@
+v0.9.1
+
+* [BGBUILD-188] Use libuestfs instead mounting partitions manually for EC2 appliances
+
 v0.9.0
 
 * [BGBUILD-174] Move plugins to boxgrinder-build gem
