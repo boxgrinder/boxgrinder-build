@@ -110,11 +110,11 @@ module BoxGrinder
       # wait for volume to be attached
       wait_for_volume_status('in-use', volume_id)
 
-      sleep 5 # let's wait to discover the attached volume by OS 
+      sleep 10 # let's wait to discover the attached volume by OS
 
       @log.info "Copying data to EBS volume..."
 
-      @image_helper.customize([@previous_deliverables.disk, @deliverables.disk], :automount => false) do |guestfs, guestfs_helper|
+      @image_helper.customize([@previous_deliverables.disk, device_for_suffix(suffix)], :automount => false) do |guestfs, guestfs_helper|
         sync_filesystem(guestfs, guestfs_helper)
 
         # Remount the EBS volume
@@ -269,7 +269,7 @@ module BoxGrinder
       return "/dev/sd#{suffix}" if File.exists?("/dev/sd#{suffix}")
       return "/dev/xvd#{suffix}" if File.exists?("/dev/xvd#{suffix}")
 
-      raise "Not found device for suffix #{suffix}"
+      raise "Device for suffix '#{suffix}' not found!"
     end
 
     def free_device_suffix
