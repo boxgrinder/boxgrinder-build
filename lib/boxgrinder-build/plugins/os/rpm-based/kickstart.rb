@@ -19,6 +19,7 @@
 require 'fileutils'
 require 'yaml'
 require 'erb'
+require 'zlib'
 
 module BoxGrinder
 

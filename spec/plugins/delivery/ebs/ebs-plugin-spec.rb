@@ -70,6 +70,8 @@ module BoxGrinder
     end
 
     it "should register all operating systems with specific versions" do
+      Resolv.stub!(:getname).with("169.254.169.254").and_return([".ec2.internal"])
+
       prepare_plugin do |plugin|
         avaibility_zone = mock('AZ')
         avaibility_zone.should_receive(:string).and_return('avaibility-zone1')
@@ -87,6 +89,8 @@ module BoxGrinder
 
     describe ".after_init" do
       it "should set default avaibility zone to current one" do
+        Resolv.stub!(:getname).with("169.254.169.254").and_return([".ec2.internal"])
+
         prepare_plugin do |plugin|
           avaibility_zone = mock('AZ')
           avaibility_zone.should_receive(:string).and_return('avaibility-zone1')
@@ -98,15 +102,16 @@ module BoxGrinder
       end
 
       it "should not set default avaibility zone because we're not on EC2" do
-        prepare_plugin do |plugin|
-          plugin.should_receive(:open).with('http://169.254.169.254/latest/meta-data/placement/availability-zone').and_raise("Bleh")
-        end
+        Resolv.stub!(:getname).with("169.254.169.254").and_return(["bleh"])
+
+        prepare_plugin
 
         @plugin.instance_variable_get(:@plugin_config)['availability_zone'].should == nil
       end
     end
 
     describe '.already_registered?' do
+
       it "should check if image is already registered and return false if there are no images registered for this account" do
         prepare_plugin { |plugin| plugin.stub!(:after_init) }
 
@@ -140,6 +145,8 @@ module BoxGrinder
       end
 
       it "should check if image is already registered and return true image is registered" do
+        Resolv.stub!(:getname).with("169.254.169.254").and_return([".ec2.internal"])
+
         prepare_plugin { |plugin| plugin.stub!(:after_init) }
 
         plugin_config = mock('PluginConfiig')
@@ -159,12 +166,12 @@ module BoxGrinder
     it "should adjust fstab" do
       prepare_plugin { |plugin| plugin.stub!(:after_init) }
 
-      exec_helper = @plugin.instance_variable_get(:@exec_helper)
+      guestfs = mock('GuestFS')
 
-      exec_helper.should_receive(:execute).with("cat a/dir/etc/fstab | grep -v '/mnt' | grep -v '/data' | grep -v 'swap' > a/dir/etc/fstab.new")
-      exec_helper.should_receive(:execute).with("mv a/dir/etc/fstab.new a/dir/etc/fstab")
+      guestfs.should_receive(:sh).with("cat /etc/fstab | grep -v '/mnt' | grep -v '/data' | grep -v 'swap' > /etc/fstab.new")
+      guestfs.should_receive(:mv).with("/etc/fstab.new", "/etc/fstab")
 
-      @plugin.adjust_fstab('a/dir')
+      @plugin.adjust_fstab(guestfs)
     end
 
     it "should get a new free device" do
@@ -187,18 +194,18 @@ module BoxGrinder
       @plugin.free_device_suffix.should == "g"
     end
 
-    it "should should return true if on EC2" do
-      prepare_plugin { |plugin| plugin.stub!(:after_init) }
+    it "should return true if on EC2" do
+      Resolv.stub!(:getname).with("169.254.169.254").and_return([".ec2.internal"])
 
-      @plugin.should_receive(:open).with("http://169.254.169.254/1.0/meta-data/local-ipv4")
+      prepare_plugin { |plugin| plugin.stub!(:after_init) }
 
       @plugin.valid_platform?.should == true
     end
 
-    it "should should return true if NOT on EC2" do
-      prepare_plugin { |plugin| plugin.stub!(:after_init) }
+    it "should return false if NOT on EC2" do
+      Resolv.stub!(:getname).with("169.254.169.254").and_return(["bleh"])
 
-      @plugin.should_receive(:open).with("http://169.254.169.254/1.0/meta-data/local-ipv4").and_raise("Bleh")
+      prepare_plugin { |plugin| plugin.stub!(:after_init) }
 
       @plugin.valid_platform?.should == false
     end

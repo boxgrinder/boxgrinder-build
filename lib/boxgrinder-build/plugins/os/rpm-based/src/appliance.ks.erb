@@ -17,8 +17,11 @@ services --enabled=network
 
 rootpw --iscrypted <%= appliance_config.os.password.crypt((0...8).map { 65.+(rand(25)).chr }.join) %>
 
+# appliance-creator doesn't support labels...
+# --label Zlib.crc32(root).to_s(16)
+
 <% appliance_config.hardware.partitions.each do |root, partition| %>
-part <%= root %> --size <%= (partition['size'].to_f * 1024).to_i %> --fstype <%= partition['type'] %> <% unless partition['options'].nil? %> --fsoptions '<%= partition['options'] %>' <% end %> <% if partition['passphrase'] %> --encrypted --passphrase='<%= partition['passphrase'] %>' <% end %> --ondisk sda --label <%= root %><% end %>
+part <%= root %> --size <%= (partition['size'].to_f * 1024).to_i %> --fstype <%= partition['type'] %> <% unless partition['options'].nil? %> --fsoptions '<%= partition['options'] %>' <% end %> <% if partition['passphrase'] %> --encrypted --passphrase='<%= partition['passphrase'] %>' <% end %> --ondisk sda<% end %>
 
 <% for repo in repos %>
 <%= repo %><% end %>

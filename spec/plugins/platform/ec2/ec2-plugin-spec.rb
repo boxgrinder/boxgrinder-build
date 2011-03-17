@@ -144,7 +144,7 @@ module BoxGrinder
       @plugin.instance_variable_set(:@linux_helper, linux_helper)
 
       tempfile = mock(Tempfile)
-      tempfile.should_receive(:<<).with("default=0\ntimeout=0\ntitle full\n        root (hd0)\n        kernel /boot/vmlinuz-2.6.18 ro root=LABEL=/ rd_NO_PLYMOUTH\n        initrd /boot/vmlinuz-2.6.18.img")
+      tempfile.should_receive(:<<).with("default=0\ntimeout=0\ntitle full\n        root (hd0)\n        kernel /boot/vmlinuz-2.6.18 ro root=LABEL=79d3d2d4 rd_NO_PLYMOUTH\n        initrd /boot/vmlinuz-2.6.18.img\n")
       tempfile.should_receive(:flush)
       tempfile.should_receive(:path).and_return('path/menu.lst')
       tempfile.should_receive(:close)
@@ -196,24 +196,21 @@ module BoxGrinder
 
         LinuxHelper.should_receive(:new).with(:log => @log).and_return(linux_helper)
 
-        @image_helper.should_receive(:convert_disk).with("a/disk.raw").with("a/disk.raw", "raw", "build/path/ec2-plugin/tmp/full.raw")
-
-        @image_helper.should_receive(:create_disk).with("build/path/ec2-plugin/tmp/full.ec2", 10)
-        @image_helper.should_receive(:create_filesystem).with("build/path/ec2-plugin/tmp/full.ec2")
-        @image_helper.should_receive(:mount_image).twice
-        @image_helper.should_receive(:sync_files)
-        @image_helper.should_receive(:umount_image).twice
+        @plugin.should_receive(:create_disk).with("build/path/ec2-plugin/tmp/full.ec2", 10)
 
         guestfs = mock("guestfs")
         guestfs_helper = mock("guestfsHelper")
 
-        @image_helper.should_receive(:customize).with("build/path/ec2-plugin/tmp/full.ec2").and_yield(guestfs, guestfs_helper)
+        @image_helper.should_receive(:customize).with(["a/disk.raw", "build/path/ec2-plugin/tmp/full.ec2"], :automount => false).and_yield(guestfs, guestfs_helper)
+
+        guestfs.should_receive(:list_devices).with.and_return(['/dev/vda'])
+        guestfs_helper.should_receive(:mount_partition).with("/dev/vda", "/")
 
         guestfs.should_receive(:upload).with("/etc/resolv.conf", "/etc/resolv.conf")
         @plugin.should_receive(:create_devices).with(guestfs)
         @plugin.should_receive(:upload_fstab).with(guestfs)
 
-
+        @plugin.should_receive(:sync_filesystem).with(guestfs, guestfs_helper)
         @plugin.should_receive(:enable_networking).with(guestfs)
         @plugin.should_receive(:upload_rc_local).with(guestfs)
         @plugin.should_receive(:enable_nosegneg_flag).with(guestfs)
@@ -235,23 +232,22 @@ module BoxGrinder
 
         LinuxHelper.should_receive(:new).with(:log => @log).and_return(linux_helper)
 
-        @image_helper.should_receive(:convert_disk).with("a/disk.raw").with("a/disk.raw", "raw", "build/path/ec2-plugin/tmp/full.raw")
-
-        @image_helper.should_receive(:create_disk).with("build/path/ec2-plugin/tmp/full.ec2", 10)
-        @image_helper.should_receive(:create_filesystem).with("build/path/ec2-plugin/tmp/full.ec2")
-        @image_helper.should_receive(:mount_image).twice
-        @image_helper.should_receive(:sync_files)
-        @image_helper.should_receive(:umount_image).twice
+        @plugin.should_receive(:create_disk).with("build/path/ec2-plugin/tmp/full.ec2", 10)
 
         guestfs = mock("guestfs")
         guestfs_helper = mock("guestfsHelper")
 
-        @image_helper.should_receive(:customize).with("build/path/ec2-plugin/tmp/full.ec2").and_yield(guestfs, guestfs_helper)
+        @image_helper.should_receive(:customize).with(["a/disk.raw", "build/path/ec2-plugin/tmp/full.ec2"], :automount => false).and_yield(guestfs, guestfs_helper)
+
+        guestfs.should_receive(:list_devices).with.and_return(['/dev/vda'])
+        guestfs_helper.should_receive(:mount_partition).with("/dev/vda", "/")
 
         guestfs.should_receive(:upload).with("/etc/resolv.conf", "/etc/resolv.conf")
         guestfs.should_receive(:mkdir).with("/data")
         guestfs.should_receive(:sh).with("yum -y remove kernel")
         guestfs.should_receive(:sh).with("yum -y install kernel-xen")
+
+        @plugin.should_receive(:sync_filesystem).with(guestfs, guestfs_helper)
 
         @plugin.should_receive(:create_devices).with(guestfs)
         @plugin.should_receive(:upload_fstab).with(guestfs)
@@ -276,33 +272,13 @@ module BoxGrinder
 
         LinuxHelper.should_receive(:new).with(:log => @log).and_return(linux_helper)
 
-        @image_helper.should_receive(:create_disk).and_raise("This error is expected!")
-        @image_helper.should_not_receive(:create_filesystem)
-        @image_helper.should_not_receive(:mount_image)
+        @plugin.should_receive(:create_disk).with("build/path/ec2-plugin/tmp/full.ec2", 10).and_raise("Boom")
 
         @image_helper.should_not_receive(:customize)
 
         lambda {
           @plugin.execute
-        }.should raise_error(RuntimeError, "Error while preparing EC2 disk image. See logs for more info.")
-      end
-
-      it "should fail because mounting or unmounting failed" do
-        linux_helper = mock(LinuxHelper)
-
-        LinuxHelper.should_receive(:new).with(:log => @log).and_return(linux_helper)
-
-        @image_helper.should_receive(:convert_disk).with("a/disk.raw").with("a/disk.raw", "raw", "build/path/ec2-plugin/tmp/full.raw")
-
-        @image_helper.should_receive(:create_disk).with("build/path/ec2-plugin/tmp/full.ec2", 10)
-        @image_helper.should_receive(:create_filesystem).with("build/path/ec2-plugin/tmp/full.ec2")
-        @image_helper.should_receive(:mount_image).and_raise("This error is expected!")
-
-        @image_helper.should_not_receive(:customize)
-
-        lambda {
-          @plugin.execute
-        }.should raise_error(RuntimeError, "Error while mounting image. See logs for more info.")
+        }.should raise_error(RuntimeError, "Boom")
       end
     end
 

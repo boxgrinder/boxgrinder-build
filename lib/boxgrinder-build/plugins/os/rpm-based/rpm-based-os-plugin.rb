@@ -80,7 +80,7 @@ module BoxGrinder
       FileUtils.mv(Dir.glob("#{@dir.tmp}/#{@appliance_config.name}/*"), @dir.tmp)
       FileUtils.rm_rf("#{@dir.tmp}/#{@appliance_config.name}/")
 
-      @image_helper.customize(@deliverables.disk) do |guestfs, guestfs_helper|
+      @image_helper.customize([@deliverables.disk]) do |guestfs, guestfs_helper|
         # TODO is this really needed?
         @log.debug "Uploading '/etc/resolv.conf'..."
         guestfs.upload("/etc/resolv.conf", "/etc/resolv.conf")
@@ -123,12 +123,6 @@ module BoxGrinder
       @log.debug "Firewall disabled."
     end
 
-    def fix_partition_labels(guestfs)
-      guestfs.list_partitions.each do |partition|
-        guestfs.sh("/sbin/e2label #{partition} #{read_label(guestfs, partition)}")
-      end
-    end
-
     def use_labels_for_partitions(guestfs)
       device = guestfs.list_devices.first
 
@@ -145,6 +139,14 @@ module BoxGrinder
 
     def read_label(guestfs, partition)
       (guestfs.respond_to?(:vfs_label) ? guestfs.vfs_label(partition) : guestfs.sh("/sbin/e2label #{partition}").chomp.strip).gsub('_', '')
+    end
+
+    def fix_partition_labels(guestfs)
+      i = 0
+      guestfs.list_partitions.each do |partition|
+        guestfs.sh("/sbin/e2label #{partition} #{Zlib.crc32(@appliance_config.hardware.partitions.keys[i]).to_s(16)}")
+        i += 1
+      end
     end
 
     def apply_root_password(guestfs)

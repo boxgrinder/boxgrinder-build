@@ -1,4 +1,4 @@
-LABEL=/    /         #FILESYSTEM_TYPE#    defaults         1 1
+LABEL=79d3d2d4    /         #FILESYSTEM_TYPE#    defaults         1 1
 /dev/#DISK_DEVICE_PREFIX#db   /mnt      ext3    defaults         0 0
 /dev/#DISK_DEVICE_PREFIX#dc   /data     ext3    defaults         0 0
 none       /dev/pts  devpts  gid=5,mode=620   0 0

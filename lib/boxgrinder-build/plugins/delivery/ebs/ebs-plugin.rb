@@ -43,12 +43,9 @@ module BoxGrinder
     }
 
     def after_init
-      begin
+      if valid_platform?
         @current_avaibility_zone = open('http://169.254.169.254/latest/meta-data/placement/availability-zone').string
         @region = @current_avaibility_zone.scan(/((\w+)-(\w+)-(\d+))/).flatten.first
-      rescue
-        @current_avaibility_zone = nil
-        @region = nil
       end
 
       set_default_config_value('availability_zone', @current_avaibility_zone)
@@ -117,37 +114,15 @@ module BoxGrinder
 
       @log.info "Copying data to EBS volume..."
 
-      ec2_disk_mount_dir = "#{@dir.tmp}/ec2-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
-      ebs_disk_mount_dir = "#{@dir.tmp}/ebs-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
+      @image_helper.customize([@previous_deliverables.disk, @deliverables.disk], :automount => false) do |guestfs, guestfs_helper|
+        sync_filesystem(guestfs, guestfs_helper)
 
-      FileUtils.mkdir_p(ec2_disk_mount_dir)
-      FileUtils.mkdir_p(ebs_disk_mount_dir)
+        # Remount the EBS volume
+        guestfs_helper.mount_partition(guestfs.list_devices.last, '/')
 
-      begin
-        ec2_mounts = @image_helper.mount_image(@previous_deliverables.disk, ec2_disk_mount_dir)
-      rescue => e
-        @log.debug e
-        raise "Error while mounting image. See logs for more info"
+        @log.debug "Adjusting /etc/fstab..."
+        adjust_fstab(guestfs)
       end
-
-      @log.debug "Creating filesystem on volume..."
-
-      @image_helper.create_filesystem(device_for_suffix(suffix))
-      @exec_helper.execute("mount #{device_for_suffix(suffix)} #{ebs_disk_mount_dir}")
-
-      @log.debug "Syncing files..."
-
-      @image_helper.sync_files(ec2_disk_mount_dir, ebs_disk_mount_dir)
-
-      @log.debug "Adjusting /etc/fstab..."
-
-      adjust_fstab(ebs_disk_mount_dir)
-
-      @exec_helper.execute("umount #{ebs_disk_mount_dir}")
-      @image_helper.umount_image(@previous_deliverables.disk, ec2_disk_mount_dir, ec2_mounts)
-
-      FileUtils.rm_rf(ebs_disk_mount_dir)
-      FileUtils.rm_rf(ec2_disk_mount_dir)
 
       @log.debug "Detaching EBS volume..."
 
@@ -204,6 +179,45 @@ module BoxGrinder
       @log.info "EBS AMI '#{ebs_appliance_name}' registered: #{image_id} (region: #{@region})"
     end
 
+    def sync_filesystem(guestfs, guestfs_helper)
+      @log.info "Synchronizing filesystems..."
+
+      # Create mount point in libguestfs
+      guestfs.mkmountpoint('/in')
+      guestfs.mkmountpoint('/out')
+      guestfs.mkmountpoint('/out/in')
+
+      # Create filesystem on EC2 disk
+      guestfs.mkfs(@appliance_config.hardware.partitions['/']['type'], guestfs.list_devices.last)
+      # Set EC root partition label
+      guestfs.set_e2label(guestfs.list_devices.last, '79d3d2d4') # This is a CRC32 from /
+
+      # Mount EBS volume to /out
+      guestfs_helper.mount_partition(guestfs.list_devices.last, '/out/in')
+
+      # Mount EC2 partition to /in mount point
+      guestfs_helper.mount_partition(guestfs.list_devices.first, '/in')
+
+      @log.debug "Copying files..."
+
+      # Copy the filesystem
+      guestfs.cp_a('/in/', '/out')
+
+      @log.debug "Files copied."
+
+      # Better make sure...
+      guestfs.sync
+
+      guestfs.umount('/out/in')
+      guestfs.umount('/in')
+
+      guestfs.rmmountpoint('/out/in')
+      guestfs.rmmountpoint('/out')
+      guestfs.rmmountpoint('/in')
+
+      @log.info "Filesystems synchronized."
+    end
+
     def ebs_appliance_name
       base_path = "#{@appliance_config.name}/#{@appliance_config.os.name}/#{@appliance_config.os.version}/#{@appliance_config.version}.#{@appliance_config.release}"
 
@@ -228,9 +242,9 @@ module BoxGrinder
       false
     end
 
-    def adjust_fstab(ebs_mount_dir)
-      @exec_helper.execute("cat #{ebs_mount_dir}/etc/fstab | grep -v '/mnt' | grep -v '/data' | grep -v 'swap' > #{ebs_mount_dir}/etc/fstab.new")
-      @exec_helper.execute("mv #{ebs_mount_dir}/etc/fstab.new #{ebs_mount_dir}/etc/fstab")
+    def adjust_fstab(guestfs)
+      guestfs.sh("cat /etc/fstab | grep -v '/mnt' | grep -v '/data' | grep -v 'swap' > /etc/fstab.new")
+      guestfs.mv("/etc/fstab.new", "/etc/fstab")
     end
 
     def wait_for_snapshot_status(status, snapshot_id)
@@ -268,13 +282,12 @@ module BoxGrinder
 
     def valid_platform?
       begin
-        open("http://169.254.169.254/1.0/meta-data/local-ipv4")
-        true
-      rescue
+        return Resolv.getname("169.254.169.254").include?(".ec2.internal")
+      rescue Resolv::ResolvError
         false
       end
     end
   end
 end
 
-plugin :class => BoxGrinder::EBSPlugin, :type => :delivery, :name => :ebs, :full_name  => "Elastic Block Storage"
+plugin :class => BoxGrinder::EBSPlugin, :type => :delivery, :name => :ebs, :full_name => "Elastic Block Storage"

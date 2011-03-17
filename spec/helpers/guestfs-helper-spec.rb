@@ -22,7 +22,12 @@ module BoxGrinder
   describe GuestFSHelper do
     before(:each) do
       @log = Logger.new('/dev/null')
-      @helper = GuestFSHelper.new('a/raw/disk', :log => @log)
+      @appliance_config = mock('ApplianceConfig')
+      @appliance_config.stub!(:hardware).and_return(:partitions => {})
+
+      @config = mock('Config')
+
+      @helper = GuestFSHelper.new('a/raw/disk', @appliance_config, @config, :log => @log)
     end
 
     describe ".execute" do
@@ -43,7 +48,7 @@ module BoxGrinder
 
         Guestfs.should_receive(:create).and_return(guestfs)
 
-        @helper.should_receive(:mount_partitions).with(no_args)
+        @helper.should_receive(:mount_partitions).with('')
         @helper.execute.should == @helper
       end
 
@@ -64,7 +69,7 @@ module BoxGrinder
 
         Guestfs.should_receive(:create).and_return(guestfs)
 
-        @helper.should_receive(:mount_partitions).with(no_args)
+        @helper.should_receive(:mount_partitions).with('')
         @helper.execute(nil, :ide_disk => true).should == @helper
       end
 
@@ -89,7 +94,7 @@ module BoxGrinder
 
         Guestfs.should_receive(:create).and_return(guestfs)
 
-        @helper.should_receive(:mount_partitions).with(no_args)
+        @helper.should_receive(:mount_partitions).with('')
         @helper.execute.should == @helper
       end
 
@@ -114,7 +119,7 @@ module BoxGrinder
 
         Guestfs.should_receive(:create).and_return(guestfs)
 
-        @helper.should_receive(:mount_partitions).with(no_args)
+        @helper.should_receive(:mount_partitions).with('')
         @helper.execute.should == @helper
       end
 
@@ -136,7 +141,7 @@ module BoxGrinder
         Guestfs.should_receive(:create).and_return(guestfs)
 
         guestfs.should_receive(:list_partitions).and_return(['/'])
-        @helper.should_receive(:mount_partition).with("/", "/")
+        @helper.should_receive(:mount_partition).with("/", "/", '')
 
         @helper.execute.should == @helper
       end
@@ -159,7 +164,7 @@ module BoxGrinder
         Guestfs.should_receive(:create).and_return(guestfs)
 
         guestfs.should_receive(:list_devices).and_return(['/dev/sda'])
-        @helper.should_receive(:mount_partition).with("/dev/sda", "/")
+        @helper.should_receive(:mount_partition).with("/dev/sda", "/", '')
 
         @helper.execute.should == @helper
       end
@@ -189,60 +194,15 @@ module BoxGrinder
     it "should mount partitions" do
       guestfs = mock('Guestfs')
 
-      guestfs.should_receive(:list_partitions).and_return(['/boot', '/'])
+      @appliance_config.stub!(:hardware).and_return(:partitions => {'/' => nil, '/home' => nil})
 
-      @helper.should_receive(:mount_partition).with('/boot', '/')
-      guestfs.should_receive(:exists).with('/sbin/e2label').and_return(0)
-      guestfs.should_receive(:umount).with('/boot')
-      @helper.should_receive(:mount_partition).with('/', '/')
-      guestfs.should_receive(:exists).with('/sbin/e2label').and_return(1)
+      guestfs.should_receive(:list_partitions).and_return(['/dev/vda1', '/dev/vda2'])
 
-      guestfs.should_receive(:list_partitions).and_return(['/boot', '/'])
-      guestfs.should_receive(:sh).with('/sbin/e2label /boot').and_return('/boot')
-      @helper.should_receive(:mount_partition).with('/boot', '/boot')
+      @helper.should_receive(:mount_partition).with('/dev/vda1', '/', '')
+      @helper.should_receive(:mount_partition).with('/dev/vda2', '/home', '')
 
       @helper.instance_variable_set(:@guestfs, guestfs)
       @helper.mount_partitions
-    end
-
-    it "should mount partitions with new type of labels" do
-      guestfs = mock('Guestfs')
-
-      guestfs.should_receive(:list_partitions).and_return(['/boot', '/'])
-
-      @helper.should_receive(:mount_partition).with('/boot', '/')
-      guestfs.should_receive(:exists).with('/sbin/e2label').and_return(0)
-      guestfs.should_receive(:umount).with('/boot')
-      @helper.should_receive(:mount_partition).with('/', '/')
-      guestfs.should_receive(:exists).with('/sbin/e2label').and_return(1)
-
-      guestfs.should_receive(:list_partitions).and_return(['/boot', '/'])
-      guestfs.should_receive(:sh).with('/sbin/e2label /boot').and_return('_/boot')
-      @helper.should_receive(:mount_partition).with('/boot', '/boot')
-
-      @helper.instance_variable_set(:@guestfs, guestfs)
-      @helper.mount_partitions
-    end
-
-    it "should raise when no root partition is found" do
-      guestfs = mock('Guestfs')
-
-      guestfs.should_receive(:list_partitions).and_return(['/boot', '/'])
-
-      @helper.should_receive(:mount_partition).with('/boot', '/')
-      guestfs.should_receive(:exists).with('/sbin/e2label').and_return(0)
-      guestfs.should_receive(:umount).with('/boot')
-      @helper.should_receive(:mount_partition).with('/', '/')
-      guestfs.should_receive(:exists).with('/sbin/e2label').and_return(0)
-      guestfs.should_receive(:umount).with('/')
-
-      @helper.instance_variable_set(:@guestfs, guestfs)
-
-      begin
-        @helper.mount_partitions
-      rescue => e
-        e.message.should == "No root partition found for 'disk' disk!"
-      end
     end
 
     it "execute a command for current arch" do

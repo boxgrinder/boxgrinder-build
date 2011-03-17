@@ -30,49 +30,6 @@ module BoxGrinder
       @exec_helper = options[:exec_helper] || ExecHelper.new(:log => @log)
     end
 
-    def mount_image(disk, mount_dir)
-      offsets = calculate_disk_offsets(disk)
-
-      @log.debug "Mounting image #{File.basename(disk)} in #{mount_dir}..."
-      FileUtils.mkdir_p(mount_dir)
-
-      mounts = {}
-
-      offsets.each do |offset|
-        loop_device = get_loop_device
-        @exec_helper.execute("losetup -o #{offset.to_s} #{loop_device} '#{disk}'")
-        label = @exec_helper.execute("e2label #{loop_device}").strip.chomp.gsub('_', '')
-        label = '/' if label == ''
-        mounts[label] = loop_device
-      end
-
-      @exec_helper.execute("mount #{mounts['/']} '#{mount_dir}'")
-
-      mounts.reject { |key, value| key == '/' }.each do |mount_point, loop_device|
-        @exec_helper.execute("mount #{loop_device} '#{mount_dir}#{mount_point}'")
-      end
-
-      # Give some time to mount the images
-      sleep 2
-
-      @log.trace "Mounts:\n#{mounts}"
-
-      mounts
-    end
-
-    def umount_image(disk, mount_dir, mounts)
-      @log.debug "Unmounting image '#{File.basename(disk)}'..."
-
-      mounts.each { |mount_point, loop_device| @exec_helper.execute("umount -d #{loop_device}") unless mount_point == '/' }
-
-      @exec_helper.execute("umount -d #{mounts['/']}")
-
-      # Give some time to umount the image
-      sleep 2
-
-      FileUtils.rm_rf(mount_dir)
-    end
-
     def disk_info(disk)
       YAML.load(@exec_helper.execute("qemu-img info '#{disk}'"))
     end
@@ -100,63 +57,18 @@ module BoxGrinder
       end
     end
 
-    def get_loop_device
-      begin
-        loop_device = @exec_helper.execute("losetup -f 2>&1").strip
-      rescue
-        raise "No free loop devices available, please free at least one. See 'losetup -d' command."
-      end
-
-      loop_device
-    end
-
-    def calculate_disk_offsets(disk)
-      @log.debug "Calculating offsets for '#{File.basename(disk)}' disk..."
-      loop_device = get_loop_device
-
-      @exec_helper.execute("losetup #{loop_device} '#{disk}'")
-      offsets = @exec_helper.execute("parted #{loop_device} 'unit B print' | grep -e '^ [0-9]' | awk '{ print $2 }'").scan(/\d+/)
-      # wait one secont before freeing loop device
-      sleep 1
-      @exec_helper.execute("losetup -d #{loop_device}")
-
-      @log.trace "Offsets:\n#{offsets}"
-
-      offsets
-    end
-
     def create_disk(disk, size)
       @log.trace "Preparing disk..."
-      @exec_helper.execute "dd if=/dev/zero of='#{disk}' bs=1 count=0 seek=#{size * 1024}M"
+      @exec_helper.execute "dd if=/dev/zero of='#{disk}' bs=1 count=0 seek=#{(size * 1024).to_i}M"
       @log.trace "Disk prepared"
     end
 
-    def create_filesystem(loop_device, options = {})
+    def customize(disks, options = {})
       options = {
-          :type => @appliance_config.hardware.partitions['/']['type'],
-          :label => '/'
+          :ide_disk => ((@appliance_config.os.name == 'rhel' or @appliance_config.os.name == 'centos') and @appliance_config.os.version == '5') ? true : false
       }.merge(options)
 
-      @log.trace "Creating filesystem..."
-
-      case options[:type]
-        when 'ext3', 'ext4'
-          @exec_helper.execute "mke2fs -T #{options[:type]} -L '#{options[:label]}' -F #{loop_device}"
-        else
-          raise "Unsupported filesystem specified: #{options[:type]}"
-      end
-
-      @log.trace "Filesystem created"
-    end
-
-    def sync_files(from_dir, to_dir)
-      @log.debug "Syncing files between #{from_dir} and #{to_dir}..."
-      @exec_helper.execute "rsync -Xura #{from_dir.gsub(' ', '\ ')}/* '#{to_dir}'"
-      @log.debug "Sync finished."
-    end
-
-    def customize(disk_path)
-      GuestFSHelper.new(disk_path, :log => @log).customize(:ide_disk => ((@appliance_config.os.name == 'rhel' or @appliance_config.os.name == 'centos') and @appliance_config.os.version == '5') ? true : false) do |guestfs, guestfs_helper|
+      GuestFSHelper.new(disks, @appliance_config, @config, :log => @log).customize(options) do |guestfs, guestfs_helper|
         yield guestfs, guestfs_helper
       end
     end

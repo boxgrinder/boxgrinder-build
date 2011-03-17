@@ -17,7 +17,6 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder-build/plugins/base-plugin'
-require 'boxgrinder-build/helpers/appliance-customize-helper'
 
 module BoxGrinder
   class VMwarePlugin < BasePlugin

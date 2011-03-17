@@ -81,11 +81,11 @@ end
 
 module BoxGrinder
   class GuestFSHelper
-    def initialize(raw_disk, options = {})
-      @raw_disk = raw_disk
+    def initialize(disks, appliance_config, config, options = {})
+      @disks = disks
+      @appliance_config = appliance_config
+      @config = config
       @log = options[:log] || LogHelper.new
-
-      @partitions = {}
     end
 
     attr_reader :guestfs
@@ -134,7 +134,12 @@ module BoxGrinder
     end
 
     def execute(pipe = nil, options = {})
-      options = {:ide_disk => false}.merge(options)
+      options = {
+          :ide_disk => false,
+          :mount_prefix => '',
+          :automount => true,
+          :load_selinux_policy => true
+      }.merge(options)
 
       @log.debug "Preparing guestfs..."
 
@@ -161,13 +166,15 @@ module BoxGrinder
         end
       end
 
-      @log.trace "Adding drive '#{@raw_disk}'..."
-      if options[:ide_disk]
-        @guestfs.add_drive_with_if(@raw_disk, 'ide')
-      else
-        @guestfs.add_drive(@raw_disk)
+      @disks.each do |disk|
+        @log.trace "Adding drive '#{disk}'..."
+        if options[:ide_disk]
+          @guestfs.add_drive_with_if(disk, 'ide')
+        else
+          @guestfs.add_drive(disk)
+        end
+        @log.trace "Drive added."
       end
-      @log.trace "Drive added."
 
       if @guestfs.respond_to?('set_network')
         @log.debug "Enabling networking for GuestFS..."
@@ -177,16 +184,15 @@ module BoxGrinder
       @log.debug "Launching guestfs..."
       @guestfs.launch
 
-      case @guestfs.list_partitions.size
-        when 0
-          mount_partition(@guestfs.list_devices.first, '/')
-        when 1
-          mount_partition(@guestfs.list_partitions.first, '/')
+      if options[:automount]
+        if @guestfs.list_partitions.size == 0
+          mount_partition(@guestfs.list_devices.first, '/', options[:mount_prefix])
         else
-          mount_partitions
-      end
+          mount_partitions(options[:mount_prefix])
+        end
 
-      load_selinux_policy
+        load_selinux_policy if options[:load_selinux_policy]
+      end
 
       @log.trace "Guestfs launched."
 
@@ -225,32 +231,41 @@ module BoxGrinder
       @log.trace "Guestfs closed."
     end
 
-    def mount_partition(part, mount_point)
+    def mount_partition(part, mount_point, mount_prefix = '')
       @log.trace "Mounting #{part} partition to #{mount_point}..."
-      @guestfs.mount_options("", part, mount_point)
+      @guestfs.mount_options("", part, "#{mount_prefix}#{mount_point}")
       @log.trace "Partition mounted."
     end
 
-    def mount_partitions
-      root_partition = nil
+    # This mount partitions. We assume (correctly I hope) that the first partition is a root partition.
+    #
+    def mount_partitions(mount_prefix = '')
+      @log.trace "Mounting partitions..."
 
-      @guestfs.list_partitions.each do |partition|
-        mount_partition(partition, '/')
+      partitions = @guestfs.list_partitions
 
-        # TODO: use this http://libguestfs.org/guestfs.3.html#guestfs_vfs_label
-        if @guestfs.exists('/sbin/e2label') != 0
-          root_partition = partition
-          break
-        end
-        @guestfs.umount(partition)
+      # First of all - mount root partition
+      # Root partition is always the first listed by guestfs
+      @log.trace "Mounting root partition..."
+      mount_partition(partitions.first, '/', mount_prefix)
+
+      # Remove root partition from the list
+      partitions.delete_at(0)
+
+      partitions.each_index do |i|
+        mount_partition(partitions[i], @appliance_config.hardware.partitions.keys[i+1], mount_prefix)
       end
+    end
 
-      raise "No root partition found for '#{File.basename(@raw_disk)}' disk!" if root_partition.nil?
-
-      @guestfs.list_partitions.each do |partition|
-        next if partition == root_partition
-        mount_partition(partition, @guestfs.sh("/sbin/e2label #{partition}").strip.chomp.gsub('_', ''))
+    # Unmounts partitions in reverse order.
+    #
+    def umount_partitions
+      @log.trace "Unmounting partitions..."
+      @guestfs.list_partitions.reverse.each do |part|
+        @log.trace "Unmounting partition '#{part}'..."
+        @guestfs.umount(part)
       end
+      @log.trace "All partitions unmounted."
     end
 
     def sh(cmd, options = {})

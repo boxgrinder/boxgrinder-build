@@ -2,5 +2,5 @@ default=0
 timeout=0
 title #TITLE#
         root (hd0)
-        kernel /boot/vmlinuz-#KERNEL_VERSION# ro root=LABEL=/ rd_NO_PLYMOUTH
+        kernel /boot/vmlinuz-#KERNEL_VERSION# ro root=LABEL=79d3d2d4 rd_NO_PLYMOUTH
         initrd /boot/#KERNEL_IMAGE_NAME#-#KERNEL_VERSION#.img

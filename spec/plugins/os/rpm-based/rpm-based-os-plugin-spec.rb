@@ -105,14 +105,14 @@ module BoxGrinder
     end
 
     it "should fix partition labels" do
+      @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:partitions => {'/' => {}, '/home' => {}}))
+
       guestfs = mock("guestfs")
 
       guestfs.should_receive(:list_partitions).and_return(['/dev/vda1', '/dev/vda2'])
-      guestfs.should_receive(:vfs_label).with('/dev/vda1').and_return('_/')
-      guestfs.should_receive(:vfs_label).with('/dev/vda2').and_return('_/boot')
 
-      guestfs.should_receive(:sh).with('/sbin/e2label /dev/vda1 /')
-      guestfs.should_receive(:sh).with('/sbin/e2label /dev/vda2 /boot')
+      guestfs.should_receive(:sh).with('/sbin/e2label /dev/vda1 79d3d2d4')
+      guestfs.should_receive(:sh).with('/sbin/e2label /dev/vda2 d5219c04')
 
       @plugin.fix_partition_labels(guestfs)
     end

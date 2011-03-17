@@ -35,10 +35,20 @@ module BoxGrinder
 
       @log.info "Converting #{@appliance_config.name} appliance image to EC2 format..."
 
-      create_ec2_disk
-      sync_files
+      create_disk(@deliverables.disk, 10) # 10 GB destination disk
 
-      @image_helper.customize(@deliverables.disk) do |guestfs, guestfs_helper|
+      # This is required because some labels may be longer then 16 chars.
+      # http://www.tldp.org/HOWTO/html_single/Partition/#volumelabels
+      #
+      # With this function we'll have always 8 char long labels.
+      #partitions[root]['label'] = Zlib.crc32(root).to_s(16)
+
+      @image_helper.customize([@previous_deliverables.disk, @deliverables.disk], :automount => false) do |guestfs, guestfs_helper|
+        sync_filesystem(guestfs, guestfs_helper)
+
+        # Remount the EC2 disk
+        guestfs_helper.mount_partition(guestfs.list_devices.last, '/')
+
         if (@appliance_config.os.name == 'rhel' or @appliance_config.os.name == 'centos') and @appliance_config.os.version == '5'
           # Not sure why it's messed but this prevents booting on AWS
           recreate_journal(guestfs)
@@ -75,45 +85,49 @@ module BoxGrinder
       @log.info "Image converted to EC2 format."
     end
 
-    def sync_files
-      ec2_disk_mount_dir = "#{@dir.tmp}/ec2-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
-      raw_disk_mount_dir = "#{@dir.tmp}/raw-#{rand(9999999999).to_s.center(10, rand(9).to_s)}"
-
-      tmp_disk = "#{@dir.tmp}/#{@appliance_config.name}.raw"
-
-      @log.debug "Conveting disk to RAW format..."
-      @image_helper.convert_disk(@previous_deliverables.disk, 'raw', tmp_disk)
-
-      begin
-        ec2_mounts = @image_helper.mount_image(@deliverables.disk, ec2_disk_mount_dir)
-        raw_mounts = @image_helper.mount_image(tmp_disk, raw_disk_mount_dir)
-      rescue => e
-        @log.error e
-        @log.error "Mouting failed, trying to clean up."
-
-        @image_helper.umount_image(tmp_disk, raw_disk_mount_dir, raw_mounts) unless raw_mounts.nil?
-        @image_helper.umount_image(@deliverables.disk, ec2_disk_mount_dir, ec2_mounts) unless ec2_mounts.nil?
-
-        raise "Error while mounting image. See logs for more info."
-      end
-
-      @image_helper.sync_files(raw_disk_mount_dir, ec2_disk_mount_dir)
-
-      @image_helper.umount_image(tmp_disk, raw_disk_mount_dir, raw_mounts)
-      @image_helper.umount_image(@deliverables.disk, ec2_disk_mount_dir, ec2_mounts)
-
-      FileUtils.rm_rf tmp_disk
+    def create_disk(disk, size)
+      @log.trace "Preparing disk..."
+      @exec_helper.execute "dd if=/dev/zero of='#{disk}' bs=1 count=0 seek=#{(size * 1024).to_i}M"
+      @log.trace "Disk prepared"
     end
 
-    def create_ec2_disk
-      begin
-        # TODO using whole 10GB is fine?
-        @image_helper.create_disk(@deliverables.disk, 10)
-        @image_helper.create_filesystem(@deliverables.disk)
-      rescue => e
-        @log.error e
-        raise "Error while preparing EC2 disk image. See logs for more info."
-      end
+    def sync_filesystem(guestfs, guestfs_helper)
+      @log.info "Synchronizing filesystems..."
+
+      # Create mount point in libguestfs
+      guestfs.mkmountpoint('/in')
+      guestfs.mkmountpoint('/out')
+      guestfs.mkmountpoint('/out/in')
+
+      # Create filesystem on EC2 disk
+      guestfs.mkfs(@appliance_config.hardware.partitions['/']['type'], guestfs.list_devices.last)
+      # Set EC root partition label
+      guestfs.set_e2label(guestfs.list_devices.last, '79d3d2d4') # This is a CRC32 from /
+
+      # Mount empty EC2 disk to /out
+      guestfs_helper.mount_partition(guestfs.list_devices.last, '/out/in')
+
+      # Mount RAW disk partitions to /in mount point
+      guestfs_helper.mount_partitions('/in')
+
+      @log.debug "Copying files..."
+
+      # Copy the filesystem
+      guestfs.cp_a('/in/', '/out')
+
+      @log.debug "Files copied."
+
+      # Better make sure...
+      guestfs.sync
+
+      guestfs.umount('/out/in')
+      guestfs_helper.umount_partitions
+
+      guestfs.rmmountpoint('/out/in')
+      guestfs.rmmountpoint('/out')
+      guestfs.rmmountpoint('/in')
+
+      @log.info "Filesystems synchronized."
     end
 
     def execute_post(guestfs_helper)

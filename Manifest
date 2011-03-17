@@ -7,7 +7,6 @@ bin/boxgrinder-build
 boxgrinder-build.gemspec
 lib/boxgrinder-build.rb
 lib/boxgrinder-build/appliance.rb
-lib/boxgrinder-build/helpers/appliance-customize-helper.rb
 lib/boxgrinder-build/helpers/augeas-helper.rb
 lib/boxgrinder-build/helpers/guestfs-helper.rb
 lib/boxgrinder-build/helpers/image-helper.rb
@@ -46,7 +45,6 @@ lib/boxgrinder-build/plugins/platform/vmware/vmware-plugin.rb
 rubygem-boxgrinder-build.spec
 spec/Rakefile
 spec/appliance-spec.rb
-spec/helpers/appliance-customize-helper-spec.rb
 spec/helpers/augeas-helper-spec.rb
 spec/helpers/guestfs-helper-spec.rb
 spec/helpers/image-helper-spec.rb
