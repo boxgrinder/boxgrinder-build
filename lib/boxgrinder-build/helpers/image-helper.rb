@@ -57,10 +57,60 @@ module BoxGrinder
       end
     end
 
-    def create_disk(disk, size)
-      @log.trace "Preparing disk..."
-      @exec_helper.execute "dd if=/dev/zero of='#{disk}' bs=1 count=0 seek=#{(size * 1024).to_i}M"
-      @log.trace "Disk prepared"
+    # Synchronizes filesystem from one image with an empty disk image.
+    # Input image can be a partioned image or a partition image itself.
+    # Output disk is a partition image.
+    #
+    def sync_filesystem(guestfs, guestfs_helper)
+      @log.info "Synchronizing filesystems..."
+
+      # Create mount points in libguestfs
+      guestfs.mkmountpoint('/in')
+      guestfs.mkmountpoint('/out')
+      guestfs.mkmountpoint('/out/in')
+
+      # Create filesystem on EC2 disk
+      guestfs.mkfs(@appliance_config.default_filesystem_type, guestfs.list_devices.last)
+      # Set root partition label
+      guestfs.set_e2label(guestfs.list_devices.last, '79d3d2d4') # This is a CRC32 from /
+
+      # Mount empty EC2 disk to /out
+      guestfs_helper.mount_partition(guestfs.list_devices.last, '/out/in')
+
+      if guestfs.list_partitions.size > 0
+        # We have a partitioned disk image
+        guestfs_helper.mount_partitions('/in')
+      else
+        # We have a disk image without partitions
+        guestfs_helper.mount_partition(guestfs.list_devices.first, '/in')
+      end
+
+      @log.debug "Copying files..."
+
+      # Copy the filesystem
+      guestfs.cp_a('/in/', '/out')
+
+      @log.debug "Files copied."
+
+      # Better make sure...
+      guestfs.sync
+
+      guestfs.umount('/out/in')
+
+      if guestfs.list_partitions.size > 0
+        guestfs_helper.umount_partitions
+      else
+        guestfs.umount('/in')
+      end
+
+      guestfs.rmmountpoint('/out/in')
+      guestfs.rmmountpoint('/out')
+      guestfs.rmmountpoint('/in')
+
+      @log.info "Filesystems synchronized."
+
+      # Remount the destination disk
+      guestfs_helper.mount_partition(guestfs.list_devices.last, '/')
     end
 
     def customize(disks, options = {})

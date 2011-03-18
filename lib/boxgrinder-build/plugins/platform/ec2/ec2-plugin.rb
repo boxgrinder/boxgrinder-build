@@ -37,17 +37,8 @@ module BoxGrinder
 
       create_disk(@deliverables.disk, 10) # 10 GB destination disk
 
-      # This is required because some labels may be longer then 16 chars.
-      # http://www.tldp.org/HOWTO/html_single/Partition/#volumelabels
-      #
-      # With this function we'll have always 8 char long labels.
-      #partitions[root]['label'] = Zlib.crc32(root).to_s(16)
-
       @image_helper.customize([@previous_deliverables.disk, @deliverables.disk], :automount => false) do |guestfs, guestfs_helper|
-        sync_filesystem(guestfs, guestfs_helper)
-
-        # Remount the EC2 disk
-        guestfs_helper.mount_partition(guestfs.list_devices.last, '/')
+        @image_helper.sync_filesystem(guestfs, guestfs_helper)
 
         if (@appliance_config.os.name == 'rhel' or @appliance_config.os.name == 'centos') and @appliance_config.os.version == '5'
           # Not sure why it's messed but this prevents booting on AWS
@@ -89,45 +80,6 @@ module BoxGrinder
       @log.trace "Preparing disk..."
       @exec_helper.execute "dd if=/dev/zero of='#{disk}' bs=1 count=0 seek=#{(size * 1024).to_i}M"
       @log.trace "Disk prepared"
-    end
-
-    def sync_filesystem(guestfs, guestfs_helper)
-      @log.info "Synchronizing filesystems..."
-
-      # Create mount point in libguestfs
-      guestfs.mkmountpoint('/in')
-      guestfs.mkmountpoint('/out')
-      guestfs.mkmountpoint('/out/in')
-
-      # Create filesystem on EC2 disk
-      guestfs.mkfs(@appliance_config.hardware.partitions['/']['type'], guestfs.list_devices.last)
-      # Set EC root partition label
-      guestfs.set_e2label(guestfs.list_devices.last, '79d3d2d4') # This is a CRC32 from /
-
-      # Mount empty EC2 disk to /out
-      guestfs_helper.mount_partition(guestfs.list_devices.last, '/out/in')
-
-      # Mount RAW disk partitions to /in mount point
-      guestfs_helper.mount_partitions('/in')
-
-      @log.debug "Copying files..."
-
-      # Copy the filesystem
-      guestfs.cp_a('/in/', '/out')
-
-      @log.debug "Files copied."
-
-      # Better make sure...
-      guestfs.sync
-
-      guestfs.umount('/out/in')
-      guestfs_helper.umount_partitions
-
-      guestfs.rmmountpoint('/out/in')
-      guestfs.rmmountpoint('/out')
-      guestfs.rmmountpoint('/in')
-
-      @log.info "Filesystems synchronized."
     end
 
     def execute_post(guestfs_helper)
