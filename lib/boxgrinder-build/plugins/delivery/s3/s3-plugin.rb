@@ -172,10 +172,9 @@ module BoxGrinder
 
       FileUtils.mkdir_p(@ami_build_dir)
 
-      kernel_and_ramdisk = "--kernel #{@plugin_config['aki']}"
-      kernel_and_ramdisk << " --ramdisk #{@plugin_config['ari']}" unless @plugin_config['ari'].nil?
+      ramdisk = !@plugin_config['ari'].nil? ? "--ramdisk #{@plugin_config['ari']}" : ""
 
-      @exec_helper.execute("euca-bundle-image --ec2cert #{@plugin_config['ec2_cert']} -i #{deliverables[:disk]} #{kernel_and_ramdisk} -c #{@plugin_config['cert_file']} -k #{@plugin_config['key_file']} -u #{@plugin_config['account_number']} -r #{@appliance_config.hardware.base_arch} -d #{@ami_build_dir}", :redacted => [@plugin_config['account_number'], @plugin_config['key_file'], @plugin_config['cert_file']])
+      @exec_helper.execute("euca-bundle-image --ec2cert #{@plugin_config['ec2_cert']} -i #{deliverables[:disk]} --kernel #{@plugin_config['aki']} #{ramdisk} -c #{@plugin_config['cert_file']} -k #{@plugin_config['key_file']} -u #{@plugin_config['account_number']} -r #{@appliance_config.hardware.base_arch} -d #{@ami_build_dir}", :redacted => [@plugin_config['account_number'], @plugin_config['key_file'], @plugin_config['cert_file']])
 
       @log.info "Bundling AMI finished."
     end

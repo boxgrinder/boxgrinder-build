@@ -179,7 +179,7 @@ module BoxGrinder
 
     it "should bundle the image" do
       File.should_receive(:exists?).with('build/path/s3-plugin/ami').and_return(false)
-      @exec_helper.should_receive(:execute).with(/euca-bundle-image --ec2cert (.*)src\/cert-ec2\.pem -i a\/path\/to\/disk\.ec2 --kernel aki-427d952b -c \/path\/to\/cert\/file -k \/path\/to\/key\/file -u 0000-0000-0000 -r x86_64 -d build\/path\/s3-plugin\/ami/, :redacted=>["0000-0000-0000", "/path/to/key/file", "/path/to/cert/file"])
+      @exec_helper.should_receive(:execute).with(/euca-bundle-image --ec2cert (.*)src\/cert-ec2\.pem -i a\/path\/to\/disk\.ec2 --kernel aki-427d952b  -c \/path\/to\/cert\/file -k \/path\/to\/key\/file -u 0000-0000-0000 -r x86_64 -d build\/path\/s3-plugin\/ami/, :redacted=>["0000-0000-0000", "/path/to/key/file", "/path/to/cert/file"])
       @plugin.bundle_image(:disk => "a/path/to/disk.ec2")
     end
 
@@ -187,7 +187,7 @@ module BoxGrinder
       @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'centos', :version => '5'}))
 
       File.should_receive(:exists?).with('build/path/s3-plugin/ami').and_return(false)
-      @exec_helper.should_receive(:execute).with(/euca-bundle-image --ec2cert (.*)src\/cert-ec2\.pem -i a\/path\/to\/disk\.ec2 --kernel aki-427d952b -c \/path\/to\/cert\/file -k \/path\/to\/key\/file -u 0000-0000-0000 -r x86_64 -d build\/path\/s3-plugin\/ami/, :redacted=>["0000-0000-0000", "/path/to/key/file", "/path/to/cert/file"])
+      @exec_helper.should_receive(:execute).with(/euca-bundle-image --ec2cert (.*)src\/cert-ec2\.pem -i a\/path\/to\/disk\.ec2 --kernel aki-427d952b  -c \/path\/to\/cert\/file -k \/path\/to\/key\/file -u 0000-0000-0000 -r x86_64 -d build\/path\/s3-plugin\/ami/, :redacted=>["0000-0000-0000", "/path/to/key/file", "/path/to/cert/file"])
       @plugin.bundle_image(:disk => "a/path/to/disk.ec2")
     end
 
@@ -197,12 +197,15 @@ module BoxGrinder
       @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'centos', :version => '5'}))
 
       File.should_receive(:exists?).with('build/path/s3-plugin/ami').and_return(false)
-      @exec_helper.should_receive(:execute).with(/euca-bundle-image --ec2cert (.*)src\/cert-ec2\.pem -i a\/path\/to\/disk\.ec2 --kernel aki-9ba0f1de -c \/path\/to\/cert\/file -k \/path\/to\/key\/file -u 0000-0000-0000 -r x86_64 -d build\/path\/s3-plugin\/ami/, :redacted=>["0000-0000-0000", "/path/to/key/file", "/path/to/cert/file"])
+      @exec_helper.should_receive(:execute).with(/euca-bundle-image --ec2cert (.*)src\/cert-ec2\.pem -i a\/path\/to\/disk\.ec2 --kernel aki-9ba0f1de  -c \/path\/to\/cert\/file -k \/path\/to\/key\/file -u 0000-0000-0000 -r x86_64 -d build\/path\/s3-plugin\/ami/, :redacted=>["0000-0000-0000", "/path/to/key/file", "/path/to/cert/file"])
       @plugin.bundle_image(:disk => "a/path/to/disk.ec2")
     end
 
     describe ".execute" do
       it "should create AMI" do
+        File.should_receive(:exists?).with("/path/to/cert/file").and_return(true)
+        File.should_receive(:exists?).with("/path/to/key/file").and_return(true)
+
         @plugin.instance_variable_set(:@previous_deliverables, {:disk => 'a/disk'})
 
         @plugin.should_receive(:validate_plugin_config).with(["bucket", "access_key", "secret_access_key"], "See http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin for more info.")
@@ -217,6 +220,9 @@ module BoxGrinder
       end
 
       it "should not upload AMI because it's already there" do
+        File.should_receive(:exists?).with("/path/to/cert/file").and_return(true)
+        File.should_receive(:exists?).with("/path/to/key/file").and_return(true)
+
         @plugin.should_receive(:validate_plugin_config).with(["bucket", "access_key", "secret_access_key"], "See http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin for more info.")
         @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "You selected 'ami' type. See http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin for more info.")
         @plugin.should_receive(:ami_key).with("appliance", "/").and_return('ami/key')
@@ -230,6 +236,8 @@ module BoxGrinder
       it "should upload AMI even if it's already there because we want a snapshot" do
         clear_plugin_config { |plugin_config| plugin_config.merge!('snapshot' => true) }
 
+        File.should_receive(:exists?).with("/path/to/cert/file").and_return(true)
+        File.should_receive(:exists?).with("/path/to/key/file").and_return(true)
 
         @plugin.should_receive(:validate_plugin_config).with(["bucket", "access_key", "secret_access_key"], "See http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin for more info.")
         @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "You selected 'ami' type. See http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin for more info.")
