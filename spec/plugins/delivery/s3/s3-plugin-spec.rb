@@ -27,6 +27,23 @@ require 'active_support/duration'
 module BoxGrinder
   describe S3Plugin do
 
+    def clear_plugin_config
+      @plugin_config.clear
+      @plugin_config.merge!({
+                                'access_key' => 'access_key',
+                                'secret_access_key' => 'secret_access_key',
+                                'bucket' => 'bucket',
+                                'account_number' => '0000-0000-0000',
+                                'cert_file' => '/path/to/cert/file',
+                                'key_file' => '/path/to/key/file',
+                                'path' => '/'
+                            })
+
+      yield @plugin_config if block_given?
+
+      @plugin.after_init
+    end
+
     before(:each) do
       @config = mock('Config')
       @config.stub!(:delivery_config).and_return({})
@@ -45,26 +62,13 @@ module BoxGrinder
 
       @plugin = S3Plugin.new.init(@config, @appliance_config, :log => Logger.new('/dev/null'), :plugin_info => {:class => BoxGrinder::S3Plugin, :type => :delivery, :name => :s3, :full_name => "Amazon Simple Storage Service (Amazon S3)", :types => [:s3, :cloudfront, :ami]})
 
-      @config = @plugin.instance_variable_get(:@config)
-      @appliance_config = @plugin.instance_variable_get(:@appliance_config)
       @exec_helper = @plugin.instance_variable_get(:@exec_helper)
       @log = @plugin.instance_variable_get(:@log)
       @dir = @plugin.instance_variable_get(:@dir)
 
-      @plugin_config = @plugin.instance_variable_get(:@plugin_config).merge(
-          {
-              'access_key' => 'access_key',
-              'secret_access_key' => 'secret_access_key',
-              'bucket' => 'bucket',
-              'account_number' => '0000-0000-0000',
-              'cert_file' => '/path/to/cert/file',
-              'key_file' => '/path/to/key/file',
-              'path' => '/'
-          }
-      )
+      @plugin_config = @plugin.instance_variable_get(:@plugin_config)
 
-      @plugin.instance_variable_set(:@plugin_config, @plugin_config)
-
+      clear_plugin_config
     end
 
     it "should register all operating systems with specific versions" do
@@ -95,7 +99,8 @@ module BoxGrinder
       end
 
       it "should generate valid ami_key with snapshot number two" do
-        @plugin_config.merge!('snapshot' => true)
+        clear_plugin_config { |plugin_config| plugin_config.merge!('snapshot' => true) }
+
         bucket = mock('Bucket')
         bucket.should_receive(:keys).twice
 
@@ -114,24 +119,11 @@ module BoxGrinder
       end
 
       it "should generate valid ami_key with snapshot when bucket doesn't exists" do
-        @plugin_config.merge!('snapshot' => true)
+        clear_plugin_config { |plugin_config| plugin_config.merge!('snapshot' => true) }
+
         @plugin.should_receive(:bucket).with(false).and_raise('ABC')
         @plugin.ami_key("name", "/").should == "name/fedora/14/1.0-SNAPSHOT-1/x86_64"
       end
-    end
-
-    it "should fix sha1 sum" do
-      ami_manifest = mock('ami_manifest')
-      ami_manifest.should_receive(:read).and_return("!sdfrthty54623r2gertyhe(stdin)= wf34r32tewrgeg")
-
-      File.should_receive(:open).with("build/path/s3-plugin/ami/appliance.ec2.manifest.xml").and_return(ami_manifest)
-
-      f = mock('File')
-      f.should_receive(:write).with('!sdfrthty54623r2gertyhewf34r32tewrgeg')
-
-      File.should_receive(:open).with("build/path/s3-plugin/ami/appliance.ec2.manifest.xml", 'w').and_yield(f)
-
-      @plugin.fix_sha1_sum
     end
 
     it "should upload to a S3 bucket" do
@@ -191,7 +183,7 @@ module BoxGrinder
       @plugin.bundle_image(:disk => "a/path/to/disk.ec2")
     end
 
-    it "should bundle the image for centos 5 anf choose right kernel and ramdisk" do
+    it "should bundle the image for centos 5 and choose right kernel and ramdisk" do
       @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'centos', :version => '5'}))
 
       File.should_receive(:exists?).with('build/path/s3-plugin/ami').and_return(false)
@@ -199,9 +191,10 @@ module BoxGrinder
       @plugin.bundle_image(:disk => "a/path/to/disk.ec2")
     end
 
-    it "should bundle the image for centos 5 anf choose right kernel and ramdisk" do
+    it "should bundle the image for centos 5 and choose right kernel and ramdisk" do
+      clear_plugin_config { |plugin_config| plugin_config.merge!('region' => 'us-west-1') }
+
       @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'centos', :version => '5'}))
-      @plugin.instance_variable_get(:@plugin_config).merge!({'region' => 'us-west-1'})
 
       File.should_receive(:exists?).with('build/path/s3-plugin/ami').and_return(false)
       @exec_helper.should_receive(:execute).with(/euca-bundle-image --ec2cert (.*)src\/cert-ec2\.pem -i a\/path\/to\/disk\.ec2 --kernel aki-9ba0f1de -c \/path\/to\/cert\/file -k \/path\/to\/key\/file -u 0000-0000-0000 -r x86_64 -d build\/path\/s3-plugin\/ami/, :redacted=>["0000-0000-0000", "/path/to/key/file", "/path/to/cert/file"])
@@ -212,12 +205,11 @@ module BoxGrinder
       it "should create AMI" do
         @plugin.instance_variable_set(:@previous_deliverables, {:disk => 'a/disk'})
 
-        @plugin.should_receive(:validate_plugin_config).with(["bucket", "access_key", "secret_access_key"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
-        @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
+        @plugin.should_receive(:validate_plugin_config).with(["bucket", "access_key", "secret_access_key"], "See http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin for more info.")
+        @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "You selected 'ami' type. See http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin for more info.")
         @plugin.should_receive(:ami_key).with("appliance", "/").and_return('ami/key')
         @plugin.should_receive(:s3_object_exists?).with("ami/key/appliance.ec2.manifest.xml").and_return(false)
         @plugin.should_receive(:bundle_image).with(:disk => 'a/disk')
-        @plugin.should_receive(:fix_sha1_sum)
         @plugin.should_receive(:upload_image)
         @plugin.should_receive(:register_image)
 
@@ -225,8 +217,8 @@ module BoxGrinder
       end
 
       it "should not upload AMI because it's already there" do
-        @plugin.should_receive(:validate_plugin_config).with(["bucket", "access_key", "secret_access_key"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
-        @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
+        @plugin.should_receive(:validate_plugin_config).with(["bucket", "access_key", "secret_access_key"], "See http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin for more info.")
+        @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "You selected 'ami' type. See http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin for more info.")
         @plugin.should_receive(:ami_key).with("appliance", "/").and_return('ami/key')
         @plugin.should_receive(:s3_object_exists?).with("ami/key/appliance.ec2.manifest.xml").and_return(true)
         @plugin.should_not_receive(:upload_image)
@@ -236,15 +228,15 @@ module BoxGrinder
       end
 
       it "should upload AMI even if it's already there because we want a snapshot" do
-        @plugin_config.merge!('snapshot' => true)
+        clear_plugin_config { |plugin_config| plugin_config.merge!('snapshot' => true) }
 
-        @plugin.should_receive(:validate_plugin_config).with(["bucket", "access_key", "secret_access_key"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
-        @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
+
+        @plugin.should_receive(:validate_plugin_config).with(["bucket", "access_key", "secret_access_key"], "See http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin for more info.")
+        @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "You selected 'ami' type. See http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin for more info.")
 
         @plugin.should_receive(:ami_key).with("appliance", "/").and_return('ami/key')
         @plugin.should_receive(:s3_object_exists?).with("ami/key/appliance.ec2.manifest.xml").and_return(true)
         @plugin.should_receive(:bundle_image).with({})
-        @plugin.should_receive(:fix_sha1_sum)
         @plugin.should_receive(:upload_image).with("ami/key")
         @plugin.should_receive(:register_image).with("ami/key/appliance.ec2.manifest.xml")
 
@@ -266,7 +258,8 @@ module BoxGrinder
 
     describe ".bucket" do
       it "should create the bucket" do
-        @plugin_config.merge!('region' => 'ap-southeast-1')
+        clear_plugin_config { |plugin_config| plugin_config.merge!('region' => "ap-southeast-1") }
+
         s3 = mock(Aws::S3)
         Aws::S3.should_receive(:new).with("access_key", "secret_access_key", :connection_mode => :single, :logger => @log, :server=>"s3-ap-southeast-1.amazonaws.com").and_return(s3)
         s3.should_receive(:bucket).with("bucket", true, "private", :location => "ap-southeast-1")
@@ -274,7 +267,8 @@ module BoxGrinder
       end
 
       it "should not create the bucket" do
-        @plugin_config.merge!('region' => 'ap-southeast-1')
+        clear_plugin_config { |plugin_config| plugin_config.merge!('region' => 'ap-southeast-1') }
+
         s3 = mock(Aws::S3)
         Aws::S3.should_receive(:new).with("access_key", "secret_access_key", :connection_mode => :single, :logger => @log, :server=>"s3-ap-southeast-1.amazonaws.com").and_return(s3)
         s3.should_receive(:bucket).with("bucket", false, "private", :location => "ap-southeast-1")
@@ -285,15 +279,15 @@ module BoxGrinder
     describe ".upload_image" do
       it "should upload image for default region" do
         @plugin.should_receive(:bucket)
-        @exec_helper.should_receive(:execute).with("euca-upload-bundle -U http://s3.amazonaws.com -b bucket/ami/key -m build/path/s3-plugin/ami/appliance.ec2.manifest.xml -a access_key -s secret_access_key", :redacted=>["access_key", "secret_access_key"])
+        @exec_helper.should_receive(:execute).with("euca-upload-bundle -U https://s3.amazonaws.com -b bucket/ami/key -m build/path/s3-plugin/ami/appliance.ec2.manifest.xml -a access_key -s secret_access_key", :redacted=>["access_key", "secret_access_key"])
         @plugin.upload_image("ami/key")
       end
 
       it "should upload image for us-west-1 region" do
-        @plugin_config.merge!('region' => 'us-west-1')
+        clear_plugin_config { |plugin_config| plugin_config.merge!('region' => 'us-west-1') }
 
         @plugin.should_receive(:bucket)
-        @exec_helper.should_receive(:execute).with("euca-upload-bundle -U http://s3-us-west-1.amazonaws.com -b bucket/ami/key -m build/path/s3-plugin/ami/appliance.ec2.manifest.xml -a access_key -s secret_access_key", :redacted=>["access_key", "secret_access_key"])
+        @exec_helper.should_receive(:execute).with("euca-upload-bundle -U https://s3-us-west-1.amazonaws.com -b bucket/ami/key -m build/path/s3-plugin/ami/appliance.ec2.manifest.xml -a access_key -s secret_access_key", :redacted=>["access_key", "secret_access_key"])
         @plugin.upload_image("ami/key")
       end
     end
@@ -315,13 +309,15 @@ module BoxGrinder
 
         it "should register the AMI" do
           @plugin.should_receive(:ami_info).with("ami/manifest/key")
+
+          @plugin_config['bucket'] = 'bucket'
           @ec2.should_receive(:register_image).with(:image_location => "bucket/ami/manifest/key").and_return(@ami_info)
 
           @plugin.register_image("ami/manifest/key")
         end
 
         it "should report the region where the ami is registed" do
-          @plugin.instance_variable_get(:@plugin_config)['region'] = 'a-region'
+          @plugin_config['region'] = 'a-region'
           @plugin.instance_variable_get(:@log).should_receive(:info).with(/a-region/)
 
           @plugin.register_image("ami/manifest/key")
@@ -341,7 +337,7 @@ module BoxGrinder
         end
 
         it "should report the region where the ami is registed" do
-          @plugin.instance_variable_get(:@plugin_config)['region'] = 'a-region'
+          @plugin_config['region'] = 'a-region'
           @plugin.instance_variable_get(:@log).should_receive(:info).with(/a-region/)
 
           @plugin.register_image("ami/manifest/key")

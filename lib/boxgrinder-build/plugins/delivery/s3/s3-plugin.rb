@@ -34,8 +34,8 @@ module BoxGrinder
             :endpoint => 's3.amazonaws.com',
             :location => 'EU',
             :kernel => {
-                'i386' => {:aki => 'aki-4deec439'},
-                'x86_64' => {:aki => 'aki-4feec43b'}
+                'i386' => 'aki-4deec439',
+                'x86_64' => 'aki-4feec43b'
             }
         },
 
@@ -43,8 +43,8 @@ module BoxGrinder
             :endpoint => 's3-ap-southeast-1.amazonaws.com',
             :location => 'ap-southeast-1',
             :kernel => {
-                'i386' => {:aki => 'aki-13d5aa41'},
-                'x86_64' => {:aki => 'aki-11d5aa43'}
+                'i386' => 'aki-13d5aa41',
+                'x86_64' => 'aki-11d5aa43'
             }
         },
 
@@ -52,8 +52,8 @@ module BoxGrinder
             :endpoint => 's3-us-west-1.amazonaws.com',
             :location => 'us-west-1',
             :kernel => {
-                'i386' => {:aki => 'aki-99a0f1dc'},
-                'x86_64' => {:aki => 'aki-9ba0f1de'}
+                'i386' => 'aki-99a0f1dc',
+                'x86_64' => 'aki-9ba0f1de'
             }
         },
 
@@ -61,8 +61,8 @@ module BoxGrinder
             :endpoint => 's3.amazonaws.com',
             :location => '',
             :kernel => {
-                'i386' => {:aki => 'aki-407d9529'},
-                'x86_64' => {:aki => 'aki-427d952b'}
+                'i386' => 'aki-407d9529',
+                'x86_64' => 'aki-427d952b'
             }
         }
     }
@@ -71,6 +71,10 @@ module BoxGrinder
       set_default_config_value('overwrite', false)
       set_default_config_value('path', '/')
       set_default_config_value('region', 'us-east-1')
+      set_default_config_value('ec2_cert', "#{File.dirname(__FILE__)}/src/cert-ec2.pem")
+      set_default_config_value('ec2_url', "ec2.#{@plugin_config['region']}.amazonaws.com")
+      set_default_config_value('s3_url', "https://#{REGION_OPTIONS[@plugin_config['region']][:endpoint]}")
+      set_default_config_value('aki', REGION_OPTIONS[@plugin_config['region']][:kernel][@appliance_config.hardware.base_arch]) if is_ec2?
 
       register_supported_os("fedora", ['13', '14', '15'])
       register_supported_os("centos", ['5'])
@@ -80,8 +84,12 @@ module BoxGrinder
       @ami_manifest = "#{@ami_build_dir}/#{@appliance_config.name}.ec2.manifest.xml"
     end
 
+    def is_ec2?
+      (@plugin_config['ec2_url'] =~ /amazonaws\.com$/) ? true : false
+    end
+
     def execute(type = :ami)
-      validate_plugin_config(['bucket', 'access_key', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
+      validate_plugin_config(['bucket', 'access_key', 'secret_access_key'], 'See http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin for more info.')
 
       case type
         when :s3
@@ -90,18 +98,21 @@ module BoxGrinder
           upload_to_bucket(@previous_deliverables, 'public-read')
         when :ami
           set_default_config_value('snapshot', false)
-          validate_plugin_config(['cert_file', 'key_file', 'account_number'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
+          validate_plugin_config(['cert_file', 'key_file', 'account_number'], "You selected 'ami' type. See http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin for more info.")
+          validate_plugin_config(['aki', 'ari'], "Uploading to Eucalyptus requires providing 'aki' and 'ari'. See http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin for more info.") unless is_ec2?
+
+          raise "Specified certificate file: '#{@plugin_config['cert_file']}' doesn't exists" unless File.exists?(File.expand_path(@plugin_config['cert_file']))
+          raise "Specified key file: '#{@plugin_config['key_file']}' doesn't exists" unless File.exists?(File.expand_path(@plugin_config['key_file']))
 
           @plugin_config['account_number'] = @plugin_config['account_number'].to_s.gsub(/-/, '')
 
-          @ec2 = AWS::EC2::Base.new(:access_key_id => @plugin_config['access_key'], :secret_access_key => @plugin_config['secret_access_key'], :server => "ec2.#{@plugin_config['region']}.amazonaws.com")
+          @ec2 = AWS::EC2::Base.new(:access_key_id => @plugin_config['access_key'], :secret_access_key => @plugin_config['secret_access_key'], :server => @plugin_config['ec2_url'])
 
           ami_dir = ami_key(@appliance_config.name, @plugin_config['path'])
           ami_manifest_key = "#{ami_dir}/#{@appliance_config.name}.ec2.manifest.xml"
 
           if !s3_object_exists?(ami_manifest_key) or @plugin_config['snapshot']
             bundle_image(@previous_deliverables)
-            fix_sha1_sum
             upload_image(ami_dir)
           else
             @log.debug "AMI for #{@appliance_config.name} appliance already uploaded, skipping..."
@@ -109,14 +120,6 @@ module BoxGrinder
 
           register_image(ami_manifest_key)
       end
-    end
-
-    # https://jira.jboss.org/browse/BGBUILD-34
-    def fix_sha1_sum
-      ami_manifest = File.open(@ami_manifest).read
-      ami_manifest.gsub!('(stdin)= ', '')
-
-      File.open(@ami_manifest, "w") { |f| f.write(ami_manifest) }
     end
 
     def upload_to_bucket(previous_deliverables, permissions = 'private')
@@ -147,7 +150,11 @@ module BoxGrinder
 
     def bucket(create_if_missing = true, permissions = 'private')
       @s3 ||= Aws::S3.new(@plugin_config['access_key'], @plugin_config['secret_access_key'], :connection_mode => :single, :logger => @log, :server => REGION_OPTIONS[@plugin_config['region']][:endpoint])
-      @s3.bucket(@plugin_config['bucket'], create_if_missing, permissions, :location => REGION_OPTIONS[@plugin_config['region']][:location])
+
+      bucket_options = {}
+      bucket_options[:location] = REGION_OPTIONS[@plugin_config['region']][:location] if is_ec2?
+
+      @s3.bucket(@plugin_config['bucket'], create_if_missing, permissions, bucket_options)
     end
 
     def bundle_image(deliverables)
@@ -156,13 +163,19 @@ module BoxGrinder
         FileUtils.rm_rf(@ami_build_dir)
       end
 
-      return if File.exists?(@ami_build_dir)
+      if File.exists?(@ami_build_dir)
+        @log.debug "Image is already bundled in directory '#{@ami_build_dir}'."
+        return
+      end
 
       @log.info "Bundling AMI..."
 
       FileUtils.mkdir_p(@ami_build_dir)
 
-      @exec_helper.execute("euca-bundle-image --ec2cert #{File.dirname(__FILE__)}/src/cert-ec2.pem -i #{deliverables[:disk]} --kernel #{REGION_OPTIONS[@plugin_config['region']][:kernel][@appliance_config.hardware.base_arch][:aki]} -c #{@plugin_config['cert_file']} -k #{@plugin_config['key_file']} -u #{@plugin_config['account_number']} -r #{@appliance_config.hardware.base_arch} -d #{@ami_build_dir}", :redacted => [@plugin_config['account_number'], @plugin_config['key_file'], @plugin_config['cert_file']])
+      kernel_and_ramdisk = "--kernel #{@plugin_config['aki']}"
+      kernel_and_ramdisk << " --ramdisk #{@plugin_config['ari']}" unless @plugin_config['ari'].nil?
+
+      @exec_helper.execute("euca-bundle-image --ec2cert #{@plugin_config['ec2_cert']} -i #{deliverables[:disk]} #{kernel_and_ramdisk} -c #{@plugin_config['cert_file']} -k #{@plugin_config['key_file']} -u #{@plugin_config['account_number']} -r #{@appliance_config.hardware.base_arch} -d #{@ami_build_dir}", :redacted => [@plugin_config['account_number'], @plugin_config['key_file'], @plugin_config['cert_file']])
 
       @log.info "Bundling AMI finished."
     end
@@ -171,7 +184,7 @@ module BoxGrinder
       bucket # this will create the bucket if needed
       @log.info "Uploading #{@appliance_config.name} AMI to bucket '#{@plugin_config['bucket']}'..."
 
-      @exec_helper.execute("euca-upload-bundle -U #{@plugin_config['url'].nil? ? "http://#{REGION_OPTIONS[@plugin_config['region']][:endpoint]}" : @plugin_config['url']} -b #{@plugin_config['bucket']}/#{ami_dir} -m #{@ami_manifest} -a #{@plugin_config['access_key']} -s #{@plugin_config['secret_access_key']}", :redacted => [@plugin_config['access_key'], @plugin_config['secret_access_key']])
+      @exec_helper.execute("euca-upload-bundle -U #{@plugin_config['s3_url']} -b #{@plugin_config['bucket']}/#{ami_dir} -m #{@ami_manifest} -a #{@plugin_config['access_key']} -s #{@plugin_config['secret_access_key']}", :redacted => [@plugin_config['access_key'], @plugin_config['secret_access_key']])
     end
 
     def register_image(ami_manifest_key)

@@ -107,11 +107,9 @@ module BoxGrinder
       platform.to_s
     end
 
-    def validate_plugin_config(fields = [], doc = nil)
-      more_info = doc.nil? ? '' : "See #{doc} for more info"
-
+    def validate_plugin_config(fields = [], message = '')
       fields.each do |field|
-        raise "Please specify a valid '#{field}' key in BoxGrinder configuration file: '#{@config.file}' or use CLI '--#{@plugin_info[:type]}-config #{field}:DATA' argument. #{more_info}" if @plugin_config[field].nil?
+        raise "Please specify a valid '#{field}' key in BoxGrinder configuration file: '#{@config.file}' or use CLI '--#{@plugin_info[:type]}-config #{field}:DATA' argument. #{message}" if @plugin_config[field].nil?
       end
     end
 

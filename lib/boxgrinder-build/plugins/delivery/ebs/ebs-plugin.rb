@@ -56,7 +56,7 @@ module BoxGrinder
     end
 
     def execute(type = :ebs)
-      validate_plugin_config(['access_key', 'secret_access_key', 'account_number'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#EBS_Delivery_Plugin')
+      validate_plugin_config(['access_key', 'secret_access_key', 'account_number'], 'See http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#EBS_Delivery_Plugin for more info.')
 
       raise "You try to run this plugin on invalid platform. You can run EBS delivery plugin only on EC2." unless valid_platform?
       raise "You can only convert to EBS type AMI appliances converted to EC2 format. Use '-p ec2' switch. For more info about EC2 plugin see http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#EC2_Platform_Plugin." unless @previous_plugin_info[:name] == :ec2

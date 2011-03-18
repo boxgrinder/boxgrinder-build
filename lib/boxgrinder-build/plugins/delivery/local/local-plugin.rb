@@ -32,7 +32,7 @@ module BoxGrinder
     end
 
     def execute(type = :local)
-      validate_plugin_config(['path'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#Local_delivery_plugin')
+      validate_plugin_config(['path'], 'See http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#Local_delivery_plugin for more info.')
 
       if @plugin_config['overwrite'] or !deliverables_exists?
         PackageHelper.new(@config, @appliance_config, :log => @log, :exec_helper => @exec_helper).package(File.dirname(@previous_deliverables[:disk]), @deliverables[:package]) if @plugin_config['package']

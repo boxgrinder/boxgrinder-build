@@ -22,7 +22,7 @@ module BoxGrinder
   class VMwarePlugin < BasePlugin
     def after_init
       set_default_config_value('thin_disk', false)
-      validate_plugin_config(['type'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#VMware_Platform_Plugin')
+      validate_plugin_config(['type'], 'See http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#VMware_Platform_Plugin for more info.')
 
       register_deliverable(:vmx    => "#{@appliance_config.name}.vmx",
                            :readme => "README")
