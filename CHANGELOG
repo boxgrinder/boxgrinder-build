@@ -1,6 +1,7 @@
 v0.9.1
 
 * [BGBUILD-188] Use libuestfs instead mounting partitions manually for EC2 appliances
+* [BGBUILD-97] some filesystems dont get unmounted on BG interruption
 
 v0.9.0
 

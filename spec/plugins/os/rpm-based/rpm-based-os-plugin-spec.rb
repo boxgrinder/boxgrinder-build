@@ -28,21 +28,24 @@ module BoxGrinder
       plugins = mock('Plugins')
       plugins.stub!(:[]).with('rpm_based').and_return({})
       @config.stub!(:[]).with(:plugins).and_return(plugins)
+      @config.stub!(:dir).and_return(OpenCascade.new(:tmp => 'tmpdir', :cache => 'cachedir'))
 
-      @appliance_config.stub!(:path).and_return(OpenCascade.new({:build => 'build/path'}))
       @appliance_config.stub!(:name).and_return('full')
       @appliance_config.stub!(:version).and_return(1)
       @appliance_config.stub!(:release).and_return(0)
       @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '11'}))
+      @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:cpus => 1, :memory => 512, :partitions => {'/' => nil, '/home' => nil}))
+      @appliance_config.stub!(:path).and_return(OpenCascade.new(:build => 'build/path', :main => 'mainpath'))
 
       @plugin = RPMBasedOSPlugin.new
 
       @plugin.stub!(:merge_plugin_config)
 
-      @plugin.init(@config, @appliance_config, :log => Logger.new('/dev/null'), :plugin_info => {:name => :rpm_based})
+      @plugin.init(@config, @appliance_config, :log => LogHelper.new(:level => :trace, :type => :stdout), :plugin_info => {:name => :rpm_based})
 
       @config = @plugin.instance_variable_get(:@config)
       @appliance_config = @plugin.instance_variable_get(:@appliance_config)
+      @image_helper = @plugin.instance_variable_get(:@image_helper)
       @exec_helper = @plugin.instance_variable_get(:@exec_helper)
       @log = @plugin.instance_variable_get(:@log)
     end
@@ -157,6 +160,76 @@ module BoxGrinder
       guestfs.should_receive(:sh).with('lokkit -q --disabled')
 
       @plugin.disable_firewall(guestfs)
+    end
+
+    describe ".build_with_appliance_creator" do
+      it "should build appliance" do
+        kickstart = mock(Kickstart)
+        kickstart.should_receive(:create).and_return('kickstart.ks')
+
+        validator = mock(RPMDependencyValidator)
+        validator.should_receive(:resolve_packages)
+
+        Kickstart.should_receive(:new).with(@config, @appliance_config, {}, {:tmp=>"build/path/rpm_based-plugin/tmp", :base=>"build/path/rpm_based-plugin"}, :log => @log).and_return(kickstart)
+        RPMDependencyValidator.should_receive(:new).and_return(validator)
+
+        @exec_helper.should_receive(:execute).with("appliance-creator -d -v -t 'build/path/rpm_based-plugin/tmp' --cache=cachedir/rpms-cache/mainpath --config 'kickstart.ks' -o 'build/path/rpm_based-plugin/tmp' --name 'full' --vmem 512 --vcpu 1 --format raw")
+
+        FileUtils.should_receive(:mv)
+        FileUtils.should_receive(:rm_rf)
+
+        @image_helper.should_receive(:customize).with(["build/path/rpm_based-plugin/tmp/full-sda.raw"])
+
+        @plugin.build_with_appliance_creator('jeos.appl')
+      end
+    end
+
+    describe ".execute_appliance_creator" do
+      it "should execute appliance creator successfuly" do
+        Open4.should_receive(:popen4).with("appliance-creator -d -v -t 'build/path/rpm_based-plugin/tmp' --cache=cachedir/rpms-cache/mainpath --config 'kickstart.ks' -o 'build/path/rpm_based-plugin/tmp' --name 'full' --vmem 512 --vcpu 1 --format raw").and_return(OpenCascade.new(:exitstatus => 0))
+
+        @plugin.execute_appliance_creator('kickstart.ks')
+      end
+
+      it "should catch the interrupt and unmount the appliance-creator mounts" do
+        @exec_helper.should_receive(:execute).with("appliance-creator -d -v -t 'build/path/rpm_based-plugin/tmp' --cache=cachedir/rpms-cache/mainpath --config 'kickstart.ks' -o 'build/path/rpm_based-plugin/tmp' --name 'full' --vmem 512 --vcpu 1 --format raw").and_raise(InterruptionError.new(12345))
+        @plugin.should_receive(:cleanup_after_appliance_creator).with(12345)
+        @plugin.should_receive(:abort)
+        @plugin.execute_appliance_creator('kickstart.ks')
+      end
+    end
+
+    describe ".cleanup_after_appliance_creator" do
+      it "should cleanup after appliance creator (surprisngly!)" do
+        Process.should_receive(:kill).with("TERM", 12345)
+        Process.should_receive(:wait).with(12345)
+
+        Dir.should_receive(:[]).with('build/path/rpm_based-plugin/tmp/imgcreate-*').and_return(['adir'])
+
+        @exec_helper.should_receive(:execute).ordered.with("mount | grep adir | awk '{print $1}'").and_return("/dev/mapper/loop0p1
+/dev/mapper/loop0p2
+/sys
+/proc
+/dev/pts
+/dev/shm
+/var/cache/boxgrinder/rpms-cache/x86_64/fedora/14")
+
+        @exec_helper.should_receive(:execute).ordered.with('umount -d adir/install_root/var/cache/yum')
+        @exec_helper.should_receive(:execute).ordered.with('umount -d adir/install_root/dev/shm')
+        @exec_helper.should_receive(:execute).ordered.with('umount -d adir/install_root/dev/pts')
+        @exec_helper.should_receive(:execute).ordered.with('umount -d adir/install_root/proc')
+        @exec_helper.should_receive(:execute).ordered.with('umount -d adir/install_root/sys')
+        @exec_helper.should_receive(:execute).ordered.with('umount -d adir/install_root/home')
+        @exec_helper.should_receive(:execute).ordered.with('umount -d adir/install_root/')
+
+        @exec_helper.should_receive(:execute).ordered.with("/sbin/kpartx -d /dev/loop0")
+        @exec_helper.should_receive(:execute).ordered.with("losetup -d /dev/loop0")
+
+        @exec_helper.should_receive(:execute).ordered.with("rm /dev/loop01")
+        @exec_helper.should_receive(:execute).ordered.with("rm /dev/loop02")
+
+        @plugin.cleanup_after_appliance_creator(12345)
+      end
     end
   end
 end
