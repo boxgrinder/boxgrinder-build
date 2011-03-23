@@ -50,10 +50,10 @@ module BoxGrinder
       packages << "system-config-firewall-base"
       packages << "dhclient"
       
-      # kernel_PAE for 32 bit, kernel for 64 bit
+      # kernel_PAE for 32 bit with over 4GB or RAM, kernel for 64 bit and less than 4GB or RAM
       packages.delete('kernel')
       packages.delete('kernel-PAE')
-      packages << (@appliance_config.is64bit? ? "kernel" : "kernel-PAE")
+      packages << ((@appliance_config.is64bit? or @appliance_config.hardware.memory < 4096 ) ? "kernel" : "kernel-PAE")
     end
   end
 end
