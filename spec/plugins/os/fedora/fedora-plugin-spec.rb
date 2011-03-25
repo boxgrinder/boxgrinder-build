@@ -47,13 +47,26 @@ module BoxGrinder
       @log = @plugin.instance_variable_get(:@log)
     end
 
-    it "should normalize packages for 32bit" do
+    it "should normalize packages for 32bit with large amount of RAM > 4GB" do
+      @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:arch => 'x86_64', :memory => 4096))
+
       packages = ['abc', 'def', 'kernel']
 
       @appliance_config.should_receive(:is64bit?).and_return(false)
 
       @plugin.normalize_packages(packages)
       packages.should == ["abc", "def", "@core", "system-config-firewall-base", "dhclient", "kernel-PAE"]
+    end
+
+    it "should normalize packages for 32bit with small amount of RAM < 4GB" do
+      @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:arch => 'x86_64', :memory => 1024))
+
+      packages = ['abc', 'def', 'kernel']
+
+      @appliance_config.should_receive(:is64bit?).and_return(false)
+
+      @plugin.normalize_packages(packages)
+      packages.should == ["abc", "def", "@core", "system-config-firewall-base", "dhclient", "kernel"]
     end
 
     it "should normalize packages for 64bit" do
