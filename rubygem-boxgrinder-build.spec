@@ -141,6 +141,7 @@ popd
 - Upstream release: 0.9.1
 - [BGBUILD-188] Use libuestfs instead mounting partitions manually for EC2 appliances
 - [BGBUILD-97] some filesystems dont get unmounted on BG interruption
+- [BGBUILD-155] Images built on Centos5.x (el5) for VirtualBox kernel panic (/dev/root missing)
 
 * Tue Mar 01 2011 <msavy@redhat.com> - 0.9.0-1
 - Upstream release: 0.9.0
