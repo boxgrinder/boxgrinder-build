@@ -20,7 +20,7 @@ Visit the [Boxgrinder Meta appliance usage article](http://boxgrinder.org/tutori
 
 At present the project officially supports the following OSes in x86_64 and i386 variants:
 
-* Fedora (13, 14,15)
+* Fedora (13, 14, 15)
 * RHEL (5.x, 6.x) and CentOS (5.x)
 
 ### Requirements
@@ -42,13 +42,13 @@ For detailed instructions, see: [Preparing your environment](http://boxgrinder.o
 
 Once the prerequisites are satisfied, install BoxGrinder via a package manager, for instance in YUM;
 
-* `sudo yum install rubygem-boxgrinder-core rubygem-boxgrinder-build ` to install BoxGrinder Core and BoxGrinder Build.
+* `sudo yum install rubygem-boxgrinder-build` to install BoxGrinder Build.
 
 ### Removing
 
 You should remove BoxGrinder through your system package manager, for instance with YUM:
 
-* `sudo yum remove "rubygem-boxgrinder*"`
+* `sudo yum remove rubygem-boxgrinder*`
 
 ### Usage
 
