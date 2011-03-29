@@ -186,8 +186,7 @@ module BoxGrinder
 
     describe ".execute_appliance_creator" do
       it "should execute appliance creator successfuly" do
-        Open4.should_receive(:popen4).with("appliance-creator -d -v -t 'build/path/rpm_based-plugin/tmp' --cache=cachedir/rpms-cache/mainpath --config 'kickstart.ks' -o 'build/path/rpm_based-plugin/tmp' --name 'full' --vmem 512 --vcpu 1 --format raw").and_return(OpenCascade.new(:exitstatus => 0))
-
+        @exec_helper.should_receive(:execute).with("appliance-creator -d -v -t 'build/path/rpm_based-plugin/tmp' --cache=cachedir/rpms-cache/mainpath --config 'kickstart.ks' -o 'build/path/rpm_based-plugin/tmp' --name 'full' --vmem 512 --vcpu 1 --format raw")
         @plugin.execute_appliance_creator('kickstart.ks')
       end
 
