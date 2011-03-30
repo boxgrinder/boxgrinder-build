@@ -16,6 +16,7 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
+require 'rubygems'
 require 'boxgrinder-build/plugins/platform/ec2/ec2-plugin'
 require 'boxgrinder-core/helpers/log-helper'
 require 'hashery/opencascade'
@@ -202,15 +203,12 @@ module BoxGrinder
         guestfs_helper = mock("guestfsHelper")
 
         @image_helper.should_receive(:customize).with(["a/disk.raw", "build/path/ec2-plugin/tmp/full.ec2"], :automount => false).and_yield(guestfs, guestfs_helper)
-
-        guestfs.should_receive(:list_devices).with.and_return(['/dev/vda'])
-        guestfs_helper.should_receive(:mount_partition).with("/dev/vda", "/")
+        @image_helper.should_receive(:sync_filesystem).with(guestfs, guestfs_helper)
 
         guestfs.should_receive(:upload).with("/etc/resolv.conf", "/etc/resolv.conf")
         @plugin.should_receive(:create_devices).with(guestfs)
         @plugin.should_receive(:upload_fstab).with(guestfs)
 
-        @plugin.should_receive(:sync_filesystem).with(guestfs, guestfs_helper)
         @plugin.should_receive(:enable_networking).with(guestfs)
         @plugin.should_receive(:upload_rc_local).with(guestfs)
         @plugin.should_receive(:enable_nosegneg_flag).with(guestfs)
@@ -238,16 +236,12 @@ module BoxGrinder
         guestfs_helper = mock("guestfsHelper")
 
         @image_helper.should_receive(:customize).with(["a/disk.raw", "build/path/ec2-plugin/tmp/full.ec2"], :automount => false).and_yield(guestfs, guestfs_helper)
-
-        guestfs.should_receive(:list_devices).with.and_return(['/dev/vda'])
-        guestfs_helper.should_receive(:mount_partition).with("/dev/vda", "/")
+        @image_helper.should_receive(:sync_filesystem).with(guestfs, guestfs_helper)
 
         guestfs.should_receive(:upload).with("/etc/resolv.conf", "/etc/resolv.conf")
         guestfs.should_receive(:mkdir).with("/data")
         guestfs.should_receive(:sh).with("yum -y remove kernel")
         guestfs.should_receive(:sh).with("yum -y install kernel-xen")
-
-        @plugin.should_receive(:sync_filesystem).with(guestfs, guestfs_helper)
 
         @plugin.should_receive(:create_devices).with(guestfs)
         @plugin.should_receive(:upload_fstab).with(guestfs)

@@ -26,8 +26,6 @@ module BoxGrinder
     end
 
     def build_rhel(appliance_definition_file, repos = {})
-      adjust_partition_table
-
       normalize_packages(@appliance_config.packages)
 
       build_with_appliance_creator(appliance_definition_file, repos) do |guestfs, guestfs_helper|
@@ -51,11 +49,6 @@ module BoxGrinder
 
     def add_packages(packages, package_array)
       package_array.each { |package| packages << package unless packages.include?(package) }
-    end
-
-    # https://bugzilla.redhat.com/show_bug.cgi?id=466275
-    def adjust_partition_table
-      @appliance_config.hardware.partitions['/boot'] = {'root' => '/boot', 'type' => 'ext3', 'size' => 0.1} if @appliance_config.hardware.partitions['/boot'].nil?
     end
 
     def execute(appliance_definition_file)

@@ -16,6 +16,7 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
+require 'rubygems'
 require 'boxgrinder-build/helpers/image-helper'
 
 module BoxGrinder
@@ -75,7 +76,7 @@ module BoxGrinder
         guestfs_helper.should_receive(:customize).with(:ide_disk => true).ordered.and_yield(guestfs, guestfs_helper)
         guestfs_helper.should_receive(:def)
 
-        GuestFSHelper.should_receive(:new).with(['disk.raw'], @appliance_config, @config,  :log => @log).and_return(guestfs_helper)
+        GuestFSHelper.should_receive(:new).with(['disk.raw'], @appliance_config, @config, :log => @log).and_return(guestfs_helper)
 
         @helper.customize(['disk.raw']) do |guestfs, guestfs_helper|
           guestfs.abc
@@ -116,6 +117,74 @@ module BoxGrinder
       it "should do nothing because destination already exists" do
         File.should_receive(:exists?).with('destination').and_return(true)
         @helper.convert_disk('a/disk', :vmdk, 'destination')
+      end
+    end
+
+    describe ".sync_filesystem" do
+      it "should sync filesystems between raw disk with two partitions and a partition image" do
+        guestfs = mock('GuestFS')
+        guestfs_helper = mock(GuestFSHelper)
+
+        @appliance_config.stub!(:default_filesystem_type).and_return('ext4')
+
+        guestfs.should_receive(:mkmountpoint).ordered.with('/in')
+        guestfs.should_receive(:mkmountpoint).ordered.with('/out')
+        guestfs.should_receive(:mkmountpoint).ordered.with('/out/in')
+
+        guestfs.should_receive(:list_devices).once.times.ordered.and_return(['/dev/vda', '/dev/vdb'])
+        guestfs.should_receive(:mkfs).ordered.with("ext4", "/dev/vdb")
+        guestfs.should_receive(:set_e2label).ordered.with("/dev/vdb", '79d3d2d4')
+
+        guestfs_helper.should_receive(:mount_partition).ordered.with("/dev/vdb", '/out/in')
+        guestfs_helper.should_receive(:mount_partitions).ordered
+        guestfs.should_receive(:list_partitions).twice.ordered.and_return(['/dev/vda1', '/dev/vda2'])
+
+        guestfs.should_receive(:cp_a).ordered.with("/in/", "/out")
+        guestfs.should_receive(:sync).ordered
+
+        guestfs.should_receive(:umount).ordered.with('/out/in')
+        guestfs_helper.should_receive(:umount_partitions).ordered
+
+        guestfs.should_receive(:rmmountpoint).ordered.with('/out/in')
+        guestfs.should_receive(:rmmountpoint).ordered.with('/out')
+        guestfs.should_receive(:rmmountpoint).ordered.with('/in')
+
+        guestfs_helper.should_receive(:mount_partition).ordered.with("/dev/vdb", '/')
+
+        @helper.sync_filesystem(guestfs, guestfs_helper)
+      end
+
+      it "should sync filesystems between partition image and another partition image" do
+        guestfs = mock('GuestFS')
+        guestfs_helper = mock(GuestFSHelper)
+
+        @appliance_config.stub!(:default_filesystem_type).and_return('ext4')
+
+        guestfs.should_receive(:mkmountpoint).ordered.with('/in')
+        guestfs.should_receive(:mkmountpoint).ordered.with('/out')
+        guestfs.should_receive(:mkmountpoint).ordered.with('/out/in')
+
+        guestfs.should_receive(:list_devices).twice.ordered.and_return(['/dev/vda', '/dev/vdb'])
+        guestfs.should_receive(:mkfs).ordered.with("ext4", "/dev/vdb")
+        guestfs.should_receive(:set_e2label).ordered.with("/dev/vdb", '79d3d2d4')
+
+        guestfs_helper.should_receive(:mount_partition).ordered.with("/dev/vdb", '/out/in')
+        guestfs_helper.should_receive(:mount_partition).ordered.with("/dev/vda", '/in')
+        guestfs.should_receive(:list_partitions).twice.ordered.and_return([])
+
+        guestfs.should_receive(:cp_a).ordered.with("/in/", "/out")
+        guestfs.should_receive(:sync).ordered
+
+        guestfs.should_receive(:umount).ordered.with('/out/in')
+        guestfs.should_receive(:umount).ordered.with('/in')
+
+        guestfs.should_receive(:rmmountpoint).ordered.with('/out/in')
+        guestfs.should_receive(:rmmountpoint).ordered.with('/out')
+        guestfs.should_receive(:rmmountpoint).ordered.with('/in')
+
+        guestfs_helper.should_receive(:mount_partition).ordered.with("/dev/vdb", '/')
+
+        @helper.sync_filesystem(guestfs, guestfs_helper)
       end
     end
   end

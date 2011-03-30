@@ -32,15 +32,10 @@ end
 options = OpenCascade.new(
     :platform => :none,
     :delivery => :none,
-    :force => false,
     :os_config => {},
     :platform_config => {},
     :delivery_config => {},
-    :additional_plugins => [],
-    :debug => false,
-    :trace => false,
-    :backtrace => false,
-    :log_level => :info
+    :additional_plugins => []
 )
 
 def validate_hash_option(options, name, value)
@@ -130,8 +125,8 @@ EOB
     opts.separator ""
     opts.separator "Logging options:"
 
-    opts.on("--debug", "Prints debug information while building. Default: false.") { |v| options[:debug] = v }
-    opts.on("--trace", "Prints trace information while building. Default: false.") { |v| options[:trace] = v }
+    opts.on("--debug", "Prints debug information while building. Default: false.") { options[:log_level] = :debug }
+    opts.on("--trace", "Prints trace information while building. Default: false.") { options[:log_level] = :trace }
     opts.on("-b", "--backtrace", "Prints full backtrace if errors occur whilst building. Default: true if console log is set to debug or trace, otherwise false.") { |v| options[:backtrace] = v }
 
     opts.separator ""
@@ -175,14 +170,11 @@ begin
     abort
   end
 
-  options.log_level = :debug if options.debug
-  options.log_level = :trace if options.trace
-  options.backtrace = :true if [:debug, :trace].include?(options.log_level)
-
-  log = BoxGrinder::LogHelper.new(:level => options.log_level)
+  config = BoxGrinder::Config.new(options)
+  log = BoxGrinder::LogHelper.new(:level => config.log_level)
 
   begin
-    BoxGrinder::Appliance.new(appliance_definition_file, BoxGrinder::Config.new(options), :log => log).create
+    BoxGrinder::Appliance.new(appliance_definition_file, config, :log => log).create
   rescue Exception => e
     if options.backtrace
       log.fatal e

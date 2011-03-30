@@ -143,6 +143,12 @@ module BoxGrinder
 
       @log.debug "Preparing guestfs..."
 
+      @log.trace "Setting libguestfs temporary directory to '#{@config.dir.tmp}'..."
+
+      FileUtils.mkdir_p(@config.dir.tmp)
+
+      ENV['TMPDIR'] = @config.dir.tmp
+
       @guestfs = pipe.nil? ? Guestfs::create : Guestfs::create.redirect(pipe)
 
       # https://bugzilla.redhat.com/show_bug.cgi?id=502058

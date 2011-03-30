@@ -110,15 +110,12 @@ module BoxGrinder
       # wait for volume to be attached
       wait_for_volume_status('in-use', volume_id)
 
-      sleep 5 # let's wait to discover the attached volume by OS 
+      sleep 10 # let's wait to discover the attached volume by OS
 
       @log.info "Copying data to EBS volume..."
 
-      @image_helper.customize([@previous_deliverables.disk, @deliverables.disk], :automount => false) do |guestfs, guestfs_helper|
-        sync_filesystem(guestfs, guestfs_helper)
-
-        # Remount the EBS volume
-        guestfs_helper.mount_partition(guestfs.list_devices.last, '/')
+      @image_helper.customize([@previous_deliverables.disk, device_for_suffix(suffix)], :automount => false) do |guestfs, guestfs_helper|
+        @image_helper.sync_filesystem(guestfs, guestfs_helper)
 
         @log.debug "Adjusting /etc/fstab..."
         adjust_fstab(guestfs)
@@ -179,45 +176,6 @@ module BoxGrinder
       @log.info "EBS AMI '#{ebs_appliance_name}' registered: #{image_id} (region: #{@region})"
     end
 
-    def sync_filesystem(guestfs, guestfs_helper)
-      @log.info "Synchronizing filesystems..."
-
-      # Create mount point in libguestfs
-      guestfs.mkmountpoint('/in')
-      guestfs.mkmountpoint('/out')
-      guestfs.mkmountpoint('/out/in')
-
-      # Create filesystem on EC2 disk
-      guestfs.mkfs(@appliance_config.hardware.partitions['/']['type'], guestfs.list_devices.last)
-      # Set EC root partition label
-      guestfs.set_e2label(guestfs.list_devices.last, '79d3d2d4') # This is a CRC32 from /
-
-      # Mount EBS volume to /out
-      guestfs_helper.mount_partition(guestfs.list_devices.last, '/out/in')
-
-      # Mount EC2 partition to /in mount point
-      guestfs_helper.mount_partition(guestfs.list_devices.first, '/in')
-
-      @log.debug "Copying files..."
-
-      # Copy the filesystem
-      guestfs.cp_a('/in/', '/out')
-
-      @log.debug "Files copied."
-
-      # Better make sure...
-      guestfs.sync
-
-      guestfs.umount('/out/in')
-      guestfs.umount('/in')
-
-      guestfs.rmmountpoint('/out/in')
-      guestfs.rmmountpoint('/out')
-      guestfs.rmmountpoint('/in')
-
-      @log.info "Filesystems synchronized."
-    end
-
     def ebs_appliance_name
       base_path = "#{@appliance_config.name}/#{@appliance_config.os.name}/#{@appliance_config.os.version}/#{@appliance_config.version}.#{@appliance_config.release}"
 
@@ -269,7 +227,7 @@ module BoxGrinder
       return "/dev/sd#{suffix}" if File.exists?("/dev/sd#{suffix}")
       return "/dev/xvd#{suffix}" if File.exists?("/dev/xvd#{suffix}")
 
-      raise "Not found device for suffix #{suffix}"
+      raise "Device for suffix '#{suffix}' not found!"
     end
 
     def free_device_suffix

@@ -17,6 +17,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder-build/plugins/base-plugin'
+require 'boxgrinder-build/helpers/linux-helper'
 
 module BoxGrinder
   class VirtualBoxPlugin < BasePlugin
@@ -28,9 +29,19 @@ module BoxGrinder
       @log.info "Converting image to VirtualBox format..."
 
       build_virtualbox
-      customize
+
+      if is_os_old? or !@appliance_config.post['virtualbox'].nil?
+        @image_helper.customize([@deliverables.disk]) do |guestfs, guestfs_helper|
+          recreate_kernel(guestfs) if is_os_old?
+          customize(guestfs_helper) unless @appliance_config.post['virtualbox'].nil?
+        end
+      end
 
       @log.info "Image converted to VirtualBox format."
+    end
+
+    def is_os_old?
+      (@appliance_config.os.name == 'centos' or @appliance_config.os.name == 'rhel') and @appliance_config.os.version == '5'
     end
 
     def build_virtualbox
@@ -43,19 +54,20 @@ module BoxGrinder
       @log.debug "VirtualBox image was built."
     end
 
-    def customize
-      unless @appliance_config.post['virtualbox'].nil?
-        @image_helper.customize(@deliverables.disk) do |guestfs, guestfs_helper|
-          @appliance_config.post['virtualbox'].each do |cmd|
-            guestfs_helper.sh(cmd, :arch => @appliance_config.hardware.arch)
-          end
-          @log.debug "Post commands from appliance definition file executed."
-        end
-      else
-        @log.debug "No commands specified, skipping."
+    def recreate_kernel(guestfs)
+      @log.info "Recreating kernel to include require modules..."
+      LinuxHelper.new(:log => @log).recreate_kernel_image(guestfs, ['ahci'])
+      @log.info "Kernel recreated."
+    end
+
+    def customize(guestfs_helper)
+      @log.debug "Executing post commands from appliance definition..."
+      @appliance_config.post['virtualbox'].each do |cmd|
+        guestfs_helper.sh(cmd, :arch => @appliance_config.hardware.arch)
       end
+      @log.debug "Post commands from appliance definition file executed."
     end
   end
 end
 
-plugin :class => BoxGrinder::VirtualBoxPlugin, :type => :platform, :name => :virtualbox, :full_name  => "VirtualBox"
+plugin :class => BoxGrinder::VirtualBoxPlugin, :type => :platform, :name => :virtualbox, :full_name => "VirtualBox"

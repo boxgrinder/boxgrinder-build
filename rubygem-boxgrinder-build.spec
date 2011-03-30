@@ -5,7 +5,7 @@
 
 Summary: A tool for creating appliances from simple plain text files
 Name: rubygem-%{gemname}
-Version: 0.9.0
+Version: 0.9.1
 Release: 1%{?dist}
 Group: Development/Languages
 License: LGPLv3+
@@ -143,6 +143,13 @@ popd
 %{gemdir}/doc/%{gemname}-%{version}
 
 %changelog
+* Thu Mar 17 2011 <mgoldman@redhat.com> - 0.9.1-1
+- Upstream release: 0.9.1
+- [BGBUILD-188] Use libuestfs instead mounting partitions manually for EC2 appliances
+- [BGBUILD-97] some filesystems dont get unmounted on BG interruption
+- [BGBUILD-155] Images built on Centos5.x (el5) for VirtualBox kernel panic (/dev/root missing)
+- [BGBUILD-190] Allow to specify kernel variant (PAE or not) for Fedora OS
+
 * Tue Mar 01 2011 <msavy@redhat.com> - 0.9.0-1
 - Upstream release: 0.9.0
 - [BGBUILD-103] README to indicate supported operating systems / requirements

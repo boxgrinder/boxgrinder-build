@@ -49,13 +49,17 @@ module BoxGrinder
       packages << '@core'
       packages << "system-config-firewall-base"
       packages << "dhclient"
-      
-      # kernel_PAE for 32 bit, kernel for 64 bit
+
       packages.delete('kernel')
       packages.delete('kernel-PAE')
-      packages << (@appliance_config.is64bit? ? "kernel" : "kernel-PAE")
+
+      if @appliance_config.is64bit?
+        packages << "kernel"
+      else
+        @appliance_config.os.pae ? packages << "kernel-PAE" : packages << "kernel"
+      end
     end
   end
 end
 
-plugin :class => BoxGrinder::FedoraPlugin, :type => :os, :name => :fedora, :full_name  => "Fedora", :versions   => ["13", "14", "15", "rawhide"]
+plugin :class => BoxGrinder::FedoraPlugin, :type => :os, :name => :fedora, :full_name => "Fedora", :versions => ["13", "14", "15", "rawhide"]

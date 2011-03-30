@@ -16,6 +16,7 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
+require 'rubygems'
 require 'boxgrinder-build/helpers/guestfs-helper'
 
 module BoxGrinder
@@ -26,6 +27,7 @@ module BoxGrinder
       @appliance_config.stub!(:hardware).and_return(:partitions => {})
 
       @config = mock('Config')
+      @config.stub!(:dir).and_return(:tmp => '/tmp')
 
       @helper = GuestFSHelper.new('a/raw/disk', @appliance_config, @config, :log => @log)
     end
