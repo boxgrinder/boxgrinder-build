@@ -19,6 +19,9 @@ Requires: ruby-libguestfs
 Requires: parted
 Requires: e2fsprogs
 
+# Fix for rubygem-aws package
+Requires: rubygem(activesupport)
+
 # For EL5
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
@@ -29,6 +32,9 @@ BuildRequires: rubygem(boxgrinder-core) >= 0.3.0
 BuildRequires: rubygem(boxgrinder-core) < 0.4.0
 BuildRequires: rubygem(echoe)
 BuildRequires: ruby-libguestfs
+
+# Fix for rubygem-aws package
+BuildRequires: rubygem(activesupport)
 
 # EBS and S3
 Requires: rubygem(amazon-ec2)
