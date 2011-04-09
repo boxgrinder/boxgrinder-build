@@ -101,7 +101,7 @@ module BoxGrinder
 
       if os_plugin.deliverables_exists?
         @log.info "Deliverables for #{os_plugin_info[:name]} operating system plugin exists, skipping."
-        return {:deliverables => os_plugin.deliverables}
+        return {:deliverables => os_plugin.deliverables, :plugin_info => os_plugin_info}
       end
 
       @log.debug "Executing operating system plugin for #{@appliance_config.os.name}..."

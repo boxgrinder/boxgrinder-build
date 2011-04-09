@@ -117,6 +117,12 @@ module BoxGrinder
       guestfs_helper.mount_partition(out_disk, '/')
     end
 
+    def create_disk(disk, size)
+      @log.trace "Preparing disk..."
+      @exec_helper.execute "dd if=/dev/zero of='#{disk}' bs=1 count=0 seek=#{(size * 1024).to_i}M"
+      @log.trace "Disk prepared"
+    end
+
     def customize(disks, options = {})
       options = {
           :ide_disk => ((@appliance_config.os.name == 'rhel' or @appliance_config.os.name == 'centos') and @appliance_config.os.version == '5') ? true : false

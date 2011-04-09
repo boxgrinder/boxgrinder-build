@@ -66,6 +66,13 @@ Requires: rsync
 Requires: wget
 Requires: util-linux
 
+# ElasticHosts
+Requires: rubygem(rest-client)
+Requires: rubygem(json)
+
+BuildRequires: rubygem(rest-client)
+BuildRequires: rubygem(json)
+
 Provides: rubygem(%{gemname}) = %{version}
 
 Obsoletes: rubygem(boxgrinder-build-ebs-delivery-plugin) < 0.0.4-2
