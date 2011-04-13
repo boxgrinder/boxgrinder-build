@@ -89,7 +89,6 @@ module BoxGrinder
         change_configuration(guestfs_helper)
         # TODO check if this is still required
         apply_root_password(guestfs)
-        fix_partition_labels(guestfs)
         use_labels_for_partitions(guestfs)
         disable_firewall(guestfs)
         set_motd(guestfs)
@@ -189,14 +188,6 @@ module BoxGrinder
 
     def read_label(guestfs, partition)
       (guestfs.respond_to?(:vfs_label) ? guestfs.vfs_label(partition) : guestfs.sh("/sbin/e2label #{partition}").chomp.strip).gsub('_', '')
-    end
-
-    def fix_partition_labels(guestfs)
-      i = 0
-      guestfs.list_partitions.each do |partition|
-        guestfs.sh("/sbin/e2label #{partition} #{Zlib.crc32(@appliance_config.hardware.partitions.keys[i]).to_s(16)}")
-        i += 1
-      end
     end
 
     def apply_root_password(guestfs)

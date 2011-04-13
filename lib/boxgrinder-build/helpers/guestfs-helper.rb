@@ -243,24 +243,32 @@ module BoxGrinder
       @log.trace "Partition mounted."
     end
 
-    # This mount partitions. We assume (correctly I hope) that the first partition is a root partition.
+    # This mount partitions. We assume that the first partition is a root partition.
     #
     def mount_partitions(mount_prefix = '')
       @log.trace "Mounting partitions..."
 
-      partitions = @guestfs.list_partitions
+      partitions = mountable_partitions
 
-      # First of all - mount root partition
-      # Root partition is always the first listed by guestfs
-      @log.trace "Mounting root partition..."
-      mount_partition(partitions.first, '/', mount_prefix)
-
-      # Remove root partition from the list
-      partitions.delete_at(0)
+      mount_points = LinuxHelper.new(:log => @log).partition_mount_points(@appliance_config.hardware.partitions)
 
       partitions.each_index do |i|
-        mount_partition(partitions[i], @appliance_config.hardware.partitions.keys[i+1], mount_prefix)
+        mount_partition(partitions[i], mount_points[i], mount_prefix)
+
+        # By the way - update the labels so we don't have to muck again with partitions
+        # this will be done for every mount, but shouldn't hurt too much.
+        @guestfs.set_e2label(partitions[i], Zlib.crc32(mount_points[i]).to_s(16))
       end
+    end
+
+    def mountable_partitions
+      partitions = @guestfs.list_partitions
+
+      # we need to remove extended partition
+      # extended partition is always #3
+      partitions.delete_at(3) if partitions.size > 4
+
+      partitions
     end
 
     # Unmounts partitions in reverse order.

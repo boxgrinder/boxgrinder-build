@@ -126,6 +126,8 @@ module BoxGrinder
       end
 
       it "should prepare and run guestfs with one partition" do
+        @appliance_config.stub!(:hardware).and_return(:partitions => {'/' => nil})
+
         guestfs = mock('Guestfs')
         guestfs.should_receive(:set_append).with('noapic')
         guestfs.should_receive(:set_verbose)
@@ -138,12 +140,14 @@ module BoxGrinder
         guestfs.should_receive(:add_drive).with('a/raw/disk')
         guestfs.should_receive(:set_network).with(1)
         guestfs.should_receive(:launch)
-        guestfs.should_receive(:list_partitions).and_return(['/'])
+        guestfs.should_receive(:list_partitions).and_return(['/dev/vda1'])
 
         Guestfs.should_receive(:create).and_return(guestfs)
 
-        guestfs.should_receive(:list_partitions).and_return(['/'])
-        @helper.should_receive(:mount_partition).with("/", "/", '')
+        guestfs.should_receive(:list_partitions).and_return(['/dev/vda1'])
+        @helper.should_receive(:mount_partition).with("/dev/vda1", "/", '')
+
+        guestfs.should_receive(:set_e2label).with("/dev/vda1", "79d3d2d4")
 
         @helper.execute.should == @helper
       end
@@ -193,18 +197,41 @@ module BoxGrinder
       @helper.mount_partition("/dev/sda", "/")
     end
 
-    it "should mount partitions" do
-      guestfs = mock('Guestfs')
 
-      @appliance_config.stub!(:hardware).and_return(:partitions => {'/' => nil, '/home' => nil})
+    describe ".mount_partitions" do
+      it "should mount partitions" do
+        guestfs = mock('Guestfs')
 
-      guestfs.should_receive(:list_partitions).and_return(['/dev/vda1', '/dev/vda2'])
+        @appliance_config.stub!(:hardware).and_return(:partitions => {'/' => nil, '/home' => nil})
+        guestfs.should_receive(:list_partitions).and_return(['/dev/vda1', '/dev/vda2'])
 
-      @helper.should_receive(:mount_partition).with('/dev/vda1', '/', '')
-      @helper.should_receive(:mount_partition).with('/dev/vda2', '/home', '')
+        @helper.should_receive(:mount_partition).with('/dev/vda1', '/', '')
+        guestfs.should_receive(:set_e2label).with("/dev/vda1", "79d3d2d4")
+        @helper.should_receive(:mount_partition).with('/dev/vda2', '/home', '')
+        guestfs.should_receive(:set_e2label).with("/dev/vda2", "d5219c04")
 
-      @helper.instance_variable_set(:@guestfs, guestfs)
-      @helper.mount_partitions
+        @helper.instance_variable_set(:@guestfs, guestfs)
+        @helper.mount_partitions
+      end
+
+      it "should mount partitions with extended partitions" do
+        guestfs = mock('Guestfs')
+
+        @appliance_config.stub!(:hardware).and_return(:partitions => {'/' => nil, '/home' => nil, '/var/www' => nil, '/var/mock' => nil})
+        guestfs.should_receive(:list_partitions).and_return(['/dev/vda1', '/dev/vda2', '/dev/vda3', '/dev/vda4', '/dev/vda5'])
+
+        @helper.should_receive(:mount_partition).with('/dev/vda1', '/', '')
+        guestfs.should_receive(:set_e2label).with("/dev/vda1", "79d3d2d4")
+        @helper.should_receive(:mount_partition).with('/dev/vda2', '/home', '')
+        guestfs.should_receive(:set_e2label).with("/dev/vda2", "d5219c04")
+        @helper.should_receive(:mount_partition).with('/dev/vda3', '/var/www', '')
+        guestfs.should_receive(:set_e2label).with("/dev/vda3", "8d86efc1")
+        @helper.should_receive(:mount_partition).with('/dev/vda5', '/var/mock', '')
+        guestfs.should_receive(:set_e2label).with("/dev/vda5", "e7b3b1f2")
+
+        @helper.instance_variable_set(:@guestfs, guestfs)
+        @helper.mount_partitions
+      end
     end
 
     it "execute a command for current arch" do

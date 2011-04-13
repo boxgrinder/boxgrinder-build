@@ -31,6 +31,8 @@ module BoxGrinder
       @dir              = dir
       @log              = options[:log] || Logger.new(STDOUT)
 
+      @linux_helper     = LinuxHelper.new(:log => @log)
+
       @kickstart_file   = "#{@dir.tmp}/#{@appliance_config.name}.ks"
     end
 
@@ -55,7 +57,7 @@ module BoxGrinder
 
       cost = 40
 
-      definition['partitions'] = @appliance_config.hardware.partitions
+      definition['mount_points'] = @linux_helper.partition_mount_points(@appliance_config.hardware.partitions)
 
       repos = []
       repos += default_repos if @appliance_config.default_repos
