@@ -55,13 +55,8 @@ module BoxGrinder
 
       @log.info "Creating new #{size} GB disk on ElasticHosts..."
 
-      json_data = {
-          :name => @plugin_config['drive_name'],
-          :size => size * 1024 *1024 * 1024
-      }.to_json
-
       ret = RestClient.post(elastichosts_api_url('/drives/create'),
-                            json_data,
+                            "{\"size\":#{size * 1024 *1024 * 1024},\"name\":\"#{@plugin_config['drive_name']}\"}",
                             :content_type => :json,
                             :accept => :json)
 
