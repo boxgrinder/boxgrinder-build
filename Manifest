@@ -4,7 +4,6 @@ Manifest
 README.md
 Rakefile
 bin/boxgrinder-build
-boxgrinder-build.gemspec
 lib/boxgrinder-build.rb
 lib/boxgrinder-build/appliance.rb
 lib/boxgrinder-build/helpers/augeas-helper.rb
@@ -16,6 +15,7 @@ lib/boxgrinder-build/helpers/plugin-helper.rb
 lib/boxgrinder-build/managers/plugin-manager.rb
 lib/boxgrinder-build/plugins/base-plugin.rb
 lib/boxgrinder-build/plugins/delivery/ebs/ebs-plugin.rb
+lib/boxgrinder-build/plugins/delivery/elastichosts/elastichosts-plugin.rb
 lib/boxgrinder-build/plugins/delivery/local/local-plugin.rb
 lib/boxgrinder-build/plugins/delivery/s3/s3-plugin.rb
 lib/boxgrinder-build/plugins/delivery/s3/src/cert-ec2.pem
@@ -55,6 +55,7 @@ spec/managers/plugin-manager-spec.rb
 spec/plugins/base-plugin-spec.rb
 spec/plugins/delivery/ebs/ebs-plugin-spec.rb
 spec/plugins/delivery/ebs/ebs.yaml
+spec/plugins/delivery/elastichosts/elastichosts-plugin-spec.rb
 spec/plugins/delivery/local/local-plugin-spec.rb
 spec/plugins/delivery/s3/s3-plugin-spec.rb
 spec/plugins/delivery/sftp/sftp-plugin-spec.rb
