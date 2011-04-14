@@ -24,14 +24,18 @@ require 'zlib'
 module BoxGrinder
   class ElasticHostsPlugin < BasePlugin
     def after_init
-      set_default_config_value('chunk', 64)
+      set_default_config_value('chunk', 64) # chunk size in MB
+      set_default_config_value('start_part', 0) # part number to start uploading
+      set_default_config_value('wait', 5) # wait time before retrying upload
+      set_default_config_value('retry', 3) # number of retries
+      set_default_config_value('ssl', false) # use SSL?
       set_default_config_value('drive_name', @appliance_config.name)
     end
 
     def execute(type = :elastichosts)
       validate_plugin_config(['endpoint', 'user_uuid', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#ElasticHosts_Delivery_Plugin')
 
-      raise "You can use ElasticHosts with base appliances created with operating system plugins only." unless @previous_plugin_info[:type] == :os
+      raise PluginValidationError, "You can use ElasticHosts with base appliances (appliances created with operating system plugins) only, see http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#ElasticHosts_Delivery_Plugin." unless @previous_plugin_info[:type] == :os
 
       @log.info "Delivering appliance to ElasticHost..."
 
@@ -51,11 +55,13 @@ module BoxGrinder
 
       @log.info "Creating new #{size} GB disk on ElasticHosts..."
 
+      json_data = {
+          :name => @plugin_config['drive_name'],
+          :size => size * 1024 *1024 * 1024
+      }.to_json
+
       ret = RestClient.post(elastichosts_api_url('/drives/create'),
-                            {
-                                :name => @plugin_config['drive_name'],
-                                :size => size * 1024 *1024 * 1024
-                            }.to_json,
+                            json_data,
                             :content_type => :json,
                             :accept => :json)
 
@@ -65,47 +71,77 @@ module BoxGrinder
     end
 
     def elastichosts_api_url(path)
-      "https://#{@plugin_config['user_uuid']}:#{@plugin_config['secret_access_key']}@#{@plugin_config['endpoint']}#{path}"
+      "#{@plugin_config['ssl'] ? 'https' : 'http'}://#{@plugin_config['user_uuid']}:#{@plugin_config['secret_access_key']}@#{@plugin_config['endpoint']}#{path}"
     end
 
     def upload
-      # Create the disk on ElasticHosts with specific size
+      # Create the disk with specific size or use already existing
       @plugin_config['drive_uuid'] = create_remote_disk unless @plugin_config['drive_uuid']
 
-      mb = @plugin_config['chunk']
-      step = mb * 1024 * 1024 # in bytes
-      part = 0
+      upload_chunks
+    end
 
-      @log.info "Uploading disk in #{disk_size * 1024 / mb} parts."
+    def upload_chunks
+      @step = @plugin_config['chunk'] * 1024 * 1024 # in bytes
+      part = @plugin_config['start_part']
+
+      @log.info "Uploading disk in #{disk_size * 1024 / @plugin_config['chunk']} parts."
 
       File.open(@previous_deliverables.disk, 'rb') do |f|
         while !f.eof?
-          f.seek(part * step, File::SEEK_SET)
+          f.seek(part * @step, File::SEEK_SET)
 
-          data = f.read(step)
-
-          io = StringIO.new
-
-          writer = Zlib::GzipWriter.new(io)
-          writer.write(data)
-          writer.close
-
-          compressed_data = io.string
-
-          @log.trace "Compressed data size to upload for part #{part+1}: #{compressed_data.length / 1024} kB."
-          @log.debug "Uploading #{part+1} part..."
-
-          RestClient.post elastichosts_api_url("/drives/#{@plugin_config['drive_uuid']}/write/#{step * part}"),
-                          compressed_data,
-                          :accept => :json,
-                          :content_type => "application/octet-stream",
-                          'Content-Encoding' => 'gzip'
+          data = compress(f.read(@step))
+          upload_chunk(data, part)
 
           part += 1
         end
       end
 
       @log.info "Appliance #{@appliance_config.name} uploaded to drive with UUID #{@plugin_config['drive_uuid']}."
+    end
+
+    def compress(data)
+      @log.trace "Compressing #{data.size / 1024} kB chunk of data..."
+
+      io = StringIO.new
+
+      writer = Zlib::GzipWriter.new(io, Zlib::DEFAULT_COMPRESSION, Zlib::FINISH)
+      writer.write(data)
+      writer.close
+
+      @log.trace "Data compressed to #{io.size / 1024} kB."
+
+      io.string
+    end
+
+    def upload_chunk(data, part)
+      try = 1
+
+      url = elastichosts_api_url("/drives/#{@plugin_config['drive_uuid']}/write/#{@step * part}")
+
+      begin
+        @log.info "Uploading part #{part+1}..."
+
+        RestClient.post url,
+                        data,
+                        :accept => :json,
+                        :content_type => "application/octet-stream",
+                        'Content-Encoding' => 'gzip'
+
+        @log.info "Part #{part+1} uploaded."
+      rescue => e
+        @log.warn "An error occured while uploading #{part} chunk, #{e.message}"
+        try += 1
+
+        unless try > @plugin_config['retry']
+          # Let's sleep for specified amount of time
+          sleep @plugin_config['wait']
+          retry
+        else
+          raise PluginError, "Couldn't upload appliance, #{e.message}."
+        end
+      end
     end
   end
 end
