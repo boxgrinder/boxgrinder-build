@@ -35,7 +35,7 @@ module BoxGrinder
 
       @log.info "Converting #{@appliance_config.name} appliance image to EC2 format..."
 
-      create_disk(@deliverables.disk, 10) # 10 GB destination disk
+      @image_helper.create_disk(@deliverables.disk, 10) # 10 GB destination disk
 
       @image_helper.customize([@previous_deliverables.disk, @deliverables.disk], :automount => false) do |guestfs, guestfs_helper|
         @image_helper.sync_filesystem(guestfs, guestfs_helper)
@@ -74,12 +74,6 @@ module BoxGrinder
       end
 
       @log.info "Image converted to EC2 format."
-    end
-
-    def create_disk(disk, size)
-      @log.trace "Preparing disk..."
-      @exec_helper.execute "dd if=/dev/zero of='#{disk}' bs=1 count=0 seek=#{(size * 1024).to_i}M"
-      @log.trace "Disk prepared"
     end
 
     def execute_post(guestfs_helper)
