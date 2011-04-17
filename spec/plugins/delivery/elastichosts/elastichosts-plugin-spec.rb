@@ -41,9 +41,10 @@ module BoxGrinder
       @appliance_config.stub!(:path).and_return(OpenCascade.new({:build => 'build/path'}))
       @appliance_config.stub!(:name).and_return('appliance')
       @appliance_config.stub!(:version).and_return(1)
+      @appliance_config.stub!(:cpus).and_return(1)
       @appliance_config.stub!(:release).and_return(0)
       @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => :fedora, :version => '13'}))
-      @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:arch => 'x86_64', :partitions => {'/' => {'size' => 1}, '/home' => {'size' => 2}}))
+      @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:cpus => 1, :arch => 'x86_64', :partitions => {'/' => {'size' => 1}, '/home' => {'size' => 2}}), :memory => 512)
 
       @plugin = ElasticHostsPlugin.new.init(@config, @appliance_config,
                                             :log => LogHelper.new(:level => :trace, :type => :stdout),
@@ -80,6 +81,7 @@ module BoxGrinder
       it "should fail because we try to upload a non-base appliance" do
         @plugin.instance_variable_set(:@previous_plugin_info, :type => :platform)
         @plugin.should_not_receive(:upload)
+        @plugin.should_not_receive(:create_server)
 
         lambda {
           @plugin.execute
@@ -87,24 +89,43 @@ module BoxGrinder
       end
 
       it "should upload the appliance" do
-
-
         @plugin.should_receive(:upload)
+        @plugin.should_receive(:create_server)
         @plugin.execute
       end
     end
 
     describe ".create_remote_disk" do
       it "should create remote disk with default name" do
-        RestClient.should_receive(:post).with("http://12345:secret_access_key@one.endpoint.somewhere.com/drives/create", "{\"size\":3221225472,\"name\":\"appliance\"}", :accept=>:json, :content_type=>:json).and_return('{"drive":"abc-1234567890-abc"}')
+        JSON.should_receive(:generate).with(:size => 3221225472, :name => 'appliance').and_return("json")
+
+        RestClient.should_receive(:post).with("http://12345:secret_access_key@one.endpoint.somewhere.com/drives/create",
+                                              "json",
+                                              :accept => :json, :content_type => :json).and_return('{"drive":"abc-1234567890-abc"}')
         @plugin.create_remote_disk.should == 'abc-1234567890-abc'
       end
 
       it "should create remote disk with custom name" do
         merge_config('drive_name' => 'thisisadrivename')
 
-        RestClient.should_receive(:post).with("http://12345:secret_access_key@one.endpoint.somewhere.com/drives/create", "{\"size\":3221225472,\"name\":\"thisisadrivename\"}", :accept=>:json, :content_type=>:json).and_return('{"drive":"abc-1234567890-abc"}')
+        JSON.should_receive(:generate).with({:size => 3221225472, :name => 'thisisadrivename'}).and_return("json")
+
+        RestClient.should_receive(:post).with("http://12345:secret_access_key@one.endpoint.somewhere.com/drives/create",
+                                              "json",
+                                              :accept=>:json, :content_type=>:json).and_return('{"drive":"abc-1234567890-abc"}')
         @plugin.create_remote_disk.should == 'abc-1234567890-abc'
+      end
+
+      it "should catch remote disk creation error" do
+        JSON.should_receive(:generate).with({:size => 3221225472, :name => 'appliance'}).and_return("json")
+
+        RestClient.should_receive(:post).with("http://12345:secret_access_key@one.endpoint.somewhere.com/drives/create",
+                                              "json",
+                                              :accept=>:json, :content_type=>:json).and_raise('boom')
+
+        lambda {
+          @plugin.create_remote_disk
+        }.should raise_error(PluginError, 'An error occured while creating the drive, boom. See logs for more info.')
       end
     end
 
@@ -224,6 +245,45 @@ module BoxGrinder
         lambda {
           @plugin.upload_chunk("data", 0)
         }.should raise_error(PluginError, "Couldn't upload appliance, boom.")
+      end
+    end
+
+    describe ".create_server" do
+      before(:each) do
+        merge_config('drive_uuid' => '12345-asdf')
+
+        JSON.should_receive(:generate).with(
+            :name => "appliance-1.0",
+            :cpu => 1000,
+            :smp => 'auto',
+            :mem => 512,
+            :persistent => 'true',
+            'ide:0:0' => '12345-asdf',
+            :boot => 'ide:0:0',
+            'nic:0:model' => 'e1000',
+            'nic:0:dhcp' => 'auto',
+            'vnc:ip' => 'auto',
+            'vnc:password' => an_instance_of(String)
+        ).and_return("json")
+      end
+
+      it "should create the server without issues" do
+        RestClient.should_receive(:post).with("http://12345:secret_access_key@one.endpoint.somewhere.com/servers/create/stopped",
+                                              "json",
+                                              :accept=>:json, :content_type=>:json).and_return('{"server":"abc-1234567890-abc", "name":"appliance-1.0"}')
+
+        @plugin.create_server
+      end
+
+
+      it "should catch remote disk creation error" do
+        RestClient.should_receive(:post).with("http://12345:secret_access_key@one.endpoint.somewhere.com/servers/create/stopped",
+                                              "json",
+                                              :accept=>:json, :content_type=>:json).and_raise('boom')
+
+        lambda {
+          @plugin.create_server
+        }.should raise_error(PluginError, 'An error occured while creating the server, boom. See logs for more info.')
       end
     end
   end

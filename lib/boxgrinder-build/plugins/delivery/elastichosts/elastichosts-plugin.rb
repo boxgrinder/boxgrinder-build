@@ -37,11 +37,8 @@ module BoxGrinder
 
       raise PluginValidationError, "You can use ElasticHosts with base appliances (appliances created with operating system plugins) only, see http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#ElasticHosts_Delivery_Plugin." unless @previous_plugin_info[:type] == :os
 
-      @log.info "Delivering appliance to ElasticHost..."
-
       upload
-
-      @log.info "Appliance delivered to ElasticHost."
+      create_server
     end
 
     def disk_size
@@ -55,14 +52,25 @@ module BoxGrinder
 
       @log.info "Creating new #{size} GB disk on ElasticHosts..."
 
-      ret = RestClient.post(elastichosts_api_url('/drives/create'),
-                            "{\"size\":#{size * 1024 *1024 * 1024},\"name\":\"#{@plugin_config['drive_name']}\"}",
-                            :content_type => :json,
-                            :accept => :json)
+      body = JSON.generate(
+          :size => size * 1024 *1024 * 1024,
+          :name => @plugin_config['drive_name']
+      )
 
-      @log.info "Disk created."
+      begin
+        ret = JSON.parse(RestClient.post(elastichosts_api_url('/drives/create'),
+                                         body,
+                                         :content_type => :json,
+                                         :accept => :json))
 
-      JSON.parse(ret)['drive']
+
+        @log.info "Disk created with UUID: #{ret['drive']}."
+      rescue => e
+        @log.error e.info
+        raise PluginError, "An error occured while creating the drive, #{e.message}. See logs for more info."
+      end
+
+      ret['drive']
     end
 
     def elastichosts_api_url(path)
@@ -70,10 +78,14 @@ module BoxGrinder
     end
 
     def upload
+      @log.info "Uploading appliance..."
+
       # Create the disk with specific size or use already existing
       @plugin_config['drive_uuid'] = create_remote_disk unless @plugin_config['drive_uuid']
 
       upload_chunks
+
+      @log.info "Appliance uploaded."
     end
 
     def upload_chunks
@@ -134,8 +146,40 @@ module BoxGrinder
           sleep @plugin_config['wait']
           retry
         else
+          @log.error e.info
           raise PluginError, "Couldn't upload appliance, #{e.message}."
         end
+      end
+    end
+
+    # Creates the server for previously uploaded disk
+    def create_server
+      @log.info "Creating new server..."
+
+      body = JSON.generate(
+          :name => "#{@appliance_config.name}-#{@appliance_config.version}.#{@appliance_config.release}",
+          :cpu => @appliance_config.hardware.cpus * 1000, # MHz
+          :smp => 'auto',
+          :mem => @appliance_config.hardware.memory,
+          :persistent => 'true', # hack
+          'ide:0:0' => @plugin_config['drive_uuid'],
+          :boot => 'ide:0:0',
+          'nic:0:model' => 'e1000',
+          'nic:0:dhcp' => 'auto',
+          'vnc:ip' => 'auto',
+          'vnc:password' => (0...8).map { (('a'..'z').to_a + ('A'..'Z').to_a)[rand(52)] }.join # 8 character VNC password
+      )
+
+      begin
+        ret =JSON.parse(RestClient.post(elastichosts_api_url('/servers/create/stopped'),
+                                        body,
+                                        :content_type => :json,
+                                        :accept => :json))
+
+        @log.info "Server was registered with '#{ret['name']}' name as '#{ret['server']}' UUID. Use web UI or API tools to start your server."
+      rescue => e
+        @log.error e.info
+        raise PluginError, "An error occured while creating the server, #{e.message}. See logs for more info."
       end
     end
   end
