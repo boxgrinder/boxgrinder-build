@@ -18,7 +18,6 @@
 
 require 'boxgrinder-build/plugins/base-plugin'
 require 'restclient'
-require 'json'
 require 'zlib'
 
 module BoxGrinder
@@ -35,7 +34,7 @@ module BoxGrinder
     def execute(type = :elastichosts)
       validate_plugin_config(['endpoint', 'user_uuid', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#ElasticHosts_Delivery_Plugin')
 
-      raise PluginValidationError, "You can use ElasticHosts with base appliances (appliances created with operating system plugins) only, see http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#ElasticHosts_Delivery_Plugin." unless @previous_plugin_info[:type] == :os
+      raise PluginValidationError, "You can use ElasticHosts plugin with base appliances (appliances created with operating system plugins) only, see http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#ElasticHosts_Delivery_Plugin." unless @previous_plugin_info[:type] == :os
 
       upload
       create_server
@@ -47,21 +46,39 @@ module BoxGrinder
       size
     end
 
+    def hash_to_request(h)
+      body = ""
+
+      h.each do |k, v|
+        body << "#{k} #{v.to_s}\n"
+      end
+
+      body
+    end
+
+    def response_to_hash(r)
+      h = {}
+
+      r.each_line do |l|
+        h[$1] = $2 if l =~ /(\w+) (.*)/
+      end
+
+      h
+    end
+
     def create_remote_disk
       size = disk_size
 
-      @log.info "Creating new #{size} GB disk on ElasticHosts..."
+      @log.info "Creating new #{size} GB disk..."
 
-      body = JSON.generate(
-          :size => size * 1024 *1024 * 1024,
-          :name => @plugin_config['drive_name']
+
+      body = hash_to_request(
+          'size' => size * 1024 *1024 * 1024,
+          'name' => @plugin_config['drive_name']
       )
 
       begin
-        ret = JSON.parse(RestClient.post(elastichosts_api_url('/drives/create'),
-                                         body,
-                                         :content_type => :json,
-                                         :accept => :json))
+        ret = response_to_hash(RestClient.post(api_url('/drives/create'), body))
 
 
         @log.info "Disk created with UUID: #{ret['drive']}."
@@ -73,7 +90,7 @@ module BoxGrinder
       ret['drive']
     end
 
-    def elastichosts_api_url(path)
+    def api_url(path)
       "#{@plugin_config['ssl'] ? 'https' : 'http'}://#{@plugin_config['user_uuid']}:#{@plugin_config['secret_access_key']}@#{@plugin_config['endpoint']}#{path}"
     end
 
@@ -125,14 +142,13 @@ module BoxGrinder
     def upload_chunk(data, part)
       try = 1
 
-      url = elastichosts_api_url("/drives/#{@plugin_config['drive_uuid']}/write/#{@step * part}")
+      url = api_url("/drives/#{@plugin_config['drive_uuid']}/write/#{@step * part}")
 
       begin
         @log.info "Uploading part #{part+1}..."
 
         RestClient.post url,
                         data,
-                        :accept => :json,
                         :content_type => "application/octet-stream",
                         'Content-Encoding' => 'gzip'
 
@@ -156,14 +172,14 @@ module BoxGrinder
     def create_server
       @log.info "Creating new server..."
 
-      body = JSON.generate(
-          :name => "#{@appliance_config.name}-#{@appliance_config.version}.#{@appliance_config.release}",
-          :cpu => @appliance_config.hardware.cpus * 1000, # MHz
-          :smp => 'auto',
-          :mem => @appliance_config.hardware.memory,
-          :persistent => 'true', # hack
+      body = hash_to_request(
+          'name' => "#{@appliance_config.name}-#{@appliance_config.version}.#{@appliance_config.release}",
+          'cpu' => @appliance_config.hardware.cpus * 1000, # MHz
+          'smp' => 'auto',
+          'mem' => @appliance_config.hardware.memory,
+          'persistent' => 'true', # hack
           'ide:0:0' => @plugin_config['drive_uuid'],
-          :boot => 'ide:0:0',
+          'boot' => 'ide:0:0',
           'nic:0:model' => 'e1000',
           'nic:0:dhcp' => 'auto',
           'vnc:ip' => 'auto',
@@ -171,10 +187,8 @@ module BoxGrinder
       )
 
       begin
-        ret =JSON.parse(RestClient.post(elastichosts_api_url('/servers/create/stopped'),
-                                        body,
-                                        :content_type => :json,
-                                        :accept => :json))
+        path = (@plugin_config['endpoint'] =~ /cloudsigma\.com$/) ? '/servers/create' : '/servers/create/stopped'
+        ret = response_to_hash(RestClient.post(api_url(path), body))
 
         @log.info "Server was registered with '#{ret['name']}' name as '#{ret['server']}' UUID. Use web UI or API tools to start your server."
       rescue => e

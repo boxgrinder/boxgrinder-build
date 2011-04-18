@@ -68,10 +68,8 @@ Requires: util-linux
 
 # ElasticHosts
 Requires: rubygem(rest-client)
-Requires: rubygem(json)
 
 BuildRequires: rubygem(rest-client)
-BuildRequires: rubygem(json)
 
 Provides: rubygem(%{gemname}) = %{version}
 

@@ -64,12 +64,12 @@ module BoxGrinder
 
     describe ".elastichosts_api_url" do
       it "should return valid url for default schema" do
-        @plugin.elastichosts_api_url('/drive/1').should == 'http://12345:secret_access_key@one.endpoint.somewhere.com/drive/1'
+        @plugin.api_url('/drive/1').should == 'http://12345:secret_access_key@one.endpoint.somewhere.com/drive/1'
       end
 
       it "should return valid url for SSL" do
         merge_config('ssl' => true)
-        @plugin.elastichosts_api_url('/drive/1').should == 'https://12345:secret_access_key@one.endpoint.somewhere.com/drive/1'
+        @plugin.api_url('/drive/1').should == 'https://12345:secret_access_key@one.endpoint.somewhere.com/drive/1'
       end
     end
 
@@ -85,7 +85,7 @@ module BoxGrinder
 
         lambda {
           @plugin.execute
-        }.should raise_error(PluginValidationError, 'You can use ElasticHosts with base appliances (appliances created with operating system plugins) only, see http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#ElasticHosts_Delivery_Plugin.')
+        }.should raise_error(PluginValidationError, 'You can use ElasticHosts plugin with base appliances (appliances created with operating system plugins) only, see http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#ElasticHosts_Delivery_Plugin.')
       end
 
       it "should upload the appliance" do
@@ -95,33 +95,34 @@ module BoxGrinder
       end
     end
 
+    it "should convert hash to request" do
+      @plugin.hash_to_request('abc' => 'def', 'one' => 1234).should == "abc def\none 1234\n"
+    end
+
     describe ".create_remote_disk" do
       it "should create remote disk with default name" do
-        JSON.should_receive(:generate).with(:size => 3221225472, :name => 'appliance').and_return("json")
+        @plugin.should_receive(:hash_to_request).with('size' => 3221225472, 'name' => 'appliance').and_return("json")
 
         RestClient.should_receive(:post).with("http://12345:secret_access_key@one.endpoint.somewhere.com/drives/create",
-                                              "json",
-                                              :accept => :json, :content_type => :json).and_return('{"drive":"abc-1234567890-abc"}')
+                                              "json").and_return("drive abc-1234567890-abc\n")
         @plugin.create_remote_disk.should == 'abc-1234567890-abc'
       end
 
       it "should create remote disk with custom name" do
         merge_config('drive_name' => 'thisisadrivename')
 
-        JSON.should_receive(:generate).with({:size => 3221225472, :name => 'thisisadrivename'}).and_return("json")
+        @plugin.should_receive(:hash_to_request).with('size' => 3221225472, 'name' => 'thisisadrivename').and_return("json")
 
         RestClient.should_receive(:post).with("http://12345:secret_access_key@one.endpoint.somewhere.com/drives/create",
-                                              "json",
-                                              :accept=>:json, :content_type=>:json).and_return('{"drive":"abc-1234567890-abc"}')
+                                              "json").and_return("drive abc-1234567890-abc\n")
         @plugin.create_remote_disk.should == 'abc-1234567890-abc'
       end
 
       it "should catch remote disk creation error" do
-        JSON.should_receive(:generate).with({:size => 3221225472, :name => 'appliance'}).and_return("json")
+        @plugin.should_receive(:hash_to_request).with('size' => 3221225472, 'name' => 'appliance').and_return("json")
 
         RestClient.should_receive(:post).with("http://12345:secret_access_key@one.endpoint.somewhere.com/drives/create",
-                                              "json",
-                                              :accept=>:json, :content_type=>:json).and_raise('boom')
+                                              "json").and_raise('boom')
 
         lambda {
           @plugin.create_remote_disk
@@ -211,23 +212,23 @@ module BoxGrinder
       end
 
       it "should upload a chunk of data" do
-        @plugin.should_receive(:elastichosts_api_url).with('/drives/drive-uuid/write/134217728').and_return('url')
-        RestClient.should_receive(:post).with('url', 'data', :accept=>:json, :content_type=>"application/octet-stream", "Content-Encoding"=>"gzip")
+        @plugin.should_receive(:api_url).with('/drives/drive-uuid/write/134217728').and_return('url')
+        RestClient.should_receive(:post).with('url', 'data', :content_type=>"application/octet-stream", "Content-Encoding"=>"gzip")
         @plugin.upload_chunk("data", 1)
       end
 
       it "should upload a chunk of data and be succesful after 1 retry" do
-        @plugin.should_receive(:elastichosts_api_url).with('/drives/drive-uuid/write/0').and_return('url')
-        RestClient.should_receive(:post).with('url', 'data', :accept=>:json, :content_type=>"application/octet-stream", "Content-Encoding"=>"gzip").and_raise('boom')
+        @plugin.should_receive(:api_url).with('/drives/drive-uuid/write/0').and_return('url')
+        RestClient.should_receive(:post).with('url', 'data', :content_type=>"application/octet-stream", "Content-Encoding"=>"gzip").and_raise('boom')
         @plugin.should_receive(:sleep).with(5)
-        RestClient.should_receive(:post).with('url', 'data', :accept=>:json, :content_type=>"application/octet-stream", "Content-Encoding"=>"gzip")
+        RestClient.should_receive(:post).with('url', 'data', :content_type=>"application/octet-stream", "Content-Encoding"=>"gzip")
 
         @plugin.upload_chunk("data", 0)
       end
 
       it "should fail the upload after 3 retries" do
-        @plugin.should_receive(:elastichosts_api_url).with('/drives/drive-uuid/write/0').and_return('url')
-        RestClient.should_receive(:post).exactly(3).times.with('url', 'data', :accept=>:json, :content_type=>"application/octet-stream", "Content-Encoding"=>"gzip").and_raise('boom')
+        @plugin.should_receive(:api_url).with('/drives/drive-uuid/write/0').and_return('url')
+        RestClient.should_receive(:post).exactly(3).times.with('url', 'data', :content_type=>"application/octet-stream", "Content-Encoding"=>"gzip").and_raise('boom')
         @plugin.should_receive(:sleep).exactly(2).times.with(5)
 
         lambda {
@@ -238,8 +239,8 @@ module BoxGrinder
       it "should fail the upload after custom sleep time and retry count" do
         merge_config('retry' => 5, 'wait' => 30)
 
-        @plugin.should_receive(:elastichosts_api_url).with('/drives/drive-uuid/write/0').and_return('url')
-        RestClient.should_receive(:post).exactly(5).times.with('url', 'data', :accept=>:json, :content_type=>"application/octet-stream", "Content-Encoding"=>"gzip").and_raise('boom')
+        @plugin.should_receive(:api_url).with('/drives/drive-uuid/write/0').and_return('url')
+        RestClient.should_receive(:post).exactly(5).times.with('url', 'data', :content_type=>"application/octet-stream", "Content-Encoding"=>"gzip").and_raise('boom')
         @plugin.should_receive(:sleep).exactly(4).times.with(30)
 
         lambda {
@@ -252,14 +253,15 @@ module BoxGrinder
       before(:each) do
         merge_config('drive_uuid' => '12345-asdf')
 
-        JSON.should_receive(:generate).with(
-            :name => "appliance-1.0",
-            :cpu => 1000,
-            :smp => 'auto',
-            :mem => 512,
-            :persistent => 'true',
+
+        @plugin.should_receive(:hash_to_request).with(
+            'name' => "appliance-1.0",
+            'cpu' => 1000,
+            'smp' => 'auto',
+            'mem' => 512,
+            'persistent' => 'true',
             'ide:0:0' => '12345-asdf',
-            :boot => 'ide:0:0',
+            'boot' => 'ide:0:0',
             'nic:0:model' => 'e1000',
             'nic:0:dhcp' => 'auto',
             'vnc:ip' => 'auto',
@@ -269,17 +271,23 @@ module BoxGrinder
 
       it "should create the server without issues" do
         RestClient.should_receive(:post).with("http://12345:secret_access_key@one.endpoint.somewhere.com/servers/create/stopped",
-                                              "json",
-                                              :accept=>:json, :content_type=>:json).and_return('{"server":"abc-1234567890-abc", "name":"appliance-1.0"}')
+                                              "json").and_return("server abc-1234567890-abc\nname appliance-1.0\n")
 
         @plugin.create_server
       end
 
+      it "should create the server without issues for cloudsigma cloud" do
+        merge_config('endpoint' => 'api.cloudsigma.com')
+
+        RestClient.should_receive(:post).with("http://12345:secret_access_key@api.cloudsigma.com/servers/create",
+                                              "json").and_return("server abc-1234567890-abc\nname appliance-1.0\n")
+
+        @plugin.create_server
+      end
 
       it "should catch remote disk creation error" do
         RestClient.should_receive(:post).with("http://12345:secret_access_key@one.endpoint.somewhere.com/servers/create/stopped",
-                                              "json",
-                                              :accept=>:json, :content_type=>:json).and_raise('boom')
+                                              "json").and_raise('boom')
 
         lambda {
           @plugin.create_server
