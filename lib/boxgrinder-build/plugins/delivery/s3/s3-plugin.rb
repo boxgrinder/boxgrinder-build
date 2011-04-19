@@ -21,6 +21,7 @@ require 'boxgrinder-build/plugins/base-plugin'
 require 'boxgrinder-build/helpers/package-helper'
 require 'AWS'
 require 'aws'
+require 'uri'
 
 # TODO remove this when it'll become not necessary
 # quick fix for old active_support require issue in EPEL 5
@@ -149,7 +150,8 @@ module BoxGrinder
     end
 
     def bucket(create_if_missing = true, permissions = 'private')
-      @s3 ||= Aws::S3.new(@plugin_config['access_key'], @plugin_config['secret_access_key'], :connection_mode => :single, :logger => @log, :server => REGION_OPTIONS[@plugin_config['region']][:endpoint])
+      parsed_url = URI.parse(@plugin_config['s3_url'])
+      @s3 ||= Aws::S3.new(@plugin_config['access_key'], @plugin_config['secret_access_key'], :connection_mode => :single, :logger => @log, :server => parsed_url.host, :port => parsed_url.port, :service => parsed_url.path, :protocol => parsed_url.scheme, :virtual_hosting => true)
 
       bucket_options = {}
       bucket_options[:location] = REGION_OPTIONS[@plugin_config['region']][:location] if is_ec2?

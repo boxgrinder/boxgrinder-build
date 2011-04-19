@@ -4,6 +4,7 @@ Manifest
 README.md
 Rakefile
 bin/boxgrinder-build
+boxgrinder-build.gemspec
 lib/boxgrinder-build.rb
 lib/boxgrinder-build/appliance.rb
 lib/boxgrinder-build/helpers/augeas-helper.rb
