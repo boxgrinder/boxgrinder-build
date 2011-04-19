@@ -23,7 +23,7 @@ module BoxGrinder
   describe LinuxHelper do
 
     before(:each) do
-      @helper = LinuxHelper.new( :log => Logger.new('/dev/null') )
+      @helper = LinuxHelper.new(:log => Logger.new('/dev/null'))
 
       @log = @helper.instance_variable_get(:@log)
     end
@@ -31,13 +31,13 @@ module BoxGrinder
     it "should return valid kernel version" do
       guestfs = mock("guestfs")
       guestfs.should_receive(:ls).with('/lib/modules').and_return(['2.6.33.6-147.fc13.i686'])
-      @helper.kernel_version( guestfs ).should == '2.6.33.6-147.fc13.i686'
+      @helper.kernel_version(guestfs).should == '2.6.33.6-147.fc13.i686'
     end
 
     it "should return valid PAE kernel version" do
       guestfs = mock("guestfs")
       guestfs.should_receive(:ls).with('/lib/modules').and_return(['2.6.33.6-147.fc13.i686.PAE', '2.6.33.6-147.fc13.i686'])
-      @helper.kernel_version( guestfs ).should == '2.6.33.6-147.fc13.i686.PAE'
+      @helper.kernel_version(guestfs).should == '2.6.33.6-147.fc13.i686.PAE'
     end
 
     it "should recreate initramfs kernel image using dracut and add xennet module" do
@@ -49,7 +49,7 @@ module BoxGrinder
       guestfs.should_receive(:exists).with('/sbin/dracut').and_return(1)
       guestfs.should_receive(:sh).with("/sbin/dracut -f -v --add-drivers xennet /boot/initramfs-2.6.33.6-147.fc13.i686.PAE.img 2.6.33.6-147.fc13.i686.PAE")
 
-      @helper.recreate_kernel_image( guestfs, ['xennet'] )
+      @helper.recreate_kernel_image(guestfs, ['xennet'])
     end
 
     it "should recreate initrd kernel image using mkinitrd and add xenblk and xennet module" do
@@ -61,9 +61,25 @@ module BoxGrinder
       guestfs.should_receive(:exists).with('/sbin/dracut').and_return(0)
       guestfs.should_receive(:sh).with("/sbin/mkinitrd -f -v --preload=xenblk --preload=xennet /boot/initrd-2.6.33.6-147.fc13.i686.PAE.img 2.6.33.6-147.fc13.i686.PAE")
 
-      @helper.recreate_kernel_image( guestfs, ['xenblk', 'xennet'] )
+      @helper.recreate_kernel_image(guestfs, ['xenblk', 'xennet'])
     end
 
+    describe ".partition_mount_points" do
+      it "should return ['/', '/home']" do
+        hash = {"/"=>{"size"=>2, "type"=>"ext3"}, "/home"=>{"size"=>2, "type"=>"ext3"}}
+        @helper.partition_mount_points(hash).should == ['/', '/home']
+      end
+
+      it "should return ['/', '/ubrc', '/tmp-config', '/tmp-eventlog']" do
+        hash = {"/tmp-eventlog"=>{"size"=>0.01, "type"=>"ext3"}, "/"=>{"size"=>2, "type"=>"ext3"}, "/ubrc"=>{"size"=>0.02, "type"=>"ext3"}, "/tmp-config"=>{"size"=>0.26}}
+        @helper.partition_mount_points(hash).should == ["/", "/ubrc", "/tmp-config", "/tmp-eventlog"]
+      end
+
+      it "should return ['/', '/tmp-config', '/tmp-eventlog', '/var/www']" do
+        hash = {"/tmp-eventlog"=>{}, "/"=>{}, "/var/www"=>{}, "/tmp-config"=>{}}
+        @helper.partition_mount_points(hash).should == ['/', '/tmp-config', '/tmp-eventlog', '/var/www']
+      end
+    end
   end
 end
 

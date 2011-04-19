@@ -100,7 +100,6 @@ module BoxGrinder
 
         @appliance_config.stub!(:packages).and_return([])
 
-        @plugin.should_receive(:adjust_partition_table).ordered
         @plugin.should_receive(:normalize_packages).ordered
 
         guestfs = mock('guestfs')
@@ -118,7 +117,6 @@ module BoxGrinder
 
         @appliance_config.stub!(:packages).and_return(['kernel-xen'])
 
-        @plugin.should_receive(:adjust_partition_table).ordered
         @plugin.should_receive(:normalize_packages).ordered
 
         guestfs = mock('guestfs')
@@ -134,7 +132,6 @@ module BoxGrinder
       it "should build the appliance" do
         @appliance_config.should_receive(:packages).and_return(['kernel'])
 
-        @plugin.should_receive(:adjust_partition_table).ordered
         @plugin.should_receive(:normalize_packages).ordered
         @plugin.should_receive(:build_with_appliance_creator).ordered
 
@@ -142,18 +139,6 @@ module BoxGrinder
 
         @plugin.execute('file')
       end
-    end
-
-    it "should adjust partition table for RHEL 5" do
-      @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'rhel', :version => '5'}))
-
-      @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:partitions => {'/' => {'size' => 2}}))
-
-      @plugin.adjust_partition_table
-
-      @appliance_config.hardware.partitions.size.should == 2
-      @appliance_config.hardware.partitions['/']['size'].should == 2
-      @appliance_config.hardware.partitions['/boot']['size'].should == 0.1
     end
   end
 end

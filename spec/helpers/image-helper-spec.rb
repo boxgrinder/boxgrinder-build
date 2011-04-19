@@ -131,7 +131,7 @@ module BoxGrinder
         guestfs.should_receive(:mkmountpoint).ordered.with('/out')
         guestfs.should_receive(:mkmountpoint).ordered.with('/out/in')
 
-        guestfs.should_receive(:list_devices).exactly(4).times.ordered.and_return(['/dev/vda', '/dev/vdb'])
+        guestfs.should_receive(:list_devices).once.times.ordered.and_return(['/dev/vda', '/dev/vdb'])
         guestfs.should_receive(:mkfs).ordered.with("ext4", "/dev/vdb")
         guestfs.should_receive(:set_e2label).ordered.with("/dev/vdb", '79d3d2d4')
 
@@ -164,7 +164,7 @@ module BoxGrinder
         guestfs.should_receive(:mkmountpoint).ordered.with('/out')
         guestfs.should_receive(:mkmountpoint).ordered.with('/out/in')
 
-        guestfs.should_receive(:list_devices).exactly(5).times.ordered.and_return(['/dev/vda', '/dev/vdb'])
+        guestfs.should_receive(:list_devices).twice.ordered.and_return(['/dev/vda', '/dev/vdb'])
         guestfs.should_receive(:mkfs).ordered.with("ext4", "/dev/vdb")
         guestfs.should_receive(:set_e2label).ordered.with("/dev/vdb", '79d3d2d4')
 

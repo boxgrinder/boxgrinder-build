@@ -169,9 +169,9 @@ module BoxGrinder
 
       vmx_file.scan(/^guestOS = "(.*)"\s?$/).to_s.should == "linux"
       vmx_file.scan(/^displayName = "(.*)"\s?$/).to_s.should == "full"
-      vmx_file.scan(/^annotation = "(.*)"\s?$/).to_s.scan(/^A full appliance definition | Version: 1\.0 | Built by: BoxGrinder 1\.0\.0/).should_not == nil
+      vmx_file.scan(/^annotation = "(.*)"\s?$/).to_s.scan(/^full | Version: 1\.0 | Built by: BoxGrinder 1\.0\.0/).should_not == nil
       vmx_file.scan(/^guestinfo.vmware.product.long = "(.*)"\s?$/).to_s.should == "full"
-      vmx_file.scan(/^guestinfo.vmware.product.url = "(.*)"\s?$/).to_s.should == "http://www.jboss.org/boxgrinder"
+      vmx_file.scan(/^guestinfo.vmware.product.url = "(.*)"\s?$/).to_s.should == "http://boxgrinder.org"
       vmx_file.scan(/^numvcpus = "(.*)"\s?$/).to_s.should == "1"
       vmx_file.scan(/^memsize = "(.*)"\s?$/).to_s.should == "256"
       vmx_file.scan(/^log.fileName = "(.*)"\s?$/).to_s.should == "full.log"

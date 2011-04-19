@@ -197,13 +197,12 @@ module BoxGrinder
 
         LinuxHelper.should_receive(:new).with(:log => @log).and_return(linux_helper)
 
-        @plugin.should_receive(:create_disk).with("build/path/ec2-plugin/tmp/full.ec2", 10)
-
         guestfs = mock("guestfs")
         guestfs_helper = mock("guestfsHelper")
 
         @image_helper.should_receive(:customize).with(["a/disk.raw", "build/path/ec2-plugin/tmp/full.ec2"], :automount => false).and_yield(guestfs, guestfs_helper)
         @image_helper.should_receive(:sync_filesystem).with(guestfs, guestfs_helper)
+        @image_helper.should_receive(:create_disk).with("build/path/ec2-plugin/tmp/full.ec2", 10)
 
         guestfs.should_receive(:upload).with("/etc/resolv.conf", "/etc/resolv.conf")
         @plugin.should_receive(:create_devices).with(guestfs)
@@ -230,13 +229,12 @@ module BoxGrinder
 
         LinuxHelper.should_receive(:new).with(:log => @log).and_return(linux_helper)
 
-        @plugin.should_receive(:create_disk).with("build/path/ec2-plugin/tmp/full.ec2", 10)
-
         guestfs = mock("guestfs")
         guestfs_helper = mock("guestfsHelper")
 
         @image_helper.should_receive(:customize).with(["a/disk.raw", "build/path/ec2-plugin/tmp/full.ec2"], :automount => false).and_yield(guestfs, guestfs_helper)
         @image_helper.should_receive(:sync_filesystem).with(guestfs, guestfs_helper)
+        @image_helper.should_receive(:create_disk).with("build/path/ec2-plugin/tmp/full.ec2", 10)
 
         guestfs.should_receive(:upload).with("/etc/resolv.conf", "/etc/resolv.conf")
         guestfs.should_receive(:mkdir).with("/data")
@@ -266,8 +264,7 @@ module BoxGrinder
 
         LinuxHelper.should_receive(:new).with(:log => @log).and_return(linux_helper)
 
-        @plugin.should_receive(:create_disk).with("build/path/ec2-plugin/tmp/full.ec2", 10).and_raise("Boom")
-
+        @image_helper.should_receive(:create_disk).with("build/path/ec2-plugin/tmp/full.ec2", 10).and_raise("Boom")
         @image_helper.should_not_receive(:customize)
 
         lambda {

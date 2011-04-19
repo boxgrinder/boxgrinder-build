@@ -20,13 +20,33 @@ require 'boxgrinder-core/helpers/log-helper'
 
 module BoxGrinder
   class LinuxHelper
-    def initialize( options = {} )
+    def initialize(options = {})
       @log = options[:log] || LogHelper.new
     end
 
-    def kernel_version( guestfs )
+    # Returns valid array of sorted mount points
+    #
+    # ['/', '/home'] => ['/', '/home']
+    # ['/tmp-eventlog', '/', '/ubrc', '/tmp-config'] => ['/', '/ubrc', '/tmp-config', '/tmp-eventlog']
+    #
+    def partition_mount_points(partitions)
+      partitions.keys.sort do |a, b|
+        if a.count('/') > b.count('/')
+          v = 1
+        else
+          if a.count('/') < b.count('/')
+            v = -1
+          else
+            v = a.length <=> b.length
+          end
+        end
+        v
+      end
+    end
+
+    def kernel_version(guestfs)
       kernel_versions = guestfs.ls("/lib/modules")
-      version         = kernel_versions.last
+      version = kernel_versions.last
 
       if kernel_versions.size > 1
         kernel_versions.each do |v|
@@ -40,19 +60,19 @@ module BoxGrinder
       version
     end
 
-    def kernel_image_name( guestfs )
+    def kernel_image_name(guestfs)
       guestfs.sh("ls -1 /boot | grep initramfs | wc -l").chomp.strip.to_i > 0 ? "initramfs" : "initrd"
     end
 
-    def recreate_kernel_image( guestfs, modules = [] )
-      kernel_version      = kernel_version( guestfs )
-      kernel_image_name   = kernel_image_name( guestfs )
+    def recreate_kernel_image(guestfs, modules = [])
+      kernel_version = kernel_version(guestfs)
+      kernel_image_name = kernel_image_name(guestfs)
 
       if guestfs.exists("/sbin/dracut") != 0
         command = "/sbin/dracut -f -v --add-drivers #{modules.join(' ')}"
       else
         drivers_argument = ""
-        modules.each { |mod| drivers_argument  << " --preload=#{mod}" }
+        modules.each { |mod| drivers_argument << " --preload=#{mod}" }
 
         command = "/sbin/mkinitrd -f -v#{drivers_argument}"
       end
@@ -60,7 +80,7 @@ module BoxGrinder
       @log.trace "Additional modules to preload in kernel: #{modules.join(', ')}"
 
       @log.debug "Recreating kernel image for #{kernel_version} kernel..."
-      guestfs.sh( "#{command} /boot/#{kernel_image_name}-#{kernel_version}.img #{kernel_version}" )
+      guestfs.sh("#{command} /boot/#{kernel_image_name}-#{kernel_version}.img #{kernel_version}")
       @log.debug "Kernel image recreated."
     end
   end

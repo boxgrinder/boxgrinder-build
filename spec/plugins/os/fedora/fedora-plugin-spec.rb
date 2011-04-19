@@ -47,13 +47,24 @@ module BoxGrinder
       @log = @plugin.instance_variable_get(:@log)
     end
 
-    it "should normalize packages for 32bit" do
+    it "should normalize packages for 32bit for pae enabled system" do
       packages = ['abc', 'def', 'kernel']
 
       @appliance_config.should_receive(:is64bit?).and_return(false)
 
       @plugin.normalize_packages(packages)
       packages.should == ["abc", "def", "@core", "system-config-firewall-base", "dhclient", "kernel-PAE"]
+    end
+
+    it "should normalize packages for 32bit for pae enabled system" do
+      @appliance_config.stub!(:os).and_return(OpenCascade.new(:name => 'fedora', :version => '13', :pae => false))
+
+      packages = ['abc', 'def', 'kernel']
+
+      @appliance_config.should_receive(:is64bit?).and_return(false)
+
+      @plugin.normalize_packages(packages)
+      packages.should == ["abc", "def", "@core", "system-config-firewall-base", "dhclient", "kernel"]
     end
 
     it "should normalize packages for 64bit" do

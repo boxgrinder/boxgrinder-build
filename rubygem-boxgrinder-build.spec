@@ -19,6 +19,9 @@ Requires: ruby-libguestfs
 Requires: parted
 Requires: e2fsprogs
 
+# Fix for rubygem-aws package
+Requires: rubygem(activesupport)
+
 # For EL5
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
@@ -29,6 +32,9 @@ BuildRequires: rubygem(boxgrinder-core) >= 0.3.0
 BuildRequires: rubygem(boxgrinder-core) < 0.4.0
 BuildRequires: rubygem(echoe)
 BuildRequires: ruby-libguestfs
+
+# Fix for rubygem-aws package
+BuildRequires: rubygem(activesupport)
 
 # EBS and S3
 Requires: rubygem(amazon-ec2)
@@ -59,6 +65,11 @@ Requires: yum-utils
 Requires: rsync
 Requires: wget
 Requires: util-linux
+
+# ElasticHosts
+Requires: rubygem(rest-client)
+
+BuildRequires: rubygem(rest-client)
 
 Provides: rubygem(%{gemname}) = %{version}
 
@@ -140,6 +151,10 @@ popd
 * Thu Mar 17 2011 <mgoldman@redhat.com> - 0.9.1-1
 - Upstream release: 0.9.1
 - [BGBUILD-188] Use libuestfs instead mounting partitions manually for EC2 appliances
+- [BGBUILD-97] some filesystems dont get unmounted on BG interruption
+- [BGBUILD-155] Images built on Centos5.x (el5) for VirtualBox kernel panic (/dev/root missing)
+- [BGBUILD-190] Allow to specify kernel variant (PAE or not) for Fedora OS
+- [BGBUILD-196] GuestFS fails mounting partitions where more then 3 partitions are present
 
 * Tue Mar 01 2011 <msavy@redhat.com> - 0.9.0-1
 - Upstream release: 0.9.0

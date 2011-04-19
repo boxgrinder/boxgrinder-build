@@ -36,6 +36,7 @@ Echoe.new("boxgrinder-build") do |p|
       'aws', # S3
       'amazon-ec2', # EBS and S3
       'net-sftp', 'net-ssh', 'progressbar', # SFTP
+      'rest-client' # ElasticHosts
   ]
 end
 

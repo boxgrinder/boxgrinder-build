@@ -84,7 +84,7 @@ module BoxGrinder
 
     def create
       @log.debug "Launching new BoxGrinder build..."
-      @log.trace "Used configuration: #{@config.to_yaml.gsub(/(\S*(key|account|cert|username|host)\S*).*:(.*)/, '\1' + ": <REDACTED>")}"
+      @log.trace "Used configuration: #{@config.to_yaml.gsub(/(\S*(key|account|cert|username|host|password)\S*).*:(.*)/, '\1' + ": <REDACTED>")}"
 
       PluginHelper.new(@config, :log => @log).load_plugins
       read_definition
@@ -101,7 +101,7 @@ module BoxGrinder
 
       if os_plugin.deliverables_exists?
         @log.info "Deliverables for #{os_plugin_info[:name]} operating system plugin exists, skipping."
-        return {:deliverables => os_plugin.deliverables}
+        return {:deliverables => os_plugin.deliverables, :plugin_info => os_plugin_info}
       end
 
       @log.debug "Executing operating system plugin for #{@appliance_config.os.name}..."

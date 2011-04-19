@@ -19,6 +19,7 @@
 require 'rubygems'
 require 'boxgrinder-core/helpers/exec-helper'
 require 'boxgrinder-core/helpers/log-helper'
+require 'boxgrinder-core/errors'
 require 'boxgrinder-build/helpers/image-helper'
 require 'boxgrinder-build/managers/plugin-manager'
 require 'ostruct'
@@ -109,7 +110,7 @@ module BoxGrinder
 
     def validate_plugin_config(fields = [], message = '')
       fields.each do |field|
-        raise "Please specify a valid '#{field}' key in BoxGrinder configuration file: '#{@config.file}' or use CLI '--#{@plugin_info[:type]}-config #{field}:DATA' argument. #{message}" if @plugin_config[field].nil?
+        raise PluginValidationError, "Please specify a valid '#{field}' key in BoxGrinder configuration file: '#{@config.file}' or use CLI '--#{@plugin_info[:type]}-config #{field}:DATA' argument. #{message}" if @plugin_config[field].nil?
       end
     end
 

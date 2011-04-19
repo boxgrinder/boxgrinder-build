@@ -61,6 +61,8 @@ module BoxGrinder
     # Input image can be a partioned image or a partition image itself.
     # Output disk is a partition image.
     #
+    # See also https://bugzilla.redhat.com/show_bug.cgi?id=690819
+    #
     def sync_filesystem(guestfs, guestfs_helper)
       @log.info "Synchronizing filesystems..."
 
@@ -69,13 +71,15 @@ module BoxGrinder
       guestfs.mkmountpoint('/out')
       guestfs.mkmountpoint('/out/in')
 
+      out_disk = guestfs.list_devices.last
+
       # Create filesystem on EC2 disk
-      guestfs.mkfs(@appliance_config.default_filesystem_type, guestfs.list_devices.last)
+      guestfs.mkfs(@appliance_config.default_filesystem_type, out_disk)
       # Set root partition label
-      guestfs.set_e2label(guestfs.list_devices.last, '79d3d2d4') # This is a CRC32 from /
+      guestfs.set_e2label(out_disk, '79d3d2d4') # This is a CRC32 from /
 
       # Mount empty EC2 disk to /out
-      guestfs_helper.mount_partition(guestfs.list_devices.last, '/out/in')
+      guestfs_helper.mount_partition(out_disk, '/out/in')
 
       if guestfs.list_partitions.size > 0
         # We have a partitioned disk image
@@ -110,7 +114,13 @@ module BoxGrinder
       @log.info "Filesystems synchronized."
 
       # Remount the destination disk
-      guestfs_helper.mount_partition(guestfs.list_devices.last, '/')
+      guestfs_helper.mount_partition(out_disk, '/')
+    end
+
+    def create_disk(disk, size)
+      @log.trace "Preparing disk..."
+      @exec_helper.execute "dd if=/dev/zero of='#{disk}' bs=1 count=0 seek=#{(size * 1024).to_i}M"
+      @log.trace "Disk prepared"
     end
 
     def customize(disks, options = {})

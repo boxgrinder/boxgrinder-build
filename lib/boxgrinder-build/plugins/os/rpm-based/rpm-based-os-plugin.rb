@@ -75,7 +75,7 @@ module BoxGrinder
 
       @log.info "Building #{@appliance_config.name} appliance..."
 
-      @exec_helper.execute "appliance-creator -d -v -t '#{@dir.tmp}' --cache=#{@config.dir.cache}/rpms-cache/#{@appliance_config.path.main} --config '#{kickstart_file}' -o '#{@dir.tmp}' --name '#{@appliance_config.name}' --vmem #{@appliance_config.hardware.memory} --vcpu #{@appliance_config.hardware.cpus} --format #{@plugin_config['format']}"
+      execute_appliance_creator(kickstart_file)
 
       FileUtils.mv(Dir.glob("#{@dir.tmp}/#{@appliance_config.name}/*"), @dir.tmp)
       FileUtils.rm_rf("#{@dir.tmp}/#{@appliance_config.name}/")
@@ -89,7 +89,6 @@ module BoxGrinder
         change_configuration(guestfs_helper)
         # TODO check if this is still required
         apply_root_password(guestfs)
-        fix_partition_labels(guestfs)
         use_labels_for_partitions(guestfs)
         disable_firewall(guestfs)
         set_motd(guestfs)
@@ -116,6 +115,56 @@ module BoxGrinder
       @log.info "Base image for #{@appliance_config.name} appliance was built successfully."
     end
 
+    def execute_appliance_creator(kickstart_file)
+      begin
+        @exec_helper.execute "appliance-creator -d -v -t '#{@dir.tmp}' --cache=#{@config.dir.cache}/rpms-cache/#{@appliance_config.path.main} --config '#{kickstart_file}' -o '#{@dir.tmp}' --name '#{@appliance_config.name}' --vmem #{@appliance_config.hardware.memory} --vcpu #{@appliance_config.hardware.cpus} --format #{@plugin_config['format']}"
+      rescue InterruptionError => e
+        cleanup_after_appliance_creator(e.pid)
+        abort
+      end
+    end
+
+    def cleanup_after_appliance_creator(pid)
+      @log.debug "Sending TERM signal to process '#{pid}'..."
+      Process.kill("TERM", pid)
+
+      @log.debug "Waiting for process to be terminated..."
+      Process.wait(pid)
+
+      @log.debug "Cleaning appliance-creator mount points..."
+
+      Dir["#{@dir.tmp}/imgcreate-*"].each do |dir|
+        dev_mapper = @exec_helper.execute "mount | grep #{dir} | awk '{print $1}'"
+
+        mappings = {}
+
+        dev_mapper.each do |mapping|
+          if mapping =~ /(loop\d+)p(\d+)/
+            mappings[$1] = [] if mappings[$1].nil?
+            mappings[$1] << $2 unless mappings[$1].include?($2)
+          end
+        end
+
+        (['/var/cache/yum', '/dev/shm', '/dev/pts', '/proc', '/sys'] + @appliance_config.hardware.partitions.keys.reverse).each do |mount_point|
+          @log.trace "Unmounting '#{mount_point}'..."
+          @exec_helper.execute "umount -d #{dir}/install_root#{mount_point}"
+        end
+
+        mappings.each do |loop, partitions|
+          @log.trace "Removing mappings from loop device #{loop}..."
+          @exec_helper.execute "/sbin/kpartx -d /dev/#{loop}"
+          @exec_helper.execute "losetup -d /dev/#{loop}"
+
+          partitions.each do |part|
+            @log.trace "Removing mapping for partition #{part} from loop device #{loop}..."
+            @exec_helper.execute "rm /dev/#{loop}#{part}"
+          end
+        end
+      end
+
+      @log.debug "Cleaned up after appliance-creator."
+    end
+
     # https://issues.jboss.org/browse/BGBUILD-177
     def disable_firewall(guestfs)
       @log.debug "Disabling firewall..."
@@ -139,14 +188,6 @@ module BoxGrinder
 
     def read_label(guestfs, partition)
       (guestfs.respond_to?(:vfs_label) ? guestfs.vfs_label(partition) : guestfs.sh("/sbin/e2label #{partition}").chomp.strip).gsub('_', '')
-    end
-
-    def fix_partition_labels(guestfs)
-      i = 0
-      guestfs.list_partitions.each do |partition|
-        guestfs.sh("/sbin/e2label #{partition} #{Zlib.crc32(@appliance_config.hardware.partitions.keys[i]).to_s(16)}")
-        i += 1
-      end
     end
 
     def apply_root_password(guestfs)
