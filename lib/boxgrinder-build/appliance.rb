@@ -25,7 +25,6 @@ require 'boxgrinder-core/helpers/appliance-definition-helper'
 require 'boxgrinder-core/helpers/appliance-config-helper'
 require 'boxgrinder-build/helpers/plugin-helper'
 require 'boxgrinder-build/managers/plugin-manager'
-require 'boxgrinder-core/validators/appliance-config-validator'
 
 module BoxGrinder
   class Appliance
@@ -43,6 +42,8 @@ module BoxGrinder
 
         appliance_configs = appliance_helper.appliance_configs
         appliance_config = appliance_configs.first
+      rescue ApplianceValidationError => e
+        raise e
       rescue
         # then try to read OS plugin specific format
         PluginManager.instance.plugins[:os].each_value do |info|
@@ -60,8 +61,6 @@ module BoxGrinder
     end
 
     def validate_definition
-      ApplianceConfigValidator.new(@appliance_config).validate
-
       raise "No operating system plugins installed. Install one or more operating system plugin. See http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#Operating_system_plugins for more info." if PluginManager.instance.plugins[:os].empty?
 
       os_plugin = PluginManager.instance.plugins[:os][@appliance_config.os.name.to_sym]
