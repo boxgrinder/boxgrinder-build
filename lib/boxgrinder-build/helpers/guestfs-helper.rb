@@ -39,6 +39,10 @@ module BoxGrinder
       end
     end
 
+    def respond_to?(m)
+      @o.respond_to?(m)
+    end
+
     def redirect_streams(destination)
       old_stdout_stream = STDOUT.dup
       old_stderr_stream = STDERR.dup
