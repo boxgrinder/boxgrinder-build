@@ -155,6 +155,7 @@ popd
 - [BGBUILD-155] Images built on Centos5.x (el5) for VirtualBox kernel panic (/dev/root missing)
 - [BGBUILD-190] Allow to specify kernel variant (PAE or not) for Fedora OS
 - [BGBUILD-196] GuestFS fails mounting partitions where more then 3 partitions are present
+- [BGBUILD-200] /sbin/e2label: Filesystem has unsupported feature(s) while trying to open /dev/sda1
 
 * Tue Mar 01 2011 <msavy@redhat.com> - 0.9.0-1
 - Upstream release: 0.9.0
