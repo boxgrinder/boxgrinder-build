@@ -35,26 +35,24 @@ module BoxGrinder
     end
 
     def read_definition
-      begin
-        # first try to read as appliance definition file
-        appliance_helper = ApplianceDefinitionHelper.new(:log => @log)
-        appliance_helper.read_definitions(@appliance_definition)
+      # first try to read as appliance definition file
+      appliance_helper = ApplianceDefinitionHelper.new(:log => @log)
+      appliance_helper.read_definitions(@appliance_definition)
 
-        appliance_configs = appliance_helper.appliance_configs
-        appliance_config = appliance_configs.first
-      rescue ApplianceValidationError => e
-        raise e
-      rescue
-        # then try to read OS plugin specific format
+      appliance_configs = appliance_helper.appliance_configs
+      appliance_config = appliance_configs.first
+
+      if appliance_config.nil?
+        # Still nothing? Then try to read OS plugin specific format...
         PluginManager.instance.plugins[:os].each_value do |info|
           plugin = info[:class].new
           appliance_config = plugin.read_file(@appliance_definition) if plugin.respond_to?(:read_file)
           break unless appliance_config.nil?
         end
         appliance_configs = [appliance_config]
-      end
 
-      raise "Couldn't read appliance definition file: #{File.basename(@appliance_definition)}" if appliance_config.nil?
+        raise ValidationError, "Couldn't read appliance definition file: #{File.basename(@appliance_definition)}." if appliance_config.nil?
+      end
 
       appliance_config_helper = ApplianceConfigHelper.new(appliance_configs)
       @appliance_config = appliance_config_helper.merge(appliance_config.clone.init_arch).initialize_paths
