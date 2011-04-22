@@ -176,11 +176,12 @@ begin
   begin
     BoxGrinder::Appliance.new(appliance_definition_file, config, :log => log).create
   rescue Exception => e
+    msg = "#{e.class}: #{e.message}#$/#{e.backtrace.join($/)}"
     if options.backtrace
-      log.fatal e.info
+      log.fatal msg
     else # demote backtrace to debug so that it is in file log only
       log.fatal "#{e.class}: #{e.message}. See the log file for detailed information."
-      log.debug e.info
+      log.debug msg
     end
   end
 rescue => e
