@@ -19,6 +19,7 @@
 require 'boxgrinder-build/plugins/base-plugin'
 require 'restclient'
 require 'zlib'
+require 'cgi'
 
 module BoxGrinder
   class ElasticHostsPlugin < BasePlugin
@@ -32,7 +33,7 @@ module BoxGrinder
     end
 
     def execute(type = :elastichosts)
-      validate_plugin_config(['endpoint', 'user_uuid', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#ElasticHosts_Delivery_Plugin')
+      validate_plugin_config(['endpoint', 'username', 'password'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#ElasticHosts_Delivery_Plugin')
 
       raise PluginValidationError, "You can use ElasticHosts plugin with base appliances (appliances created with operating system plugins) only, see http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#ElasticHosts_Delivery_Plugin." unless @previous_plugin_info[:type] == :os
 
@@ -91,7 +92,7 @@ module BoxGrinder
     end
 
     def api_url(path)
-      "#{@plugin_config['ssl'] ? 'https' : 'http'}://#{@plugin_config['user_uuid']}:#{@plugin_config['secret_access_key']}@#{@plugin_config['endpoint']}#{path}"
+      "#{@plugin_config['ssl'] ? 'https' : 'http'}://#{CGI.escape(@plugin_config['username'])}:#{@plugin_config['password']}@#{@plugin_config['endpoint']}#{path}"
     end
 
     def upload
@@ -168,15 +169,21 @@ module BoxGrinder
       end
     end
 
+    def is_cloudsigma?
+      !@plugin_config['endpoint'].match(/cloudsigma\.com$/).nil?
+    end
+
     # Creates the server for previously uploaded disk
     def create_server
       @log.info "Creating new server..."
+
+      memory = ((is_cloudsigma? and @appliance_config.hardware.memory < 512) ? 512 : @appliance_config.hardware.memory)
 
       body = hash_to_request(
           'name' => "#{@appliance_config.name}-#{@appliance_config.version}.#{@appliance_config.release}",
           'cpu' => @appliance_config.hardware.cpus * 1000, # MHz
           'smp' => 'auto',
-          'mem' => @appliance_config.hardware.memory,
+          'mem' => memory,
           'persistent' => 'true', # hack
           'ide:0:0' => @plugin_config['drive_uuid'],
           'boot' => 'ide:0:0',
@@ -187,7 +194,7 @@ module BoxGrinder
       )
 
       begin
-        path = (@plugin_config['endpoint'] =~ /cloudsigma\.com$/) ? '/servers/create' : '/servers/create/stopped'
+        path = is_cloudsigma? ? '/servers/create' : '/servers/create/stopped'
         ret = response_to_hash(RestClient.post(api_url(path), body))
 
         @log.info "Server was registered with '#{ret['name']}' name as '#{ret['server']}' UUID. Use web UI or API tools to start your server."

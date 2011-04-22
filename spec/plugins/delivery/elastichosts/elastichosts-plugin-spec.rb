@@ -44,7 +44,7 @@ module BoxGrinder
       @appliance_config.stub!(:cpus).and_return(1)
       @appliance_config.stub!(:release).and_return(0)
       @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => :fedora, :version => '13'}))
-      @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:cpus => 1, :arch => 'x86_64', :partitions => {'/' => {'size' => 1}, '/home' => {'size' => 2}}), :memory => 512)
+      @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:cpus => 1, :arch => 'x86_64', :partitions => {'/' => {'size' => 1}, '/home' => {'size' => 2}}, :memory => 512))
 
       @plugin = ElasticHostsPlugin.new.init(@config, @appliance_config,
                                             :log => LogHelper.new(:level => :trace, :type => :stdout),
@@ -59,7 +59,7 @@ module BoxGrinder
       @log = @plugin.instance_variable_get(:@log)
       @dir = @plugin.instance_variable_get(:@dir)
 
-      merge_config('user_uuid' => '12345', 'secret_access_key' => 'secret_access_key', 'endpoint' => 'one.endpoint.somewhere.com')
+      merge_config('username' => '12345', 'password' => 'secret_access_key', 'endpoint' => 'one.endpoint.somewhere.com')
     end
 
     describe ".elastichosts_api_url" do
@@ -253,7 +253,6 @@ module BoxGrinder
       before(:each) do
         merge_config('drive_uuid' => '12345-asdf')
 
-
         @plugin.should_receive(:hash_to_request).with(
             'name' => "appliance-1.0",
             'cpu' => 1000,
@@ -276,6 +275,17 @@ module BoxGrinder
         @plugin.create_server
       end
 
+      it "should create the server with 512 MB of ram for instances to be uploaded to cloudsigma" do
+        merge_config('endpoint' => 'api.cloudsigma.com')
+
+        @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:cpus => 1, :arch => 'x86_64', :partitions => {'/' => {'size' => 1}, '/home' => {'size' => 2}}, :memory => 256))
+
+        RestClient.should_receive(:post).with("http://12345:secret_access_key@api.cloudsigma.com/servers/create",
+                                              "json").and_return("server abc-1234567890-abc\nname appliance-1.0\n")
+
+        @plugin.create_server
+      end
+
       it "should create the server without issues for cloudsigma cloud" do
         merge_config('endpoint' => 'api.cloudsigma.com')
 
@@ -292,6 +302,17 @@ module BoxGrinder
         lambda {
           @plugin.create_server
         }.should raise_error(PluginError, 'An error occured while creating the server, boom. See logs for more info.')
+      end
+    end
+
+    describe ".is_cloudsigma?" do
+      it "should return true if we're talking to cloudsigma endpoint" do
+        merge_config('endpoint' => 'api.cloudsigma.com')
+        @plugin.is_cloudsigma?.should == true
+      end
+
+      it "should return false if we're NOT talking to cloudsigma endpoint" do
+        @plugin.is_cloudsigma?.should == false
       end
     end
   end

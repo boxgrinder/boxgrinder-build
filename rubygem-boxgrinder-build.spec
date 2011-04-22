@@ -156,6 +156,7 @@ popd
 - [BGBUILD-190] Allow to specify kernel variant (PAE or not) for Fedora OS
 - [BGBUILD-196] GuestFS fails mounting partitions where more then 3 partitions are present
 - [BGBUILD-200] /sbin/e2label: Filesystem has unsupported feature(s) while trying to open /dev/sda1
+- [BGBUILD-194] Add support for ElasticHosts cloud
 
 * Tue Mar 01 2011 <msavy@redhat.com> - 0.9.0-1
 - Upstream release: 0.9.0
