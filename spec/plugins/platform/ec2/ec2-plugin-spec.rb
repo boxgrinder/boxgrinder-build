@@ -199,6 +199,7 @@ module BoxGrinder
 
         guestfs = mock("guestfs")
         guestfs_helper = mock("guestfsHelper")
+        guestfs_helper.should_receive(:load_selinux_policy)
 
         @image_helper.should_receive(:customize).with(["a/disk.raw", "build/path/ec2-plugin/tmp/full.ec2"], :automount => false).and_yield(guestfs, guestfs_helper)
         @image_helper.should_receive(:sync_filesystem).with(guestfs, guestfs_helper)
@@ -231,6 +232,7 @@ module BoxGrinder
 
         guestfs = mock("guestfs")
         guestfs_helper = mock("guestfsHelper")
+        guestfs_helper.should_receive(:load_selinux_policy)
 
         @image_helper.should_receive(:customize).with(["a/disk.raw", "build/path/ec2-plugin/tmp/full.ec2"], :automount => false).and_yield(guestfs, guestfs_helper)
         @image_helper.should_receive(:sync_filesystem).with(guestfs, guestfs_helper)

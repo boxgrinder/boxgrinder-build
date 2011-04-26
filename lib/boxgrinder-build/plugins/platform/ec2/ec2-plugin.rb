@@ -40,6 +40,8 @@ module BoxGrinder
       @image_helper.customize([@previous_deliverables.disk, @deliverables.disk], :automount => false) do |guestfs, guestfs_helper|
         @image_helper.sync_filesystem(guestfs, guestfs_helper)
 
+        guestfs_helper.load_selinux_policy
+
         if (@appliance_config.os.name == 'rhel' or @appliance_config.os.name == 'centos') and @appliance_config.os.version == '5'
           # Not sure why it's messed but this prevents booting on AWS
           recreate_journal(guestfs)
