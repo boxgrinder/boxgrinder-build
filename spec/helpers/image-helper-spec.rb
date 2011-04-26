@@ -125,6 +125,10 @@ module BoxGrinder
         guestfs = mock('GuestFS')
         guestfs_helper = mock(GuestFSHelper)
 
+        @helper.should_receive(:mount_data_disk).with(guestfs, guestfs_helper)
+        guestfs_helper.should_receive(:load_selinux_policy)
+        @helper.should_receive(:umount_data_disk).with(guestfs, guestfs_helper)
+
         @appliance_config.stub!(:default_filesystem_type).and_return('ext4')
 
         guestfs.should_receive(:mkmountpoint).ordered.with('/in')
@@ -136,14 +140,13 @@ module BoxGrinder
         guestfs.should_receive(:set_e2label).ordered.with("/dev/vdb", '79d3d2d4')
 
         guestfs_helper.should_receive(:mount_partition).ordered.with("/dev/vdb", '/out/in')
-        guestfs_helper.should_receive(:mount_partitions).ordered
-        guestfs.should_receive(:list_partitions).twice.ordered.and_return(['/dev/vda1', '/dev/vda2'])
+        @helper.should_receive(:mount_data_disk).with(guestfs, guestfs_helper, '/in')
 
         guestfs.should_receive(:cp_a).ordered.with("/in/", "/out")
         guestfs.should_receive(:sync).ordered
 
         guestfs.should_receive(:umount).ordered.with('/out/in')
-        guestfs_helper.should_receive(:umount_partitions).ordered
+        @helper.should_receive(:umount_data_disk).with(guestfs, guestfs_helper, '/in')
 
         guestfs.should_receive(:rmmountpoint).ordered.with('/out/in')
         guestfs.should_receive(:rmmountpoint).ordered.with('/out')
@@ -158,25 +161,28 @@ module BoxGrinder
         guestfs = mock('GuestFS')
         guestfs_helper = mock(GuestFSHelper)
 
+        @helper.should_receive(:mount_data_disk).with(guestfs, guestfs_helper)
+        guestfs_helper.should_receive(:load_selinux_policy)
+        @helper.should_receive(:umount_data_disk).with(guestfs, guestfs_helper)
+
         @appliance_config.stub!(:default_filesystem_type).and_return('ext4')
 
         guestfs.should_receive(:mkmountpoint).ordered.with('/in')
         guestfs.should_receive(:mkmountpoint).ordered.with('/out')
         guestfs.should_receive(:mkmountpoint).ordered.with('/out/in')
 
-        guestfs.should_receive(:list_devices).twice.ordered.and_return(['/dev/vda', '/dev/vdb'])
+        guestfs.should_receive(:list_devices).ordered.and_return(['/dev/vda', '/dev/vdb'])
         guestfs.should_receive(:mkfs).ordered.with("ext4", "/dev/vdb")
         guestfs.should_receive(:set_e2label).ordered.with("/dev/vdb", '79d3d2d4')
 
         guestfs_helper.should_receive(:mount_partition).ordered.with("/dev/vdb", '/out/in')
-        guestfs_helper.should_receive(:mount_partition).ordered.with("/dev/vda", '/in')
-        guestfs.should_receive(:list_partitions).twice.ordered.and_return([])
+        @helper.should_receive(:mount_data_disk).with(guestfs, guestfs_helper, '/in')
 
         guestfs.should_receive(:cp_a).ordered.with("/in/", "/out")
         guestfs.should_receive(:sync).ordered
 
         guestfs.should_receive(:umount).ordered.with('/out/in')
-        guestfs.should_receive(:umount).ordered.with('/in')
+        @helper.should_receive(:umount_data_disk).with(guestfs, guestfs_helper, '/in')
 
         guestfs.should_receive(:rmmountpoint).ordered.with('/out/in')
         guestfs.should_receive(:rmmountpoint).ordered.with('/out')

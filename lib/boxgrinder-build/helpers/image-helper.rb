@@ -64,6 +64,12 @@ module BoxGrinder
     # See also https://bugzilla.redhat.com/show_bug.cgi?id=690819
     #
     def sync_filesystem(guestfs, guestfs_helper)
+      @log.debug "Loading SELinux policy to sync filesystem..."
+      mount_data_disk(guestfs, guestfs_helper)
+      guestfs_helper.load_selinux_policy
+      umount_data_disk(guestfs, guestfs_helper)
+      @log.debug "SELinux policy was loaded, we're ready to sync filesystem."
+
       @log.info "Synchronizing filesystems..."
 
       # Create mount points in libguestfs
@@ -81,13 +87,7 @@ module BoxGrinder
       # Mount empty EC2 disk to /out
       guestfs_helper.mount_partition(out_disk, '/out/in')
 
-      if guestfs.list_partitions.size > 0
-        # We have a partitioned disk image
-        guestfs_helper.mount_partitions('/in')
-      else
-        # We have a disk image without partitions
-        guestfs_helper.mount_partition(guestfs.list_devices.first, '/in')
-      end
+      mount_data_disk(guestfs, guestfs_helper, '/in')
 
       @log.debug "Copying files..."
 
@@ -101,11 +101,7 @@ module BoxGrinder
 
       guestfs.umount('/out/in')
 
-      if guestfs.list_partitions.size > 0
-        guestfs_helper.umount_partitions
-      else
-        guestfs.umount('/in')
-      end
+      umount_data_disk(guestfs, guestfs_helper, '/in')
 
       guestfs.rmmountpoint('/out/in')
       guestfs.rmmountpoint('/out')
@@ -115,6 +111,24 @@ module BoxGrinder
 
       # Remount the destination disk
       guestfs_helper.mount_partition(out_disk, '/')
+    end
+
+    def mount_data_disk(guestfs, guestfs_helper, prefix = '')
+      if guestfs.list_partitions.size > 0
+        # We have a partitioned disk image
+        guestfs_helper.mount_partitions(prefix)
+      else
+        # We have a disk image without partitions
+        guestfs_helper.mount_partition(guestfs.list_devices.first, prefix)
+      end
+    end
+
+    def umount_data_disk(guestfs, guestfs_helper, prefix = '')
+      if guestfs.list_partitions.size > 0
+        guestfs_helper.umount_partitions
+      else
+        guestfs.umount(prefix)
+      end
     end
 
     def create_disk(disk, size)

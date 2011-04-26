@@ -222,13 +222,12 @@ module BoxGrinder
 
       begin
         @guestfs.sh("/usr/sbin/load_policy") if !selinux.nil? and !selinux.eql?('disabled')
+        @log.trace "SElinux policy loaded."
       rescue
         @log.warn "Loading SELinux policy failed. SELinux may be not fully initialized."
+      ensure
+        @guestfs.aug_close
       end
-
-      @guestfs.aug_close
-
-      @log.trace "SElinux policy loaded."
     end
 
     def clean_close
