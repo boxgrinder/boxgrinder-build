@@ -42,7 +42,7 @@ module BoxGrinder
       @config = config
       @appliance_config = appliance_config
       @options = options
-      @log = options[:log] || Logger.new(STDOUT)
+      @log = options[:log] || LogHelper.new
       @exec_helper = options[:exec_helper] || ExecHelper.new(:log => @log)
       @image_helper = options[:image_helper] || ImageHelper.new(@config, @appliance_config, :log => @log)
       @previous_plugin_info = options[:previous_plugin_info]

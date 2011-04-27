@@ -46,11 +46,13 @@ module BoxGrinder
         guestfs.should_receive(:add_drive).with('a/raw/disk')
         guestfs.should_receive(:set_network).with(1)
         guestfs.should_receive(:launch)
-        guestfs.should_receive(:list_partitions).and_return(['/', '/boot'])
+
+        guestfs.should_receive(:list_devices).and_return(['/dev/vda'])
+        guestfs.should_receive(:list_partitions).and_return(['/dev/vda1', '/dev/vda2'])
 
         Guestfs.should_receive(:create).and_return(guestfs)
 
-        @helper.should_receive(:mount_partitions).with('')
+        @helper.should_receive(:mount_partitions).with('/dev/vda', '')
         @helper.execute.should == @helper
       end
 
@@ -67,11 +69,12 @@ module BoxGrinder
         guestfs.should_receive(:add_drive_with_if).with('a/raw/disk', 'ide')
         guestfs.should_receive(:set_network).with(1)
         guestfs.should_receive(:launch)
-        guestfs.should_receive(:list_partitions).and_return(['/', '/boot'])
+        guestfs.should_receive(:list_devices).and_return(['/dev/vda'])
+        guestfs.should_receive(:list_partitions).and_return(['/dev/vda1', '/dev/vda2'])
 
         Guestfs.should_receive(:create).and_return(guestfs)
 
-        @helper.should_receive(:mount_partitions).with('')
+        @helper.should_receive(:mount_partitions).with('/dev/vda', '')
         @helper.execute(nil, :ide_disk => true).should == @helper
       end
 
@@ -92,11 +95,12 @@ module BoxGrinder
         guestfs.should_receive(:add_drive).with('a/raw/disk')
         guestfs.should_receive(:set_network).with(1)
         guestfs.should_receive(:launch)
-        guestfs.should_receive(:list_partitions).and_return(['/', '/boot'])
+        guestfs.should_receive(:list_devices).and_return(['/dev/vda'])
+        guestfs.should_receive(:list_partitions).and_return([])
 
         Guestfs.should_receive(:create).and_return(guestfs)
 
-        @helper.should_receive(:mount_partitions).with('')
+        @helper.should_receive(:mount_partition).with('/dev/vda', '/', '')
         @helper.execute.should == @helper
       end
 
@@ -117,11 +121,12 @@ module BoxGrinder
         guestfs.should_receive(:add_drive).with('a/raw/disk')
         guestfs.should_receive(:set_network).with(1)
         guestfs.should_receive(:launch)
-        guestfs.should_receive(:list_partitions).and_return(['/', '/boot'])
+        guestfs.should_receive(:list_devices).and_return(['/dev/vda'])
+        guestfs.should_receive(:list_partitions).and_return(['/dev/vda1', '/dev/vda2'])
 
         Guestfs.should_receive(:create).and_return(guestfs)
 
-        @helper.should_receive(:mount_partitions).with('')
+        @helper.should_receive(:mount_partitions).with('/dev/vda', '')
         @helper.execute.should == @helper
       end
 
@@ -140,6 +145,7 @@ module BoxGrinder
         guestfs.should_receive(:add_drive).with('a/raw/disk')
         guestfs.should_receive(:set_network).with(1)
         guestfs.should_receive(:launch)
+        guestfs.should_receive(:list_devices).and_return(['/dev/vda'])
         guestfs.should_receive(:list_partitions).and_return(['/dev/vda1'])
 
         Guestfs.should_receive(:create).and_return(guestfs)
@@ -197,7 +203,6 @@ module BoxGrinder
       @helper.mount_partition("/dev/sda", "/")
     end
 
-
     describe ".mount_partitions" do
       it "should mount partitions" do
         guestfs = mock('Guestfs')
@@ -211,7 +216,7 @@ module BoxGrinder
         guestfs.should_receive(:set_e2label).with("/dev/vda2", "d5219c04")
 
         @helper.instance_variable_set(:@guestfs, guestfs)
-        @helper.mount_partitions
+        @helper.mount_partitions('/dev/vda')
       end
 
       it "should mount partitions with extended partitions" do
@@ -230,7 +235,7 @@ module BoxGrinder
         guestfs.should_receive(:set_e2label).with("/dev/vda5", "e7b3b1f2")
 
         @helper.instance_variable_set(:@guestfs, guestfs)
-        @helper.mount_partitions
+        @helper.mount_partitions('/dev/vda')
       end
     end
 
@@ -302,6 +307,29 @@ module BoxGrinder
         guestfs.should_receive(:aug_close)
 
         @helper.load_selinux_policy
+      end
+    end
+
+    describe ".umount_partitions" do
+      it "should umount partitions" do
+        guestfs = mock('Guestfs')
+        @helper.instance_variable_set(:@guestfs, guestfs)
+
+        guestfs.should_receive(:list_partitions).and_return(['/dev/vda1', '/dev/vda2'])
+
+        @helper.should_receive(:umount_partition).ordered.with('/dev/vda2')
+        @helper.should_receive(:umount_partition).ordered.with('/dev/vda1')
+
+        @helper.umount_partitions('/dev/vda')
+      end
+    end
+
+    describe ".umount_partition" do
+      it "should umount partition" do
+        guestfs = mock('Guestfs')
+        @helper.instance_variable_set(:@guestfs, guestfs)
+        guestfs.should_receive(:umount).with('/dev/vda1')
+        @helper.umount_partition('/dev/vda1')
       end
     end
   end

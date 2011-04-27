@@ -195,10 +195,12 @@ module BoxGrinder
       @guestfs.launch
 
       if options[:automount]
+        device = @guestfs.list_devices.first
+
         if @guestfs.list_partitions.size == 0
-          mount_partition(@guestfs.list_devices.first, '/', options[:mount_prefix])
+          mount_partition(device, '/', options[:mount_prefix])
         else
-          mount_partitions(options[:mount_prefix])
+          mount_partitions(device, options[:mount_prefix])
         end
 
         load_selinux_policy if options[:load_selinux_policy]
@@ -248,10 +250,10 @@ module BoxGrinder
 
     # This mount partitions. We assume that the first partition is a root partition.
     #
-    def mount_partitions(mount_prefix = '')
+    def mount_partitions(device, mount_prefix = '')
       @log.trace "Mounting partitions..."
 
-      partitions = mountable_partitions
+      partitions = mountable_partitions(device)
 
       mount_points = LinuxHelper.new(:log => @log).partition_mount_points(@appliance_config.hardware.partitions)
 
@@ -264,8 +266,8 @@ module BoxGrinder
       end
     end
 
-    def mountable_partitions
-      partitions = @guestfs.list_partitions
+    def mountable_partitions(device)
+      partitions = @guestfs.list_partitions.reject { |i| !(i =~ /^#{device}/) }
 
       # we need to remove extended partition
       # extended partition is always #3
@@ -274,14 +276,19 @@ module BoxGrinder
       partitions
     end
 
+    def umount_partition(part)
+      @log.trace "Unmounting partition #{part}..."
+      @guestfs.umount(part)
+      @log.trace "Partition unmounted."
+    end
+
     # Unmounts partitions in reverse order.
     #
-    def umount_partitions
+    def umount_partitions(device)
+      partitions = @guestfs.list_partitions.reject { |i| !(i =~ /^#{device}/) }
+
       @log.trace "Unmounting partitions..."
-      @guestfs.list_partitions.reverse.each do |part|
-        @log.trace "Unmounting partition '#{part}'..."
-        @guestfs.umount(part)
-      end
+      partitions.reverse.each { |part| umount_partition(part) }
       @log.trace "All partitions unmounted."
     end
 

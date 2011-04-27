@@ -64,10 +64,15 @@ module BoxGrinder
     # See also https://bugzilla.redhat.com/show_bug.cgi?id=690819
     #
     def sync_filesystem(guestfs, guestfs_helper)
+      devices = guestfs.list_devices
+      in_device = devices.first
+      out_device = devices.last
+      partitions = guestfs.list_partitions.reject { |i| !(i =~ /^#{in_device}/) }
+
       @log.debug "Loading SELinux policy to sync filesystem..."
-      mount_data_disk(guestfs, guestfs_helper)
+      partitions.size > 0 ? guestfs_helper.mount_partitions(in_device) : guestfs_helper.mount_partition(in_device, '/')
       guestfs_helper.load_selinux_policy
-      umount_data_disk(guestfs, guestfs_helper)
+      partitions.size > 0 ? guestfs_helper.umount_partitions(in_device) : guestfs_helper.umount_partition(in_device)
       @log.debug "SELinux policy was loaded, we're ready to sync filesystem."
 
       @log.info "Synchronizing filesystems..."
@@ -77,17 +82,14 @@ module BoxGrinder
       guestfs.mkmountpoint('/out')
       guestfs.mkmountpoint('/out/in')
 
-      out_disk = guestfs.list_devices.last
-
       # Create filesystem on EC2 disk
-      guestfs.mkfs(@appliance_config.default_filesystem_type, out_disk)
+      guestfs.mkfs(@appliance_config.default_filesystem_type, out_device)
       # Set root partition label
-      guestfs.set_e2label(out_disk, '79d3d2d4') # This is a CRC32 from /
+      guestfs.set_e2label(out_device, '79d3d2d4') # This is a CRC32 from /
 
       # Mount empty EC2 disk to /out
-      guestfs_helper.mount_partition(out_disk, '/out/in')
-
-      mount_data_disk(guestfs, guestfs_helper, '/in')
+      guestfs_helper.mount_partition(out_device, '/out/in')
+      partitions.size > 0 ? guestfs_helper.mount_partitions(in_device) : guestfs_helper.mount_partition(in_device, '/in')
 
       @log.debug "Copying files..."
 
@@ -99,9 +101,8 @@ module BoxGrinder
       # Better make sure...
       guestfs.sync
 
-      guestfs.umount('/out/in')
-
-      umount_data_disk(guestfs, guestfs_helper, '/in')
+      guestfs_helper.umount_partition(out_device)
+      partitions.size > 0 ? guestfs_helper.umount_partitions(in_device) : guestfs_helper.umount_partition(in_device)
 
       guestfs.rmmountpoint('/out/in')
       guestfs.rmmountpoint('/out')
@@ -110,25 +111,7 @@ module BoxGrinder
       @log.info "Filesystems synchronized."
 
       # Remount the destination disk
-      guestfs_helper.mount_partition(out_disk, '/')
-    end
-
-    def mount_data_disk(guestfs, guestfs_helper, prefix = '')
-      if guestfs.list_partitions.size > 0
-        # We have a partitioned disk image
-        guestfs_helper.mount_partitions(prefix)
-      else
-        # We have a disk image without partitions
-        guestfs_helper.mount_partition(guestfs.list_devices.first, prefix)
-      end
-    end
-
-    def umount_data_disk(guestfs, guestfs_helper, prefix = '')
-      if guestfs.list_partitions.size > 0
-        guestfs_helper.umount_partitions
-      else
-        guestfs.umount(prefix)
-      end
+      guestfs_helper.mount_partition(out_device, '/')
     end
 
     def create_disk(disk, size)
