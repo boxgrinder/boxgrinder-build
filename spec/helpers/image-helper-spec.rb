@@ -142,7 +142,7 @@ module BoxGrinder
         guestfs.should_receive(:set_e2label).ordered.with("/dev/vdb", '79d3d2d4')
 
         guestfs_helper.should_receive(:mount_partition).ordered.with("/dev/vdb", '/out/in')
-        guestfs_helper.should_receive(:mount_partitions).ordered.with('/dev/vda')
+        guestfs_helper.should_receive(:mount_partitions).ordered.with('/dev/vda', '/in')
 
         guestfs.should_receive(:cp_a).ordered.with("/in/", "/out")
         guestfs.should_receive(:sync).ordered

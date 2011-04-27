@@ -89,7 +89,7 @@ module BoxGrinder
 
       # Mount empty EC2 disk to /out
       guestfs_helper.mount_partition(out_device, '/out/in')
-      partitions.size > 0 ? guestfs_helper.mount_partitions(in_device) : guestfs_helper.mount_partition(in_device, '/in')
+      partitions.size > 0 ? guestfs_helper.mount_partitions(in_device, '/in') : guestfs_helper.mount_partition(in_device, '/in')
 
       @log.debug "Copying files..."
 
