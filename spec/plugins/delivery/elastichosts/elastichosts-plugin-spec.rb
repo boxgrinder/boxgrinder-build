@@ -203,6 +203,23 @@ module BoxGrinder
         File.should_receive(:open).with('a/disk', 'rb').and_yield(f)
         @plugin.upload_chunks
       end
+
+      it "should not compress the data before uploading the chunks if we use CloudSigma" do
+        merge_config('endpoint' => 'api.cloudsigma.com')
+        @plugin.instance_variable_set(:@previous_deliverables, {:disk => 'a/disk'})
+
+        f = mock(File)
+        f.should_receive(:eof?).ordered.and_return(false)
+        f.should_receive(:seek).ordered.with(0, File::SEEK_SET)
+        f.should_receive(:read).ordered.with(67108864).and_return("data")
+        f.should_receive(:eof?).ordered.and_return(true)
+
+        @plugin.should_not_receive(:compress)
+        @plugin.should_receive(:upload_chunk).ordered.with("data", 0)
+
+        File.should_receive(:open).with('a/disk', 'rb').and_yield(f)
+        @plugin.upload_chunks
+      end
     end
 
     describe ".upload_chunk" do
@@ -246,6 +263,15 @@ module BoxGrinder
         lambda {
           @plugin.upload_chunk("data", 0)
         }.should raise_error(PluginError, "Couldn't upload appliance, boom.")
+      end
+
+      it "should not specify add content-encoding header if uplaoding to cloudsigma" do
+        merge_config('endpoint' => 'api.cloudsigma.com')
+
+        @plugin.should_receive(:api_url).with('/drives/drive-uuid/write/0').and_return('url')
+        RestClient.should_receive(:post).with('url', 'data', :content_type=>"application/octet-stream")
+
+        @plugin.upload_chunk("data", 0)
       end
     end
 

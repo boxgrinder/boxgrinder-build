@@ -116,7 +116,8 @@ module BoxGrinder
         while !f.eof?
           f.seek(part * @step, File::SEEK_SET)
 
-          data = compress(f.read(@step))
+          data = f.read(@step)
+          data = compress(data) unless is_cloudsigma?
           upload_chunk(data, part)
 
           part += 1
@@ -148,10 +149,12 @@ module BoxGrinder
       begin
         @log.info "Uploading part #{part+1}..."
 
+        headers = {:content_type => "application/octet-stream"}
+        headers['Content-Encoding'] = 'gzip' unless is_cloudsigma?
+
         RestClient.post url,
                         data,
-                        :content_type => "application/octet-stream",
-                        'Content-Encoding' => 'gzip'
+                        headers
 
         @log.info "Part #{part+1} uploaded."
       rescue => e
