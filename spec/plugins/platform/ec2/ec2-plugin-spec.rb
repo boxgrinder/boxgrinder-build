@@ -244,7 +244,6 @@ module BoxGrinder
         @plugin.should_receive(:create_devices).with(guestfs)
         @plugin.should_receive(:upload_fstab).with(guestfs)
 
-        @plugin.should_receive(:recreate_journal).with(guestfs)
         @plugin.should_receive(:enable_networking)
         @plugin.should_receive(:upload_rc_local).with(guestfs)
         @plugin.should_receive(:add_ec2_user).with(guestfs)
@@ -291,15 +290,6 @@ module BoxGrinder
 
         @plugin.execute_post(guestfs_helper)
       end
-    end
-
-    it "should recreate journal" do
-      guestfs = mock("guestfs")
-
-      guestfs.should_receive(:list_devices).and_return(['/dev/sda'])
-      guestfs.should_receive(:sh).with("tune2fs -j /dev/sda")
-
-      @plugin.recreate_journal(guestfs)
     end
   end
 end

@@ -41,9 +41,6 @@ module BoxGrinder
         @image_helper.sync_filesystem(guestfs, guestfs_helper)
 
         if (@appliance_config.os.name == 'rhel' or @appliance_config.os.name == 'centos') and @appliance_config.os.version == '5'
-          # Not sure why it's messed but this prevents booting on AWS
-          recreate_journal(guestfs)
-
           # Remove normal kernel
           guestfs.sh("yum -y remove kernel")
           # because we need to install kernel-xen package
@@ -85,12 +82,6 @@ module BoxGrinder
       else
         @log.debug "No commands specified, skipping."
       end
-    end
-
-    def recreate_journal(guestfs)
-      @log.debug "Recreating EXT3 journal on root partition."
-      guestfs.sh("tune2fs -j #{guestfs.list_devices.first}")
-      @log.debug "Journal recreated."
     end
 
     def create_devices(guestfs)
