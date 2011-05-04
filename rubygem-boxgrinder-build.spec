@@ -5,7 +5,7 @@
 
 Summary: A tool for creating appliances from simple plain text files
 Name: rubygem-%{gemname}
-Version: 0.9.1
+Version: 0.9.2
 Release: 1%{?dist}
 Group: Development/Languages
 License: LGPLv3+
