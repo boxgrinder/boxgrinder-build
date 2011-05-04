@@ -148,7 +148,11 @@ popd
 %{gemdir}/doc/%{gemname}-%{version}
 
 %changelog
-* Thu Mar 17 2011 <mgoldman@redhat.com> - 0.9.1-1
+* Thu May 05 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.2-1
+- Upstream release: 0.9.2
+- [BGBUILD-148] Add support for building CentOS/RHEL images on Fedora
+
+* Thu Mar 17 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.1-1
 - Upstream release: 0.9.1
 - [BGBUILD-188] Use libuestfs instead mounting partitions manually for EC2 appliances
 - [BGBUILD-97] some filesystems dont get unmounted on BG interruption
@@ -159,7 +163,7 @@ popd
 - [BGBUILD-194] Add support for ElasticHosts cloud
 - [BGBUILD-202] Unable to get valid context for ec2-user after login on AMI
 
-* Tue Mar 01 2011 <msavy@redhat.com> - 0.9.0-1
+* Tue Mar 01 2011 Marc Savy <msavy@redhat.com> - 0.9.0-1
 - Upstream release: 0.9.0
 - [BGBUILD-103] README to indicate supported operating systems / requirements
 - [BGBUILD-169] S3 plugin temporary work-around for EL5
@@ -173,13 +177,13 @@ popd
 - [BGBUILD-176] Fail the build with appropriate message if any of post section commands fails to execute
 - [BGBUILD-183] Add support for Fedora 15
 
-* Tue Feb 16 2011  <mgoldman@redhat.com> - 0.8.1-1
+* Tue Feb 16 2011 Marek Goldmann <mgoldman@redhat.com> - 0.8.1-1
 - Upstream release: 0.8.1
 - [BGBUILD-141] Long delay after "Preparing guestfs" message when creating new image
 - [BGBUILD-150] Cyclical inclusion dependencies in appliance definition files are not detected/handled
 - [BGBUILD-165] Use version in dependencies in gem and in RPM only where necessary
 
-* Tue Jan 04 2011  <mgoldman@redhat.com> - 0.8.0-1
+* Tue Jan 04 2011 Marek Goldmann <mgoldman@redhat.com> - 0.8.0-1
 - Upstream release: 0.8.0
 - Added BuildRoot tag to build for EPEL 5
 - [BGBUILD-128] Allow to specify plugin configuration using CLI
@@ -193,12 +197,12 @@ popd
 - [BGBUILD-138] enablerepo path is not escaped when calling repoquery
 - [BGBUILD-147] Allow to list installed plugins and version information
 
-* Mon Dec 20 2010  <mgoldman@redhat.com> - 0.7.1-1
+* Mon Dec 20 2010 Marek Goldmann <mgoldman@redhat.com> - 0.7.1-1
 - Upstream release: 0.7.1
 - [BGBUILD-123] Remove RPM database recreation code
 - [BGBUILD-124] Guestfs fails while mounting multiple partitions with '_' prefix
 
-* Fri Dec 17 2010  <mgoldman@redhat.com> - 0.7.0-1
+* Fri Dec 17 2010 Marek Goldmann <mgoldman@redhat.com> - 0.7.0-1
 - Updated to upstream version: 0.7.0
 - [BGBUILD-113] Allow to specify supported file formats for operating system plugin
 - [BGBUILD-73] Add support for kickstart files
@@ -206,17 +210,17 @@ popd
 - [BGBUILD-118] Enable SElinux in guestfs
 - [BGBUILD-119] Fix SElinux issues on EC2 appliances
 
-* Thu Dec 02 2010  <mgoldman@redhat.com> - 0.6.5-1
+* Thu Dec 02 2010 Marek Goldmann <mgoldman@redhat.com> - 0.6.5-1
 - Updated to new upstream release: 0.6.5
 
-* Mon Nov 22 2010  <mgoldman@redhat.com> - 0.6.4-3
+* Mon Nov 22 2010 Marek Goldmann <mgoldman@redhat.com> - 0.6.4-3
 - Changelog rewritten
 - Added Require: parted and e2fsprogs
 
-* Sat Nov 20 2010  <mgoldman@redhat.com> - 0.6.4-2
+* Sat Nov 20 2010 Marek Goldmann <mgoldman@redhat.com> - 0.6.4-2
 - Small set of spec file adjustments
 
-* Mon Nov 15 2010  <mgoldman@redhat.com> - 0.6.4-1
+* Mon Nov 15 2010 Marek Goldmann <mgoldman@redhat.com> - 0.6.4-1
 - Updated to new upstream release: 0.6.4
 - Removed BuildRoot tag
 - Adjusted Requires and BuildRequires
@@ -226,12 +230,12 @@ popd
 - [BGBUILD-92] Enable --trace switch by default
 - [BGBUILD-91] Log exceptions to log file
 
-* Tue Nov 09 2010  <mgoldman@redhat.com> - 0.6.3-1
+* Tue Nov 09 2010 Marek Goldmann <mgoldman@redhat.com> - 0.6.3-1
 - [BGBUILD-94] Check if set_network call is avaialbe in libguestfs
 - Added 'check' section that executes tests
 
-* Wed Nov 03 2010  <mgoldman@redhat.com> - 0.6.2-1
+* Wed Nov 03 2010 Marek Goldmann <mgoldman@redhat.com> - 0.6.2-1
 - [BGBUILD-84] Don't use in libguestfs qemu-kvm where hardware accleration isn't available
 
-* Mon Oct 18 2010  <mgoldman@redhat.com> - 0.6.1-1
+* Mon Oct 18 2010 Marek Goldmann <mgoldman@redhat.com> - 0.6.1-1
 - Initial package

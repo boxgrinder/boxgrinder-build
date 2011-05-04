@@ -1,3 +1,7 @@
+v0.9.2
+
+* [BGBUILD-148] Add support for building CentOS/RHEL images on Fedora
+
 v0.9.1
 
 * [BGBUILD-188] Use libuestfs instead mounting partitions manually for EC2 appliances

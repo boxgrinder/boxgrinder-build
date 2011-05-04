@@ -217,6 +217,21 @@ module BoxGrinder
         @plugin.cleanup_after_appliance_creator(12345)
       end
     end
+
+    describe ".recreate_rpm_database" do
+      it "should recreate RPM database" do
+        guestfs = mock("GuestFS")
+        guestfs_helper = mock("GuestFSHelper")
+
+        guestfs.should_receive(:download).with("/var/lib/rpm/Packages", "build/path/rpm_based-plugin/tmp/Packages")
+        @exec_helper.should_receive(:execute).with("/usr/lib/rpm/rpmdb_dump build/path/rpm_based-plugin/tmp/Packages > build/path/rpm_based-plugin/tmp/Packages.dump")
+        guestfs.should_receive(:upload).with("build/path/rpm_based-plugin/tmp/Packages.dump", "/tmp/Packages.dump")
+        guestfs.should_receive(:sh).with("rm -rf /var/lib/rpm/*")
+        guestfs_helper.should_receive(:sh).with("cd /var/lib/rpm/ && cat /tmp/Packages.dump | /usr/lib/rpm/rpmdb_load Packages")
+        guestfs_helper.should_receive(:sh).with("rpm --rebuilddb")
+
+        @plugin.recreate_rpm_database(guestfs, guestfs_helper)
+      end
+    end
   end
 end
-

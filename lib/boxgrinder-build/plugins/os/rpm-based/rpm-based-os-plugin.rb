@@ -69,9 +69,8 @@ module BoxGrinder
         kickstart_file = appliance_definition_file
       else
         kickstart_file = Kickstart.new(@config, @appliance_config, repos, @dir, :log => @log).create
+        RPMDependencyValidator.new(@config, @appliance_config, @dir, kickstart_file, @options).resolve_packages
       end
-
-      RPMDependencyValidator.new(@config, @appliance_config, @dir, kickstart_file, @options).resolve_packages
 
       @log.info "Building #{@appliance_config.name} appliance..."
 
@@ -110,6 +109,9 @@ module BoxGrinder
         yield guestfs, guestfs_helper if block_given?
 
         @log.info "Post operations executed."
+
+        # https://issues.jboss.org/browse/BGBUILD-148
+        recreate_rpm_database(guestfs, guestfs_helper) if @config.os.name != @appliance_config.os.name or @config.os.version != @appliance_config.os.version
       end
 
       @log.info "Base image for #{@appliance_config.name} appliance was built successfully."
@@ -122,6 +124,20 @@ module BoxGrinder
         cleanup_after_appliance_creator(e.pid)
         abort
       end
+    end
+
+    # https://issues.jboss.org/browse/BGBUILD-148
+    def recreate_rpm_database(guestfs, guestfs_helper)
+      @log.debug "Recreating RPM database..."
+
+      guestfs.download("/var/lib/rpm/Packages", "#{@dir.tmp}/Packages")
+      @exec_helper.execute("/usr/lib/rpm/rpmdb_dump #{@dir.tmp}/Packages > #{@dir.tmp}/Packages.dump")
+      guestfs.upload("#{@dir.tmp}/Packages.dump", "/tmp/Packages.dump")
+      guestfs.sh("rm -rf /var/lib/rpm/*")
+      guestfs_helper.sh("cd /var/lib/rpm/ && cat /tmp/Packages.dump | /usr/lib/rpm/rpmdb_load Packages")
+      guestfs_helper.sh("rpm --rebuilddb")
+
+      @log.debug "RPM database recreated..."
     end
 
     def cleanup_after_appliance_creator(pid)
