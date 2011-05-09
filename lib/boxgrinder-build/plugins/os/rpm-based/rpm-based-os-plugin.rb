@@ -81,6 +81,8 @@ module BoxGrinder
         end
       end
 
+      raise "No partitions specified in your kickstart file #{file}" if partitions.empty?
+
       appliance_config.hardware.partitions = partitions
 
       appliance_config

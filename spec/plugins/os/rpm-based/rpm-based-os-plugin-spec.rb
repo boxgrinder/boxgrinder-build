@@ -112,6 +112,44 @@ module BoxGrinder
         appliance_config.should be_an_instance_of(ApplianceConfig)
         appliance_config.hardware.partitions.should == {'/' => {'size' => 2.0, 'type' => 'ext4'}, '/home' => {'size' => 3.0, 'type' => 'ext3', "options" => "abc,def,gef"}}
       end
+
+      it "should read kickstart and populate partitions" do
+        appliance_config = @plugin.read_kickstart("#{File.dirname(__FILE__)}/src/jeos-f13.ks")
+        appliance_config.should be_an_instance_of(ApplianceConfig)
+        appliance_config.hardware.partitions.should == {'/' => {'size' => 2.0, 'type' => 'ext4'}, '/home' => {'size' => 3.0, 'type' => 'ext3', "options" => "abc,def,gef"}}
+      end
+
+      it "should read kickstart and raise because of no partition size specified" do
+        File.should_receive(:read).with("jeos-f13.ks").and_return("# bg_os_name: fedora\n# bg_os_version: 14\npart /")
+
+        lambda {
+          @plugin.read_kickstart("jeos-f13.ks")
+        }.should raise_error("Partition size not specified for / partition in jeos-f13.ks")
+      end
+
+      it "should read kickstart and raise because no os name is specified" do
+        File.should_receive(:read).with("jeos-f13.ks").and_return("")
+
+        lambda {
+          @plugin.read_kickstart("jeos-f13.ks")
+        }.should raise_error("No operating system name specified, please add comment to you kickstrt file like this: # bg_os_name: fedora")
+      end
+
+      it "should read kickstart and raise because no os version is specified" do
+        File.should_receive(:read).with("jeos-f13.ks").and_return("# bg_os_name: rhel")
+
+        lambda {
+          @plugin.read_kickstart("jeos-f13.ks")
+        }.should raise_error("No operating system version specified, please add comment to you kickstrt file like this: # bg_os_version: 14")
+      end
+
+      it "should read kickstart and raise because no partitions are specified" do
+        File.should_receive(:read).with("jeos-f13.ks").and_return("# bg_os_name: fedora\n# bg_os_version: 14")
+
+        lambda {
+          @plugin.read_kickstart("jeos-f13.ks")
+        }.should raise_error("No partitions specified in your kickstart file jeos-f13.ks")
+      end
     end
 
     describe ".use_labels_for_partitions" do
