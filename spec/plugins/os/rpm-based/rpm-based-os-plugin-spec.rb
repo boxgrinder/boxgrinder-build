@@ -106,6 +106,12 @@ module BoxGrinder
           @plugin.read_kickstart("#{File.dirname(__FILE__)}/src/jeos-f13-without-version.ks")
         }.should raise_error("No operating system version specified, please add comment to you kickstrt file like this: # bg_os_version: 14")
       end
+
+      it "should read kickstart and populate partitions" do
+        appliance_config = @plugin.read_kickstart("#{File.dirname(__FILE__)}/src/jeos-f13.ks")
+        appliance_config.should be_an_instance_of(ApplianceConfig)
+        appliance_config.hardware.partitions.should == {'/' => {'size' => 2.0, 'type' => 'ext4'}, '/home' => {'size' => 3.0, 'type' => 'ext3', "options" => "abc,def,gef"}}
+      end
     end
 
     describe ".use_labels_for_partitions" do

@@ -14,6 +14,7 @@ services --enabled=network
 rootpw boxgrinder
 
 part / --size 2048 --fstype ext4  --ondisk sda
+part /home --size 3072 --fstype ext3 --fsoptions=abc,def,gef  --ondisk sda
 
 repo --name=fedora-14-base --cost=40 --mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=fedora-13&arch=x86_64
 repo --name=fedora-14-updates --cost=41 --mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=updates-released-f13&arch=x86_64

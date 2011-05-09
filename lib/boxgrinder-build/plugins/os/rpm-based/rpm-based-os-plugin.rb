@@ -41,13 +41,14 @@ module BoxGrinder
 
     def read_kickstart(file)
       appliance_config = ApplianceConfig.new
-
       appliance_config.name = File.basename(file, '.ks')
 
       name = nil
       version = nil
 
-      File.read(file).each do |line|
+      kickstart = File.read(file)
+
+      kickstart.each do |line|
         n = line.scan(/^# bg_os_name: (.*)/).flatten.first
         v = line.scan(/^# bg_os_version: (.*)/).flatten.first
 
@@ -60,6 +61,27 @@ module BoxGrinder
 
       appliance_config.os.name = name
       appliance_config.os.version = version
+
+      partitions = {}
+
+      kickstart.each do |line|
+        # Parse also the partition scheme
+        if line =~ /^part ([\/\w]+)/
+          root = $1
+          partitions[root] = {}
+
+          # size
+          partitions[root]['size'] = $1.to_f / 1024 if line =~ /--size[=\s]*(\d+)/
+          # fs type
+          partitions[root]['type'] = $1 if line =~ /--fstype[=\s]*(\w+)/
+          # fs options
+          partitions[root]['options'] = $1 if line =~ /--fsoptions[=\s]*([,\w]+)/
+
+          raise "Partition size not specified for #{root} partition in #{file}" if partitions[root]['size'].nil?
+        end
+      end
+
+      appliance_config.hardware.partitions = partitions
 
       appliance_config
     end
