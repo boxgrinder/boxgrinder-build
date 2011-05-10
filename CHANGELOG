@@ -1,6 +1,10 @@
 v0.9.2
 
 * [BGBUILD-148] Add support for building CentOS/RHEL images on Fedora
+* [BGBUILD-204] Fedora 15 appliance networking start on boot failed
+* [BGBUILD-208] Kickstart files not working with 0.9.1
+* [BGBUILD-205] Error while converting to EC2 when guest OS is CentOS/RHEL 5
+* [BGBUILD-213] CloudSigma support
 
 v0.9.1
 

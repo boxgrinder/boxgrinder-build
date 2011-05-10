@@ -29,10 +29,12 @@ module BoxGrinder
       plugins.stub!(:[]).with('rpm_based').and_return({})
       @config.stub!(:[]).with(:plugins).and_return(plugins)
       @config.stub!(:dir).and_return(OpenCascade.new(:tmp => 'tmpdir', :cache => 'cachedir'))
+      @config.stub!(:os).and_return(OpenCascade.new(:name => 'fedora', :version => '14'))
 
       @appliance_config.stub!(:name).and_return('full')
       @appliance_config.stub!(:version).and_return(1)
       @appliance_config.stub!(:release).and_return(0)
+      @appliance_config.stub!(:post).and_return({})
       @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '11'}))
       @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:cpus => 1, :memory => 512, :partitions => {'/' => nil, '/home' => nil}))
       @appliance_config.stub!(:path).and_return(OpenCascade.new(:build => 'build/path', :main => 'mainpath'))
@@ -194,7 +196,7 @@ module BoxGrinder
     end
 
     describe ".build_with_appliance_creator" do
-      it "should build appliance" do
+      def do_build
         kickstart = mock(Kickstart)
         kickstart.should_receive(:create).and_return('kickstart.ks')
 
@@ -209,7 +211,41 @@ module BoxGrinder
         FileUtils.should_receive(:mv)
         FileUtils.should_receive(:rm_rf)
 
-        @image_helper.should_receive(:customize).with(["build/path/rpm_based-plugin/tmp/full-sda.raw"])
+        guestfs = mock("GuestFS")
+        guestfs_helper = mock("GuestFSHelper")
+
+        @image_helper.should_receive(:customize).with(["build/path/rpm_based-plugin/tmp/full-sda.raw"]).and_yield(guestfs, guestfs_helper)
+
+        guestfs.should_receive(:upload).with("/etc/resolv.conf", "/etc/resolv.conf")
+
+        @plugin.should_receive(:change_configuration).with(guestfs_helper)
+        @plugin.should_receive(:apply_root_password).with(guestfs)
+        @plugin.should_receive(:use_labels_for_partitions).with(guestfs)
+        @plugin.should_receive(:disable_firewall).with(guestfs)
+        @plugin.should_receive(:set_motd).with(guestfs)
+        @plugin.should_receive(:install_repos).with(guestfs)
+
+        guestfs.should_receive(:exists).with('/etc/init.d/firstboot').and_return(1)
+        guestfs.should_receive(:sh).with('chkconfig firstboot off')
+
+        yield guestfs, guestfs_helper if block_given?
+      end
+
+      it "should build appliance" do
+        @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '14'}))
+        do_build
+        @plugin.build_with_appliance_creator('jeos.appl')
+      end
+
+      it "should execute additional steps for Fedora 15" do
+        @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '15'}))
+
+        do_build do |guestfs, guestfs_helper|
+          @plugin.should_receive(:disable_biosdevname).with(guestfs)
+          @plugin.should_receive(:change_runlevel).with(guestfs)
+          @plugin.should_receive(:disable_netfs).with(guestfs)
+          @plugin.should_receive(:recreate_rpm_database).with(guestfs, guestfs_helper)
+        end
 
         @plugin.build_with_appliance_creator('jeos.appl')
       end
@@ -275,6 +311,27 @@ module BoxGrinder
         guestfs_helper.should_receive(:sh).with("rpm --rebuilddb")
 
         @plugin.recreate_rpm_database(guestfs, guestfs_helper)
+      end
+    end
+
+    context "BGBUILD-204" do
+      it "should disable bios device name hints" do
+        guestfs = mock("GuestFS")
+        guestfs.should_receive(:sh).with("sed -i \"s/kernel\\(.*\\)/kernel\\1 biosdevname=0/g\" /boot/grub/grub.conf")
+        @plugin.disable_biosdevname(guestfs)
+      end
+
+      it "should change to runlevel 3 by default" do
+        guestfs = mock("GuestFS")
+        guestfs.should_receive(:rm).with("/etc/systemd/system/default.target")
+        guestfs.should_receive(:ln_sf).with("/lib/systemd/system/multi-user.target", "/etc/systemd/system/default.target")
+        @plugin.change_runlevel(guestfs)
+      end
+
+      it "should disable netfs" do
+        guestfs = mock("GuestFS")
+        guestfs.should_receive(:sh).with("chkconfig netfs off")
+        @plugin.disable_netfs(guestfs)
       end
     end
   end
