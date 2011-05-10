@@ -244,6 +244,7 @@ module BoxGrinder
           @plugin.should_receive(:disable_biosdevname).with(guestfs)
           @plugin.should_receive(:change_runlevel).with(guestfs)
           @plugin.should_receive(:disable_netfs).with(guestfs)
+          @plugin.should_receive(:link_mtab).with(guestfs)
           @plugin.should_receive(:recreate_rpm_database).with(guestfs, guestfs_helper)
         end
 
@@ -333,6 +334,11 @@ module BoxGrinder
         guestfs.should_receive(:sh).with("chkconfig netfs off")
         @plugin.disable_netfs(guestfs)
       end
+    end
+    it "should link /etc/mtab to /proc/self/mounts" do
+      guestfs = mock("GuestFS")
+      guestfs.should_receive(:ln_sf).with("/proc/self/mounts", "/etc/mtab")
+      @plugin.link_mtab(guestfs)
     end
   end
 end

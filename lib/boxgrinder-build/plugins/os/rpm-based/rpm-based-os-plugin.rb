@@ -121,6 +121,7 @@ module BoxGrinder
           disable_biosdevname(guestfs)
           change_runlevel(guestfs)
           disable_netfs(guestfs)
+          link_mtab(guestfs)
         end
 
         guestfs.sh("chkconfig firstboot off") if guestfs.exists('/etc/init.d/firstboot') != 0
@@ -176,6 +177,13 @@ module BoxGrinder
       @log.debug "Disabling network filesystem mounting..."
       guestfs.sh("chkconfig netfs off")
       @log.debug "Network filesystem mounting disabled."
+    end
+
+    # https://issues.jboss.org/browse/BGBUILD-209
+    def link_mtab(guestfs)
+      @log.debug "Linking /etc/mtab to /proc/self/mounts for Fedora 15..."
+      guestfs.ln_sf("/proc/self/mounts", "/etc/mtab")
+      @log.debug "/etc/mtab linked."
     end
 
     # https://issues.jboss.org/browse/BGBUILD-148
