@@ -156,6 +156,7 @@ popd
 - [BGBUILD-205] Error while converting to EC2 when guest OS is CentOS/RHEL 5
 - [BGBUILD-213] CloudSigma support
 - [BGBUILD-209] Wrong /etc/mtab on Fedora 15 appliances causes errors
+- [BGBUILD-203] Vmware vmdk disk size is wrong when installing via kickstart files
 
 * Thu Mar 17 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.1-1
 - Upstream release: 0.9.1

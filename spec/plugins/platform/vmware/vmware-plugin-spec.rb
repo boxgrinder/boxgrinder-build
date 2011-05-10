@@ -65,9 +65,11 @@ module BoxGrinder
     end
 
     it "should calculate good CHS value for 0.5GB disk" do
-      prepare_image({'thin_disk' => false, 'type' => 'enterprise'})
+      prepare_image({'thin_disk' => false, 'type' => 'enterprise'}, :previous_deliverables => OpenStruct.new({:disk => 'a/base/image/path.raw'}))
 
-      c, h, s, total_sectors = @plugin.generate_scsi_chs(0.5)
+      File.should_receive(:stat).with("a/base/image/path.raw").and_return(OpenStruct.new(:size => 536870912))
+
+      c, h, s, total_sectors = @plugin.generate_scsi_chs
 
       c.should == 512
       h.should == 64
@@ -76,9 +78,11 @@ module BoxGrinder
     end
 
     it "should calculate good CHS value for 1GB disk" do
-      prepare_image({'thin_disk' => false, 'type' => 'enterprise'})
+      prepare_image({'thin_disk' => false, 'type' => 'enterprise'}, :previous_deliverables => OpenStruct.new({:disk => 'a/base/image/path.raw'}))
 
-      c, h, s, total_sectors = @plugin.generate_scsi_chs(1)
+      File.should_receive(:stat).with("a/base/image/path.raw").and_return(OpenStruct.new(:size => 1073741824))
+
+      c, h, s, total_sectors = @plugin.generate_scsi_chs
 
       c.should == 512
       h.should == 128
@@ -87,9 +91,11 @@ module BoxGrinder
     end
 
     it "should calculate good CHS value for 40GB disk" do
-      prepare_image({'thin_disk' => false, 'type' => 'enterprise'})
+      prepare_image({'thin_disk' => false, 'type' => 'enterprise'}, :previous_deliverables => OpenStruct.new({:disk => 'a/base/image/path.raw'}))
 
-      c, h, s, total_sectors = @plugin.generate_scsi_chs(40)
+      File.should_receive(:stat).with("a/base/image/path.raw").and_return(OpenStruct.new(:size => 42949672960))
+
+      c, h, s, total_sectors = @plugin.generate_scsi_chs
 
       c.should == 5221
       h.should == 255
@@ -98,9 +104,11 @@ module BoxGrinder
     end
 
     it "should calculate good CHS value for 160GB disk" do
-      prepare_image({'thin_disk' => false, 'type' => 'enterprise'})
+      prepare_image({'thin_disk' => false, 'type' => 'enterprise'}, :previous_deliverables => OpenStruct.new({:disk => 'a/base/image/path.raw'}))
 
-      c, h, s, total_sectors = @plugin.generate_scsi_chs(160)
+      File.should_receive(:stat).with("a/base/image/path.raw").and_return(OpenStruct.new(:size => 171798691840))
+
+      c, h, s, total_sectors = @plugin.generate_scsi_chs
 
       c.should == 20886
       h.should == 255
@@ -110,7 +118,9 @@ module BoxGrinder
 
     describe ".change_vmdk_values" do
       it "should change vmdk data (vmfs)" do
-        prepare_image({'thin_disk' => false, 'type' => 'enterprise'})
+        prepare_image({'thin_disk' => false, 'type' => 'enterprise'}, :previous_deliverables => OpenStruct.new({:disk => 'a/base/image/path.raw'}))
+
+        File.should_receive(:stat).with("a/base/image/path.raw").and_return(OpenStruct.new(:size => 5368709120))
 
         vmdk_image = @plugin.change_vmdk_values("vmfs")
 
@@ -131,7 +141,9 @@ module BoxGrinder
       end
 
       it "should change vmdk data (flat)" do
-        prepare_image({'thin_disk' => false, 'type' => 'enterprise'})
+        prepare_image({'thin_disk' => false, 'type' => 'enterprise'}, :previous_deliverables => OpenStruct.new({:disk => 'a/base/image/path.raw'}))
+
+        File.should_receive(:stat).with("a/base/image/path.raw").and_return(OpenStruct.new(:size => 5368709120))
 
         vmdk_image = @plugin.change_vmdk_values("monolithicFlat")
 
@@ -153,13 +165,14 @@ module BoxGrinder
       end
 
       it "should change vmdk data (flat) enabling thin disk" do
-        prepare_image({'thin_disk' => true, 'type' => 'enterprise'})
+        prepare_image({'thin_disk' => true, 'type' => 'enterprise'}, :previous_deliverables => OpenStruct.new({:disk => 'a/base/image/path.raw'}))
+
+        File.should_receive(:stat).with("a/base/image/path.raw").and_return(OpenStruct.new(:size => 5368709120))
 
         vmdk_image = @plugin.change_vmdk_values("monolithicFlat")
 
         vmdk_image.scan(/^ddb.thinProvisioned = "(.*)"\s?$/).to_s.should == "1"
       end
-
     end
 
     it "should change vmx data" do

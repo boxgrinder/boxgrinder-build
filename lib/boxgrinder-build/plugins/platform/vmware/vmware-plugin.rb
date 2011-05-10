@@ -63,12 +63,14 @@ module BoxGrinder
 
     # returns value of cylinders, heads and sector for selected disk size (in GB)
     # http://kb.vmware.com/kb/1026254
-    def generate_scsi_chs(disk_size)
-      if disk_size < 1
+    def generate_scsi_chs
+      disk_size = File.stat(@previous_deliverables.disk).size
+
+      if disk_size < 1073741824
         h = 64
         s = 32
       else
-        if disk_size < 2
+        if disk_size < 2147483648
           h = 128
           s = 32
         else
@@ -77,9 +79,8 @@ module BoxGrinder
         end
       end
 
-      #               GB          MB     KB     B
-      c             = disk_size * 1024 * 1024 * 1024 / (h*s*512)
-      total_sectors = disk_size * 1024 * 1024 * 1024 / 512
+      c             = disk_size / (h*s*512)
+      total_sectors = disk_size / 512
 
       [c.to_i, h.to_i, s.to_i, total_sectors.to_i]
     end
@@ -87,10 +88,7 @@ module BoxGrinder
     def change_vmdk_values(type)
       vmdk_data = File.open("#{File.dirname(__FILE__)}/src/base.vmdk").read
 
-      disk_size = 0.0
-      @appliance_config.hardware.partitions.values.each { |part| disk_size += part['size'].to_f }
-
-      c, h, s, total_sectors = generate_scsi_chs(disk_size)
+      c, h, s, total_sectors = generate_scsi_chs
 
       is_enterprise = type.eql?("vmfs")
 
