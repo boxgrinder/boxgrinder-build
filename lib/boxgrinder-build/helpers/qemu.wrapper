@@ -1,0 +1,13 @@
+#!/bin/sh
+
+if [ "`echo "$@" | grep "kvm" | wc -l`" -eq "1" ]; then
+  args=( "$@" "-no-kvm" )
+else
+  args=( "$@" )
+fi
+
+if [ "`uname -i`" = "x86_64" ]; then
+  exec /usr/bin/qemu-system-x86_64 "${args[@]}"
+else
+  exec /usr/bin/qemu "${args[@]}"
+fi

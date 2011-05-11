@@ -167,13 +167,11 @@ module BoxGrinder
 
       unless hw_virtualization_available?
         # This wrapper is required especially for EC2 where running qemu-kvm crashes libguestfs
-        qemu_wrapper = (RbConfig::CONFIG['host_cpu'].eql?('x86_64') ? "/usr/bin/qemu-system-x86_64" : "/usr/bin/qemu")
+        qemu_wrapper = "#{File.dirname(__FILE__)}/qemu.wrapper"
 
-        if File.exists?(qemu_wrapper)
-          @log.trace "Setting QEMU wrapper to #{qemu_wrapper}..."
-          @guestfs.set_qemu(qemu_wrapper)
-          @log.trace "QEMU wrapper set."
-        end
+        @log.trace "Setting QEMU wrapper to #{qemu_wrapper}..."
+        @guestfs.set_qemu(qemu_wrapper)
+        @log.trace "QEMU wrapper set."
       end
 
       @disks.each do |disk|

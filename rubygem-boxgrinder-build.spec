@@ -136,6 +136,7 @@ popd
 %doc %{geminstdir}/LICENSE
 %doc %{geminstdir}/README.md
 %doc %{geminstdir}/Manifest
+%attr(755, root, root) %{geminstdir}/lib/boxgrinder-build/helpers/qemu.wrapper
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 
@@ -157,6 +158,7 @@ popd
 - [BGBUILD-213] CloudSigma support
 - [BGBUILD-209] Wrong /etc/mtab on Fedora 15 appliances causes errors
 - [BGBUILD-203] Vmware vmdk disk size is wrong when installing via kickstart files
+- [BGBUILD-207] Guestfs dies on Fedora 15 with 'KVM not supported for this target' message
 
 * Thu Mar 17 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.1-1
 - Upstream release: 0.9.1

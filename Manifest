@@ -13,6 +13,7 @@ lib/boxgrinder-build/helpers/image-helper.rb
 lib/boxgrinder-build/helpers/linux-helper.rb
 lib/boxgrinder-build/helpers/package-helper.rb
 lib/boxgrinder-build/helpers/plugin-helper.rb
+lib/boxgrinder-build/helpers/qemu.wrapper
 lib/boxgrinder-build/managers/plugin-manager.rb
 lib/boxgrinder-build/plugins/base-plugin.rb
 lib/boxgrinder-build/plugins/delivery/ebs/ebs-plugin.rb

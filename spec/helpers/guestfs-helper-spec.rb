@@ -78,7 +78,7 @@ module BoxGrinder
         @helper.execute(nil, :ide_disk => true).should == @helper
       end
 
-      it "should prepare and run guestfs without HW accelerarion enabled for 64 bit host" do
+      it "should prepare and run guestfs without HW accelerarion enabled" do
         guestfs = mock('Guestfs')
         guestfs.should_receive(:set_append).with('noapic')
         guestfs.should_receive(:set_verbose)
@@ -88,10 +88,7 @@ module BoxGrinder
         @helper.should_receive(:hw_virtualization_available?).and_return(false)
         @helper.should_receive(:load_selinux_policy)
 
-        RbConfig::CONFIG.should_receive(:[]).with('host_cpu').and_return('x86_64')
-
-        File.should_receive(:exists?).with('/usr/bin/qemu-system-x86_64').and_return(true)
-        guestfs.should_receive(:set_qemu).with('/usr/bin/qemu-system-x86_64')
+        guestfs.should_receive(:set_qemu).with(/\/qemu\.wrapper$/)
         guestfs.should_receive(:add_drive).with('a/raw/disk')
         guestfs.should_receive(:set_network).with(1)
         guestfs.should_receive(:launch)
@@ -101,32 +98,6 @@ module BoxGrinder
         Guestfs.should_receive(:create).and_return(guestfs)
 
         @helper.should_receive(:mount_partition).with('/dev/vda', '/', '')
-        @helper.execute.should == @helper
-      end
-
-      it "should prepare and run guestfs without HW accelerarion enabled for 32 bit host" do
-        guestfs = mock('Guestfs')
-        guestfs.should_receive(:set_append).with('noapic')
-        guestfs.should_receive(:set_verbose)
-        guestfs.should_receive(:set_trace)
-        guestfs.should_receive(:set_selinux).with(1)
-
-        @helper.should_receive(:hw_virtualization_available?).and_return(false)
-        @helper.should_receive(:load_selinux_policy)
-
-        RbConfig::CONFIG.should_receive(:[]).with('host_cpu').and_return('i386')
-
-        File.should_receive(:exists?).with('/usr/bin/qemu').and_return(true)
-        guestfs.should_receive(:set_qemu).with('/usr/bin/qemu')
-        guestfs.should_receive(:add_drive).with('a/raw/disk')
-        guestfs.should_receive(:set_network).with(1)
-        guestfs.should_receive(:launch)
-        guestfs.should_receive(:list_devices).and_return(['/dev/vda'])
-        guestfs.should_receive(:list_partitions).and_return(['/dev/vda1', '/dev/vda2'])
-
-        Guestfs.should_receive(:create).and_return(guestfs)
-
-        @helper.should_receive(:mount_partitions).with('/dev/vda', '')
         @helper.execute.should == @helper
       end
 
