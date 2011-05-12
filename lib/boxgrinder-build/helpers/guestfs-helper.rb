@@ -103,7 +103,7 @@ module BoxGrinder
         ec2 = false
       end
 
-      if `cat /proc/cpuinfo | grep flags | grep vmx | wc -l`.chomp.strip.to_i > 0 and !ec2
+      if `egrep '^flags.*(vmx|svm)' /proc/cpuinfo | wc -l`.chomp.strip.to_i > 0 and !ec2
         @log.trace "HW acceleration available."
         return true
       end
