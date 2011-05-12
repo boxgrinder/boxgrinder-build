@@ -262,13 +262,13 @@ module BoxGrinder
     describe ".hw_virtualization_available?" do
       it "should return true if HW acceleration is available" do
         Resolv.should_receive(:getname).with("169.254.169.254").and_return("blah")
-        @helper.should_receive(:`).with('cat /proc/cpuinfo | grep flags | grep vmx | wc -l').and_return("2")
+        @helper.should_receive(:`).with('egrep '^flags.*(vmx|svm)' /proc/cpuinfo | wc -l').and_return("2")
         @helper.hw_virtualization_available?.should == true
       end
 
       it "should return false if no vmx flag is present" do
         Resolv.should_receive(:getname).with("169.254.169.254").and_return("blah")
-        @helper.should_receive(:`).with('cat /proc/cpuinfo | grep flags | grep vmx | wc -l').and_return("0")
+        @helper.should_receive(:`).with('egrep '^flags.*(vmx|svm)' /proc/cpuinfo | wc -l').and_return("0")
         @helper.hw_virtualization_available?.should == false
       end
 
