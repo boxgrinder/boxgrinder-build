@@ -107,8 +107,6 @@ module BoxGrinder
       FileUtils.mkdir_p(@config.dir.tmp)
       ENV['TMPDIR'] = @config.dir.tmp
 
-      # Let's be optimistic - try to use Guestfs as it is
-      # If we fail - we will override this later
       @guestfs = Guestfs::create
 
       if @guestfs.respond_to?(:set_event_callback)
