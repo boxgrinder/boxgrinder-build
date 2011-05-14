@@ -32,124 +32,132 @@ module BoxGrinder
       @helper = GuestFSHelper.new('a/raw/disk', @appliance_config, @config, :log => @log)
     end
 
-    describe ".execute" do
-      it "should prepare and run guestfs" do
+    describe ".prepare_guestfs" do
+      it "should prepare guestfs with normal disk" do
         guestfs = mock('Guestfs')
+        @helper.instance_variable_set(:@guestfs, guestfs)
+
         guestfs.should_receive(:set_append).with('noapic')
         guestfs.should_receive(:set_verbose)
         guestfs.should_receive(:set_trace)
         guestfs.should_receive(:set_selinux).with(1)
 
         @helper.should_receive(:hw_virtualization_available?).and_return(true)
-        @helper.should_receive(:load_selinux_policy)
 
         guestfs.should_receive(:add_drive).with('a/raw/disk')
         guestfs.should_receive(:set_network).with(1)
-        guestfs.should_receive(:launch)
 
-        guestfs.should_receive(:list_devices).and_return(['/dev/vda'])
-        guestfs.should_receive(:list_partitions).and_return(['/dev/vda1', '/dev/vda2'])
-
-        Guestfs.should_receive(:create).and_return(guestfs)
-
-        @helper.should_receive(:mount_partitions).with('/dev/vda', '')
-        @helper.execute.should == @helper
+        @helper.prepare_guestfs(:a => :b) do
+        end
       end
 
       it "should prepare and run guestfs wid IDE disk" do
         guestfs = mock('Guestfs')
+        @helper.instance_variable_set(:@guestfs, guestfs)
+
         guestfs.should_receive(:set_append).with('noapic')
         guestfs.should_receive(:set_verbose)
         guestfs.should_receive(:set_trace)
         guestfs.should_receive(:set_selinux).with(1)
 
         @helper.should_receive(:hw_virtualization_available?).and_return(true)
-        @helper.should_receive(:load_selinux_policy)
 
         guestfs.should_receive(:add_drive_with_if).with('a/raw/disk', 'ide')
         guestfs.should_receive(:set_network).with(1)
-        guestfs.should_receive(:launch)
-        guestfs.should_receive(:list_devices).and_return(['/dev/vda'])
-        guestfs.should_receive(:list_partitions).and_return(['/dev/vda1', '/dev/vda2'])
 
-        Guestfs.should_receive(:create).and_return(guestfs)
-
-        @helper.should_receive(:mount_partitions).with('/dev/vda', '')
-        @helper.execute(nil, :ide_disk => true).should == @helper
+        @helper.prepare_guestfs(:ide_disk => true) {}
       end
 
-      it "should prepare and run guestfs without HW accelerarion enabled" do
+      it "should prepare guestfs without HW accelerarion enabled" do
         guestfs = mock('Guestfs')
+        @helper.instance_variable_set(:@guestfs, guestfs)
+
         guestfs.should_receive(:set_append).with('noapic')
         guestfs.should_receive(:set_verbose)
         guestfs.should_receive(:set_trace)
         guestfs.should_receive(:set_selinux).with(1)
 
         @helper.should_receive(:hw_virtualization_available?).and_return(false)
-        @helper.should_receive(:load_selinux_policy)
 
         guestfs.should_receive(:set_qemu).with(/\/qemu\.wrapper$/)
         guestfs.should_receive(:add_drive).with('a/raw/disk')
         guestfs.should_receive(:set_network).with(1)
-        guestfs.should_receive(:launch)
-        guestfs.should_receive(:list_devices).and_return(['/dev/vda'])
-        guestfs.should_receive(:list_partitions).and_return([])
 
+        @helper.prepare_guestfs {}
+      end
+    end
+
+    describe ".initialize_guestfs" do
+      it "should initialize the guestfs env with callback support" do
+        guestfs = mock('Guestfs')
+        guestfs.should_receive(:respond_to?).with(:set_event_callback).and_return(true)
+        @helper.should_receive(:log_callback)
+
+        FileUtils.should_receive(:mkdir_p).with('/tmp')
         Guestfs.should_receive(:create).and_return(guestfs)
 
-        @helper.should_receive(:mount_partition).with('/dev/vda', '/', '')
-        @helper.execute.should == @helper
+        @helper.initialize_guestfs
       end
 
-      it "should prepare and run guestfs with one partition" do
+      it "should initialize the guestfs env without callback support" do
+        guestfs = mock('Guestfs')
+        guestfs.should_receive(:respond_to?).with(:set_event_callback).and_return(false)
+        @helper.should_receive(:log_hack)
+
+        FileUtils.should_receive(:mkdir_p).with('/tmp')
+        Guestfs.should_receive(:create).and_return(guestfs)
+
+        @helper.initialize_guestfs
+      end
+    end
+
+    describe ".execute" do
+      it "should run guestfs with one partition" do
         @appliance_config.stub!(:hardware).and_return(:partitions => {'/' => nil})
 
         guestfs = mock('Guestfs')
-        guestfs.should_receive(:set_append).with('noapic')
-        guestfs.should_receive(:set_verbose)
-        guestfs.should_receive(:set_trace)
-        guestfs.should_receive(:set_selinux).with(1)
+        @helper.instance_variable_set(:@guestfs, guestfs)
 
-        @helper.should_receive(:hw_virtualization_available?).and_return(true)
-        @helper.should_receive(:load_selinux_policy)
-
-        guestfs.should_receive(:add_drive).with('a/raw/disk')
-        guestfs.should_receive(:set_network).with(1)
         guestfs.should_receive(:launch)
         guestfs.should_receive(:list_devices).and_return(['/dev/vda'])
         guestfs.should_receive(:list_partitions).and_return(['/dev/vda1'])
 
-        Guestfs.should_receive(:create).and_return(guestfs)
-
-        guestfs.should_receive(:list_partitions).and_return(['/dev/vda1'])
-        @helper.should_receive(:mount_partition).with("/dev/vda1", "/", '')
-
-        guestfs.should_receive(:set_e2label).with("/dev/vda1", "79d3d2d4")
-
-        @helper.execute.should == @helper
-      end
-
-      it "should prepare and run guestfs with no partitions" do
-        guestfs = mock('Guestfs')
-        guestfs.should_receive(:set_append).with('noapic')
-        guestfs.should_receive(:set_verbose)
-        guestfs.should_receive(:set_trace)
-        guestfs.should_receive(:set_selinux).with(1)
-
-        @helper.should_receive(:hw_virtualization_available?).and_return(true)
+        @helper.should_receive(:mount_partitions).with("/dev/vda", '')
         @helper.should_receive(:load_selinux_policy)
 
-        guestfs.should_receive(:add_drive).with('a/raw/disk')
-        guestfs.should_receive(:set_network).with(1)
+        @helper.execute
+      end
+
+      it "should run guestfs with two partitions" do
+        @appliance_config.stub!(:hardware).and_return(:partitions => {'/' => nil, '/home' => nil})
+
+        guestfs = mock('Guestfs')
+        @helper.instance_variable_set(:@guestfs, guestfs)
+
         guestfs.should_receive(:launch)
+        guestfs.should_receive(:list_devices).and_return(['/dev/vda'])
+        guestfs.should_receive(:list_partitions).and_return(['/dev/vda1', '/dev/vda2'])
+
+        @helper.should_receive(:mount_partitions).with("/dev/vda", "")
+        @helper.should_receive(:load_selinux_policy)
+
+        @helper.execute
+      end
+
+      it "should run guestfs with no partitions and don't load selinux" do
+        @appliance_config.stub!(:hardware).and_return(:partitions => {'/' => nil, '/home' => nil})
+
+        guestfs = mock('Guestfs')
+        @helper.instance_variable_set(:@guestfs, guestfs)
+
+        guestfs.should_receive(:launch)
+        guestfs.should_receive(:list_devices).and_return(['/dev/vda'])
         guestfs.should_receive(:list_partitions).and_return([])
 
-        Guestfs.should_receive(:create).and_return(guestfs)
+        @helper.should_receive(:mount_partition).with("/dev/vda", "/", "")
+        @helper.should_not_receive(:load_selinux_policy)
 
-        guestfs.should_receive(:list_devices).and_return(['/dev/sda'])
-        @helper.should_receive(:mount_partition).with("/dev/sda", "/", '')
-
-        @helper.execute.should == @helper
+        @helper.execute(:load_selinux_policy => false)
       end
     end
 
@@ -165,26 +173,37 @@ module BoxGrinder
       @helper.clean_close
     end
 
-    it "should mount partition" do
-      guestfs = mock('Guestfs')
+    describe ".mount_partition" do
+      it "should mount root partition" do
+        guestfs = mock('Guestfs')
 
-      guestfs.should_receive(:mount_options).with("", "/dev/sda", "/")
+        guestfs.should_receive(:mount_options).with("", "/dev/sda", "/")
+        guestfs.should_receive(:set_e2label).with("/dev/sda", "79d3d2d4")
 
-      @helper.instance_variable_set(:@guestfs, guestfs)
-      @helper.mount_partition("/dev/sda", "/")
+        @helper.instance_variable_set(:@guestfs, guestfs)
+        @helper.mount_partition("/dev/sda", "/")
+      end
+
+      it "should mount home partition" do
+        guestfs = mock('Guestfs')
+
+        guestfs.should_receive(:mount_options).with("", "/dev/sda", "/home")
+        guestfs.should_receive(:set_e2label).with("/dev/sda", "d5219c04")
+
+        @helper.instance_variable_set(:@guestfs, guestfs)
+        @helper.mount_partition("/dev/sda", "/home")
+      end
     end
 
     describe ".mount_partitions" do
-      it "should mount partitions" do
+      it "should mount two partitions" do
         guestfs = mock('Guestfs')
 
         @appliance_config.stub!(:hardware).and_return(:partitions => {'/' => nil, '/home' => nil})
         guestfs.should_receive(:list_partitions).and_return(['/dev/vda1', '/dev/vda2'])
 
         @helper.should_receive(:mount_partition).with('/dev/vda1', '/', '')
-        guestfs.should_receive(:set_e2label).with("/dev/vda1", "79d3d2d4")
         @helper.should_receive(:mount_partition).with('/dev/vda2', '/home', '')
-        guestfs.should_receive(:set_e2label).with("/dev/vda2", "d5219c04")
 
         @helper.instance_variable_set(:@guestfs, guestfs)
         @helper.mount_partitions('/dev/vda')
@@ -197,13 +216,9 @@ module BoxGrinder
         guestfs.should_receive(:list_partitions).and_return(['/dev/vda1', '/dev/vda2', '/dev/vda3', '/dev/vda4', '/dev/vda5'])
 
         @helper.should_receive(:mount_partition).with('/dev/vda1', '/', '')
-        guestfs.should_receive(:set_e2label).with("/dev/vda1", "79d3d2d4")
         @helper.should_receive(:mount_partition).with('/dev/vda2', '/home', '')
-        guestfs.should_receive(:set_e2label).with("/dev/vda2", "d5219c04")
         @helper.should_receive(:mount_partition).with('/dev/vda3', '/var/www', '')
-        guestfs.should_receive(:set_e2label).with("/dev/vda3", "8d86efc1")
         @helper.should_receive(:mount_partition).with('/dev/vda5', '/var/mock', '')
-        guestfs.should_receive(:set_e2label).with("/dev/vda5", "e7b3b1f2")
 
         @helper.instance_variable_set(:@guestfs, guestfs)
         @helper.mount_partitions('/dev/vda')
@@ -301,6 +316,42 @@ module BoxGrinder
         @helper.instance_variable_set(:@guestfs, guestfs)
         guestfs.should_receive(:umount).with('/dev/vda1')
         @helper.umount_partition('/dev/vda1')
+      end
+    end
+
+    describe ".customize" do
+      it "should execute customize wihout issues" do
+        @helper.should_receive(:prepare_guestfs).and_yield
+        @helper.should_receive(:clean_close)
+        @helper.should_receive(:execute).with(:a => :b)
+
+        @helper.customize(:a => :b) do |guestfs, guestfs_helper|
+        end
+      end
+    end
+
+    describe ".log_callback" do
+      it "should register callback for all 3 events" do
+        guestfs = mock('Guestfs')
+        @helper.instance_variable_set(:@guestfs, guestfs)
+        guestfs.should_receive(:set_event_callback).with(an_instance_of(Proc), 16 | 32 | 64)
+        @helper.log_callback
+      end
+    end
+
+    describe ".log_hack" do
+      it "should register callback for all 3 events" do
+        guestfs = mock('Guestfs')
+        pread = ['a', 'b']
+        pwrite = mock('pwrite')
+        old_stderr = mock('old_stderr')
+
+        IO.should_receive(:pipe).and_return([pread, pwrite])
+        STDERR.should_receive(:clone).and_return(old_stderr)
+        STDERR.should_receive(:reopen).with(pwrite)
+
+        @helper.should_receive(:fork)
+        @helper.log_hack
       end
     end
   end

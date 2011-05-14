@@ -23,67 +23,6 @@ require 'rbconfig'
 require 'resolv'
 
 module BoxGrinder
-  class SilencerProxy
-    def initialize(o, destination)
-      @o = o
-      @destination = destination
-    end
-
-    def method_missing(m, *args, &block)
-      begin
-        redirect_streams(@destination) do
-          @o.send(m, *args, &block)
-        end
-      rescue
-        raise
-      end
-    end
-
-    def respond_to?(m)
-      @o.respond_to?(m)
-    end
-
-    def redirect_streams(destination)
-      old_stdout_stream = STDOUT.dup
-      old_stderr_stream = STDERR.dup
-
-      STDOUT.reopen(destination)
-      STDERR.reopen(destination)
-
-      STDOUT.sync = true
-      STDERR.sync = true
-
-      yield
-    ensure
-      STDOUT.reopen(old_stdout_stream)
-      STDERR.reopen(old_stderr_stream)
-    end
-  end
-end
-
-module Guestfs
-  class Guestfs
-    alias_method :sh_original, :sh
-
-    def sh(command)
-      begin
-        output = sh_original(command)
-        puts output
-      rescue => e
-        puts "Error occurred while executing above command, aborting."
-        raise e
-      end
-
-      output
-    end
-
-    def redirect(destination)
-      BoxGrinder::SilencerProxy.new(self, destination)
-    end
-  end
-end
-
-module BoxGrinder
   class GuestFSHelper
     def initialize(disks, appliance_config, config, options = {})
       @disks = disks
@@ -113,54 +52,81 @@ module BoxGrinder
       false
     end
 
-    def customize(options = {})
-      read_pipe, write_pipe = IO.pipe
+    # https://issues.jboss.org/browse/BGBUILD-83
+    def log_callback
+      log = Proc.new do |event, event_handle, buf, array|
+        buf.chomp!
+        buf.strip!
 
-      fork do
-        read_pipe.each do |o|
-          if o.chomp.strip.eql?("<EOF>")
-            exit
-          else
-            @log.trace "GFS: #{o.chomp.strip}"
-          end
+        if event == 64
+          @log.trace buf
+        else
+          @log.debug buf
         end
       end
 
-      helper = execute(write_pipe, options)
+      # Guestfs::EVENT_APPLIANCE  => 16
+      # Guestfs::EVENT_LIBRARY    => 32
+      # Guestfs::EVENT_TRACE      => 64
 
-      yield @guestfs, helper
+      # Referencing int instead of constants make it easier to test
+      @guestfs.set_event_callback(log, 16 | 32 | 64)
 
-      clean_close
-
-      write_pipe.puts "<EOF>"
-
-      Process.wait
+      yield if block_given?
     end
 
-    def execute(pipe = nil, options = {})
-      options = {
-          :ide_disk => false,
-          :mount_prefix => '',
-          :automount => true,
-          :load_selinux_policy => true
-      }.merge(options)
+    # If log callback aren't available we will fail to this, which sucks...
+    def log_hack
+      read_stderr, write_stderr = IO.pipe
+      old_stderr = STDERR.clone
 
+      STDERR.reopen(write_stderr)
+      STDERR.sync = true
+
+      if fork
+        begin
+          # Execute all tasks
+          yield if block_given?
+        ensure
+          STDERR.reopen(old_stderr)
+        end
+
+        write_stderr.close
+        read_stderr.close
+      else
+        read_stderr.each do |l|
+          @log.trace "GFS: #{l.chomp.strip}"
+        end
+      end
+    end
+
+    def initialize_guestfs(options = {})
       @log.debug "Preparing guestfs..."
-
       @log.trace "Setting libguestfs temporary directory to '#{@config.dir.tmp}'..."
 
       FileUtils.mkdir_p(@config.dir.tmp)
-
       ENV['TMPDIR'] = @config.dir.tmp
 
-      @guestfs = pipe.nil? ? Guestfs::create : Guestfs::create.redirect(pipe)
+      # Let's be optimistic - try to use Guestfs as it is
+      # If we fail - we will override this later
+      @guestfs = Guestfs::create
 
-      # https://bugzilla.redhat.com/show_bug.cgi?id=502058
-      @guestfs.set_append("noapic")
+      if @guestfs.respond_to?(:set_event_callback)
+        @log.trace "We have event callbacks available!"
+        log_callback { prepare_guestfs(options) { yield } }
+      else
+        @log.trace "We don't have event callbacks available :( Falling back to proxy."
+        log_hack { prepare_guestfs(options) { yield } }
+      end
+    end
 
+    def prepare_guestfs(options = {})
       @log.trace "Setting debug + trace..."
       @guestfs.set_verbose(1)
       @guestfs.set_trace(1)
+
+      # https://bugzilla.redhat.com/show_bug.cgi?id=502058
+      @guestfs.set_append("noapic")
 
       @log.trace "Enabling SElinux support in guestfs..."
       @guestfs.set_selinux(1)
@@ -188,6 +154,27 @@ module BoxGrinder
         @log.debug "Enabling networking for GuestFS..."
         @guestfs.set_network(1)
       end
+
+      yield
+    end
+
+    def customize(options = {})
+      initialize_guestfs(options) do
+        helper = execute(options)
+
+        yield @guestfs, helper
+
+        clean_close
+      end
+    end
+
+    def execute(options = {})
+      options = {
+          :ide_disk => false,
+          :mount_prefix => '',
+          :automount => true,
+          :load_selinux_policy => true
+      }.merge(options)
 
       @log.debug "Launching guestfs..."
       @guestfs.launch
@@ -243,6 +230,9 @@ module BoxGrinder
     def mount_partition(part, mount_point, mount_prefix = '')
       @log.trace "Mounting #{part} partition to #{mount_point}..."
       @guestfs.mount_options("", part, "#{mount_prefix}#{mount_point}")
+      # By the way - update the labels so we don't have to muck again with partitions
+      # this will be done for every mount, but shouldn't hurt too much.
+      @guestfs.set_e2label(part, Zlib.crc32(mount_point).to_s(16))
       @log.trace "Partition mounted."
     end
 
@@ -252,16 +242,8 @@ module BoxGrinder
       @log.trace "Mounting partitions..."
 
       partitions = mountable_partitions(device)
-
       mount_points = LinuxHelper.new(:log => @log).partition_mount_points(@appliance_config.hardware.partitions)
-
-      partitions.each_index do |i|
-        mount_partition(partitions[i], mount_points[i], mount_prefix)
-
-        # By the way - update the labels so we don't have to muck again with partitions
-        # this will be done for every mount, but shouldn't hurt too much.
-        @guestfs.set_e2label(partitions[i], Zlib.crc32(mount_points[i]).to_s(16))
-      end
+      partitions.each_index { |i| mount_partition(partitions[i], mount_points[i], mount_prefix) }
     end
 
     def mountable_partitions(device)

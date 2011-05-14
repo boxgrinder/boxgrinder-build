@@ -159,6 +159,7 @@ popd
 - [BGBUILD-209] Wrong /etc/mtab on Fedora 15 appliances causes errors
 - [BGBUILD-203] Vmware vmdk disk size is wrong when installing via kickstart files
 - [BGBUILD-207] Guestfs dies on Fedora 15 with 'KVM not supported for this target' message
+- [BGBUILD-83] Enable libguestfs log callback to redirect guestfs output to logger
 
 * Thu Mar 17 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.1-1
 - Upstream release: 0.9.1
