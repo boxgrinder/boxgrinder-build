@@ -115,7 +115,7 @@ mkdir -p %{_builddir}%{gemdir}
 mkdir -p %{buildroot}/%{_bindir}
 mkdir -p %{buildroot}/%{gemdir}
 
-gem install --local --install-dir %{_builddir}%{gemdir} \
+/usr/bin/gem install --local --install-dir %{_builddir}%{gemdir} \
             --force --rdoc %{SOURCE0}
 mv %{_builddir}%{gemdir}/bin/* %{buildroot}/%{_bindir}
 find %{_builddir}%{geminstdir}/bin -type f | xargs chmod a+x

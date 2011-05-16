@@ -321,7 +321,7 @@ module BoxGrinder
 
     describe ".customize" do
       it "should execute customize wihout issues" do
-        @helper.should_receive(:prepare_guestfs).and_yield
+        @helper.should_receive(:initialize_guestfs).and_yield
         @helper.should_receive(:clean_close)
         @helper.should_receive(:execute).with(:a => :b)
 
@@ -349,6 +349,12 @@ module BoxGrinder
         IO.should_receive(:pipe).and_return([pread, pwrite])
         STDERR.should_receive(:clone).and_return(old_stderr)
         STDERR.should_receive(:reopen).with(pwrite)
+        STDERR.should_receive(:reopen).with(old_stderr)
+
+        pread.should_receive(:close)
+        pwrite.should_receive(:close)
+
+        Process.should_receive(:wait)
 
         @helper.should_receive(:fork)
         @helper.log_hack

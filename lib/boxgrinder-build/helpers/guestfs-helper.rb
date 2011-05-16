@@ -56,12 +56,11 @@ module BoxGrinder
     def log_callback
       log = Proc.new do |event, event_handle, buf, array|
         buf.chomp!
-        buf.strip!
 
         if event == 64
-          @log.trace buf
+          @log.trace "GFS: #{buf}"
         else
-          @log.debug buf
+          @log.debug "GFS: #{buf}"
         end
       end
 
@@ -78,26 +77,33 @@ module BoxGrinder
     # If log callback aren't available we will fail to this, which sucks...
     def log_hack
       read_stderr, write_stderr = IO.pipe
+
+      fork do
+        write_stderr.close
+
+        read_stderr.each do |l|
+          @log.trace "GFS: #{l.chomp.strip}"
+        end
+
+        read_stderr.close
+      end
+
       old_stderr = STDERR.clone
 
       STDERR.reopen(write_stderr)
       STDERR.sync = true
 
-      if fork
-        begin
-          # Execute all tasks
-          yield if block_given?
-        ensure
-          STDERR.reopen(old_stderr)
-        end
-
-        write_stderr.close
-        read_stderr.close
-      else
-        read_stderr.each do |l|
-          @log.trace "GFS: #{l.chomp.strip}"
-        end
+      begin
+        # Execute all tasks
+        yield if block_given?
+      ensure
+        STDERR.reopen(old_stderr)
       end
+
+      write_stderr.close
+      read_stderr.close
+
+      Process.wait
     end
 
     def initialize_guestfs(options = {})
