@@ -104,9 +104,27 @@ module BoxGrinder
         @plugin.ami_key("name", "/").should == "name/fedora/14/1.0-SNAPSHOT-2/x86_64"
       end
 
-      it "should generate valid ami_key with snapshot when bucket doesn't exists" do
-        @config.plugins['s3'].merge!('snapshot' => true)
+      it "should return valid ami_key with snapshot and overwrite enabled" do
+        @plugin_config.merge!('snapshot' => true, 'overwrite' => true)
+        bucket = mock('Bucket')
+        bucket.should_receive(:keys).twice
 
+        key = mock('Key')
+        key.should_receive(:exists?).and_return(true)
+
+        key1 = mock('Key')
+        key1.should_receive(:exists?).and_return(false)
+
+        bucket.should_receive(:key).with("name/fedora/14/1.0-SNAPSHOT-1/x86_64/").and_return(key)
+        bucket.should_receive(:key).with("name/fedora/14/1.0-SNAPSHOT-2/x86_64/").and_return(key1)
+
+        @plugin.should_receive(:bucket).twice.with(false).and_return(bucket)
+        # Re-use the last key again
+        @plugin.ami_key("name", "/").should == "name/fedora/14/1.0-SNAPSHOT-1/x86_64"
+      end
+
+      it "should generate valid ami_key with snapshot when bucket doesn't exist" do
+        @plugin_config.merge!('snapshot' => true)
         @plugin.should_receive(:bucket).with(false).and_raise('ABC')
         @plugin.ami_key("name", "/").should == "name/fedora/14/1.0-SNAPSHOT-1/x86_64"
       end
@@ -136,7 +154,7 @@ module BoxGrinder
       @plugin.instance_variable_set(:@s3, s3)
 
       key = mock('Key')
-      key.should_receive(:exists?).and_return(false)
+      key.should_receive(:exists?).twice.and_return(false)
       key.should_receive(:put).with('abc', 'private', :server => 's3.amazonaws.com')
 
       bucket = mock('Bucket')
@@ -183,7 +201,7 @@ module BoxGrinder
       @plugin.bundle_image(:disk => "a/path/to/disk.ec2")
     end
 
-    it "should bundle the image for centos 5 anf choose right kernel and ramdisk" do
+    it "should bundle the image for centos 5 and choose right kernel and ramdisk" do
       @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'centos', :version => '5'}))
 
       File.should_receive(:exists?).with('build/path/s3-plugin/ami').and_return(false)

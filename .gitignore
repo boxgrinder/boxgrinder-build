@@ -15,3 +15,5 @@ wizard
 coverage
 *.gemspec
 .DS_Store
+.yardoc
+doc

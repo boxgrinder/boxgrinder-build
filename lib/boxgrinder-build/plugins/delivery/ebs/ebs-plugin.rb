@@ -42,6 +42,8 @@ module BoxGrinder
         }
     }
 
+    ROOT_DEVICE_NAME = '/dev/sda1'
+
     def validate
       raise PluginValidationError, "You try to run this plugin on invalid platform. You can run EBS delivery plugin only on EC2." unless valid_platform?
 
@@ -62,6 +64,78 @@ module BoxGrinder
       register_supported_os('rhel', ['6'])
     end
 
+    def snapshot_info(snapshot_id)
+      @ec2.describe_snapshots(:snapshot_id => snapshot_id).snapshotSet.item.each do |snapshot|
+        return snapshot if snapshot_id == snapshot.snapshotId   
+      end
+      nil
+    end
+
+    def block_device_from_ami(ami_info, device_name)
+      ami_info.blockDeviceMapping.item.each do |device|
+        return device if device.deviceName.eql?(device_name)
+      end
+      nil
+    end
+
+    def get_instances(ami_id)
+      #EC2 Gem has yet to be updated with new filters, once the patches have been pulled then it will be picked up
+      instances_info = @ec2.describe_instances(:image_id => ami_id).reservationSet
+      instances=[]
+      instances_info["item"].each do
+        |item| item["instancesSet"]["item"].each do |i|
+          instances.push i if i.imageId == ami_id #TODO remove check once gem update occurs
+        end
+      end
+      return instances.uniq! unless instances.empty?
+      nil
+    end
+    
+    def stomp_ebs(ami_info)
+
+      device = block_device_from_ami(ami_info, ROOT_DEVICE_NAME)
+
+      if device     
+        snapshot_info = snapshot_info(device.ebs.snapshotId)
+        volume_id = snapshot_info.volumeId
+
+        @log.info "Finding any existing image with the block store attached"
+       
+        if instances = get_instances(ami_info.imageId)
+          raise "There are still instances of #{ami_info.imageId} running, you must stop them: #{instances.join(",")}"
+        end
+
+        begin
+          @log.debug "Forcibly detaching block store #{volume_id}"
+          @ec2.detach_volume(:volume_id => volume_id, :force => true)
+
+          #TODO check-wait cycle to determine that detachment has occurred successfully before continuing to delete.
+      
+          @log.debug "Deleting block store"
+          @ec2.delete_volume(:volume_id => volume_id)
+        rescue => e #error messages seem to be misleading
+          @log.info "An error occurred when attempting to detach and delete old volume #{volume_id}, it may have already deleted, or is a ghost entry."
+          @log.debug e
+        ensure
+          # ensure that the volume is _really_ gone? There is no guarantee that they won't hang around according to the API
+        end
+
+        @log.debug "Deregistering AMI"
+
+        @ec2.deregister_image(:image_id => ami_info.imageId)
+
+        unless @plugin_config['preserve_snapshots']
+          @log.debug "Deleting snapshot #{device.ebs.snapshotId}"
+          @ec2.delete_snapshot(:snapshot_id => snapshot_info.snapshotId)
+        end
+ 
+      else
+        @log.error "The device #{ROOT_DEVICE_NAME} was not found, and therefore can not be unmounted"
+        return false
+      end
+      true
+    end
+
     def execute
       ebs_appliance_description = "#{@appliance_config.summary} | Appliance version #{@appliance_config.version}.#{@appliance_config.release} | #{@appliance_config.hardware.arch} architecture"
 
@@ -69,9 +143,14 @@ module BoxGrinder
 
       @log.debug "Checking if appliance is already registered..."
 
-      ami_id = already_registered?(ebs_appliance_name)
+      ami_info = ami_info(ebs_appliance_name)
 
-      if ami_id
+      @log.debug ami_info
+
+      if ami_info and @plugin_config['overwrite']
+        @log.info "Overwrite is enabled. Stomping existing assets"
+        stomp_ebs(ami_info)
+      elsif ami_info
         @log.warn "EBS AMI '#{ebs_appliance_name}' is already registered as '#{ami_id}' (region: #{@region})."
         return
       end
@@ -88,7 +167,7 @@ module BoxGrinder
       @log.debug "Volume #{volume_id} created."
       @log.debug "Waiting for EBS volume #{volume_id} to be available..."
 
-      # wait fo volume to be created
+      # wait for volume to be created
       wait_for_volume_status('available', volume_id)
 
       # get first free device to mount the volume
@@ -126,7 +205,7 @@ module BoxGrinder
 
       @ec2.detach_volume(:device => "/dev/sd#{suffix}", :volume_id => volume_id, :instance_id => instance_id)
 
-      @log.debug "Waiting for EBS volume to be available..."
+      @log.debug "Waiting for EBS volume to become available..."
 
       wait_for_volume_status('available', volume_id)
 
@@ -168,7 +247,7 @@ module BoxGrinder
                                         :device_name => '/dev/sde',
                                         :virtual_name => 'ephemeral3'
                                     }],
-          :root_device_name => '/dev/sda1',
+          :root_device_name => ROOT_DEVICE_NAME,
           :architecture => @appliance_config.hardware.base_arch,
           :kernel_id => KERNELS[@region][@appliance_config.hardware.base_arch][:aki],
           :name => ebs_appliance_name,
@@ -188,16 +267,28 @@ module BoxGrinder
         snapshot += 1
       end
 
+      # Reuse the last key (if there was one)
+      snapshot -=1 if snapshot > 1 and @plugin_config['overwrite']
+
       "#{base_path}-SNAPSHOT-#{snapshot}/#{@appliance_config.hardware.arch}"
     end
 
+    def ami_info(name)
+      images = @ec2.describe_images(:owner_id => @plugin_config['account_number'].to_s.gsub(/-/,''))
+
+      return false if images.nil?
+
+      images = images.imagesSet
+
+      for image in images.item do
+        return image if image.name == name
+      end
+      false
+    end
+
     def already_registered?(name)
-      images = @ec2.describe_images(:owner_id => @plugin_config['account_number'].to_s.gsub(/-/, ''))
-
-      return false if images.nil? or images['imagesSet'].nil?
-
-      images['imagesSet']['item'].each { |image| return image['imageId'] if image['name'] == name }
-
+      info = ami_info(name)
+      return info.imageId if info
       false
     end
 

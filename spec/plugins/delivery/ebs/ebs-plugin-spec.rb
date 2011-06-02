@@ -17,6 +17,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'rubygems'
+require 'ostruct'
 require 'logger'
 require 'boxgrinder-build/plugins/delivery/ebs/ebs-plugin'
 require 'hashery/opencascade'
@@ -85,12 +86,12 @@ module BoxGrinder
       end
     end
 
-    describe '.already_registered?' do
+    describe '.ami_info' do
 
       it "should check if image is already registered and return false if there are no images registered for this account" do
         prepare_plugin { |plugin| plugin.stub!(:after_init) }
 
-        plugin_config = mock('PluginConfiig')
+        plugin_config = mock('PluginConfig')
         plugin_config.should_receive(:[]).with('account_number').and_return('0000-0000-0000')
 
         @plugin.instance_variable_set(:@plugin_config, plugin_config)
@@ -100,13 +101,13 @@ module BoxGrinder
 
         @plugin.instance_variable_set(:@ec2, ec2)
 
-        @plugin.already_registered?('aname').should == false
+        @plugin.ami_info('aname').should == false
       end
 
       it "should check if image is already registered and return false if there are no images with name aname_new" do
         prepare_plugin { |plugin| plugin.stub!(:after_init) }
 
-        plugin_config = mock('PluginConfiig')
+        plugin_config = mock('PluginConfig')
         plugin_config.should_receive(:[]).with('account_number').and_return('0000-0000-0000')
 
         @plugin.instance_variable_set(:@plugin_config, plugin_config)
@@ -116,15 +117,35 @@ module BoxGrinder
 
         @plugin.instance_variable_set(:@ec2, ec2)
 
-        @plugin.already_registered?('aname_new').should == false
+        @plugin.ami_info('aname_new').should == false
       end
+
+      it "should return valid AMI information map for a single matching image when a valid imageId exists" do
+        prepare_plugin { |plugin| plugin.stub!(:after_init) }
+
+        plugin_config = mock('PluginConfig')
+        plugin_config.should_receive(:[]).with('account_number').and_return('0000-0000-0000')
+
+        @plugin.instance_variable_set(:@plugin_config, plugin_config)
+
+        ec2 = mock('EC2')
+        ec2.should_receive(:describe_images).with(:owner_id => '000000000000').and_return({'imagesSet' => {'item' => [{'name' => 'abc', 'imageId' => '1'}, {'name' => 'aname', 'imageId' => '2'}]}})
+
+        @plugin.instance_variable_set(:@ec2, ec2)
+
+        @plugin.ami_info('aname').should == {'name' => 'aname', 'imageId' => '2'}
+      end
+
+    end
+
+    describe '.already_registered?' do
 
       it "should check if image is already registered and return true image is registered" do
         Resolv.stub!(:getname).with("169.254.169.254").and_return([".ec2.internal"])
 
         prepare_plugin { |plugin| plugin.stub!(:after_init) }
 
-        plugin_config = mock('PluginConfiig')
+        plugin_config = mock('PluginConfig')
         plugin_config.should_receive(:[]).with('account_number').and_return('0000-0000-0000')
 
         @plugin.instance_variable_set(:@plugin_config, plugin_config)
@@ -136,6 +157,7 @@ module BoxGrinder
 
         @plugin.already_registered?('aname').should == '2'
       end
+
     end
 
     it "should adjust fstab" do
@@ -191,6 +213,25 @@ module BoxGrinder
         @plugin.ebs_appliance_name.should == "appliance_name/fedora/14/1.0/x86_64"
       end
 
+      it "should always return basic appliance name when overwrite is enabled, but snapshot is disabled" do
+        prepare_plugin { |plugin| plugin.stub!(:after_init) }
+        @plugin_config.merge!('overwrite' => true, 'snapshot' => false)
+        @plugin.ebs_appliance_name.should == "appliance_name/fedora/14/1.0/x86_64"
+      end
+
+      it "should still return a valid _initial_ snapshot appliance name, even if overwrite and snapshot are enabled on first ever run" do
+        prepare_plugin { |plugin| plugin.stub!(:after_init) }
+
+        @plugin_config.merge!('overwrite' => true, 'snapshot' => true)
+
+        ec2 = mock('EC2')
+        ec2.should_receive(:describe_images).once.with(:owner_id => '000000000000').and_return(nil)#should be nothing
+
+        @plugin.instance_variable_set(:@ec2, ec2)
+
+        @plugin.ebs_appliance_name.should == "appliance_name/fedora/14/1.0-SNAPSHOT-1/x86_64"
+      end
+
       it "should return 2nd snapshot of appliance" do
         prepare_plugin { |plugin| plugin.stub!(:after_init) }
 
@@ -206,6 +247,108 @@ module BoxGrinder
 
         @plugin.ebs_appliance_name.should == "appliance_name/fedora/14/1.0-SNAPSHOT-2/x86_64"
       end
+
+      it "should return the last snapshot name again when OVERWRITE is enabled" do
+        prepare_plugin { |plugin| plugin.stub!(:after_init) }
+
+        @plugin_config.merge!('snapshot' => true, 'overwrite' => true)
+
+        ec2 = mock('EC2')
+        ec2.should_receive(:describe_images).twice.with(:owner_id => '000000000000').and_return({'imagesSet' => {'item' => [
+            {'imageId' => '1', 'name' => 'appliance_name/fedora/14/1.0/x86_64'},
+            {'imageId' => '2', 'name' => 'appliance_name/fedora/14/1.0-SNAPSHOT-1/x86_64'}
+        ]}})
+
+        @plugin.instance_variable_set(:@ec2, ec2)
+
+        @plugin.ebs_appliance_name.should == "appliance_name/fedora/14/1.0-SNAPSHOT-1/x86_64"
+      end
+
+    end
+
+    describe ".stomp_ebs" do
+
+      before(:each) do
+        @ami_info =  recursive_ostruct({'imageId' => 'sleepy', 'blockDeviceMapping' => {'item' => [{'deviceName' => '/dev/sda1', 'ebs' => {'snapshotId' => 'bashful'}}]}})
+        @dummy_instances = recursive_ostruct([{'instanceId' => 'grumpy'},
+                             {'instanceId' => 'sneezy'}])
+        @dummy_snapshot = recursive_ostruct({'snapshotId' => 'bashful', 'volumeId' => 'snow-white'})
+      end
+
+      it "should return false if there was no block device found" do
+        prepare_plugin do |plugin|
+          plugin.stub!(:after_init)
+          plugin.stub!(:block_device_from_ami).and_return(nil)
+        end
+        @plugin.stomp_ebs(@ami_info).should == false
+      end
+
+
+      it "should throw an exception if there is still an EBS instance[s] running when an overwrite is requested" do
+        prepare_plugin do |plugin|
+          plugin.stub!(:after_init)
+          plugin.stub!(:snapshot_info).and_return(@dummy_snapshot)
+          plugin.stub!(:get_instances).and_return(@dummy_instances)
+        end
+       lambda { @plugin.stomp_ebs(@ami_info) }.should raise_error(RuntimeError)
+      end
+
+      it "should detach and delete the block store, remove the snapshot and deregister the image" do
+        prepare_plugin do |plugin|
+          plugin.stub!(:after_init)
+          plugin.stub!(:snapshot_info).and_return(@dummy_snapshot)
+          plugin.stub!(:get_instances).and_return(false)
+        end
+
+        ec2 = mock('EC2')
+        ec2.should_receive(:detach_volume).with(:volume_id => 'snow-white', :force => true)
+        ec2.should_receive(:delete_volume).with(:volume_id => 'snow-white')
+        ec2.should_receive(:deregister_image).with(:image_id => 'sleepy')
+        ec2.should_receive(:delete_snapshot).with(:snapshot_id => 'bashful')
+
+        @plugin.instance_variable_set(:@ec2, ec2)
+        @plugin.stomp_ebs(@ami_info)
+      end
+
+      it "should not delete AWS snapshots when preserve_snapshots is set" do
+        prepare_plugin do |plugin|
+          plugin.stub!(:after_init)
+          plugin.stub!(:snapshot_info).and_return(@dummy_snapshot)
+          plugin.stub!(:get_instances).and_return(false)
+        end
+
+        @plugin_config.merge!('preserve_snapshots' => true)
+
+        ec2 = mock('EC2')
+        ec2.should_receive(:detach_volume).with(:volume_id => 'snow-white', :force => true)
+        ec2.should_receive(:delete_volume).with(:volume_id => 'snow-white')
+        ec2.should_receive(:deregister_image).with(:image_id => 'sleepy')
+        ec2.should_not_receive(:delete_snapshot).with(:snapshot_id => 'bashful')
+
+        @plugin.instance_variable_set(:@ec2, ec2)
+        @plugin.stomp_ebs(@ami_info)
+      end
+
+    end
+
+    #Amazon-EC2 gem uses recursive ostructs, in a subtly different and wont work with opencascade
+    #this replicates the format to avoid breaking the code in tests.
+    def recursive_ostruct(initial)
+      clone = initial.clone
+      ostruct = case initial.class
+        when Array
+          clone.collect! do |v|
+            recursive_ostruct v
+          end
+        when Hash
+           clone.each_pair do |k,v| #follow down until reach terminal
+            clone[k] = recursive_ostruct v
+           end
+          return OpenStruct.new clone
+        else
+          return clone
+        end
+      ostruct
     end
   end
 end

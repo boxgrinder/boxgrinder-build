@@ -153,6 +153,8 @@ popd
 - [BGBUILD-237] Tilde characters break creation of yum.conf
 - [BGBUILD-223] BoxGrinder hangs because qemu.wrapper does not detect x86_64 properly on CentOS 5.6
 - [BGBUILD-241] Add Scientific Linux support
+- [BGBUILD-220] Group names have spaces (to the user), this breaks schema rules for packages
+- [BGBUILD-222] Allow overwrite of uploaded ec2 image
 
 * Thu May 05 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.2-1
 - Upstream release: 0.9.2
