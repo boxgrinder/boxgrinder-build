@@ -45,19 +45,25 @@ module BoxGrinder
       @appliance_config = @plugin.instance_variable_get(:@appliance_config)
       @exec_helper = @plugin.instance_variable_get(:@exec_helper)
       @log = @plugin.instance_variable_get(:@log)
+
+
+      @plugin_config = @plugin.instance_variable_get(:@plugin_config).merge(
+          {
+              'access_key' => 'access_key',
+              'secret_access_key' => 'secret_access_key',
+              'bucket' => 'bucket',
+              'account_number' => '0000-0000-0000',
+              'cert_file' => '/path/to/cert/file',
+              'key_file' => '/path/to/key/file'
+          }
+      )
+
+      @plugin.instance_variable_set(:@plugin_config, @plugin_config)
     end
 
     it "should normalize packages for 32bit for pae enabled system" do
-      packages = ['abc', 'def', 'kernel']
-
-      @appliance_config.should_receive(:is64bit?).and_return(false)
-
-      @plugin.normalize_packages(packages)
-      packages.should == ["abc", "def", "@core", "system-config-firewall-base", "dhclient", "kernel-PAE"]
-    end
-
-    it "should normalize packages for 32bit for pae enabled system" do
-      @appliance_config.stub!(:os).and_return(OpenCascade.new(:name => 'fedora', :version => '13', :pae => false))
+      @appliance_config.stub!(:os).and_return(OpenCascade.new(:name => 'fedora', :version => '13'))
+      @plugin_config.merge!('PAE' => false)
 
       packages = ['abc', 'def', 'kernel']
 

@@ -155,6 +155,7 @@ popd
 - [BGBUILD-241] Add Scientific Linux support
 - [BGBUILD-220] Group names have spaces (to the user), this breaks schema rules for packages
 - [BGBUILD-222] Allow overwrite of uploaded ec2 image
+- [BGBUILD-225] Move PAE configuration parameter to operating system configuration
 
 * Thu May 05 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.2-1
 - Upstream release: 0.9.2

@@ -23,6 +23,7 @@ module BoxGrinder
     def after_init
       super
       register_supported_os('fedora', ["13", "14", "15", "rawhide"])
+      set_default_config_value('PAE',true)
     end
 
     def execute(appliance_definition_file)
@@ -56,7 +57,7 @@ module BoxGrinder
       if @appliance_config.is64bit?
         packages << "kernel"
       else
-        @appliance_config.os.pae ? packages << "kernel-PAE" : packages << "kernel"
+        @plugin_config['PAE'] ? packages << "kernel-PAE" : packages << "kernel"
       end
     end
   end
