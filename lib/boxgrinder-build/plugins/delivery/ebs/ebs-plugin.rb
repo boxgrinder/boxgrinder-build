@@ -88,7 +88,7 @@ module BoxGrinder
           instances.push i if i.imageId == ami_id #TODO remove check once gem update occurs
         end
       end
-      return instances.uniq! unless instances.empty?
+      return instances.uniq unless instances.empty?
       nil
     end
 

@@ -26,7 +26,7 @@ module BoxGrinder
   class S3Plugin < BasePlugin
     REGION_OPTIONS = {
         'eu-west-1' => {
-            :endpoint => 's3.amazonaws.com',
+            :endpoint => 's3-eu-west-1.amazonaws.com',
             :location => 'EU',
             :kernel => {
                 'i386' => {:aki => 'aki-4deec439'},
