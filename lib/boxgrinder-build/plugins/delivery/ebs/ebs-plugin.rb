@@ -20,6 +20,8 @@ require 'rubygems'
 require 'boxgrinder-build/plugins/base-plugin'
 require 'AWS'
 require 'open-uri'
+require 'timeout'
+require 'pp'
 
 module BoxGrinder
   class EBSPlugin < BasePlugin
@@ -43,6 +45,8 @@ module BoxGrinder
     }
 
     ROOT_DEVICE_NAME = '/dev/sda1'
+    POLL_FREQ = 1 #second
+    TIMEOUT = 1000 #seconds
 
     def validate
       raise PluginValidationError, "You try to run this plugin on invalid platform. You can run EBS delivery plugin only on EC2." unless valid_platform?
@@ -65,27 +69,42 @@ module BoxGrinder
       register_supported_os('centos', ['5'])
     end
 
-    def snapshot_info(snapshot_id)
-      @ec2.describe_snapshots(:snapshot_id => snapshot_id).snapshotSet.item.each do |snapshot|
-        return snapshot if snapshot_id == snapshot.snapshotId   
+    def get_volume_info(volume_id)
+      begin
+        @ec2.describe_volumes(:volume_id => volume_id).volumeSet.item.each do |volume|
+          return volume if volume.volumeId == volume_id
+        end
+      rescue AWS::Error #AWS::InvalidVolumeIDNotFound should be returned when no volume found, but is not at present.
+        return nil
       end
+      nil
+    end
+
+    def snapshot_info(snapshot_id)
+     begin  
+      @ec2.describe_snapshots(:snapshot_id => snapshot_id).snapshotSet.item.each do |snapshot|
+        return snapshot if snapshot.snapshotId == snapshot_id
+      end
+     rescue AWS::InvalidSnapshotIDNotFound
+       return nil
+     end
       nil
     end
 
     def block_device_from_ami(ami_info, device_name)
       ami_info.blockDeviceMapping.item.each do |device|
-        return device if device.deviceName.eql?(device_name)
+        return device if device.deviceName == device_name
       end
       nil
     end
 
     def get_instances(ami_id)
-      #EC2 Gem has yet to be updated with new filters, once the patches have been pulled then it will be picked up
+      #EC2 Gem has yet to be updated with new filters, once the patches have been pulled then :image_id filter will be picked up
       instances_info = @ec2.describe_instances(:image_id => ami_id).reservationSet
       instances=[]
       instances_info["item"].each do
         |item| item["instancesSet"]["item"].each do |i|
-          instances.push i if i.imageId == ami_id #TODO remove check once gem update occurs
+          instances.push i if i.imageId == ami_id #TODO remove check after gem update
         end
       end
       return instances.uniq unless instances.empty?
@@ -96,9 +115,10 @@ module BoxGrinder
 
       device = block_device_from_ami(ami_info, ROOT_DEVICE_NAME)
 
-      if device
+      if device #if there is the anticipated device on the image
         snapshot_info = snapshot_info(device.ebs.snapshotId)
         volume_id = snapshot_info.volumeId
+        volume_info = get_volume_info(volume_id)
 
         @log.info "Finding any existing image with the block store attached"
 
@@ -106,32 +126,47 @@ module BoxGrinder
           raise "There are still instances of #{ami_info.imageId} running, you must stop them: #{instances.join(",")}"
         end
 
-        begin
-          @log.debug "Forcibly detaching block store #{volume_id}"
-          @ec2.detach_volume(:volume_id => volume_id, :force => true)
+        if volume_info #if the physical volume exists
+          unless volume_info.status == 'available'
+            begin
+             @log.info "Forcibly detaching block store #{volume_info.volumeId}"
+             @ec2.detach_volume(:volume_id => volume_id, :force => true)
+            rescue AWS::IncorrectState
+             @log.debug "State of the volume has changed, our data must have been stale. This should not be fatal."
+            end
+          end
 
-          #TODO check-wait cycle to determine that detachment has occurred successfully before continuing to delete.
+          @log.debug "Waiting for volume to become detached"
+          wait_for_volume_status('available', volume_info.volumeId)
 
-          @log.debug "Deleting block store"
-          @ec2.delete_volume(:volume_id => volume_id)
-        rescue => e #error messages seem to be misleading
-          @log.info "An error occurred when attempting to detach and delete old volume #{volume_id}, it may have already deleted, or is a ghost entry."
-          @log.debug e
-        ensure
-          # ensure that the volume is _really_ gone? There is no guarantee that they won't hang around according to the API
+          begin
+            @log.info "Deleting block store"
+            @ec2.delete_volume(:volume_id => volume_info.volumeId)
+            @log.debug "Waiting for volume deletion to be confirmed"
+            wait_for_volume_delete(volume_info.volumeId)
+          rescue AWS::InvalidVolumeIDNotFound
+            @log.debug "An external entity has probably deleted the volume just before we tried to. This should not be fatal."
+          end
         end
 
-        @log.debug "Deregistering AMI"
+        begin
+          @log.debug "Deregistering AMI"
+          @ec2.deregister_image(:image_id => ami_info.imageId)
+        rescue AWS::InvalidAMIIDUnavailable, AWS::InvalidAMIIDNotFound
+          @log.debug "An external entity has already deregistered the AMI just before we tried to. This should not be fatal."
+        end
 
-        @ec2.deregister_image(:image_id => ami_info.imageId)
-
-        unless @plugin_config['preserve_snapshots']
-          @log.debug "Deleting snapshot #{device.ebs.snapshotId}"
+        if !@plugin_config['preserve_snapshots'] and snapshot_info #if the snapshot exists
+         begin
+          @log.debug "Deleting snapshot #{snapshot_info.snapshotId}"
           @ec2.delete_snapshot(:snapshot_id => snapshot_info.snapshotId)
+         rescue AWS::InvalidSnapshotIDNotFound
+          @log.debug "An external entity has probably deleted the snapshot just before we tried to. This should not be fatal."
+         end
         end
 
       else
-        @log.error "The device #{ROOT_DEVICE_NAME} was not found, and therefore can not be unmounted"
+        @log.error "Expected device #{ROOT_DEVICE_NAME} was not found, and therefore can not be unmounted"
         return false
       end
       true
@@ -152,7 +187,7 @@ module BoxGrinder
         @log.info "Overwrite is enabled. Stomping existing assets"
         stomp_ebs(ami_info)
       elsif ami_info
-        @log.warn "EBS AMI '#{ebs_appliance_name}' is already registered as '#{ami_id}' (region: #{@region})."
+        @log.warn "EBS AMI '#{ebs_appliance_name}' is already registered as '#{ami_info.imageId}' (region: #{@region})."
         return
       end
 
@@ -164,6 +199,8 @@ module BoxGrinder
 
       # create_volume, ceiling to avoid fractions as per https://issues.jboss.org/browse/BGBUILD-224
       volume_id = @ec2.create_volume(:size => size.ceil.to_s, :availability_zone => @plugin_config['availability_zone'])['volumeId']
+
+      begin
 
       @log.debug "Volume #{volume_id} created."
       @log.debug "Waiting for EBS volume #{volume_id} to be available..."
@@ -191,7 +228,9 @@ module BoxGrinder
       # wait for volume to be attached
       wait_for_volume_status('in-use', volume_id)
 
-      sleep 10 # let's wait to discover the attached volume by OS
+      @log.debug "Waiting for the attached EBS volume to be discovered by the OS"
+
+      wait_for_volume_attachment(suffix)  # add rescue block for timeout when no suffix can be found then re-raise
 
       @log.info "Copying data to EBS volume..."
 
@@ -254,6 +293,11 @@ module BoxGrinder
           :name => ebs_appliance_name,
           :description => ebs_appliance_description)['imageId']
 
+      rescue Timeout::Error
+        @log.error "Timed out. Manual intervention may be necessary to complete the task."
+        raise
+      end
+
       @log.info "EBS AMI '#{ebs_appliance_name}' registered: #{image_id} (region: #{@region})"
     end
 
@@ -267,7 +311,6 @@ module BoxGrinder
       while already_registered?("#{base_path}-SNAPSHOT-#{snapshot}/#{@appliance_config.hardware.arch}")
         snapshot += 1
       end
-
       # Reuse the last key (if there was one)
       snapshot -=1 if snapshot > 1 and @plugin_config['overwrite']
 
@@ -276,9 +319,7 @@ module BoxGrinder
 
     def ami_info(name)
       images = @ec2.describe_images(:owner_id => @plugin_config['account_number'].to_s.gsub(/-/,''))
-
       return false if images.nil?
-
       images = images.imagesSet
 
       for image in images.item do
@@ -298,36 +339,50 @@ module BoxGrinder
       guestfs.mv("/etc/fstab.new", "/etc/fstab")
     end
 
-    def wait_for_snapshot_status(status, snapshot_id)
-      snapshot = @ec2.describe_snapshots(:snapshot_id => snapshot_id)['snapshotSet']['item'].first
+    def wait_with_timeout(cycle_seconds, timeout_seconds)
+      Timeout::timeout(timeout_seconds) do
+        while not yield
+          sleep cycle_seconds
+        end
+      end
+    end
 
-      unless snapshot['status'] == status
-        sleep 2
-        wait_for_snapshot_status(status, snapshot_id)
+    def wait_for_volume_delete(volume_id)
+      snapshot_info = @ec2.describe_volumes(:snapshot_id => volume_id)
+      wait_with_timeout(POLL_FREQ, TIMEOUT){ snapshot_info.nil? }
+    end
+
+    def wait_for_volume_attachment(suffix)
+      wait_with_timeout(POLL_FREQ, TIMEOUT){ device_for_suffix(suffix) != nil }
+    end
+
+    def wait_for_snapshot_status(status, snapshot_id)
+      wait_with_timeout(POLL_FREQ, TIMEOUT) do
+          snapshot = @ec2.describe_snapshots(:snapshot_id => snapshot_id)['snapshotSet']['item'].first
+          @log.trace "Polling @ec2.describe_snapshots for #{snapshot_id} with status #{status}: #{PP::pp(snapshot,"")}, current status is #{snapshot['status']}"
+          snapshot['status'] == status
       end
     end
 
     def wait_for_volume_status(status, volume_id)
-      volume = @ec2.describe_volumes(:volume_id => volume_id)['volumeSet']['item'].first
-
-      unless volume['status'] == status
-        sleep 2
-        wait_for_volume_status(status, volume_id)
+      wait_with_timeout(POLL_FREQ, TIMEOUT) do
+        volume = @ec2.describe_volumes(:volume_id => volume_id)['volumeSet']['item'].first
+        @log.trace "Polling @ec2.describe_volumes for #{volume_id} with status #{status}: #{PP::pp(volume,"")}, current status is #{volume['status']}"
+        volume['status'] == status
       end
     end
 
     def device_for_suffix(suffix)
       return "/dev/sd#{suffix}" if File.exists?("/dev/sd#{suffix}")
       return "/dev/xvd#{suffix}" if File.exists?("/dev/xvd#{suffix}")
-
-      raise "Device for suffix '#{suffix}' not found!"
+      nil
+      #raise "Device for suffix '#{suffix}' not found!"
     end
 
     def free_device_suffix
       ("f".."p").each do |suffix|
         return suffix unless File.exists?("/dev/sd#{suffix}") or File.exists?("/dev/xvd#{suffix}")
       end
-
       raise "Found too many attached devices. Cannot attach EBS volume."
     end
 
