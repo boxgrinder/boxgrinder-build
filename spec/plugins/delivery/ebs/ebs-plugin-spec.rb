@@ -68,12 +68,13 @@ module BoxGrinder
         plugin.instance_variable_set(:@current_avaibility_zone, 'us-east-1a')
       end
 
-      supportes_oses = @plugin.instance_variable_get(:@supported_oses)
+      supported_oses = @plugin.instance_variable_get(:@supported_oses)
 
-      supportes_oses.size.should == 2
-      supportes_oses.keys.sort.should == ['fedora', 'rhel']
-      supportes_oses['rhel'].should == ['6']
-      supportes_oses['fedora'].should == ['13', '14', '15']
+      supported_oses.size.should == 3
+      supported_oses.keys.sort.should == ['fedora', 'rhel', 'centos'].sort
+      supported_oses['rhel'].should == ['6']
+      supported_oses['fedora'].should == ['13', '14', '15']
+      supported_oses['centos'].should == ['5']
     end
 
     describe ".after_init" do

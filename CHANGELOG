@@ -7,6 +7,7 @@ v0.9.3
 * [BGBUILD-220] Group names have spaces (to the user), this breaks schema rules for packages
 * [BGBUILD-222] Allow overwrite of uploaded ec2 image
 * [BGBUILD-225] Move PAE configuration parameter to operating system configuration
+* [BGBUILD-224] EBS Plugin Support for CentOS v5.5 and fix for non-integer EBS disk sizes
 
 v0.9.2
 

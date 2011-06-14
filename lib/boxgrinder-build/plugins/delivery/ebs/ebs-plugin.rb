@@ -62,6 +62,7 @@ module BoxGrinder
 
       register_supported_os('fedora', ['13', '14', '15'])
       register_supported_os('rhel', ['6'])
+      register_supported_os('centos', ['5'])
     end
 
     def snapshot_info(snapshot_id)
@@ -90,17 +91,17 @@ module BoxGrinder
       return instances.uniq! unless instances.empty?
       nil
     end
-    
+
     def stomp_ebs(ami_info)
 
       device = block_device_from_ami(ami_info, ROOT_DEVICE_NAME)
 
-      if device     
+      if device
         snapshot_info = snapshot_info(device.ebs.snapshotId)
         volume_id = snapshot_info.volumeId
 
         @log.info "Finding any existing image with the block store attached"
-       
+
         if instances = get_instances(ami_info.imageId)
           raise "There are still instances of #{ami_info.imageId} running, you must stop them: #{instances.join(",")}"
         end
@@ -110,7 +111,7 @@ module BoxGrinder
           @ec2.detach_volume(:volume_id => volume_id, :force => true)
 
           #TODO check-wait cycle to determine that detachment has occurred successfully before continuing to delete.
-      
+
           @log.debug "Deleting block store"
           @ec2.delete_volume(:volume_id => volume_id)
         rescue => e #error messages seem to be misleading
@@ -128,7 +129,7 @@ module BoxGrinder
           @log.debug "Deleting snapshot #{device.ebs.snapshotId}"
           @ec2.delete_snapshot(:snapshot_id => snapshot_info.snapshotId)
         end
- 
+
       else
         @log.error "The device #{ROOT_DEVICE_NAME} was not found, and therefore can not be unmounted"
         return false
@@ -161,8 +162,8 @@ module BoxGrinder
 
       @appliance_config.hardware.partitions.each_value { |partition| size += partition['size'] }
 
-      # create_volume with 10GB size
-      volume_id = @ec2.create_volume(:size => size.to_s, :availability_zone => @plugin_config['availability_zone'])['volumeId']
+      # create_volume, ceiling to avoid fractions as per https://issues.jboss.org/browse/BGBUILD-224
+      volume_id = @ec2.create_volume(:size => size.ceil.to_s, :availability_zone => @plugin_config['availability_zone'])['volumeId']
 
       @log.debug "Volume #{volume_id} created."
       @log.debug "Waiting for EBS volume #{volume_id} to be available..."
