@@ -68,9 +68,27 @@ module BoxGrinder
       config.size.should == 1
       config[:log].should == nil
     end
+ 
+    describe ".validate_definition" do
+      before(:each) do
+        prepare_appliance
+        @appliance.instance_variable_set(:@appliance_config, prepare_appliance_config)
+      end
+
+      it "should raise if we use unsupported OS" do
+        PluginManager.stub(:instance).and_return(OpenCascade.new(:plugins => {:os => {:centos => {}}}))
+        lambda {
+          @appliance.validate_definition
+        }.should raise_error(RuntimeError, "Not supported operating system selected: fedora. Make sure you have installed right operating system plugin, see http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#Operating_system_plugins. Supported OSes are: centos")
+      end
+
+      it "should NOT raise if we use supported OS" do
+        PluginManager.stub(:instance).and_return(OpenCascade.new(:plugins => {:os => {:fedora => {:versions => ['11']}}}))
+        @appliance.validate_definition
+      end
+    end
 
     describe ".create" do
-
       it "should prepare appliance to build" do
         prepare_appliance
 
@@ -81,6 +99,7 @@ module BoxGrinder
 
         @appliance.should_receive(:read_definition)
         @appliance.should_receive(:validate_definition)
+        @appliance.should_receive(:initialize_plugins)
         @appliance.should_not_receive(:remove_old_builds)
         @appliance.should_receive(:execute_plugin_chain)
 
@@ -96,6 +115,7 @@ module BoxGrinder
         PluginHelper.should_receive(:new).with(@config, :log => @log).and_return(plugin_helper)
 
         @appliance.should_receive(:read_definition)
+        @appliance.should_receive(:initialize_plugins)
         @appliance.should_receive(:validate_definition)
         @appliance.should_receive(:remove_old_builds)
         @appliance.should_receive(:execute_plugin_chain)
@@ -199,114 +219,146 @@ module BoxGrinder
 
     it "should remove old builds" do
       prepare_appliance
-
       @appliance.instance_variable_set(:@appliance_config, prepare_appliance_config)
+
       FileUtils.should_receive(:rm_rf).with("build/path")
       @appliance.remove_old_builds
     end
 
-    it "should build base appliance" do
-      prepare_appliance
+    describe ".execute_plugin_chain" do
+      before(:each) do
+        prepare_appliance
+        @appliance.instance_variable_set(:@appliance_config, prepare_appliance_config)
+      end
 
-      @appliance.instance_variable_set(:@appliance_config, prepare_appliance_config)
+      it "should not fail when plugin chain is empty" do
+        @appliance.instance_variable_set(:@plugin_chain, [])
+        @appliance.execute_plugin_chain
+      end
 
-      os_plugin = mock('FedoraPlugin')
-      os_plugin.should_receive(:init)
-      os_plugin.should_receive(:deliverables_exists?).and_return(false)
-      os_plugin.should_receive(:run)
-      os_plugin.should_receive(:deliverables).and_return({:disk => 'abc'})
+      it "should execute the whole plugin chain" do
+        @appliance.instance_variable_set(:@plugin_chain, [{:plugin => :plugin1, :params => 'definition'}, {:plugin => :plugin2}, {:plugin => :plugin3, :params => :s3}])
 
-      @plugin_manager.should_receive(:plugins).and_return({:os => "something"})
-      @plugin_manager.should_receive(:initialize_plugin).once.with(:os, :fedora).and_return([os_plugin, {:class => Appliance, :type => :os, :name => :fedora, :full_name => "Fedora", :versions => ["11", "12", "13", "rawhide"]}])
+        @appliance.should_receive(:execute_plugin).ordered.with(:plugin1, 'definition')
+        @appliance.should_receive(:execute_plugin).ordered.with(:plugin2, nil)
+        @appliance.should_receive(:execute_plugin).ordered.with(:plugin3, :s3)
 
-      @appliance.execute_plugin_chain
+        @appliance.execute_plugin_chain
+      end
     end
 
-    it "should not build base appliance because deliverable already exists" do
-      prepare_appliance
+    describe ".initialize_plugins" do
+      it "should prepare the plugin chain to create an appliance and convert it to VMware format" do
+        prepare_appliance(:platform => :vmware)
+        @appliance.instance_variable_set(:@appliance_config, prepare_appliance_config)
 
-      @appliance.instance_variable_set(:@appliance_config, prepare_appliance_config)
+        os_plugin = mock("OSPlugin")
+        platform_plugin = mock("PlatformPlugin")
 
-      os_plugin = mock('FedoraPlugin')
-      os_plugin.should_receive(:init)
-      os_plugin.should_receive(:deliverables_exists?).and_return(true)
-      os_plugin.should_not_receive(:run)
-      os_plugin.should_receive(:deliverables).and_return({:disk => 'abc'})
+        @plugin_manager.should_receive(:initialize_plugin).with(:os, :fedora).and_return([os_plugin, "os_plugin_info"])
 
-      @plugin_manager.should_receive(:plugins).and_return({:os => "something"})
-      @plugin_manager.should_receive(:initialize_plugin).once.with(:os, :fedora).and_return([os_plugin, {:class => Appliance, :type => :os, :name => :fedora, :full_name => "Fedora", :versions => ["11", "12", "13", "rawhide"]}])
+        os_plugin.should_receive(:init).with(@config, @appliance_config, :os, "os_plugin_info", :log => @log)
+        os_plugin.should_receive(:validate)
 
-      @appliance.execute_plugin_chain
+        @plugin_manager.should_receive(:initialize_plugin).with(:platform, :vmware).and_return([platform_plugin, "platform_plugin_info"])
+
+        platform_plugin.should_receive(:init).with(@config, @appliance_config, :vmware, "platform_plugin_info", :log => @log, :previous_plugin => os_plugin)
+        platform_plugin.should_receive(:validate)
+
+        @plugin_manager.should_not_receive(:initialize_plugin).with(:delivery, anything)
+
+        @appliance.initialize_plugins
+      end
+
+      it "should prepare the plugin chain to create an appliance and convert it to VMware format and deliver to S3" do
+        prepare_appliance(:platform => :vmware, :delivery => :s3)
+        @appliance.instance_variable_set(:@appliance_config, prepare_appliance_config)
+
+        os_plugin = mock("OSPlugin")
+        platform_plugin = mock("PlatformPlugin")
+        delivery_plugin = mock("DeliveryPlugin")
+
+        @plugin_manager.should_receive(:initialize_plugin).with(:os, :fedora).and_return([os_plugin, "os_plugin_info"])
+
+        os_plugin.should_receive(:init).with(@config, @appliance_config, :os, "os_plugin_info", :log => @log)
+        os_plugin.should_receive(:validate)
+
+        @plugin_manager.should_receive(:initialize_plugin).with(:platform, :vmware).and_return([platform_plugin, "platform_plugin_info"])
+
+        platform_plugin.should_receive(:init).with(@config, @appliance_config, :vmware, "platform_plugin_info", :log => @log, :previous_plugin => os_plugin)
+        platform_plugin.should_receive(:validate)
+
+        @plugin_manager.should_receive(:initialize_plugin).with(:delivery, :s3).and_return([delivery_plugin, "delivery_plugin_info"])
+
+        delivery_plugin.should_receive(:init).with(@config, @appliance_config, :s3, "delivery_plugin_info", :log => @log, :previous_plugin => platform_plugin)
+        delivery_plugin.should_receive(:validate)
+
+        @appliance.initialize_plugins
+      end
+
+      it "should prepare the plugin chain to create an appliance and without conversion deliver to S3" do
+        prepare_appliance(:delivery => :s3)
+        @appliance.instance_variable_set(:@appliance_config, prepare_appliance_config)
+
+        os_plugin = mock("OSPlugin")
+        delivery_plugin = mock("DeliveryPlugin")
+
+        @plugin_manager.should_receive(:initialize_plugin).with(:os, :fedora).and_return([os_plugin, "os_plugin_info"])
+
+        os_plugin.should_receive(:init).with(@config, @appliance_config, :os, "os_plugin_info", :log => @log)
+        os_plugin.should_receive(:validate)
+
+        @plugin_manager.should_receive(:initialize_plugin).with(:delivery, :s3).and_return([delivery_plugin, "delivery_plugin_info"])
+
+        delivery_plugin.should_receive(:init).with(@config, @appliance_config, :s3, "delivery_plugin_info", :log => @log, :previous_plugin => os_plugin)
+        delivery_plugin.should_receive(:validate)
+
+        @plugin_manager.should_not_receive(:initialize_plugin).with(:platform, anything)
+
+        @appliance.initialize_plugins
+      end
     end
 
-    it "should build appliance and convert it to VMware format" do
-      prepare_appliance(:platform => :vmware)
+    describe ".execute_plugin" do
+      before(:each) do
+        prepare_appliance
+        @appliance.instance_variable_set(:@appliance_config, prepare_appliance_config)
+      end
 
-      @appliance.instance_variable_set(:@appliance_config, prepare_appliance_config)
-      @appliance.should_receive(:execute_os_plugin).and_return({})
+      it "should not execute the plugin because deliverable already exists" do
+        plugin = mock('APlugin', :deliverables_exists? => true, :plugin_info => {:name => :ec2, :type => :platform})
 
-      platform_plugin = mock('VMware Plugin')
-      platform_plugin.should_receive(:init)
-      platform_plugin.should_receive(:deliverables_exists?).and_return(false)
-      platform_plugin.should_receive(:run)
-      platform_plugin.should_receive(:deliverables).and_return({:disk => 'abc'})
+        @appliance.execute_plugin(plugin)
+      end
 
-      @plugin_manager.should_receive(:plugins).and_return({:platform => "something"})
-      @plugin_manager.should_receive(:initialize_plugin).once.with(:platform, :vmware).and_return([platform_plugin, {:class => Appliance, :type => :platform, :name => :vmware, :full_name => "VMware"}])
+      it "should execute the plugin" do
+        plugin = mock('APlugin', :deliverables_exists? => false, :plugin_info => {:name => :ec2, :type => :platform})
+        plugin.should_receive(:run).with(:s3)
 
-      @appliance.execute_plugin_chain
+        @appliance.execute_plugin(plugin, :s3)
+      end
     end
 
-    it "should build appliance and convert it to VMware format because deliverable already exists" do
-      prepare_appliance(:platform => :vmware)
+    context "preparations" do
+      it "should return true if we have selected a platform" do
+        prepare_appliance(:platform => :vmware)
+        @appliance.platform_selected?.should == true
+      end
 
-      @appliance.instance_variable_set(:@appliance_config, prepare_appliance_config)
-      @appliance.should_receive(:execute_os_plugin).and_return({})
+      it "should return false if we haven't selected a platform" do
+        prepare_appliance
+        @appliance.platform_selected?.should == false
+      end
 
-      platform_plugin = mock('VMware Plugin')
-      platform_plugin.should_receive(:init)
-      platform_plugin.should_receive(:deliverables_exists?).and_return(true)
-      platform_plugin.should_not_receive(:run)
-      platform_plugin.should_receive(:deliverables).and_return({:disk => 'abc'})
+      it "should return true if we have selected a delivery" do
+        prepare_appliance(:delivery => :s3)
+        @appliance.delivery_selected?.should == true
+      end
 
-      @plugin_manager.should_receive(:plugins).and_return({:platform => "something"})
-      @plugin_manager.should_receive(:initialize_plugin).once.with(:platform, :vmware).and_return([platform_plugin, {:class => Appliance, :type => :platform, :name => :vmware, :full_name => "VMware"}])
-
-      @appliance.execute_plugin_chain
-    end
-
-    it "should build appliance, convert it to EC2 format and deliver it using S3 ami type" do
-      prepare_appliance(:platform => :ec2, :delivery => :ami)
-
-      @appliance.instance_variable_set(:@appliance_config, prepare_appliance_config)
-      @appliance.should_receive(:execute_os_plugin).and_return({:abc => 'def'})
-      @appliance.should_receive(:execute_platform_plugin).with({:abc => 'def'}).and_return({:def => 'ghi'})
-
-      delivery_plugin = mock('S3 Plugin')
-      delivery_plugin.should_receive(:init)
-      delivery_plugin.should_receive(:run).with(:ami)
-
-      @plugin_manager.should_receive(:plugins).and_return({:delivery => "something"})
-      @plugin_manager.should_receive(:initialize_plugin).with(:delivery, :ami).and_return([delivery_plugin, {:class => Appliance, :type => :delivery, :name => :s3, :full_name => "Amazon Simple Storage Service (Amazon S3)", :types => [:s3, :cloudfront, :ami]}])
-
-      @appliance.execute_plugin_chain
-    end
-
-    it "should build appliance, convert it to EC2 format and deliver it using delivery plugin with only one delivery type" do
-      prepare_appliance(:platform => :ec2, :delivery => :same)
-
-      @appliance.instance_variable_set(:@appliance_config, prepare_appliance_config)
-      @appliance.should_receive(:execute_os_plugin).and_return({:abc => 'def'})
-      @appliance.should_receive(:execute_platform_plugin).with({:abc => 'def'}).and_return({:def => 'ghi'})
-
-      delivery_plugin = mock('S3 Plugin')
-      delivery_plugin.should_receive(:init)
-      delivery_plugin.should_receive(:run).with(:same)
-
-      @plugin_manager.should_receive(:plugins).and_return({:delivery => "something"})
-      @plugin_manager.should_receive(:initialize_plugin).with(:delivery, :same).and_return([delivery_plugin, {:class => Appliance, :type => :delivery, :name => :same, :full_name => "A plugin"}])
-
-      @appliance.execute_plugin_chain
+      it "should return false if we haven't selected a delivery" do
+        prepare_appliance
+        @appliance.delivery_selected?.should == false
+      end
     end
   end
 end

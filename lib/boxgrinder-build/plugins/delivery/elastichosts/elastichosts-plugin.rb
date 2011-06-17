@@ -23,20 +23,19 @@ require 'cgi'
 
 module BoxGrinder
   class ElasticHostsPlugin < BasePlugin
-    def after_init
+    def validate
       set_default_config_value('chunk', 64) # chunk size in MB
       set_default_config_value('start_part', 0) # part number to start uploading
       set_default_config_value('wait', 5) # wait time before retrying upload
       set_default_config_value('retry', 3) # number of retries
       set_default_config_value('ssl', false) # use SSL?
       set_default_config_value('drive_name', @appliance_config.name)
+
+      validate_plugin_config(['endpoint', 'username', 'password'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#ElasticHosts_Delivery_Plugin')
+      raise PluginValidationError, "You can use ElasticHosts plugin with base appliances (appliances created with operating system plugins) only, see http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#ElasticHosts_Delivery_Plugin." unless @previous_plugin_info[:type] == :os
     end
 
-    def execute(type = :elastichosts)
-      validate_plugin_config(['endpoint', 'username', 'password'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#ElasticHosts_Delivery_Plugin')
-
-      raise PluginValidationError, "You can use ElasticHosts plugin with base appliances (appliances created with operating system plugins) only, see http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#ElasticHosts_Delivery_Plugin." unless @previous_plugin_info[:type] == :os
-
+    def execute
       upload
       create_server
     end

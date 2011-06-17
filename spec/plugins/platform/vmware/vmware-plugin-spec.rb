@@ -52,20 +52,21 @@ module BoxGrinder
       )
 
       options[:log] = Logger.new('/dev/null')
-      options[:plugin_info] = {:class => BoxGrinder::VMwarePlugin, :type => :platform, :name => :vmware, :full_name => "VMware"}
+      options[:previous_plugin] = OpenCascade.new(:deliverables => {:disk => 'a/base/image/path.raw'})
       @plugin = VMwarePlugin.new
 
       @plugin.instance_variable_set(:@plugin_config, plugin_config)
       @plugin.should_receive(:read_plugin_config)
       @plugin.should_receive(:validate_plugin_config)
-      @plugin.init(@config, @appliance_config, options)
+      @plugin.init(@config, @appliance_config, {:class => BoxGrinder::VMwarePlugin, :type => :platform, :name => :vmware, :full_name => "VMware"}, options)
+#      @plugin.validate
 
       @exec_helper = @plugin.instance_variable_get(:@exec_helper)
       @image_helper = @plugin.instance_variable_get(:@image_helper)
     end
 
     it "should calculate good CHS value for 0.5GB disk" do
-      prepare_image({'thin_disk' => false, 'type' => 'enterprise'}, :previous_deliverables => OpenStruct.new({:disk => 'a/base/image/path.raw'}))
+      prepare_image({'thin_disk' => false, 'type' => 'enterprise'})
 
       File.should_receive(:stat).with("a/base/image/path.raw").and_return(OpenStruct.new(:size => 536870912))
 
@@ -78,7 +79,7 @@ module BoxGrinder
     end
 
     it "should calculate good CHS value for 1GB disk" do
-      prepare_image({'thin_disk' => false, 'type' => 'enterprise'}, :previous_deliverables => OpenStruct.new({:disk => 'a/base/image/path.raw'}))
+      prepare_image({'thin_disk' => false, 'type' => 'enterprise'})
 
       File.should_receive(:stat).with("a/base/image/path.raw").and_return(OpenStruct.new(:size => 1073741824))
 
@@ -91,7 +92,7 @@ module BoxGrinder
     end
 
     it "should calculate good CHS value for 40GB disk" do
-      prepare_image({'thin_disk' => false, 'type' => 'enterprise'}, :previous_deliverables => OpenStruct.new({:disk => 'a/base/image/path.raw'}))
+      prepare_image({'thin_disk' => false, 'type' => 'enterprise'})
 
       File.should_receive(:stat).with("a/base/image/path.raw").and_return(OpenStruct.new(:size => 42949672960))
 
@@ -104,7 +105,7 @@ module BoxGrinder
     end
 
     it "should calculate good CHS value for 160GB disk" do
-      prepare_image({'thin_disk' => false, 'type' => 'enterprise'}, :previous_deliverables => OpenStruct.new({:disk => 'a/base/image/path.raw'}))
+      prepare_image({'thin_disk' => false, 'type' => 'enterprise'})
 
       File.should_receive(:stat).with("a/base/image/path.raw").and_return(OpenStruct.new(:size => 171798691840))
 
@@ -118,7 +119,7 @@ module BoxGrinder
 
     describe ".change_vmdk_values" do
       it "should change vmdk data (vmfs)" do
-        prepare_image({'thin_disk' => false, 'type' => 'enterprise'}, :previous_deliverables => OpenStruct.new({:disk => 'a/base/image/path.raw'}))
+        prepare_image({'thin_disk' => false, 'type' => 'enterprise'})
 
         File.should_receive(:stat).with("a/base/image/path.raw").and_return(OpenStruct.new(:size => 5368709120))
 
@@ -141,7 +142,7 @@ module BoxGrinder
       end
 
       it "should change vmdk data (flat)" do
-        prepare_image({'thin_disk' => false, 'type' => 'enterprise'}, :previous_deliverables => OpenStruct.new({:disk => 'a/base/image/path.raw'}))
+        prepare_image({'thin_disk' => false, 'type' => 'enterprise'})
 
         File.should_receive(:stat).with("a/base/image/path.raw").and_return(OpenStruct.new(:size => 5368709120))
 
@@ -165,7 +166,7 @@ module BoxGrinder
       end
 
       it "should change vmdk data (flat) enabling thin disk" do
-        prepare_image({'thin_disk' => true, 'type' => 'enterprise'}, :previous_deliverables => OpenStruct.new({:disk => 'a/base/image/path.raw'}))
+        prepare_image({'thin_disk' => true, 'type' => 'enterprise'})
 
         File.should_receive(:stat).with("a/base/image/path.raw").and_return(OpenStruct.new(:size => 5368709120))
 
@@ -193,7 +194,7 @@ module BoxGrinder
 
     describe ".build_vmware_personal" do
       it "should build personal thick image" do
-        prepare_image({'type' => 'personal', 'thin_disk' => false}, :previous_deliverables => OpenStruct.new({:disk => 'a/base/image/path.raw'}))
+        prepare_image({'type' => 'personal', 'thin_disk' => false})
 
         @exec_helper.should_receive(:execute).with("cp 'a/base/image/path.raw' 'build/path/vmware-plugin/tmp/full.raw'")
         File.should_receive(:open).once.with("build/path/vmware-plugin/tmp/full.vmx", "w")
@@ -203,7 +204,7 @@ module BoxGrinder
       end
 
       it "should build personal thin image" do
-        prepare_image({'type' => 'personal', 'thin_disk' => true}, :previous_deliverables => OpenStruct.new({:disk => 'a/base/image/path.raw'}))
+        prepare_image({'type' => 'personal', 'thin_disk' => true})
 
         @image_helper.should_receive(:convert_disk).with('a/base/image/path.raw', :vmdk, 'build/path/vmware-plugin/tmp/full.vmdk')
         File.should_receive(:open).once.with("build/path/vmware-plugin/tmp/full.vmx", "w")
@@ -214,7 +215,7 @@ module BoxGrinder
 
     describe ".build_vmware_enterprise" do
       it "should build enterprise thick image" do
-        prepare_image({'type' => 'enterprise', 'thin_disk' => false}, :previous_deliverables => OpenStruct.new({:disk => 'a/base/image/path.raw'}))
+        prepare_image({'type' => 'enterprise', 'thin_disk' => false})
 
         @plugin.should_receive(:change_common_vmx_values).and_return("")
         @exec_helper.should_receive(:execute).with("cp 'a/base/image/path.raw' 'build/path/vmware-plugin/tmp/full.raw'")
@@ -225,7 +226,7 @@ module BoxGrinder
       end
 
       it "should build enterprise thin image" do
-        prepare_image({'type' => 'enterprise', 'thin_disk' => true}, :previous_deliverables => OpenStruct.new({:disk => 'a/base/image/path.raw'}))
+        prepare_image({'type' => 'enterprise', 'thin_disk' => true})
 
         @plugin.should_receive(:change_common_vmx_values).and_return("")
         @exec_helper.should_receive(:execute).with("cp 'a/base/image/path.raw' 'build/path/vmware-plugin/tmp/full.raw'")

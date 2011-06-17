@@ -23,36 +23,40 @@ require 'boxgrinder-build/plugins/base-plugin'
 module BoxGrinder
   class LocalPlugin < BasePlugin
     def after_init
+      @package_name = "#{@appliance_config.name}-#{@appliance_config.version}.#{@appliance_config.release}-#{@appliance_config.os.name}-#{@appliance_config.os.version}-#{@appliance_config.hardware.arch}-#{current_platform}.tgz"
+    end
+
+    def validate
       set_default_config_value('overwrite', false)
       set_default_config_value('package', true)
 
-      if @plugin_config['package']
-        register_deliverable(:package => "#{@appliance_config.name}-#{@appliance_config.version}.#{@appliance_config.release}-#{@appliance_config.os.name}-#{@appliance_config.os.version}-#{@appliance_config.hardware.arch}-#{current_platform}.tgz")
-      end
+      validate_plugin_config(['path'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#Local_delivery_plugin')
     end
 
-    def execute(type = :local)
-      validate_plugin_config(['path'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#Local_delivery_plugin')
-
+    def execute
       if @plugin_config['overwrite'] or !deliverables_exists?
-        PackageHelper.new(@config, @appliance_config, :log => @log, :exec_helper => @exec_helper).package(File.dirname(@previous_deliverables[:disk]), @deliverables[:package]) if @plugin_config['package']
-
         FileUtils.mkdir_p @plugin_config['path']
 
-        @log.debug "Copying files to '#{@plugin_config['path']}'..."
+        if @plugin_config['package']
+          PackageHelper.new(@config, @appliance_config, :log => @log, :exec_helper => @exec_helper).package(File.dirname(@previous_deliverables[:disk]), "#{@plugin_config['path']}/#{@package_name}") if @plugin_config['package']
+        else
+          @log.debug "Copying files to '#{@plugin_config['path']}'..."
 
-        (@plugin_config['package'] ? @deliverables : @previous_deliverables).each_value do |file|
-          @log.debug "Copying '#{file}'..."
-          @exec_helper.execute("cp '#{file}' '#{@plugin_config['path']}'")
+          @previous_deliverables.each_value do |file|
+            @log.debug "Copying '#{file}'..."
+            @exec_helper.execute("cp '#{file}' '#{@plugin_config['path']}'")
+          end
+          @log.info "Appliance delivered to '#{@plugin_config['path']}'."
         end
-        @log.info "Appliance delivered to '#{@plugin_config['path']}'."
       else
         @log.info "Appliance already delivered to '#{@plugin_config['path']}'."
       end
     end
 
-    def deliverables_exists?
-      (@plugin_config['package'] ? @deliverables : @previous_deliverables).each_value do |file|
+    def deliverables_exists?      
+      return File.exists?("#{@plugin_config['path']}/#{@package_name}") if @plugin_config['package']
+
+      @previous_deliverables.each_value do |file|
         return false unless File.exists?("#{@plugin_config['path']}/#{File.basename(file)}")
       end
 

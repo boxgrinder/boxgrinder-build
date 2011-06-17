@@ -29,6 +29,9 @@ require 'logger'
 
 module BoxGrinder
   class BasePlugin
+    attr_reader :plugin_info
+    attr_reader :deliverables
+
     def initialize
       @plugin_config = {}
 
@@ -38,30 +41,72 @@ module BoxGrinder
       @dir = OpenCascade.new
     end
 
-    def init(config, appliance_config, options = {})
+    def init(config, appliance_config, info, options = {})
       @config = config
       @appliance_config = appliance_config
       @options = options
+      @plugin_info = info
+
+      # Optional options :)
+      @type = options[:type] || @plugin_info[:name]
+      @previous_plugin = options[:previous_plugin]
       @log = options[:log] || LogHelper.new
       @exec_helper = options[:exec_helper] || ExecHelper.new(:log => @log)
       @image_helper = options[:image_helper] || ImageHelper.new(@config, @appliance_config, :log => @log)
-      @previous_plugin_info = options[:previous_plugin_info]
-      @previous_deliverables = options[:previous_deliverables] || OpenCascade.new
-
-      @plugin_info = options[:plugin_info]
 
       @dir.base = "#{@appliance_config.path.build}/#{@plugin_info[:name]}-plugin"
       @dir.tmp = "#{@dir.base}/tmp"
 
+      if @previous_plugin
+        @previous_deliverables = @previous_plugin.deliverables
+        @previous_plugin_info = @previous_plugin.plugin_info
+      else
+        @previous_deliverables = OpenCascade.new
+      end
+
+      # TODO get rid of that - we don't have plugin configuration files - everything is now in one place.
       read_plugin_config
       merge_plugin_config
 
+      # Indicate whether deliverables of select plugin should be moved to final destination or not.
+      # TODO Needs some thoughts - if we don't have deliverables that we care about - should they be in @deliverables?
       @move_deliverables = true
+
+      # Validate the plugin configuration.
+      # Please make the validate method as simple as possible, because it'll be executed also in unit tests.
+      validate
+
+      # The plugin is initialized now. We can do some fancy stuff with it.
       @initialized = true
 
+      # If there is something defined in the plugin that should be executed after plugin initialization - it should go 
+      # to after_init method.
       after_init
 
       self
+    end
+
+    # This is a stub that should be overriden by the actual plugin implementation.
+    # It can use subtype(:TYPE) calls to validate for a specific type.
+    # KISS!
+    def validate
+    end
+
+    # Callback - executed after initialization.
+    def after_init
+    end
+
+    # Callback - executed after execution.
+    def after_execute
+    end
+
+    # Validation helper method.
+    #
+    # Execute the validation only for selected plugin type.
+    # TODO make this prettier somehow? Maybe moving validation to a class?
+    def subtype(type)
+      return unless @type == type
+      yield if block_given?
     end
 
     def register_deliverable(deliverable)
@@ -139,12 +184,6 @@ module BoxGrinder
       end if @move_deliverables
 
       FileUtils.rm_rf @dir.tmp
-    end
-
-    def after_init
-    end
-
-    def after_execute
     end
 
     def deliverables_exists?

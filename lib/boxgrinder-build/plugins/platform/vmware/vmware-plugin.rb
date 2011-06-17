@@ -21,10 +21,7 @@ require 'boxgrinder-build/plugins/base-plugin'
 module BoxGrinder
   class VMwarePlugin < BasePlugin
     def after_init
-      set_default_config_value('thin_disk', false)
-      validate_plugin_config(['type'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#VMware_Platform_Plugin')
-
-      register_deliverable(:vmx    => "#{@appliance_config.name}.vmx",
+      register_deliverable(:vmx => "#{@appliance_config.name}.vmx",
                            :readme => "README")
 
       if @plugin_config['type'].eql?('personal') and @plugin_config['thin_disk']
@@ -33,6 +30,11 @@ module BoxGrinder
         register_deliverable(:disk => "#{@appliance_config.name}.raw",
                              :vmdk => "#{@appliance_config.name}.vmdk")
       end
+    end
+
+    def validate
+      set_default_config_value('thin_disk', false)
+      validate_plugin_config(['type'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#VMware_Platform_Plugin')
     end
 
     def execute
@@ -79,7 +81,7 @@ module BoxGrinder
         end
       end
 
-      c             = disk_size / (h*s*512)
+      c = disk_size / (h*s*512)
       total_sectors = disk_size / 512
 
       [c.to_i, h.to_i, s.to_i, total_sectors.to_i]
@@ -188,4 +190,4 @@ module BoxGrinder
   end
 end
 
-plugin :class => BoxGrinder::VMwarePlugin, :type => :platform, :name => :vmware, :full_name  => "VMware"
+plugin :class => BoxGrinder::VMwarePlugin, :type => :platform, :name => :vmware, :full_name => "VMware"

@@ -43,7 +43,7 @@ module BoxGrinder
 
       @plugin.stub!(:merge_plugin_config)
 
-      @plugin.init(@config, @appliance_config, :log => LogHelper.new(:level => :trace, :type => :stdout), :plugin_info => {:name => :rpm_based})
+      @plugin.init(@config, @appliance_config, {:name => :rpm_based}, :log => LogHelper.new(:level => :trace, :type => :stdout))
 
       @config = @plugin.instance_variable_get(:@config)
       @appliance_config = @plugin.instance_variable_get(:@appliance_config)

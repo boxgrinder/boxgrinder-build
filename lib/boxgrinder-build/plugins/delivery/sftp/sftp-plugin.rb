@@ -25,16 +25,18 @@ require 'boxgrinder-build/helpers/package-helper'
 
 module BoxGrinder
   class SFTPPlugin < BasePlugin
-    def after_init
+    def validate
       set_default_config_value('overwrite', false)
       set_default_config_value('default_permissions', 0644)
 
+      validate_plugin_config(['path', 'username', 'host'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#SFTP_Delivery_Plugin')
+    end
+
+    def after_init
       register_deliverable(:package => "#{@appliance_config.name}-#{@appliance_config.version}.#{@appliance_config.release}-#{@appliance_config.os.name}-#{@appliance_config.os.version}-#{@appliance_config.hardware.arch}-#{current_platform}.tgz")
     end
 
-    def execute( type = :sftp )
-      validate_plugin_config(['path', 'username', 'host'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#SFTP_Delivery_Plugin')
-
+    def execute
       PackageHelper.new(@config, @appliance_config, :log => @log, :exec_helper => @exec_helper).package( File.dirname(@previous_deliverables[:disk]), @deliverables[:package] )
 
       @log.info "Uploading #{@appliance_config.name} appliance via SSH..."

@@ -43,7 +43,7 @@ module BoxGrinder
 
       @plugin = BasePlugin.new
       @plugin.should_receive(:merge_plugin_config)
-      @plugin.init(@config, @appliance_config, :plugin_info => {:name => :plugin_name, :full_name => "Amazon Simple Storage Service (Amazon S3)"}, :log => @log)
+      @plugin.init(@config, @appliance_config, {:name => :plugin_name, :full_name => "Amazon Simple Storage Service (Amazon S3)"}, :log => @log)
     end
 
     it "should be initialized after running init method" do

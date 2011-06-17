@@ -14,4 +14,4 @@ wizard
 *.gem
 coverage
 *.gemspec
-
+.DS_Store

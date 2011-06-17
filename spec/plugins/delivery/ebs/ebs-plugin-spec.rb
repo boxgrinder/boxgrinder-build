@@ -33,11 +33,11 @@ module BoxGrinder
 
       yield @plugin if block_given?
 
-      @config = mock('Config')
-      @config.stub!(:delivery_config).and_return({})
-      plugins = mock('Plugins')
-      plugins.stub!(:[]).with('ebs').and_return({})
-      @config.stub!(:[]).with(:plugins).and_return(plugins)
+      @config = Config.new('plugins' => { 'ebs' => {
+        'access_key' => 'access_key',
+        'secret_access_key' => 'secret_access_key',
+        'account_number' => '0000-0000-0000'
+      }})
 
       @appliance_config = mock('ApplianceConfig')
 
@@ -48,36 +48,23 @@ module BoxGrinder
       @appliance_config.stub!(:hardware).and_return(OpenCascade.new({:arch => 'x86_64', :base_arch => 'x86_64'}))
       @appliance_config.stub!(:path).and_return(OpenCascade.new({:build => '/a/build/path'}))
 
-      @plugin = @plugin.init(
+      @plugin.stub!(:validate)
+
+      @plugin.init(
           @config,
           @appliance_config,
-          :log => Logger.new('/dev/null'),
-          :plugin_info => {:class => BoxGrinder::EBSPlugin, :type => :delivery, :name => :ebs, :full_name => "Elastic Block Storage"},
-          :config_file => "#{File.dirname(__FILE__)}/ebs.yaml"
+          {:class => BoxGrinder::EBSPlugin, :type => :delivery, :name => :ebs, :full_name => "Elastic Block Storage"},
+          :log => LogHelper.new(:level => :trace, :type => :stdout)
       )
 
-      @plugin_config = @plugin.instance_variable_get(:@plugin_config).merge(
-          {
-              'access_key' => 'access_key',
-              'secret_access_key' => 'secret_access_key',
-              'bucket' => 'bucket',
-              'account_number' => '0000-0000-0000',
-              'cert_file' => '/path/to/cert/file',
-              'key_file' => '/path/to/key/file'
-          }
-      )
-
-      @plugin.instance_variable_set(:@plugin_config, @plugin_config)
+      @plugin_config = @config.plugins['ebs']
     end
 
     it "should register all operating systems with specific versions" do
       Resolv.stub!(:getname).with("169.254.169.254").and_return([".ec2.internal"])
 
       prepare_plugin do |plugin|
-        avaibility_zone = mock('AZ')
-        avaibility_zone.should_receive(:string).and_return('avaibility-zone1')
-
-        plugin.should_receive(:open).with('http://169.254.169.254/latest/meta-data/placement/availability-zone').and_return(avaibility_zone)
+        plugin.instance_variable_set(:@current_avaibility_zone, 'us-east-1a')
       end
 
       supportes_oses = @plugin.instance_variable_get(:@supported_oses)
@@ -89,25 +76,12 @@ module BoxGrinder
     end
 
     describe ".after_init" do
-      it "should set default avaibility zone to current one" do
-        Resolv.stub!(:getname).with("169.254.169.254").and_return([".ec2.internal"])
-
+      it "should set the region" do
         prepare_plugin do |plugin|
-          avaibility_zone = mock('AZ')
-          avaibility_zone.should_receive(:string).and_return('avaibility-zone1')
-
-          plugin.should_receive(:open).with('http://169.254.169.254/latest/meta-data/placement/availability-zone').and_return(avaibility_zone)
+          plugin.instance_variable_set(:@current_avaibility_zone, 'us-east-1a')
         end
 
-        @plugin.instance_variable_get(:@plugin_config)['availability_zone'].should == 'avaibility-zone1'
-      end
-
-      it "should not set default avaibility zone because we're not on EC2" do
-        Resolv.stub!(:getname).with("169.254.169.254").and_return(["bleh"])
-
-        prepare_plugin
-
-        @plugin.instance_variable_get(:@plugin_config)['availability_zone'].should == nil
+        @plugin.instance_variable_get(:@region).should == 'us-east-1'
       end
     end
 

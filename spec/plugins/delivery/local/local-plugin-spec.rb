@@ -24,11 +24,7 @@ module BoxGrinder
   describe LocalPlugin do
 
     before(:each) do
-      @config = mock('Config')
-      @config.stub!(:delivery_config).and_return({})
-      plugins = mock('Plugins')
-      plugins.stub!(:[]).with('local').and_return({})
-      @config.stub!(:[]).with(:plugins).and_return(plugins)
+      @config = Config.new('plugins' => {'local' => {'path' => 'a/path'}})
 
       @appliance_config = mock('ApplianceConfig')
 
@@ -40,12 +36,14 @@ module BoxGrinder
       @appliance_config.stub!(:hardware).and_return(OpenCascade.new({:arch => 'x86_64'}))
 
       @plugin = LocalPlugin.new.init(@config, @appliance_config,
+                                     {:class => BoxGrinder::LocalPlugin, :type => :delivery, :name => :local, :full_name => "Local file system"},
                                      :log => Logger.new('/dev/null'),
-                                     :plugin_info => {:class => BoxGrinder::LocalPlugin, :type => :delivery, :name => :local, :full_name => "Local file system"},
-                                     :previous_deliverables => {:disk => "a_disk.raw", :metadata => 'metadata.xml'}
+                                     :previous_plugin => OpenCascade.new(:deliverables => {:disk => "a_disk.raw", :metadata => 'metadata.xml'})
       )
 
-      @config = @plugin.instance_variable_get(:@config)
+      @plugin.validate
+
+      @plugin_config = @config.plugins['local']
       @appliance_config = @plugin.instance_variable_get(:@appliance_config)
       @exec_helper = @plugin.instance_variable_get(:@exec_helper)
       @log = @plugin.instance_variable_get(:@log)
@@ -53,32 +51,19 @@ module BoxGrinder
     end
 
     describe ".execute" do
-
       it "should package and deliver the appliance" do
-        @plugin.instance_variable_set(:@plugin_config, {
-            'overwrite' => false,
-            'path' => 'a/path',
-            'package' => true
-        })
-
+        @plugin_config.merge!('package' => true)
+  
         FileUtils.should_receive(:mkdir_p).with('a/path')
         package_helper = mock(PackageHelper)
-        package_helper.should_receive(:package).with('.', "build/path/local-plugin/tmp/appliance-1.0-fedora-13-x86_64-raw.tgz").and_return("deliverable")
-
         PackageHelper.should_receive(:new).with(@config, @appliance_config, :log => @log, :exec_helper => @exec_helper).and_return(package_helper)
-
-        @exec_helper.should_receive(:execute).with("cp 'build/path/local-plugin/tmp/appliance-1.0-fedora-13-x86_64-raw.tgz' 'a/path'")
-        @plugin.should_receive(:deliverables_exists?).and_return(false)
+        package_helper.should_receive(:package).with('.', "a/path/appliance-1.0-fedora-13-x86_64-raw.tgz").and_return("deliverable")
 
         @plugin.execute
       end
 
       it "should not package, but deliver the appliance" do
-        @plugin.instance_variable_set(:@plugin_config, {
-            'overwrite' => true,
-            'path' => 'a/path',
-            'package' => false
-        })
+        @plugin_config.merge!('package' => false) 
 
         FileUtils.should_receive(:mkdir_p).with('a/path')
         PackageHelper.should_not_receive(:new)
@@ -107,10 +92,7 @@ module BoxGrinder
 
     describe ".deliverables_exists?" do
       it "should return true for package" do
-        @plugin.instance_variable_set(:@plugin_config, {
-            'path' => 'a/path',
-            'package' => true
-        })
+        @plugin_config.merge!('package' => true)
 
         File.should_receive(:exists?).with('a/path/appliance-1.0-fedora-13-x86_64-raw.tgz').and_return(true)
 
@@ -118,10 +100,7 @@ module BoxGrinder
       end
 
       it "should return true for non-packaged appliance" do
-        @plugin.instance_variable_set(:@plugin_config, {
-            'path' => 'a/path',
-            'package' => false
-        })
+        @plugin_config.merge!('package' => false)
 
         File.should_receive(:exists?).with('a/path/a_disk.raw').and_return(true)
         File.should_receive(:exists?).with('a/path/metadata.xml').and_return(true)

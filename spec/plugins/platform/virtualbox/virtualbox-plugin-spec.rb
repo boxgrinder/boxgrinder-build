@@ -52,11 +52,11 @@ module BoxGrinder
       )
 
       options[:log] = LogHelper.new(:level => :trace, :type => :stdout)
-      options[:plugin_info] = {:class => BoxGrinder::VirtualBoxPlugin, :type => :platform, :name => :virtualbox, :full_name => "VirtualBox"}
+      options[:previous_plugin] = OpenCascade.new(:deliverables => {:disk => 'a/base/image/path.raw'})
       @plugin = VirtualBoxPlugin.new
 
       @plugin.should_receive(:read_plugin_config)
-      @plugin.init(@config, @appliance_config, options)
+      @plugin.init(@config, @appliance_config, {:class => BoxGrinder::VirtualBoxPlugin, :type => :platform, :name => :virtualbox, :full_name => "VirtualBox"}, options)
 
       @exec_helper = @plugin.instance_variable_get(:@exec_helper)
       @image_helper = @plugin.instance_variable_get(:@image_helper)
@@ -64,17 +64,17 @@ module BoxGrinder
     end
 
     describe ".build_virtualbox" do
-      it "should build virtualbox image on new qemu-img" do
-        prepare_image(:previous_deliverables => OpenStruct.new({:disk => 'a/base/image/path.raw'}))
+      before(:each) do
+        prepare_image
+      end
 
+      it "should build virtualbox image on new qemu-img" do
         @image_helper.should_receive(:convert_disk).with("a/base/image/path.raw", :vmdk, "build/path/virtualbox-plugin/tmp/full.vmdk")
 
         @plugin.build_virtualbox
       end
 
       it "should build virtualbox image on old qemu-img" do
-        prepare_image(:previous_deliverables => OpenStruct.new({:disk => 'a/base/image/path.raw'}))
-
         @image_helper.should_receive(:convert_disk).with("a/base/image/path.raw", :vmdk, "build/path/virtualbox-plugin/tmp/full.vmdk")
 
         @plugin.build_virtualbox

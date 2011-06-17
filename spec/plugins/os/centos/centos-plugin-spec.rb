@@ -34,7 +34,7 @@ module BoxGrinder
       @appliance_config.stub!(:path).and_return(OpenCascade.new({:build => 'build/path'}))
       @appliance_config.stub!(:name).and_return('full')
 
-      @plugin = CentOSPlugin.new.init(@config, @appliance_config, :log => Logger.new('/dev/null'), :plugin_info => {:class => BoxGrinder::CentOSPlugin, :type => :os, :name => :centos, :full_name => "CentOS", :versions => ["5"]})
+      @plugin = CentOSPlugin.new.init(@config, @appliance_config, {:class => BoxGrinder::CentOSPlugin, :type => :os, :name => :centos, :full_name => "CentOS", :versions => ["5"]}, :log => Logger.new('/dev/null'))
     end
 
     it "should use basearch instead of arch in repository URLs" do
