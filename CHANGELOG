@@ -1,3 +1,7 @@
+v0.9.3
+
+* [BGBUILD-232] boxgrinder doesn't validate config early enough
+
 v0.9.2
 
 * [BGBUILD-148] Add support for building CentOS/RHEL images on Fedora
