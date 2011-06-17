@@ -203,7 +203,7 @@ module BoxGrinder
         validator = mock(RPMDependencyValidator)
         validator.should_receive(:resolve_packages)
 
-        Kickstart.should_receive(:new).with(@config, @appliance_config, {}, {:tmp=>"build/path/rpm_based-plugin/tmp", :base=>"build/path/rpm_based-plugin"}, :log => @log).and_return(kickstart)
+        Kickstart.should_receive(:new).with(@config, @appliance_config, {:tmp=>"build/path/rpm_based-plugin/tmp", :base=>"build/path/rpm_based-plugin"}, :log => @log).and_return(kickstart)
         RPMDependencyValidator.should_receive(:new).and_return(validator)
 
         @exec_helper.should_receive(:execute).with("appliance-creator -d -v -t 'build/path/rpm_based-plugin/tmp' --cache=cachedir/rpms-cache/mainpath --config 'kickstart.ks' -o 'build/path/rpm_based-plugin/tmp' --name 'full' --vmem 512 --vcpu 1 --format raw")
@@ -233,12 +233,16 @@ module BoxGrinder
 
       it "should build appliance" do
         @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '14'}))
+        @appliance_config.should_receive(:default_repos).and_return(true)
+        @plugin.should_receive(:add_repos).with({})
         do_build
         @plugin.build_with_appliance_creator('jeos.appl')
       end
 
       it "should execute additional steps for Fedora 15" do
         @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '15'}))
+        @appliance_config.should_receive(:default_repos).and_return(true)
+        @plugin.should_receive(:add_repos).with({})
 
         do_build do |guestfs, guestfs_helper|
           @plugin.should_receive(:disable_biosdevname).with(guestfs)
@@ -249,6 +253,31 @@ module BoxGrinder
         end
 
         @plugin.build_with_appliance_creator('jeos.appl')
+      end
+    end
+
+    describe ".add_repos" do
+      it "should add specified repos to appliance" do
+        repos = []
+
+        @appliance_config.stub!(:variables).and_return({'OS_VERSION' => '11', 'BASE_ARCH' => 'i386'})
+        @appliance_config.stub!(:repos).and_return(repos)
+
+        @plugin.add_repos({
+          "11" => {
+              "base" => {
+                  "mirrorlist" => "http://mirrorlist.centos.org/?release=#OS_VERSION#&arch=#BASE_ARCH#&repo=os"
+              }
+          }
+        })
+
+        repos.size.should == 1
+        repos.first['mirrorlist'].should == 'http://mirrorlist.centos.org/?release=11&arch=i386&repo=os'
+
+      end
+
+      it "should not fail with empty repos" do
+        @plugin.add_repos({})
       end
     end
 

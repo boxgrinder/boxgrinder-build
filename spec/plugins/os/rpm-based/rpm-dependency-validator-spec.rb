@@ -33,18 +33,31 @@ module BoxGrinder
       @appliance_config.stub!(:name).and_return('full')
       @appliance_config.stub!(:version).and_return(1)
       @appliance_config.stub!(:release).and_return(0)
+      @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:arch => 'i386'))
       @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '11'}))
 
-      @plugin = RPMBasedOSPlugin.new
+      @validator = RPMDependencyValidator.new(@config, @appliance_config, OpenCascade.new(:tmp => 'tmp'))
+    end
 
-      @plugin.stub!(:merge_plugin_config)
+    describe ".generate_yum_config" do
+      it "should create a yum config also with an url with tilde character" do
+        Dir.should_receive(:pwd).and_return('/dir')
 
-      @plugin.init(@config, @appliance_config, :log => Logger.new('/dev/null'), :plugin_info => {:name => :rpm_based})
+        @appliance_config.stub!(:version).and_return(1)
+        @appliance_config.stub!(:repos).and_return([{'name' => 'name', 'mirrorlist' => 'mirror~list'}])
 
-      @config = @plugin.instance_variable_get(:@config)
-      @appliance_config = @plugin.instance_variable_get(:@appliance_config)
-      @exec_helper = @plugin.instance_variable_get(:@exec_helper)
-      @log = @plugin.instance_variable_get(:@log)
+        file = mock(File)
+        file.should_receive(:puts).with("[main]\r\ncachedir=/dir/tmp/boxgrinder-i386-yum-cache/\r\n\r\n")
+        file.should_receive(:puts).with("[boxgrinder-name]")
+        file.should_receive(:puts).with("name=name")
+        file.should_receive(:puts).with("mirrorlist=mirror~list")
+        file.should_receive(:puts).with("enabled=1")
+        file.should_receive(:puts)
+
+        File.should_receive(:open).with("tmp/yum.conf", "w").and_yield(file)
+
+        @validator.generate_yum_config
+      end
     end
   end
 end

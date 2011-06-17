@@ -151,6 +151,7 @@ popd
 %changelog
 * Fri Jun 17 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.3-1
 - [BGBUILD-232] boxgrinder doesn't validate config early enough
+- [BGBUILD-237] Tilde characters break creation of yum.conf
 
 * Thu May 05 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.2-1
 - Upstream release: 0.9.2

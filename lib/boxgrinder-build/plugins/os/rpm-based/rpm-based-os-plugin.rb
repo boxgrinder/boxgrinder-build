@@ -90,12 +90,35 @@ module BoxGrinder
       appliance_config
     end
 
+    # Add default repos (if present) to the list of additional repositories specified in appliance definition.
+    def add_repos(repos)
+      return if repos.empty?
+
+      repos[@appliance_config.os.version].each do |name, repo|
+        r = { 'name' => name, 'ephemeral' => true }
+
+        ['baseurl', 'mirrorlist'].each { |type| r[type] = substitute_vars(repo[type]) unless repo[type].nil? }
+
+        @appliance_config.repos << r
+      end
+    end
+
+    # Substitute variables in selected string.
+    def substitute_vars(str)
+      return if str.nil?
+      @appliance_config.variables.keys.each do |var|
+        str = str.gsub("##{var}#", @appliance_config.variables[var])
+      end
+      str
+    end
+
     def build_with_appliance_creator(appliance_definition_file, repos = {})
       if File.extname(appliance_definition_file).eql?('.ks')
         kickstart_file = appliance_definition_file
       else
-        kickstart_file = Kickstart.new(@config, @appliance_config, repos, @dir, :log => @log).create
-        RPMDependencyValidator.new(@config, @appliance_config, @dir, kickstart_file, @options).resolve_packages
+        add_repos(repos) if @appliance_config.default_repos
+        kickstart_file = Kickstart.new(@config, @appliance_config, @dir, :log => @log).create
+        RPMDependencyValidator.new(@config, @appliance_config, @dir, :log => @log).resolve_packages
       end
 
       @log.info "Building #{@appliance_config.name} appliance..."

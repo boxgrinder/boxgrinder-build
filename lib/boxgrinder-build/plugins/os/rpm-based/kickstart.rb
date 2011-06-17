@@ -24,9 +24,8 @@ require 'zlib'
 module BoxGrinder
 
   class Kickstart
-    def initialize(config, appliance_config, repos, dir, options = {})
+    def initialize(config, appliance_config, dir, options = {})
       @config           = config
-      @repos            = repos
       @appliance_config = appliance_config
       @dir              = dir
       @log              = options[:log] || Logger.new(STDOUT)
@@ -59,11 +58,7 @@ module BoxGrinder
 
       definition['mount_points'] = @linux_helper.partition_mount_points(@appliance_config.hardware.partitions)
 
-      repos = []
-      repos += default_repos if @appliance_config.default_repos
-      repos += @appliance_config.repos
-
-      for repo in repos
+      for repo in @appliance_config.repos
         if repo.keys.include?('mirrorlist')
           urltype = 'mirrorlist'
         else
@@ -92,30 +87,5 @@ module BoxGrinder
 
       definition
     end
-
-    def default_repos
-      os_repos = @repos[@appliance_config.os.version]
-
-      repos = Array.new
-
-      for type in ["base", "updates"]
-        unless os_repos.nil? or os_repos[type].nil?
-
-          mirrorlist = os_repos[type]['mirrorlist']
-          baseurl = os_repos[type]['baseurl']
-
-          name = "#{@appliance_config.os.name}-#{@appliance_config.os.version}-#{type}"
-
-          if mirrorlist.nil?
-            repos.push({"name" => name, "baseurl" => baseurl})
-          else
-            repos.push({"name" => name, "mirrorlist" => mirrorlist})
-          end
-        end
-      end
-
-      repos
-    end
   end
-
 end

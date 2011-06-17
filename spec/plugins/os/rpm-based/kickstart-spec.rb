@@ -66,50 +66,6 @@ module BoxGrinder
             ]
         )
 
-        @appliance_config.should_receive(:default_repos).and_return(true)
-
-        definition = @kickstart.build_definition
-
-        definition['repos'].size.should == 4
-
-        definition['repos'][0].should == "repo --name=fedora-11-base --cost=40 --mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=fedora-11&arch=i386"
-        definition['repos'][1].should == "repo --name=fedora-11-updates --cost=41 --mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=updates-released-f11&arch=i386"
-        definition['repos'][2].should == "repo --name=cirras --cost=42 --baseurl=http://repo.boxgrinder.org/packages/fedora/11/RPMS/i686"
-        definition['repos'][3].should == "repo --name=abc --cost=43 --mirrorlist=http://abc.org/packages/fedora/11/RPMS/i686"
-
-        definition['appliance_config'].packages.size.should == 2
-        definition['appliance_config'].packages.should == ["gcc-c++", "wget"]
-
-        definition['appliance_config'].os.password.should == "boxgrinder"
-        definition['appliance_config'].hardware.partitions.size.should == 2
-        definition['appliance_config'].hardware.partitions['/']['size'].should == 2
-        definition['appliance_config'].hardware.partitions['/home']['size'].should == 3
-      end
-
-      it "should prepare valid definition without default repos" do
-        prepare_kickstart(KICKSTART_FEDORA_REPOS)
-
-        @appliance_config.stub!(:hardware).and_return(
-            OpenCascade.new({
-                                :partitions =>
-                                    {
-                                        '/' => {'size' => 2},
-                                        '/home' => {'size' => 3},
-                                    },
-                                :arch => 'i686',
-                                :base_arch => 'i386'
-                            })
-        )
-
-        @appliance_config.should_receive(:default_repos).and_return(false)
-
-        @appliance_config.should_receive(:repos).and_return(
-            [
-                {'name' => 'cirras', 'baseurl' => "http://repo.boxgrinder.org/packages/fedora/11/RPMS/i686"},
-                {'name' => 'abc', 'baseurl' => 'http://abc', 'mirrorlist' => "http://abc.org/packages/fedora/11/RPMS/i686"},
-            ]
-        )
-
         definition = @kickstart.build_definition
 
         definition['repos'].size.should == 2
