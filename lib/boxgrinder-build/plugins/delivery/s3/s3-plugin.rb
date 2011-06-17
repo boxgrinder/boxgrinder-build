@@ -83,8 +83,8 @@ module BoxGrinder
       end
     end
 
-  def execute(type = :ami)
-    case type
+  def execute
+    case @type
       when :s3
         upload_to_bucket(@previous_deliverables)
       when :cloudfront

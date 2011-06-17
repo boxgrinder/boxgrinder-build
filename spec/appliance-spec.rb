@@ -237,11 +237,11 @@ module BoxGrinder
       end
 
       it "should execute the whole plugin chain" do
-        @appliance.instance_variable_set(:@plugin_chain, [{:plugin => :plugin1, :params => 'definition'}, {:plugin => :plugin2}, {:plugin => :plugin3, :params => :s3}])
+        @appliance.instance_variable_set(:@plugin_chain, [{:plugin => :plugin1, :param => 'definition'}, {:plugin => :plugin2}, {:plugin => :plugin3}])
 
         @appliance.should_receive(:execute_plugin).ordered.with(:plugin1, 'definition')
         @appliance.should_receive(:execute_plugin).ordered.with(:plugin2, nil)
-        @appliance.should_receive(:execute_plugin).ordered.with(:plugin3, :s3)
+        @appliance.should_receive(:execute_plugin).ordered.with(:plugin3, nil)
 
         @appliance.execute_plugin_chain
       end
@@ -256,16 +256,11 @@ module BoxGrinder
         platform_plugin = mock("PlatformPlugin")
 
         @plugin_manager.should_receive(:initialize_plugin).with(:os, :fedora).and_return([os_plugin, "os_plugin_info"])
-
-        os_plugin.should_receive(:init).with(@config, @appliance_config, :os, "os_plugin_info", :log => @log)
-        os_plugin.should_receive(:validate)
-
         @plugin_manager.should_receive(:initialize_plugin).with(:platform, :vmware).and_return([platform_plugin, "platform_plugin_info"])
-
-        platform_plugin.should_receive(:init).with(@config, @appliance_config, :vmware, "platform_plugin_info", :log => @log, :previous_plugin => os_plugin)
-        platform_plugin.should_receive(:validate)
-
         @plugin_manager.should_not_receive(:initialize_plugin).with(:delivery, anything)
+
+        os_plugin.should_receive(:init).with(@config, @appliance_config, "os_plugin_info", :log => @log)
+        platform_plugin.should_receive(:init).with(@config, @appliance_config, "platform_plugin_info", :log => @log, :previous_plugin => os_plugin)
 
         @appliance.initialize_plugins
       end
@@ -279,19 +274,12 @@ module BoxGrinder
         delivery_plugin = mock("DeliveryPlugin")
 
         @plugin_manager.should_receive(:initialize_plugin).with(:os, :fedora).and_return([os_plugin, "os_plugin_info"])
-
-        os_plugin.should_receive(:init).with(@config, @appliance_config, :os, "os_plugin_info", :log => @log)
-        os_plugin.should_receive(:validate)
-
         @plugin_manager.should_receive(:initialize_plugin).with(:platform, :vmware).and_return([platform_plugin, "platform_plugin_info"])
-
-        platform_plugin.should_receive(:init).with(@config, @appliance_config, :vmware, "platform_plugin_info", :log => @log, :previous_plugin => os_plugin)
-        platform_plugin.should_receive(:validate)
-
         @plugin_manager.should_receive(:initialize_plugin).with(:delivery, :s3).and_return([delivery_plugin, "delivery_plugin_info"])
 
-        delivery_plugin.should_receive(:init).with(@config, @appliance_config, :s3, "delivery_plugin_info", :log => @log, :previous_plugin => platform_plugin)
-        delivery_plugin.should_receive(:validate)
+        os_plugin.should_receive(:init).with(@config, @appliance_config, "os_plugin_info", :log => @log)
+        platform_plugin.should_receive(:init).with(@config, @appliance_config, "platform_plugin_info", :log => @log, :previous_plugin => os_plugin)
+        delivery_plugin.should_receive(:init).with(@config, @appliance_config, "delivery_plugin_info", :log => @log, :previous_plugin => platform_plugin, :type => :s3)
 
         @appliance.initialize_plugins
       end
@@ -304,16 +292,11 @@ module BoxGrinder
         delivery_plugin = mock("DeliveryPlugin")
 
         @plugin_manager.should_receive(:initialize_plugin).with(:os, :fedora).and_return([os_plugin, "os_plugin_info"])
-
-        os_plugin.should_receive(:init).with(@config, @appliance_config, :os, "os_plugin_info", :log => @log)
-        os_plugin.should_receive(:validate)
-
         @plugin_manager.should_receive(:initialize_plugin).with(:delivery, :s3).and_return([delivery_plugin, "delivery_plugin_info"])
-
-        delivery_plugin.should_receive(:init).with(@config, @appliance_config, :s3, "delivery_plugin_info", :log => @log, :previous_plugin => os_plugin)
-        delivery_plugin.should_receive(:validate)
-
         @plugin_manager.should_not_receive(:initialize_plugin).with(:platform, anything)
+
+        os_plugin.should_receive(:init).with(@config, @appliance_config, "os_plugin_info", :log => @log)
+        delivery_plugin.should_receive(:init).with(@config, @appliance_config, "delivery_plugin_info", :log => @log, :previous_plugin => os_plugin, :type => :s3)
 
         @appliance.initialize_plugins
       end

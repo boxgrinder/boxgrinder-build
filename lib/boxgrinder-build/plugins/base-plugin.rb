@@ -165,7 +165,7 @@ module BoxGrinder
       raise "You can only execute the plugin after the plugin is initialized, please initialize the plugin using init method." if @initialized.nil?
     end
 
-    def run(*args)
+    def run(param = nil)
       unless is_supported_os?
         @log.error "#{@plugin_info[:full_name]} plugin supports following operating systems: #{supported_oses}. Your appliance contains #{@appliance_config.os.name} #{@appliance_config.os.version} operating system which is not supported by this plugin, sorry."
         return
@@ -174,7 +174,7 @@ module BoxGrinder
       FileUtils.rm_rf @dir.tmp
       FileUtils.mkdir_p @dir.tmp
 
-      execute(*args)
+      param.nil? ? execute : execute(param)
 
       # TODO execute post commands for platform plugins here?
 

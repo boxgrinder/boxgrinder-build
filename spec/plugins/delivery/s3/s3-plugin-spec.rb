@@ -201,6 +201,8 @@ module BoxGrinder
 
     describe ".execute" do
       it "should create AMI" do
+        @plugin.instance_variable_set(:@type, :ami)
+
         @plugin.instance_variable_set(:@previous_deliverables, {:disk => 'a/disk'})
 
         @plugin.should_receive(:ami_key).with("appliance", "/").and_return('ami/key')
@@ -210,20 +212,24 @@ module BoxGrinder
         @plugin.should_receive(:upload_image)
         @plugin.should_receive(:register_image)
 
-        @plugin.execute(:ami)
+        @plugin.execute
       end
 
       it "should not upload AMI because it's already there" do
+        @plugin.instance_variable_set(:@type, :ami)
+
         @plugin.should_receive(:ami_key).with("appliance", "/").and_return('ami/key')
         @plugin.should_receive(:s3_object_exists?).with("ami/key/appliance.ec2.manifest.xml").and_return(true)
         @plugin.should_not_receive(:upload_image)
         @plugin.should_receive(:register_image)
 
-        @plugin.execute(:ami)
+        @plugin.execute
       end
 
       it "should upload AMI even if it's already there because we want a snapshot" do
         @config.plugins['s3'].merge!('snapshot' => true)
+
+        @plugin.instance_variable_set(:@type, :ami)
 
         @plugin.should_receive(:ami_key).with("appliance", "/").and_return('ami/key')
         @plugin.should_receive(:s3_object_exists?).with("ami/key/appliance.ec2.manifest.xml").and_return(true)
@@ -232,19 +238,21 @@ module BoxGrinder
         @plugin.should_receive(:upload_image).with("ami/key")
         @plugin.should_receive(:register_image).with("ami/key/appliance.ec2.manifest.xml")
 
-        @plugin.execute(:ami)
+        @plugin.execute
       end
 
       it "should upload image to s3" do
+        @plugin.instance_variable_set(:@type, :s3)
         @plugin.instance_variable_set(:@previous_deliverables, :disk => 'a/disk')
         @plugin.should_receive(:upload_to_bucket).with({:disk => 'a/disk'})
-        @plugin.execute(:s3)
+        @plugin.execute
       end
 
       it "should upload image to cludfront" do
+        @plugin.instance_variable_set(:@type, :cloudfront)
         @plugin.instance_variable_set(:@previous_deliverables, {:disk => 'a/disk'})
         @plugin.should_receive(:upload_to_bucket).with({:disk => 'a/disk'}, 'public-read')
-        @plugin.execute(:cloudfront)
+        @plugin.execute
       end
     end
 

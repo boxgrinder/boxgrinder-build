@@ -111,12 +111,12 @@ module BoxGrinder
         FileUtils.should_receive(:rm_rf).with("build/path/plugin_name-plugin/tmp")
         FileUtils.should_receive(:mkdir_p).with("build/path/plugin_name-plugin/tmp")
 
-        @plugin.should_receive(:execute).with('a', 3)
+        @plugin.should_receive(:execute)
 
         FileUtils.should_receive(:mv).with("build/path/plugin_name-plugin/tmp/disk", "build/path/plugin_name-plugin/disk")
         FileUtils.should_receive(:rm_rf).with("build/path/plugin_name-plugin/tmp")
 
-        @plugin.run('a', 3)
+        @plugin.run
       end
 
       it "should fail if OS is not supported" do

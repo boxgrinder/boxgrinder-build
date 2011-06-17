@@ -72,25 +72,22 @@ module BoxGrinder
       @plugin_chain = []
 
       os_plugin, os_plugin_info = PluginManager.instance.initialize_plugin(:os, @appliance_config.os.name.to_sym)
-      os_plugin.init(@config, @appliance_config, :os, os_plugin_info, :log => @log)
-      os_plugin.validate
+      os_plugin.init(@config, @appliance_config, os_plugin_info, :log => @log)
 
-      @plugin_chain << {:plugin => os_plugin, :params => @appliance_definition}
+      @plugin_chain << {:plugin => os_plugin, :param => @appliance_definition}
 
       if platform_selected?
         platform_plugin, platform_plugin_info = PluginManager.instance.initialize_plugin(:platform, @config.platform)
-        platform_plugin.init(@config, @appliance_config, @config.platform, platform_plugin_info, :log => @log, :previous_plugin => @plugin_chain.last[:plugin])
-        platform_plugin.validate
+        platform_plugin.init(@config, @appliance_config, platform_plugin_info, :log => @log, :previous_plugin => @plugin_chain.last[:plugin])
 
-        @plugin_chain << {:plugin => platform_plugin, :params => @config.platform}
+        @plugin_chain << {:plugin => platform_plugin}
       end
 
       if delivery_selected?
         delivery_plugin, delivery_plugin_info = PluginManager.instance.initialize_plugin(:delivery, @config.delivery)
-        delivery_plugin.init(@config, @appliance_config, @config.delivery, delivery_plugin_info, :log => @log, :previous_plugin => @plugin_chain.last[:plugin])
-        delivery_plugin.validate
+        delivery_plugin.init(@config, @appliance_config, delivery_plugin_info, :log => @log, :previous_plugin => @plugin_chain.last[:plugin], :type => @config.delivery)
 
-        @plugin_chain << {:plugin => delivery_plugin, :params => @config.delivery}
+        @plugin_chain << {:plugin => delivery_plugin}
       end
     end
 
@@ -103,7 +100,7 @@ module BoxGrinder
     def execute_plugin_chain
       @log.info "Building '#{@appliance_config.name}' appliance for #{@appliance_config.hardware.arch} architecture."
 
-      @plugin_chain.each { |p| execute_plugin(p[:plugin], p[:params]) }
+      @plugin_chain.each { |p| execute_plugin(p[:plugin], p[:param]) }
     end
 
     def create
@@ -129,14 +126,16 @@ module BoxGrinder
       !(@config.delivery == :none or @config.delivery.to_s.empty? == nil)
     end
 
-    def execute_plugin(plugin, *params)
+    def execute_plugin(plugin, param = nil)
       if plugin.deliverables_exists?
         @log.info "Deliverables for #{plugin.plugin_info[:name]} #{plugin.plugin_info[:type]} plugin exists, skipping."
         return
       end
 
       @log.debug "Executing #{plugin.plugin_info[:type]} plugin for #{@appliance_config.os.name}..."
-      plugin.run(*params)
+
+      param.nil? ? plugin.run : plugin.run(param)
+
       @log.debug "Operating system plugin executed."
     end
   end
