@@ -189,9 +189,11 @@ module BoxGrinder
     def deliverables_exists?
       raise "You can only check deliverables after the plugin is initialized, please initialize the plugin using init method." if @initialized.nil?
 
+      return false if deliverables.empty?
+
       exists = true
 
-      @target_deliverables.each_value do |file|
+      deliverables.each_value do |file|
         unless File.exists?(file)
           exists = false
           break

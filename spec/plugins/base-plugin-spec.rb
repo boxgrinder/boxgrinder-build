@@ -81,26 +81,32 @@ module BoxGrinder
       @plugin.instance_variable_get(:@dir).tmp.should == "build/path/plugin_name-plugin/tmp"
     end
 
-    it "should check if deliverables exists and return true" do
-      @plugin.register_deliverable(:disk => "disk")
-      @plugin.register_deliverable(:abc => "def")
-      @plugin.register_deliverable(:file => "a/path")
+    describe ".deliverables_exists?" do
+      it "should check if deliverables exists and return true" do
+        @plugin.register_deliverable(:disk => "disk")
+        @plugin.register_deliverable(:abc => "def")
+        @plugin.register_deliverable(:file => "a/path")
 
-      File.should_receive(:exists?).exactly(3).times.with(any_args()).and_return(true)
+        File.should_receive(:exists?).exactly(3).times.with(any_args()).and_return(true)
 
-      @plugin.deliverables_exists?.should == true
-    end
+        @plugin.deliverables_exists?.should == true
+      end
 
-    it "should check if deliverables exists and return false" do
-      @plugin.register_deliverable(:disk => "disk")
-      @plugin.register_deliverable(:abc => "def")
-      @plugin.register_deliverable(:file => "a/path")
+      it "should check if deliverables exists and return false" do
+        @plugin.register_deliverable(:disk => "disk")
+        @plugin.register_deliverable(:abc => "def")
+        @plugin.register_deliverable(:file => "a/path")
 
-      File.should_receive(:exists?).once.with(any_args()).and_return(true)
-      File.should_receive(:exists?).once.with(any_args()).and_return(false)
-      File.should_not_receive(:exists?)
+        File.should_receive(:exists?).once.with(any_args()).and_return(true)
+        File.should_receive(:exists?).once.with(any_args()).and_return(false)
+        File.should_not_receive(:exists?)
 
-      @plugin.deliverables_exists?.should == false
+        @plugin.deliverables_exists?.should == false
+      end
+
+      it "should return false if no deliverables are registerd" do
+        @plugin.deliverables_exists?.should == false
+      end
     end
 
     describe ".run" do
