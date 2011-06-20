@@ -6,7 +6,7 @@ else
   args=( "$@" )
 fi
 
-if [ "`uname -r | grep x86_64 | wc -l`" -eq "1" ]; then
+if [ "`uname -a | grep x86_64 | wc -l`" -eq "1" ]; then
   bin=/usr/bin/qemu-system-x86_64
 else
   bin=/usr/bin/qemu
