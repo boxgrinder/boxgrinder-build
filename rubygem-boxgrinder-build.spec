@@ -22,8 +22,6 @@ Requires: e2fsprogs
 # Fix for rubygem-aws package
 Requires: rubygem(activesupport)
 
-# For EL5
-BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
 
 BuildRequires: rubygem(rake)
