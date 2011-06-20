@@ -37,7 +37,7 @@ module BoxGrinder
       @appliance_config.stub!(:release).and_return(0)
       @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'rhel', :version => '6'}))
 
-      @plugin = RHELPlugin.new.init(@config, @appliance_config, {:class => BoxGrinder::RHELPlugin, :type => :os, :name => :rhel, :full_name => "Red Hat Enterprise Linux", :versions => ['5', '6']}, :log => Logger.new('/dev/null'))
+      @plugin = RHELPlugin.new.init(@config, @appliance_config, {:class => BoxGrinder::RHELPlugin, :type => :os, :name => :rhel, :full_name => "Red Hat Enterprise Linux", :versions => ['5', '6']}, :log => LogHelper.new(:level => :trace, :type => :stdout))
 
       @config = @plugin.instance_variable_get(:@config)
       @appliance_config = @plugin.instance_variable_get(:@appliance_config)

@@ -39,7 +39,7 @@ module BoxGrinder
       @appliance_config.stub!(:hardware).and_return(OpenCascade.new({:arch => 'x86_64'}))
       @appliance_config.stub!(:is64bit?).and_return(true)
 
-      @plugin = FedoraPlugin.new.init(@config, @appliance_config, {:class => BoxGrinder::FedoraPlugin, :type => :os, :name => :fedora, :full_name => "Fedora", :versions => ["11", "12", "13", "14", "rawhide"]}, :log => Logger.new('/dev/null'))
+      @plugin = FedoraPlugin.new.init(@config, @appliance_config, {:class => BoxGrinder::FedoraPlugin, :type => :os, :name => :fedora, :full_name => "Fedora", :versions => ["11", "12", "13", "14", "rawhide"]}, :log => LogHelper.new(:level => :trace, :type => :stdout))
 
       @config = @plugin.instance_variable_get(:@config)
       @appliance_config = @plugin.instance_variable_get(:@appliance_config)

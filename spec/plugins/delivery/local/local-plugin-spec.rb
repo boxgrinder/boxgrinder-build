@@ -37,7 +37,7 @@ module BoxGrinder
 
       @plugin = LocalPlugin.new.init(@config, @appliance_config,
                                      {:class => BoxGrinder::LocalPlugin, :type => :delivery, :name => :local, :full_name => "Local file system"},
-                                     :log => Logger.new('/dev/null'),
+                                     :log => LogHelper.new(:level => :trace, :type => :stdout),
                                      :previous_plugin => OpenCascade.new(:deliverables => {:disk => "a_disk.raw", :metadata => 'metadata.xml'})
       )
 

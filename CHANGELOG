@@ -3,6 +3,7 @@ v0.9.3
 * [BGBUILD-232] boxgrinder doesn't validate config early enough
 * [BGBUILD-237] Tilde characters break creation of yum.conf
 * [BGBUILD-223] BoxGrinder hangs because qemu.wrapper does not detect x86_64 properly on CentOS 5.6
+* [BGBUILD-241] Add Scientific Linux support
 
 v0.9.2
 

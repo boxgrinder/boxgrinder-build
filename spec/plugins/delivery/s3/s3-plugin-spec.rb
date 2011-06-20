@@ -47,7 +47,7 @@ module BoxGrinder
       @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '14'}))
       @appliance_config.stub!(:hardware).and_return(OpenCascade.new({:arch => 'x86_64', :base_arch => 'x86_64'}))
 
-      @plugin = S3Plugin.new.init(@config, @appliance_config, {:class => BoxGrinder::S3Plugin, :type => :delivery, :name => :s3, :full_name => "Amazon Simple Storage Service (Amazon S3)", :types => [:s3, :cloudfront, :ami]}, :log => Logger.new('/dev/null'), :type => :s3)
+      @plugin = S3Plugin.new.init(@config, @appliance_config, {:class => BoxGrinder::S3Plugin, :type => :delivery, :name => :s3, :full_name => "Amazon Simple Storage Service (Amazon S3)", :types => [:s3, :cloudfront, :ami]}, :log => LogHelper.new(:level => :trace, :type => :stdout), :type => :s3)
       @plugin.validate
 
       @appliance_config = @plugin.instance_variable_get(:@appliance_config)
@@ -59,10 +59,11 @@ module BoxGrinder
     it "should register all operating systems with specific versions" do
       supportes_oses = @plugin.instance_variable_get(:@supported_oses)
 
-      supportes_oses.size.should == 3
-      supportes_oses.keys.sort.should == ['centos', 'fedora', 'rhel']
+      supportes_oses.size.should == 4
+      supportes_oses.keys.sort.should == ['centos', 'fedora', 'rhel', 'sl']
       supportes_oses['centos'].should == ['5']
       supportes_oses['rhel'].should == ['5', '6']
+      supportes_oses['sl'].should == ['5', '6']
       supportes_oses['fedora'].should == ['13', '14', '15']
     end
 
