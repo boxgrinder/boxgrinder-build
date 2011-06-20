@@ -152,6 +152,7 @@ popd
 * Fri Jun 17 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.3-1
 - [BGBUILD-232] boxgrinder doesn't validate config early enough
 - [BGBUILD-237] Tilde characters break creation of yum.conf
+- [BGBUILD-223] BoxGrinder hangs because qemu.wrapper does not detect x86_64 properly on CentOS 5.6
 
 * Thu May 05 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.2-1
 - Upstream release: 0.9.2
