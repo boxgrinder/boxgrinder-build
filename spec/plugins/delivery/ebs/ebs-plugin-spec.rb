@@ -274,6 +274,8 @@ module BoxGrinder
         @dummy_instances = recursive_ostruct([{'instanceId' => 'grumpy'},
                              {'instanceId' => 'sneezy'}])
         @dummy_snapshot = recursive_ostruct({'snapshotId' => 'bashful', 'volumeId' => 'snow-white'})
+        @dummy_volume_attached = recursive_ostruct({'volumeId' => 'snow-white', 'status' => 'attached'})
+        @dummy_volume_detached = recursive_ostruct({'volumeId' => 'snow-white', 'status' => 'detached'})
       end
 
       it "should return false if there was no block device found" do
@@ -290,6 +292,7 @@ module BoxGrinder
           plugin.stub!(:after_init)
           plugin.stub!(:snapshot_info).and_return(@dummy_snapshot)
           plugin.stub!(:get_instances).and_return(@dummy_instances)
+          plugin.stub!(:get_volume_info).and_return(nil)
         end
        lambda { @plugin.stomp_ebs(@ami_info) }.should raise_error(RuntimeError)
       end
@@ -299,6 +302,7 @@ module BoxGrinder
           plugin.stub!(:after_init)
           plugin.stub!(:snapshot_info).and_return(@dummy_snapshot)
           plugin.stub!(:get_instances).and_return(false)
+          plugin.stub!(:get_volume_info).and_return(@dummy_volume_attached, @dummy_volume_detached)
           plugin.stub!(:wait_for_volume_delete)
           plugin.stub!(:wait_for_snapshot_status)
           plugin.stub!(:wait_for_volume_status)
@@ -320,6 +324,7 @@ module BoxGrinder
           plugin.stub!(:after_init)
           plugin.stub!(:snapshot_info).and_return(@dummy_snapshot)
           plugin.stub!(:get_instances).and_return(false)
+          plugin.stub!(:get_volume_info).and_return(@dummy_volume_attached, @dummy_volume_detached)
           plugin.stub!(:wait_for_volume_delete)
           plugin.stub!(:wait_for_snapshot_status)
           plugin.stub!(:wait_for_volume_status)
