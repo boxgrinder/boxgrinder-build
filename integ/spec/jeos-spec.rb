@@ -29,7 +29,7 @@ module BoxGrinder
 
     after(:each) do
       # Make sure all deliverables really exists
-      @appliance.plugin_chain.last.deliverables.each_value do |file|
+      @appliance.plugin_chain.last[:plugin].deliverables.each_value do |file|
         File.exists?(file).should == true
       end
     end

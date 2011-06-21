@@ -253,7 +253,7 @@ module BoxGrinder
         @appliance.instance_variable_set(:@appliance_config, prepare_appliance_config)
 
         os_plugin = mock("OSPlugin")
-        platform_plugin = mock("PlatformPlugin")
+        platform_plugin = mock("PlatformPlugin", :deliverables => OpenCascade.new(:disk => 'a/disk.vmdk'))
 
         @plugin_manager.should_receive(:initialize_plugin).with(:os, :fedora).and_return([os_plugin, "os_plugin_info"])
         @plugin_manager.should_receive(:initialize_plugin).with(:platform, :vmware).and_return([platform_plugin, "platform_plugin_info"])
@@ -263,6 +263,9 @@ module BoxGrinder
         platform_plugin.should_receive(:init).with(@config, @appliance_config, "platform_plugin_info", :log => @log, :previous_plugin => os_plugin)
 
         @appliance.initialize_plugins
+
+        @appliance.plugin_chain.size.should == 2
+        @appliance.plugin_chain.last[:plugin].deliverables.should == {:disk=>"a/disk.vmdk"}
       end
 
       it "should prepare the plugin chain to create an appliance and convert it to VMware format and deliver to S3" do
@@ -271,7 +274,7 @@ module BoxGrinder
 
         os_plugin = mock("OSPlugin")
         platform_plugin = mock("PlatformPlugin")
-        delivery_plugin = mock("DeliveryPlugin")
+        delivery_plugin = mock("DeliveryPlugin", :deliverables => {})
 
         @plugin_manager.should_receive(:initialize_plugin).with(:os, :fedora).and_return([os_plugin, "os_plugin_info"])
         @plugin_manager.should_receive(:initialize_plugin).with(:platform, :vmware).and_return([platform_plugin, "platform_plugin_info"])
@@ -282,6 +285,9 @@ module BoxGrinder
         delivery_plugin.should_receive(:init).with(@config, @appliance_config, "delivery_plugin_info", :log => @log, :previous_plugin => platform_plugin, :type => :s3)
 
         @appliance.initialize_plugins
+
+        @appliance.plugin_chain.size.should == 3
+        @appliance.plugin_chain.last[:plugin].deliverables.size.should == 0
       end
 
       it "should prepare the plugin chain to create an appliance and without conversion deliver to S3" do
