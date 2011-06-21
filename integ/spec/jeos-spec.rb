@@ -23,7 +23,7 @@ require 'boxgrinder-core/helpers/log-helper'
 module BoxGrinder
   describe 'JEOS' do
     before(:each) do
-      @config = Config.new
+      @config = Config.new(:force => true)
       @log = LogHelper.new(:level => :trace, :type => :stdout)
     end
 
