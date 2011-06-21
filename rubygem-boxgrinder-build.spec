@@ -141,6 +141,7 @@ popd
 %files doc
 %defattr(-, root, root, -)
 %{geminstdir}/spec
+%{geminstdir}/integ
 %{geminstdir}/Rakefile
 %{geminstdir}/rubygem-%{gemname}.spec
 %{geminstdir}/%{gemname}.gemspec
