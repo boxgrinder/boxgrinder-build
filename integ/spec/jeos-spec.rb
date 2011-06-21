@@ -46,7 +46,7 @@ module BoxGrinder
 
     context "platform" do
       it "should create Fedora 15 JEOS appliance and convert it to VMware personal platform" do
-        @config.merge!(:platform => :vmware, :platform_config => {:type => 'personal'})
+        @config.merge!(:platform => :vmware, :platform_config => {'type' => 'personal'})
         @appliance = Appliance.new("#{File.dirname(__FILE__)}/../appliances/jeos-f15.appl", @config, :log => @log).create
       end
     end
