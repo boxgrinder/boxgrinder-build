@@ -40,6 +40,15 @@ Echoe.new("boxgrinder-build") do |p|
   ]
 end
 
+desc "Run all integration tests"
+Spec::Rake::SpecTask.new('integ') do |t|
+  t.libs.unshift "../boxgrinder-core/lib"
+  t.rcov = false
+  t.spec_files = FileList["integ/**/*-spec.rb"]
+  t.spec_opts = ['--colour', '--format', 'specdoc', '-b']
+  t.verbose = true
+end
+
 desc "Run all tests"
 Spec::Rake::SpecTask.new('spec') do |t|
   t.libs.unshift "../boxgrinder-core/lib"

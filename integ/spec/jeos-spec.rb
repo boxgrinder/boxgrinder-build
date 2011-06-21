@@ -16,17 +16,26 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require 'rubygems'
-require 'rake'
-require 'spec/rake/spectask'
+require 'boxgrinder-build/appliance'
+require 'boxgrinder-core/models/config'
+require 'boxgrinder-core/helpers/log-helper'
 
-desc "Run all examples"
-Spec::Rake::SpecTask.new(:default) do |t|
-  t.libs.unshift "../../boxgrinder-core/lib"
-  t.libs.unshift "../../boxgrinder-core/spec"
+module BoxGrinder
+  describe 'JEOS' do
+    before(:each) do
+      @config = Config.new
+      @log = LogHelper.new(:level => :trace, :type => :stdout)
+    end
 
-  t.spec_files = FileList['**/*-spec.rb']
-  t.rcov = true
-  t.rcov_opts = ['--exclude', 'spec' ]
-  t.spec_opts = [ '--format', 's']
+    context "operating system" do
+      it "should build Fedora 15 JEOS" do
+        Appliance.new("#{File.dirname(__FILE__)}/../appliances/jeos-f15.appl", @config, :log => @log).create
+      end
+
+      it "should build CentOS 5 JEOS" do
+        Appliance.new("#{File.dirname(__FILE__)}/../appliances/jeos-centos5.appl", @config, :log => @log).create
+      end
+    end
+  end
 end
+
