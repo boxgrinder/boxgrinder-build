@@ -27,13 +27,27 @@ module BoxGrinder
       @log = LogHelper.new(:level => :trace, :type => :stdout)
     end
 
+    after(:each) do
+      # Make sure all deliverables really exists
+      @appliance.plugin_chain.last.deliverables.each_value do |file|
+        File.exists?(file).should == true
+      end
+    end
+
     context "operating system" do
       it "should build Fedora 15 JEOS" do
-        Appliance.new("#{File.dirname(__FILE__)}/../appliances/jeos-f15.appl", @config, :log => @log).create
+        @appliance = Appliance.new("#{File.dirname(__FILE__)}/../appliances/jeos-f15.appl", @config, :log => @log).create
       end
 
       it "should build CentOS 5 JEOS" do
-        Appliance.new("#{File.dirname(__FILE__)}/../appliances/jeos-centos5.appl", @config, :log => @log).create
+        @appliance = Appliance.new("#{File.dirname(__FILE__)}/../appliances/jeos-centos5.appl", @config, :log => @log).create
+      end
+    end
+
+    context "platform" do
+      it "should create Fedora 15 JEOS appliance and convert it to VMware personal platform" do
+        @config.merge!(:platform => :vmware, :platform_config => {:type => 'personal'})
+        @appliance = Appliance.new("#{File.dirname(__FILE__)}/../appliances/jeos-f15.appl", @config, :log => @log).create
       end
     end
   end

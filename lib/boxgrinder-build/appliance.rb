@@ -28,6 +28,8 @@ require 'boxgrinder-build/managers/plugin-manager'
 
 module BoxGrinder
   class Appliance
+    attr_reader :plugin_chain
+
     def initialize(appliance_definition, config = Config.new, options = {})
       @appliance_definition = appliance_definition
       @config = config
@@ -116,6 +118,8 @@ module BoxGrinder
       remove_old_builds if @config.force
 
       execute_plugin_chain
+
+      self
     end
 
     def platform_selected?
