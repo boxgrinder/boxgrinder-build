@@ -5,6 +5,9 @@ README.md
 Rakefile
 bin/boxgrinder-build
 boxgrinder-build.gemspec
+integ/appliances/jeos-centos5.appl
+integ/appliances/jeos-f15.appl
+integ/spec/jeos-spec.rb
 lib/boxgrinder-build.rb
 lib/boxgrinder-build/appliance.rb
 lib/boxgrinder-build/helpers/augeas-helper.rb
@@ -46,7 +49,6 @@ lib/boxgrinder-build/plugins/platform/vmware/src/base.vmdk
 lib/boxgrinder-build/plugins/platform/vmware/src/base.vmx
 lib/boxgrinder-build/plugins/platform/vmware/vmware-plugin.rb
 rubygem-boxgrinder-build.spec
-spec/Rakefile
 spec/appliance-spec.rb
 spec/helpers/augeas-helper-spec.rb
 spec/helpers/guestfs-helper-spec.rb
@@ -71,6 +73,7 @@ spec/plugins/os/rpm-based/rpm-dependency-validator-spec.rb
 spec/plugins/os/rpm-based/src/jeos-f13-plain.ks
 spec/plugins/os/rpm-based/src/jeos-f13-without-version.ks
 spec/plugins/os/rpm-based/src/jeos-f13.ks
+spec/plugins/os/sl/sl-plugin-spec.rb
 spec/plugins/platform/ec2/ec2-plugin-spec.rb
 spec/plugins/platform/virtualbox/virtualbox-plugin-spec.rb
 spec/plugins/platform/vmware/vmware-plugin-spec.rb
