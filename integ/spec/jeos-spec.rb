@@ -21,33 +21,37 @@ require 'boxgrinder-core/models/config'
 require 'boxgrinder-core/helpers/log-helper'
 
 module BoxGrinder
-  describe 'JEOS' do
+  describe 'BoxGrinder Build' do
     before(:each) do
-      @config = Config.new(:force => true)
+      # By default remove all previous builds and deliver the packaged appliance to S3
+      @config = Config.new(:force => true, :delivery => :s3)
       @log = LogHelper.new(:level => :trace, :type => :stdout)
     end
 
     after(:each) do
+      # Execute the build!
+      @appliance = Appliance.new("#{File.dirname(__FILE__)}/../appliances/#{@definition}", @config, :log => @log).create
+
       # Make sure all deliverables really exists
       @appliance.plugin_chain.last[:plugin].deliverables.each_value do |file|
         File.exists?(file).should == true
       end
     end
 
-    context "operating system" do
+    context "operating system plugin" do
       it "should build Fedora 15 JEOS" do
-        @appliance = Appliance.new("#{File.dirname(__FILE__)}/../appliances/jeos-f15.appl", @config, :log => @log).create
+        @definition = "jeos-f15.appl"
       end
 
       it "should build CentOS 5 JEOS" do
-        @appliance = Appliance.new("#{File.dirname(__FILE__)}/../appliances/jeos-centos5.appl", @config, :log => @log).create
+        @definition = "jeos-centos5.appl"
       end
     end
 
-    context "platform" do
+    context "platform plugin" do
       it "should create Fedora 15 JEOS appliance and convert it to VMware personal platform" do
         @config.merge!(:platform => :vmware, :platform_config => {'type' => 'personal'})
-        @appliance = Appliance.new("#{File.dirname(__FILE__)}/../appliances/jeos-f15.appl", @config, :log => @log).create
+        @definition = "jeos-f15.appl"
       end
     end
   end
