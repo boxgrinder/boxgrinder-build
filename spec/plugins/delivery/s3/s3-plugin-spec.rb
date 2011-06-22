@@ -105,7 +105,7 @@ module BoxGrinder
       end
 
       it "should return valid ami_key with snapshot and overwrite enabled" do
-        @plugin_config.merge!('snapshot' => true, 'overwrite' => true)
+        @config.plugins['s3'].merge!('snapshot' => true, 'overwrite' => true)
         bucket = mock('Bucket')
         bucket.should_receive(:keys).twice
 
@@ -124,7 +124,7 @@ module BoxGrinder
       end
 
       it "should generate valid ami_key with snapshot when bucket doesn't exist" do
-        @plugin_config.merge!('snapshot' => true)
+        @config.plugins['s3'].merge!('snapshot' => true)
         @plugin.should_receive(:bucket).with(false).and_raise('ABC')
         @plugin.ami_key("name", "/").should == "name/fedora/14/1.0-SNAPSHOT-1/x86_64"
       end

@@ -55,6 +55,9 @@ module BoxGrinder
 
       set_default_config_value('availability_zone', @current_avaibility_zone)
       set_default_config_value('delete_on_termination', true)
+      set_default_config_value('overwrite', false)
+      set_default_config_value('snapshot', false)
+      set_default_config_value('preserve_snapshots', false)
       validate_plugin_config(['access_key', 'secret_access_key', 'account_number'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#EBS_Delivery_Plugin')
 
       raise PluginValidationError, "You can only convert to EBS type AMI appliances converted to EC2 format. Use '-p ec2' switch. For more info about EC2 plugin see http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#EC2_Platform_Plugin." unless @previous_plugin_info[:name] == :ec2
@@ -78,7 +81,7 @@ module BoxGrinder
 
       ami_info = ami_info(ebs_appliance_name)
 
-      @log.debug ami_info
+      @log.debug "AMI info #{ami_info}"
 
       if ami_info and @plugin_config['overwrite']
         @log.info "Overwrite is enabled. Stomping existing assets"
@@ -203,7 +206,8 @@ module BoxGrinder
         @ec2.describe_volumes(:volume_id => volume_id).volumeSet.item.each do |volume|
           return volume if volume.volumeId == volume_id
         end
-      rescue AWS::Error #AWS::InvalidVolumeIDNotFound should be returned when no volume found, but is not always doing so at present.
+      rescue AWS::Error, AWS::InvalidVolumeIDNotFound => e# only InvalidVolumeIDNotFound should be returned when no volume found, but is not always doing so at present.
+        @log.trace "Error getting volume info: #{e}"
         return nil
       end
       nil
@@ -249,6 +253,7 @@ module BoxGrinder
         volume_id = snapshot_info.volumeId
         volume_info = get_volume_info(volume_id)
 
+        @log.trace "volume_info for #{volume_id} : #{volume_info}"
         @log.info "Finding any existing image with the block store attached"
 
         if instances = get_instances(ami_info.imageId)
