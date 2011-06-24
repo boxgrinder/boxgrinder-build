@@ -15,5 +15,5 @@ if [ $? -eq 0 ] ; then
        chown $user $home/.ssh/authorized_keys
 
    done
-   rm /tmp/my-key
+   rm -f /tmp/my-key
 fi
