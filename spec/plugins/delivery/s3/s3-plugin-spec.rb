@@ -267,7 +267,7 @@ module BoxGrinder
         @plugin.execute
       end
 
-      it "should upload image to cludfront" do
+      it "should upload image to cloudfront" do
         @plugin.instance_variable_set(:@type, :cloudfront)
         @plugin.instance_variable_set(:@previous_deliverables, {:disk => 'a/disk'})
         @plugin.should_receive(:upload_to_bucket).with({:disk => 'a/disk'}, 'public-read')
@@ -276,6 +276,7 @@ module BoxGrinder
     end
 
     describe ".validate" do
+
       it "should validate only basic params" do
         @plugin.should_receive(:set_default_config_value).with('overwrite', false)
         @plugin.should_receive(:set_default_config_value).with('path', '/')
@@ -299,6 +300,24 @@ module BoxGrinder
 
         @plugin.validate
       end
+
+      it "should raise an error if an invalid region is specified" do
+        @plugin.instance_variable_set(:@type, :ami)
+
+        @config.plugins['s3']['region'] = 'bolkonski'
+
+        @plugin.should_receive(:set_default_config_value).with('overwrite', false)
+        @plugin.should_receive(:set_default_config_value).with('path', '/')
+        @plugin.should_receive(:set_default_config_value).with('region', 'us-east-1')
+        @plugin.should_receive(:set_default_config_value).with('snapshot', false)
+
+        @plugin.should_receive(:validate_plugin_config).with(['bucket', 'access_key', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
+        @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
+
+        lambda { @plugin.validate }.should raise_error(PluginValidationError)
+
+      end
+
     end
 
     describe ".bucket" do
@@ -358,7 +377,7 @@ module BoxGrinder
           @plugin.register_image("ami/manifest/key")
         end
 
-        it "should report the region where the ami is registed" do
+        it "should report the region where the ami is registered" do
           @plugin.instance_variable_get(:@plugin_config)['region'] = 'a-region'
           @plugin.instance_variable_get(:@log).should_receive(:info).with(/a-region/)
 

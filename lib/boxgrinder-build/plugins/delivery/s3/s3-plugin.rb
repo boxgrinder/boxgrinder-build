@@ -92,6 +92,9 @@ module BoxGrinder
         set_default_config_value('snapshot', false)
         validate_plugin_config(['cert_file', 'key_file', 'account_number'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
       end
+
+      raise PluginValidationError, "Invalid region specified: #{@plugin_config['region']}. This plugin only aware of the following regions: #{REGION_OPTIONS.keys.join(", ")}" unless REGION_OPTIONS.has_key?(@plugin_config['region'])
+
     end
 
     def execute
