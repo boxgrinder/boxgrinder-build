@@ -43,6 +43,16 @@ module BoxGrinder
             }
         },
 
+        'ap-northeast-1' => {
+            :endpoint => 's3-ap-northeast-1.amazonaws.com',
+            :location => 'ap-northeast-1',
+            :kernel => {
+                'i386' => {:aki => 'aki-99a0f1dc'},
+                'x86_64' => {:aki => 'aki-d409a2d5'}
+            }
+
+        },
+
         'us-west-1' => {
             :endpoint => 's3-us-west-1.amazonaws.com',
             :location => 'us-west-1',
