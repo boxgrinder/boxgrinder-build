@@ -51,6 +51,7 @@ module BoxGrinder
     ROOT_DEVICE_NAME = '/dev/sda1'
     POLL_FREQ = 1 #second
     TIMEOUT = 1000 #seconds
+    EC2_HOSTNAME_LOOKUP_TIMEOUT = 10
 
     def validate
       raise PluginValidationError, "You try to run this plugin on invalid platform. You can run EBS delivery plugin only on EC2." unless valid_platform?
@@ -395,13 +396,33 @@ module BoxGrinder
       raise "Found too many attached devices. Cannot attach EBS volume."
     end
 
-    def valid_platform?
-      begin
-        return Resolv.getname("169.254.169.254").include?(".ec2.internal")
-      rescue Resolv::ResolvError
-        false
+    def get_ec2_hostname
+      timeout(EC2_HOSTNAME_LOOKUP_TIMEOUT) do
+
+        req = Net::HTTP::Get.new('/1.0/meta-data/hostname')
+        res = Net::HTTP.start('169.254.169.254', 80) {|http|
+        http.request(req)
+      }
+        case res
+        when Net::HTTPSuccess
+          res.body
+        else
+          res.error!
+        end
       end
     end
+
+    def valid_platform?
+      begin
+        return get_ec2_hostname.include?(".ec2.internal")
+      rescue Net::HTTPServerException => e
+        @log.warn "An error was returned when attempting to retrieve the ec2 hostname: #{e}"
+      rescue Timeout::Error => t
+        @log.warn "A timeout occurred while attempting to retrieve the ec2 hostname: #{t}"
+      end
+      false
+    end
+
   end
 end
 
