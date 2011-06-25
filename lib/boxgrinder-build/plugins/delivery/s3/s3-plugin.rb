@@ -47,7 +47,7 @@ module BoxGrinder
             :endpoint => 's3-ap-northeast-1.amazonaws.com',
             :location => 'ap-northeast-1',
             :kernel => {
-                'i386' => {:aki => 'aki-99a0f1dc'},
+                'i386' => {:aki => 'aki-d209a2d3'},
                 'x86_64' => {:aki => 'aki-d409a2d5'}
             }
 
