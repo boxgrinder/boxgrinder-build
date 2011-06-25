@@ -398,14 +398,14 @@ module BoxGrinder
 
     def get_ec2_hostname
       timeout(EC2_HOSTNAME_LOOKUP_TIMEOUT) do
-
-        req = Net::HTTP::Get.new('/1.0/meta-data/hostname')
+        req = Net::HTTP::Get.new('/latest/meta-data/placement/availability-zone/')
         res = Net::HTTP.start('169.254.169.254', 80) {|http|
         http.request(req)
-      }
+        }
+
         case res
         when Net::HTTPSuccess
-          res.body
+          return res.body.chomp.chop
         else
           res.error!
         end
@@ -414,12 +414,13 @@ module BoxGrinder
 
     def valid_platform?
       begin
-        return get_ec2_hostname.include?(".ec2.internal")
+        return KERNELS.has_key?(get_ec2_hostname)
       rescue Net::HTTPServerException => e
         @log.warn "An error was returned when attempting to retrieve the ec2 hostname: #{e}"
       rescue Timeout::Error => t
         @log.warn "A timeout occurred while attempting to retrieve the ec2 hostname: #{t}"
       end
+      @log.warn "You may be using an ec2 region that BoxGrinder Build is not aware of: #{get_ec2_hostname}, BoxGrinder Build knows of: #{KERNELS.join(", ")}"
       false
     end
 

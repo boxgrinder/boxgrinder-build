@@ -148,7 +148,8 @@ popd
 %{gemdir}/doc/%{gemname}-%{version}
 
 %changelog
-* Fri Jun 17 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.3-1
+* Fri Jun 17 2011 Marc Savy <msavy@redhat.com> - 0.9.3-1
+- Upstream release: 0.9.3
 - [BGBUILD-232] boxgrinder doesn't validate config early enough
 - [BGBUILD-237] Tilde characters break creation of yum.conf
 - [BGBUILD-223] BoxGrinder hangs because qemu.wrapper does not detect x86_64 properly on CentOS 5.6
@@ -163,6 +164,7 @@ popd
 - [BGBUILD-251] Add ap-northeast-1 (tokyo) region for EBS plugin
 - [BGBUILD-248] Throw error in S3 plugin if invalid region is specified
 - [BGBUILD-252] rc.local script fills ~/.ssh/authorized_keys with a duplicate key every boot
+- [BGBUILD-250] EBS plugin incorrectly determines that non-US regions are not EC2 instances
 
 * Thu May 05 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.2-1
 - Upstream release: 0.9.2
