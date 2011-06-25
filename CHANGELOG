@@ -11,6 +11,7 @@ v0.9.3
 * [BGBUILD-231] Cannot register Fedora 15 EC2 AMI with S3 delivery plugin in eu-west-1 availability zone
 * [BGBUILD-193] EBS delivery plugin timing/concurrency issues
 * [BGBUILD-247] ap-northeast-1 end-point is missing in S3 plugin (add Tokyo region)
+* [BGBUILD-251] Add ap-northeast-1 (tokyo) region for EBS plugin
 * [BGBUILD-248] Throw error in S3 plugin if invalid region is specified
 
 
