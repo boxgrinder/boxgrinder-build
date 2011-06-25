@@ -27,24 +27,49 @@ module BoxGrinder
   class EBSPlugin < BasePlugin
     KERNELS = {
         'eu-west-1' => {
-            'i386' => {:aki => 'aki-4deec439'},
-            'x86_64' => {:aki => 'aki-4feec43b'}
+            :endpoint => 'ec2.eu-west-1.amazonaws.com',
+            :location => 'EU',
+            :kernel => {
+                'i386' => {:aki => 'aki-4deec439'},
+                'x86_64' => {:aki => 'aki-4feec43b'}
+            }
         },
+
         'ap-southeast-1' => {
-            'i386' => {:aki => 'aki-13d5aa41'},
-            'x86_64' => {:aki => 'aki-11d5aa43'}
+            :endpoint => 'ec2.ap-southeast-1.amazonaws.com',
+            :location => 'ap-southeast-1',
+            :kernel => {
+                'i386' => {:aki => 'aki-13d5aa41'},
+                'x86_64' => {:aki => 'aki-11d5aa43'}
+            }
         },
+
         'ap-northeast-1' => {
-            'i386' => {:aki => 'aki-d209a2d3'},
-            'x86_64' => {:aki => 'aki-d409a2d5'}
+            :endpoint => 'ec2.ap-northeast-1.amazonaws.com',
+            :location => 'ap-northeast-1',
+            :kernel => {
+                'i386' => {:aki => 'aki-d209a2d3'},
+                'x86_64' => {:aki => 'aki-d409a2d5'}
+            }
+
         },
+
         'us-west-1' => {
-            'i386' => {:aki => 'aki-99a0f1dc'},
-            'x86_64' => {:aki => 'aki-9ba0f1de'}
+            :endpoint => 'ec2.us-west-1.amazonaws.com',
+            :location => 'us-west-1',
+            :kernel => {
+                'i386' => {:aki => 'aki-99a0f1dc'},
+                'x86_64' => {:aki => 'aki-9ba0f1de'}
+            }
         },
+
         'us-east-1' => {
-            'i386' => {:aki => 'aki-407d9529'},
-            'x86_64' => {:aki => 'aki-427d952b'}
+            :endpoint => 'ec2.amazonaws.com',
+            :location => '',
+            :kernel => {
+                'i386' => {:aki => 'aki-407d9529'},
+                'x86_64' => {:aki => 'aki-427d952b'}
+            }
         }
     }
 
@@ -54,9 +79,9 @@ module BoxGrinder
     EC2_HOSTNAME_LOOKUP_TIMEOUT = 10
 
     def validate
-      raise PluginValidationError, "You try to run this plugin on invalid platform. You can run EBS delivery plugin only on EC2." unless valid_platform?
+      raise PluginValidationError, "You are trying to run this plugin on invalid platform. You can run the EBS delivery plugin only on EC2." unless valid_platform?
 
-      @current_availability_zone = open('http://169.254.169.254/latest/meta-data/placement/availability-zone').string
+      @current_availability_zone = get_ec2_availability_zone; @log.trace @current_availability_zone
 
       set_default_config_value('availability_zone', @current_availability_zone)
       set_default_config_value('delete_on_termination', true)
@@ -70,7 +95,7 @@ module BoxGrinder
     end
 
     def after_init
-      @region = @current_availability_zone.scan(/((\w+)-(\w+)-(\d+))/).flatten.first
+      @region = availability_zone_to_region(@current_availability_zone)
 
       register_supported_os('fedora', ['13', '14', '15'])
       register_supported_os('rhel', ['6'])
@@ -80,7 +105,12 @@ module BoxGrinder
     def execute
       ebs_appliance_description = "#{@appliance_config.summary} | Appliance version #{@appliance_config.version}.#{@appliance_config.release} | #{@appliance_config.hardware.arch} architecture"
 
-      @ec2 = AWS::EC2::Base.new(:access_key_id => @plugin_config['access_key'], :secret_access_key => @plugin_config['secret_access_key'])
+      @ec2 = AWS::EC2::Base.new(:access_key_id => @plugin_config['access_key'],
+                                :secret_access_key => @plugin_config['secret_access_key'],
+                                :server => KERNELS[@region][:endpoint]
+      )
+
+      @log.info "kernels #{KERNELS[@region][:endpoint]}"
 
       @log.debug "Checking if appliance is already registered..."
 
@@ -194,7 +224,7 @@ module BoxGrinder
                                     }],
           :root_device_name => ROOT_DEVICE_NAME,
           :architecture => @appliance_config.hardware.base_arch,
-          :kernel_id => KERNELS[@region][@appliance_config.hardware.base_arch][:aki],
+          :kernel_id => KERNELS[@region][:kernel][@appliance_config.hardware.base_arch][:aki],
           :name => ebs_appliance_name,
           :description => ebs_appliance_description)['imageId']
 
@@ -396,16 +426,15 @@ module BoxGrinder
       raise "Found too many attached devices. Cannot attach EBS volume."
     end
 
-    def get_ec2_hostname
+    def get_ec2_availability_zone
       timeout(EC2_HOSTNAME_LOOKUP_TIMEOUT) do
         req = Net::HTTP::Get.new('/latest/meta-data/placement/availability-zone/')
         res = Net::HTTP.start('169.254.169.254', 80) {|http|
         http.request(req)
         }
-
         case res
         when Net::HTTPSuccess
-          return res.body.chomp.chop
+          return res.body
         else
           res.error!
         end
@@ -414,14 +443,18 @@ module BoxGrinder
 
     def valid_platform?
       begin
-        return KERNELS.has_key?(get_ec2_hostname)
+        return KERNELS.has_key? availability_zone_to_region(get_ec2_availability_zone)
       rescue Net::HTTPServerException => e
         @log.warn "An error was returned when attempting to retrieve the ec2 hostname: #{e}"
       rescue Timeout::Error => t
         @log.warn "A timeout occurred while attempting to retrieve the ec2 hostname: #{t}"
       end
-      @log.warn "You may be using an ec2 region that BoxGrinder Build is not aware of: #{get_ec2_hostname}, BoxGrinder Build knows of: #{KERNELS.join(", ")}"
+      @log.warn "You may be using an ec2 region that BoxGrinder Build is not aware of: #{get_ec2_availability_zone}, BoxGrinder Build knows of: #{KERNELS.join(", ")}"
       false
+    end
+
+    def availability_zone_to_region(availability_zone)
+      availability_zone.scan(/((\w+)-(\w+)-(\d+))/).flatten.first
     end
 
   end

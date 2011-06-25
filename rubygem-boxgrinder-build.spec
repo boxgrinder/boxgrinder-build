@@ -160,11 +160,12 @@ popd
 - [BGBUILD-224] EBS Plugin Support for CentOS v5.5 and fix for non-integer EBS disk sizes
 - [BGBUILD-231] Cannot register Fedora 15 EC2 AMI with S3 delivery plugin in eu-west-1 availability zone
 - [BGBUILD-193] EBS delivery plugin timing/concurrency issues
-- [BGBUILD-247] ap-northeast-1 end-point is missing in S3 plugin (added Toyko region)
+- [BGBUILD-247] ap-northeast-1 end-point is missing in S3 plugin (added Tokyo region)
 - [BGBUILD-251] Add ap-northeast-1 (tokyo) region for EBS plugin
 - [BGBUILD-248] Throw error in S3 plugin if invalid region is specified
 - [BGBUILD-252] rc.local script fills ~/.ssh/authorized_keys with a duplicate key every boot
 - [BGBUILD-250] EBS plugin incorrectly determines that non-US regions are not EC2 instances
+- [BGBUILD-254] Not able to deliver EBS AMIs to regions other than us-east-1
 
 * Thu May 05 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.2-1
 - Upstream release: 0.9.2
