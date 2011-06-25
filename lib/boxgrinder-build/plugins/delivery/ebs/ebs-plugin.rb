@@ -34,6 +34,10 @@ module BoxGrinder
             'i386' => {:aki => 'aki-13d5aa41'},
             'x86_64' => {:aki => 'aki-11d5aa43'}
         },
+        'ap-northeast-1' => {
+            'i386' => {:aki => 'aki-99a0f1dc'},
+            'x86_64' => {:aki => 'aki-d409a2d5'}
+        },
         'us-west-1' => {
             'i386' => {:aki => 'aki-99a0f1dc'},
             'x86_64' => {:aki => 'aki-9ba0f1de'}
@@ -51,9 +55,9 @@ module BoxGrinder
     def validate
       raise PluginValidationError, "You try to run this plugin on invalid platform. You can run EBS delivery plugin only on EC2." unless valid_platform?
 
-      @current_avaibility_zone = open('http://169.254.169.254/latest/meta-data/placement/availability-zone').string
+      @current_availability_zone = open('http://169.254.169.254/latest/meta-data/placement/availability-zone').string
 
-      set_default_config_value('availability_zone', @current_avaibility_zone)
+      set_default_config_value('availability_zone', @current_availability_zone)
       set_default_config_value('delete_on_termination', true)
       set_default_config_value('overwrite', false)
       set_default_config_value('snapshot', false)
@@ -61,11 +65,11 @@ module BoxGrinder
       validate_plugin_config(['access_key', 'secret_access_key', 'account_number'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#EBS_Delivery_Plugin')
 
       raise PluginValidationError, "You can only convert to EBS type AMI appliances converted to EC2 format. Use '-p ec2' switch. For more info about EC2 plugin see http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#EC2_Platform_Plugin." unless @previous_plugin_info[:name] == :ec2
-      raise PluginValidationError, "You selected #{@plugin_config['availability_zone']} avaibility zone, but your instance is running in #{@current_avaibility_zone} zone. Please change avaibility zone in plugin configuration file to #{@current_avaibility_zone} (see http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#EBS_Delivery_Plugin) or use another instance in #{@plugin_config['availability_zone']} zone to create your EBS AMI." if @plugin_config['availability_zone'] != @current_avaibility_zone
+      raise PluginValidationError, "You selected #{@plugin_config['availability_zone']} availability zone, but your instance is running in #{@current_availability_zone} zone. Please change availability zone in plugin configuration file to #{@current_availability_zone} (see http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#EBS_Delivery_Plugin) or use another instance in #{@plugin_config['availability_zone']} zone to create your EBS AMI." if @plugin_config['availability_zone'] != @current_availability_zone
     end
 
     def after_init
-      @region = @current_avaibility_zone.scan(/((\w+)-(\w+)-(\d+))/).flatten.first
+      @region = @current_availability_zone.scan(/((\w+)-(\w+)-(\d+))/).flatten.first
 
       register_supported_os('fedora', ['13', '14', '15'])
       register_supported_os('rhel', ['6'])

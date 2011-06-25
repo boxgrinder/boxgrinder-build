@@ -65,7 +65,7 @@ module BoxGrinder
       Resolv.stub!(:getname).with("169.254.169.254").and_return([".ec2.internal"])
 
       prepare_plugin do |plugin|
-        plugin.instance_variable_set(:@current_avaibility_zone, 'us-east-1a')
+        plugin.instance_variable_set(:@current_availability_zone, 'us-east-1a')
       end
 
       supported_oses = @plugin.instance_variable_get(:@supported_oses)
@@ -80,7 +80,7 @@ module BoxGrinder
     describe ".after_init" do
       it "should set the region" do
         prepare_plugin do |plugin|
-          plugin.instance_variable_set(:@current_avaibility_zone, 'us-east-1a')
+          plugin.instance_variable_set(:@current_availability_zone, 'us-east-1a')
         end
 
         @plugin.instance_variable_get(:@region).should == 'us-east-1'
