@@ -1,0 +1,17 @@
+name: repos-testlocal-ephemeral-noarch
+summary: Local ephemeral test repository with dummy file - Please note the fixed URI.
+packages:
+  - ephemeral-repo-test
+repos:
+  - name: "BoxGrinder-Test-ephemeral-localrepo-noarch"
+    baseurl: file:///tmp/boxgrinder-repo/
+    ephemeral: true
+post:
+  base:
+    - "/bin/echo 'true' > /repos-noarch-ephemeral-boxgrinder-test"
+  ec2:
+    - "/bin/echo 'true' > /repos-noarch-ephemeral-ec2-boxgrinder-test"
+  vmware:
+    - "/bin/echo 'true' > /repos-noarch-ephemeral-vmware-boxgrinder-test"
+  virtualbox:
+    - "/bin/echo 'true' > /repos-noarch-ephemeral-virtualbox-boxgrinder-test"

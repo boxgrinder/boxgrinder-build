@@ -1,0 +1,13 @@
+name: hardware-cpus
+summary: Assign number of CPUs
+hardware:
+  cpus: 2
+post:
+  base:
+    - "/bin/echo 'true' > /hardware-cpus-boxgrinder-test"
+  ec2:
+    - "/bin/echo 'true' > /hardware-cpus-ec2-boxgrinder-test"
+  vmware:
+    - "/bin/echo 'true' > /hardware-cpus-vmware-boxgrinder-test"
+  virtualbox:
+    - "/bin/echo 'true' > /hardware-cpus-virtualbox-boxgrinder-test"

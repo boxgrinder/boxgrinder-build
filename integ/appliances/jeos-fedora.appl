@@ -1,4 +1,4 @@
-name: jeos-f15
+name: jeos-fedora
 os:
   name: fedora
   version: 15

@@ -1,0 +1,19 @@
+name: gnome-fedora
+summary: Fedora with GNOME                               
+hardware:
+  partitions:
+    "/":
+      size: 8
+appliances:
+  - jeos-fedora
+packages:
+  - @base
+  - @base-x
+  - @fonts
+  - @gnome-desktop
+  - @critical-path-gnome
+post:
+  base:
+   - "ln -s --force /lib/systemd/system/graphical.target /etc/systemd/system/default.target"
+   - "useradd boxgrinder && echo boxgrinder | passwd boxgrinder --stdin"
+

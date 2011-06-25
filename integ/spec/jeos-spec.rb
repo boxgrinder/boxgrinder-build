@@ -24,8 +24,8 @@ require 'boxgrinder-core/helpers/log-helper'
 module BoxGrinder
   describe 'BoxGrinder Build' do
     before(:each) do
-      # By default remove all previous builds and deliver the packaged appliance to S3
-      @config = Config.new(:force => true, :delivery => :s3)
+      # Deliver the packaged appliance to CloudFront
+      @config = Config.new(:delivery => :cloudfront)
       @log = LogHelper.new(:level => :trace, :type => :stdout)
     end
 
@@ -40,19 +40,26 @@ module BoxGrinder
     end
 
     context "operating system plugin" do
-      it "should build Fedora 15 JEOS" do
-        @definition = "jeos-f15.appl"
+      it "should build Fedora JEOS" do
+        @definition = "jeos-fedora.appl"
       end
 
-      it "should build CentOS 5 JEOS" do
-        @definition = "jeos-centos5.appl"
+      it "should build CentOS JEOS" do
+        @definition = "jeos-centos.appl"
       end
     end
 
     context "platform plugin" do
-      it "should create Fedora 15 JEOS appliance and convert it to VMware personal platform" do
+      it "should create Fedora JEOS appliance and convert it to VMware personal platform" do
         @config.merge!(:platform => :vmware, :platform_config => {'type' => 'personal'})
-        @definition = "jeos-f15.appl"
+        @definition = "jeos-fedora.appl"
+      end
+    end
+
+    context "modular appliances" do
+      it "should build modular appliance based on Fedora and convert it to VirtualBox" do
+        @config.merge!(:platform => :virtualbox)
+        @definition = "modular.appl"
       end
     end
   end
