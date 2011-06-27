@@ -58,7 +58,7 @@ module BoxGrinder
         @config.merge!(:platform => :virtualbox)
         @appliance = Appliance.new("#{File.dirname(__FILE__)}/../appliances/modular.appl", @config, :log => @log).create
 
-        GuestFSHelper.new([@appliance.plugin_chain.last[:plugin].deliverables[:disk]], @appliance.appliance_config, @config, :log => @log ).customize do |guestfs, guestfs_helper|
+        GuestFSHelper.new([@appliance.plugin_chain[1][:plugin].deliverables[:disk]], @appliance.appliance_config, @config, :log => @log ).customize do |guestfs, guestfs_helper|
           guestfs.exists('/fedora-boxgrinder-test').should == 1
           guestfs.exists('/common-test-base-boxgrinder-test').should == 1
           guestfs.exists('/hardware-cpus-boxgrinder-test').should == 1
