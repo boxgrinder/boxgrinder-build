@@ -20,6 +20,7 @@ require 'rubygems'
 require 'boxgrinder-build/appliance'
 require 'boxgrinder-core/models/config'
 require 'boxgrinder-core/helpers/log-helper'
+require 'boxgrinder-build/helpers/guestfs-helper'
 
 module BoxGrinder
   describe 'BoxGrinder Build' do
@@ -60,6 +61,13 @@ module BoxGrinder
       it "should build modular appliance based on Fedora and convert it to VirtualBox" do
         @config.merge!(:platform => :virtualbox)
         @definition = "modular.appl"
+
+        GuestFSHelper.new([@appliance.plugin_chain.last[:plugin].deliverables[:disk]], @appliance.appliance_config, @config, :log => @log ).customize do |guestfs, guestfs_helper|
+          guestfs.exists('/fedora-boxgrinder-test').should == 1
+          guestfs.exists('/common-test-base-boxgrinder-test').should == 1
+          guestfs.exists('/hardware-cpus-boxgrinder-test').should == 1
+          guestfs.exists('/repos-boxgrinder-noarch-ephemeral-boxgrinder-test').should == 1
+        end
       end
     end
   end

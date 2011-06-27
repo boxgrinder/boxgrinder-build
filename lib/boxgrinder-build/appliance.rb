@@ -29,6 +29,7 @@ require 'boxgrinder-build/managers/plugin-manager'
 module BoxGrinder
   class Appliance
     attr_reader :plugin_chain
+    attr_reader :appliance_config
 
     def initialize(appliance_definition, config = Config.new, options = {})
       @appliance_definition = appliance_definition
