@@ -162,6 +162,7 @@ popd
 - [BGBUILD-247] ap-northeast-1 end-point is missing in S3 plugin (added Toyko region)
 - [BGBUILD-251] Add ap-northeast-1 (tokyo) region for EBS plugin
 - [BGBUILD-248] Throw error in S3 plugin if invalid region is specified
+- [BGBUILD-252] rc.local script fills ~/.ssh/authorized_keys with a duplicate key every boot
 
 * Thu May 05 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.2-1
 - Upstream release: 0.9.2
