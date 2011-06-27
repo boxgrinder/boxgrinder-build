@@ -28,6 +28,11 @@ module BoxGrinder
     before(:all) do
       # Cleaning up before build
       FileUtils.rm_rf('build/')
+
+      # Prepare local repository
+      FileUtils.mkdir_p "/tmp/boxgrinder-repo/"
+      FileUtils.cp "#{File.dirname(__FILE__)}/../packages/ephemeral-repo-test-0.1-1.noarch.rpm", "/tmp/boxgrinder-repo/"
+      system "createrepo /tmp/boxgrinder-repo/"
     end
 
     after(:all) do
@@ -48,20 +53,17 @@ module BoxGrinder
       end
     end
 
-    context "operating system plugin" do
-      it "should build Fedora JEOS" do
-        @appliance = Appliance.new("#{File.dirname(__FILE__)}/../appliances/jeos-fedora.appl", @config, :log => @log).create
-      end
+    context "modular appliances" do
+      it "should build modular appliance based on Fedora and convert it to VirtualBox" do
+        @config.merge!(:platform => :virtualbox)
+        @appliance = Appliance.new("#{File.dirname(__FILE__)}/../appliances/modular.appl", @config, :log => @log).create
 
-      it "should build CentOS JEOS" do
-        @appliance = Appliance.new("#{File.dirname(__FILE__)}/../appliances/jeos-centos.appl", @config, :log => @log).create
-      end
-    end
-
-    context "platform plugin" do
-      it "should create Fedora JEOS appliance and convert it to VMware personal platform" do
-        @config.merge!(:platform => :vmware, :platform_config => {'type' => 'personal'})
-        @appliance = Appliance.new("#{File.dirname(__FILE__)}/../appliances/jeos-fedora.appl", @config, :log => @log).create
+        GuestFSHelper.new([@appliance.plugin_chain.last[:plugin].deliverables[:disk]], @appliance.appliance_config, @config, :log => @log ).customize do |guestfs, guestfs_helper|
+          guestfs.exists('/fedora-boxgrinder-test').should == 1
+          guestfs.exists('/common-test-base-boxgrinder-test').should == 1
+          guestfs.exists('/hardware-cpus-boxgrinder-test').should == 1
+          guestfs.exists('/repos-boxgrinder-noarch-ephemeral-boxgrinder-test').should == 1
+        end
       end
     end
   end

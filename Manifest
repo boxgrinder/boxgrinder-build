@@ -21,8 +21,10 @@ integ/appliances/gnome-fedora.appl
 integ/appliances/jeos-centos.appl
 integ/appliances/jeos-fedora.appl
 integ/appliances/modular.appl
+integ/packages/ephemeral-repo-test-0.1-1.noarch.rpm
 integ/packages/local-repo-test.spec
 integ/spec/jeos-spec.rb
+integ/spec/modular-spec.rb
 lib/boxgrinder-build.rb
 lib/boxgrinder-build/appliance.rb
 lib/boxgrinder-build/helpers/augeas-helper.rb
