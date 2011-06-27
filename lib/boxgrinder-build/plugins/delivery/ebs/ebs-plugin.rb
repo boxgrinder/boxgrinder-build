@@ -288,7 +288,7 @@ module BoxGrinder
         @log.info "Finding any existing image with the block store attached"
 
         if instances = get_instances(ami_info.imageId)
-          raise "There are still instances of #{ami_info.imageId} running, you must stop them: #{instances.each {|i| i.instanceId.join(",")}}"
+          raise "There are still instances of #{ami_info.imageId} running, you must stop them: #{instances.collect {|i| i.instanceId}.join(",")}"
         end
 
         if volume_info #if the physical volume exists
