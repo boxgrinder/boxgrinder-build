@@ -192,20 +192,33 @@ module BoxGrinder
       @plugin.free_device_suffix.should == "g"
     end
 
-    it "should return true if on EC2" do
-      Resolv.stub!(:getname).with("169.254.169.254").and_return([".ec2.internal"])
+    describe ".valid_platform?" do
+      it "should return true if on EC2" do
+        prepare_plugin do |plugin|
+          plugin.stub!(:after_init)
+          plugin.stub!(:get_ec2_availability_zone).and_return("eu-west-1a")
+          plugin.stub!(:availability_zone_to_region).and_return("eu-west-1")
+        end
+        @plugin.valid_platform?.should == true
+      end
 
-      prepare_plugin { |plugin| plugin.stub!(:after_init) }
+      it "should return false if NOT on EC2" do
+        prepare_plugin do |plugin|
+          plugin.stub!(:after_init)
+          plugin.stub!(:get_ec2_availability_zone).and_raise(Timeout::Error)
+        end
+        @plugin.valid_platform?.should == false
+      end
 
-      @plugin.valid_platform?.should == true
-    end
+      it "should return false if the EC2 zone returned is not supported" do
+        prepare_plugin do |plugin|
+          plugin.stub!(:after_init)
+          plugin.stub!(:get_ec2_availability_zone).and_return("moon-west-7a")
+          plugin.stub!(:availability_zone_to_region).and_return("moon-west-7")
+        end
+        @plugin.valid_platform?.should == false
+      end
 
-    it "should return false if NOT on EC2" do
-      Resolv.stub!(:getname).with("169.254.169.254").and_return(["bleh"])
-
-      prepare_plugin { |plugin| plugin.stub!(:after_init) }
-
-      @plugin.valid_platform?.should == false
     end
 
     describe ".ebs_appliance_name" do
@@ -344,7 +357,7 @@ module BoxGrinder
 
     end
 
-    #Amazon-EC2 gem uses recursive ostructs, in a subtly different and wont work with opencascade
+    #Amazon-EC2 gem uses recursive ostructs, and wont work with opencascade
     #this replicates the format to avoid breaking the code in tests.
     def recursive_ostruct(initial)
       clone = initial.clone

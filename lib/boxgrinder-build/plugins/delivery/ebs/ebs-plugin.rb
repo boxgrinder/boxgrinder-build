@@ -110,8 +110,6 @@ module BoxGrinder
                                 :server => KERNELS[@region][:endpoint]
       )
 
-      @log.info "kernels #{KERNELS[@region][:endpoint]}"
-
       @log.debug "Checking if appliance is already registered..."
 
       ami_info = ami_info(ebs_appliance_name)
@@ -426,31 +424,26 @@ module BoxGrinder
       raise "Found too many attached devices. Cannot attach EBS volume."
     end
 
+    def valid_platform?
+      begin
+        region = availability_zone_to_region(get_ec2_availability_zone)
+        return true if KERNELS.has_key? region
+        @log.warn "You may be using an ec2 region that BoxGrinder Build is not aware of: #{region}, BoxGrinder Build knows of: #{KERNELS.join(", ")}"
+      rescue Net::HTTPServerException => e
+        @log.warn "An error was returned when attempting to retrieve the ec2 hostname: #{e.to_s}"
+      rescue Timeout::Error => t
+        @log.warn "A timeout occurred while attempting to retrieve the ec2 hostname: #{t.to_s}"
+      end
+      false
+    end
+
     def get_ec2_availability_zone
       timeout(EC2_HOSTNAME_LOOKUP_TIMEOUT) do
         req = Net::HTTP::Get.new('/latest/meta-data/placement/availability-zone/')
-        res = Net::HTTP.start('169.254.169.254', 80) {|http|
-        http.request(req)
-        }
-        case res
-        when Net::HTTPSuccess
-          return res.body
-        else
-          res.error!
-        end
+        res = Net::HTTP.start('169.254.169.254', 80) {|http| http.request(req)}
+        return res.body if  Net::HTTPSuccess
+        res.error!
       end
-    end
-
-    def valid_platform?
-      begin
-        return KERNELS.has_key? availability_zone_to_region(get_ec2_availability_zone)
-      rescue Net::HTTPServerException => e
-        @log.warn "An error was returned when attempting to retrieve the ec2 hostname: #{e}"
-      rescue Timeout::Error => t
-        @log.warn "A timeout occurred while attempting to retrieve the ec2 hostname: #{t}"
-      end
-      @log.warn "You may be using an ec2 region that BoxGrinder Build is not aware of: #{get_ec2_availability_zone}, BoxGrinder Build knows of: #{KERNELS.join(", ")}"
-      false
     end
 
     def availability_zone_to_region(availability_zone)
