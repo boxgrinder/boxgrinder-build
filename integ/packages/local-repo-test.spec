@@ -10,6 +10,9 @@ BuildArch: noarch
 A test spec for use in verifying ephemeral repo functionality in BoxGrinder
 
 %install
+rm -rf $RPM_BUILD_ROOT
+mkdir $RPM_BUILD_ROOT
+
 touch $RPM_BUILD_ROOT/repos-boxgrinder-noarch-ephemeral-boxgrinder-test
 
 %files
