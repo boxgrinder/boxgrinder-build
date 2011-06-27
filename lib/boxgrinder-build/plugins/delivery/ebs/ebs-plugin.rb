@@ -114,8 +114,6 @@ module BoxGrinder
 
       ami_info = ami_info(ebs_appliance_name)
 
-      @log.debug "AMI info #{ami_info}"
-
       if ami_info and @plugin_config['overwrite']
         @log.info "Overwrite is enabled. Stomping existing assets"
         stomp_ebs(ami_info)
@@ -286,11 +284,11 @@ module BoxGrinder
         volume_id = snapshot_info.volumeId
         volume_info = get_volume_info(volume_id)
 
-        @log.trace "volume_info for #{volume_id} : #{volume_info}"
+        @log.trace "Volume info for #{volume_id} : #{PP::pp(volume_info,"")}"
         @log.info "Finding any existing image with the block store attached"
 
         if instances = get_instances(ami_info.imageId)
-          raise "There are still instances of #{ami_info.imageId} running, you must stop them: #{instances.join(",")}"
+          raise "There are still instances of #{ami_info.imageId} running, you must stop them: #{instances.each {|i| i.instanceId.join(",")}}"
         end
 
         if volume_info #if the physical volume exists
@@ -389,24 +387,37 @@ module BoxGrinder
     end
 
     def wait_for_snapshot_status(status, snapshot_id)
-      progress = -1
-      wait_with_timeout(POLL_FREQ, TIMEOUT) do
-        snapshot = @ec2.describe_snapshots(:snapshot_id => snapshot_id)['snapshotSet']['item'].first
-        current_progress = snapshot.progress.to_i 
-        unless progress == current_progress 
-          @log.info "Progress: #{current_progress}%"
-          progress = current_progress
+      begin
+        progress = -1
+        snapshot = nil
+        wait_with_timeout(POLL_FREQ, TIMEOUT) do
+          snapshot = @ec2.describe_snapshots(:snapshot_id => snapshot_id)['snapshotSet']['item'].first
+          current_progress = snapshot.progress.to_i
+          unless progress == current_progress
+            @log.info "Progress: #{current_progress}%"
+            progress = current_progress
+          end
+          snapshot['status'] == status
         end
-        @log.trace "Polling @ec2.describe_snapshots for #{snapshot_id} with status #{status}: #{PP::pp(snapshot,"")}, current status is #{snapshot['status']}"  
-        snapshot['status'] == status
+      rescue Exception
+        snapshot.ownerId='<REDACTED>' #potentially sensitive?
+        @log.debug "Polling of snapshot #{snapshot_id} for status '#{status}' failed: " <<
+        "#{PP::pp(snapshot)}" unless snapshot.nil?
+        raise
       end
     end
 
     def wait_for_volume_status(status, volume_id)
-      wait_with_timeout(POLL_FREQ, TIMEOUT) do
-        volume = @ec2.describe_volumes(:volume_id => volume_id)['volumeSet']['item'].first
-        @log.trace "Polling @ec2.describe_volumes for #{volume_id} with status #{status}: #{PP::pp(volume,"")}, current status is #{volume['status']}"
-        volume['status'] == status
+      begin
+        volume=nil
+        wait_with_timeout(POLL_FREQ, TIMEOUT) do
+         volume = @ec2.describe_volumes(:volume_id => volume_id)['volumeSet']['item'].first
+         volume['status'] == status
+        end
+      rescue Exception
+        @log.debug "Polling of volume #{volume_id} for status '#{status}' failed: " <<
+        "#{PP::pp(volume)}" unless volume.nil?
+        raise
       end
     end
 
