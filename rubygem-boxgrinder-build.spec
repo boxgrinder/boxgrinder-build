@@ -117,6 +117,7 @@ mkdir -p %{buildroot}/%{gemdir}
             --force --rdoc %{SOURCE0}
 mv %{_builddir}%{gemdir}/bin/* %{buildroot}/%{_bindir}
 find %{_builddir}%{geminstdir}/bin -type f | xargs chmod a+x
+rm -rf %{_builddir}/%{geminstdir}/integ/packages/*.rpm
 cp -r %{_builddir}%{gemdir}/* %{buildroot}/%{gemdir}
 
 %check
