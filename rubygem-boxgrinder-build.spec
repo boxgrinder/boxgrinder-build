@@ -16,8 +16,6 @@ Requires: ruby(abi) = %{rubyabi}
 Requires: rubygem(boxgrinder-core) >= 0.3.0
 Requires: rubygem(boxgrinder-core) < 0.4.0
 Requires: ruby-libguestfs
-Requires: parted
-Requires: e2fsprogs
 
 # Fix for rubygem-aws package
 Requires: rubygem(activesupport)
@@ -58,11 +56,6 @@ BuildRequires: rubygem(progressbar)
 # RPM-BASED
 Requires: appliance-tools
 Requires: yum-utils
-
-# EC2
-Requires: rsync
-Requires: wget
-Requires: util-linux
 
 # ElasticHosts
 Requires: rubygem(rest-client)
