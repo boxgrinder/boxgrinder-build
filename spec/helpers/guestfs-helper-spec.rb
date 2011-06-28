@@ -269,6 +269,7 @@ module BoxGrinder
       it "should return false if we're NOT on EC2 and AMI id retrieval raised an exception" do
         URI.should_receive(:parse).with('http://169.254.169.254/latest/meta-data/ami-id').and_return('parsed')
         Net::HTTP.should_receive(:get_response).with("parsed").and_raise "Boom"
+        @helper.should_receive(:`).with("egrep '^flags.*(vmx|svm)' /proc/cpuinfo | wc -l").and_return("0")
         @helper.hw_virtualization_available?.should == false
       end
     end
