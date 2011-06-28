@@ -20,7 +20,9 @@ require 'boxgrinder-build/helpers/augeas-helper'
 require 'boxgrinder-core/helpers/log-helper'
 require 'guestfs'
 require 'rbconfig'
-require 'resolv'
+require 'net/http'
+require 'uri'
+require 'timeout'
 
 module BoxGrinder
   class GuestFSHelper
@@ -36,10 +38,11 @@ module BoxGrinder
     def hw_virtualization_available?
       @log.trace "Checking if HW virtualization is available..."
 
+      ec2 = false
+
       begin
-        ec2 = Resolv.getname("169.254.169.254").include?(".ec2.internal")
-      rescue Resolv::ResolvError
-        ec2 = false
+        Timeout::timeout(2) { ec2 = Net::HTTP.get_response(URI.parse('http://169.254.169.254/latest/meta-data/ami-id')).code.eql?("200") }
+      rescue Exception
       end
 
       if `egrep '^flags.*(vmx|svm)' /proc/cpuinfo | wc -l`.chomp.strip.to_i > 0 and !ec2

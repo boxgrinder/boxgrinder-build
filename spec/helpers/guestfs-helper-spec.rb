@@ -247,19 +247,28 @@ module BoxGrinder
 
     describe ".hw_virtualization_available?" do
       it "should return true if HW acceleration is available" do
-        Resolv.should_receive(:getname).with("169.254.169.254").and_return("blah")
+        URI.should_receive(:parse).with('http://169.254.169.254/latest/meta-data/ami-id').and_return('parsed')
+        Net::HTTP.should_receive(:get_response).with("parsed").and_return(OpenCascade.new(:code => '404'))
         @helper.should_receive(:`).with("egrep '^flags.*(vmx|svm)' /proc/cpuinfo | wc -l").and_return("2")
         @helper.hw_virtualization_available?.should == true
       end
 
       it "should return false if no vmx flag is present" do
-        Resolv.should_receive(:getname).with("169.254.169.254").and_return("blah")
+        URI.should_receive(:parse).with('http://169.254.169.254/latest/meta-data/ami-id').and_return('parsed')
+        Net::HTTP.should_receive(:get_response).with("parsed").and_return(OpenCascade.new(:code => '404'))
         @helper.should_receive(:`).with("egrep '^flags.*(vmx|svm)' /proc/cpuinfo | wc -l").and_return("0")
         @helper.hw_virtualization_available?.should == false
       end
 
       it "should return false if we're on EC2" do
-        Resolv.should_receive(:getname).with("169.254.169.254").and_return("instance-data.ec2.internal")
+        URI.should_receive(:parse).with('http://169.254.169.254/latest/meta-data/ami-id').and_return('parsed')
+        Net::HTTP.should_receive(:get_response).with("parsed").and_return(OpenCascade.new(:code => '200'))
+        @helper.hw_virtualization_available?.should == false
+      end
+
+      it "should return false if we're NOT on EC2 and AMI id retrieval raised an exception" do
+        URI.should_receive(:parse).with('http://169.254.169.254/latest/meta-data/ami-id').and_return('parsed')
+        Net::HTTP.should_receive(:get_response).with("parsed").and_raise "Boom"
         @helper.hw_virtualization_available?.should == false
       end
     end

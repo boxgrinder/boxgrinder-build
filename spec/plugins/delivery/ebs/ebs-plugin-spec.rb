@@ -62,8 +62,6 @@ module BoxGrinder
     end
 
     it "should register all operating systems with specific versions" do
-      Resolv.stub!(:getname).with("169.254.169.254").and_return([".ec2.internal"])
-
       prepare_plugin do |plugin|
         plugin.instance_variable_set(:@current_availability_zone, 'us-east-1a')
       end
@@ -142,8 +140,6 @@ module BoxGrinder
     describe '.already_registered?' do
 
       it "should check if image is already registered and return true image is registered" do
-        Resolv.stub!(:getname).with("169.254.169.254").and_return([".ec2.internal"])
-
         prepare_plugin { |plugin| plugin.stub!(:after_init) }
 
         plugin_config = mock('PluginConfig')
