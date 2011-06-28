@@ -57,13 +57,13 @@ module BoxGrinder
 
     # https://issues.jboss.org/browse/BGBUILD-83
     def log_callback
-      log = Proc.new do |event, event_handle, buf, array|
+      default_callback = Proc.new do |event, event_handle, buf, array|
         buf.chomp!
 
         if event == 64
-          @log.trace "GFS: #{buf}"
-        else
           @log.debug "GFS: #{buf}"
+        else
+          @log.trace "GFS: #{buf}" unless buf.start_with?('recv_from_daemon', 'send_to_daemon')
         end
       end
 
@@ -72,7 +72,7 @@ module BoxGrinder
       # Guestfs::EVENT_TRACE      => 64
 
       # Referencing int instead of constants make it easier to test
-      @guestfs.set_event_callback(log, 16 | 32 | 64)
+      @guestfs.set_event_callback(default_callback, 16 | 32 | 64)
 
       yield if block_given?
     end

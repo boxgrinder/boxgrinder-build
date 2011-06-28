@@ -167,6 +167,7 @@ popd
 - [BGBUILD-250] EBS plugin incorrectly determines that non-US regions are not EC2 instances
 - [BGBUILD-254] Not able to deliver EBS AMIs to regions other than us-east-1
 - [BGBUILD-260] Wrong EC2 discovery causing libguestfs errors on non US regions
+- [BGBUILD-261] Decrease amount of debug log when downloading or uploading file using guestfs
 
 * Thu May 05 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.2-1
 - Upstream release: 0.9.2
