@@ -142,6 +142,11 @@ popd
 %{gemdir}/doc/%{gemname}-%{version}
 
 %changelog
+
+* Wed Jun 29th 2011 Marc Savy <msavy@redhat.com> - 0.9.4-1
+- Upstream release: 0.9.4
+- [BGBUILD-263] NoMethodError: undefined method `item' for nil:NilClass while creating EBS appliance
+
 * Fri Jun 17 2011 Marc Savy <msavy@redhat.com> - 0.9.3-1
 - Upstream release: 0.9.3
 - [BGBUILD-232] boxgrinder doesn't validate config early enough

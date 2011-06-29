@@ -1,3 +1,6 @@
+v0.9.4
+* [BGBUILD-263] NoMethodError: undefined method `item' for nil:NilClass while creating EBS appliance
+
 v0.9.3
 
 * [BGBUILD-232] boxgrinder doesn't validate config early enough
