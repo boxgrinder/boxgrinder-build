@@ -143,7 +143,7 @@ popd
 
 %changelog
 
-* Wed Jun 29th 2011 Marc Savy <msavy@redhat.com> - 0.9.4-1
+* Wed Jun 29 2011 Marc Savy <msavy@redhat.com> - 0.9.4-1
 - Upstream release: 0.9.4
 - [BGBUILD-263] NoMethodError: undefined method `item' for nil:NilClass while creating EBS appliance
 
