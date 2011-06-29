@@ -135,6 +135,22 @@ module BoxGrinder
         @plugin.ami_info('aname').should == {'name' => 'aname', 'imageId' => '2'}
       end
 
+      it "should return false if there were no AMIs found, but a nil imagesSet is still returned" do
+        prepare_plugin { |plugin| plugin.stub!(:after_init) }
+
+        plugin_config = mock('PluginConfig')
+        plugin_config.should_receive(:[]).with('account_number').and_return('0000-0000-0000')
+
+        @plugin.instance_variable_set(:@plugin_config, plugin_config)
+
+        ec2 = mock('EC2')
+        ec2.should_receive(:describe_images).with(:owner_id => '000000000000').and_return({'imagesSet' => nil})
+
+        @plugin.instance_variable_set(:@ec2, ec2)
+
+        @plugin.ami_info('anything').should == false
+      end
+
     end
 
     describe '.already_registered?' do
@@ -279,6 +295,7 @@ module BoxGrinder
     describe ".stomp_ebs" do
 
       before(:each) do
+        @ami_empty_response = recursive_ostruct({'imageSet' => nil})
         @ami_info =  recursive_ostruct({'imageId' => 'sleepy', 'blockDeviceMapping' => {'item' => [{'deviceName' => '/dev/sda1', 'ebs' => {'snapshotId' => 'bashful'}}]}})
         @dummy_instances = recursive_ostruct([{'instanceId' => 'grumpy'},
                              {'instanceId' => 'sneezy'}])
@@ -286,6 +303,7 @@ module BoxGrinder
         @dummy_volume_attached = recursive_ostruct({'volumeId' => 'snow-white', 'status' => 'attached'})
         @dummy_volume_detached = recursive_ostruct({'volumeId' => 'snow-white', 'status' => 'detached'})
       end
+
 
       it "should return false if there was no block device found" do
         prepare_plugin do |plugin|

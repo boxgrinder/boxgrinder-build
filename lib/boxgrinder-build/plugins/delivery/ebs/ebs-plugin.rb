@@ -355,6 +355,7 @@ module BoxGrinder
     def ami_info(name)
       images = @ec2.describe_images(:owner_id => @plugin_config['account_number'].to_s.gsub(/-/,''))
       return false if images.nil?
+      return false if images.imagesSet.nil?
       images = images.imagesSet
 
       for image in images.item do
