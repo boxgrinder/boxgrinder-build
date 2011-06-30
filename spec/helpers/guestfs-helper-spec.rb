@@ -22,6 +22,8 @@ require 'boxgrinder-build/helpers/guestfs-helper'
 module BoxGrinder
   describe GuestFSHelper do
     before(:each) do
+      ENV.delete("LIBGUESTFS_MEMSIZE")
+
       @log = Logger.new('/dev/null')
       @appliance_config = mock('ApplianceConfig')
       @appliance_config.stub!(:hardware).and_return(:partitions => {})
@@ -41,6 +43,7 @@ module BoxGrinder
         guestfs.should_receive(:set_verbose)
         guestfs.should_receive(:set_trace)
         guestfs.should_receive(:set_selinux).with(1)
+        guestfs.should_receive(:set_memsize).with(300)
 
         @helper.should_receive(:hw_virtualization_available?).and_return(true)
 
@@ -59,6 +62,7 @@ module BoxGrinder
         guestfs.should_receive(:set_verbose)
         guestfs.should_receive(:set_trace)
         guestfs.should_receive(:set_selinux).with(1)
+        guestfs.should_receive(:set_memsize).with(300)
 
         @helper.should_receive(:hw_virtualization_available?).and_return(true)
 
@@ -76,10 +80,31 @@ module BoxGrinder
         guestfs.should_receive(:set_verbose)
         guestfs.should_receive(:set_trace)
         guestfs.should_receive(:set_selinux).with(1)
+        guestfs.should_receive(:set_memsize).with(300)
 
         @helper.should_receive(:hw_virtualization_available?).and_return(false)
 
         guestfs.should_receive(:set_qemu).with(/\/qemu\.wrapper$/)
+        guestfs.should_receive(:add_drive).with('a/raw/disk')
+        guestfs.should_receive(:set_network).with(1)
+
+        @helper.prepare_guestfs {}
+      end
+      
+      it "should prepare guestfs with custom memory settings" do
+        ENV['LIBGUESTFS_MEMSIZE'] = "500"
+
+        guestfs = mock('Guestfs')
+        @helper.instance_variable_set(:@guestfs, guestfs)
+
+        guestfs.should_receive(:set_append).with('noapic')
+        guestfs.should_receive(:set_verbose)
+        guestfs.should_receive(:set_trace)
+        guestfs.should_receive(:set_selinux).with(1)
+        guestfs.should_receive(:set_memsize).with(500)
+
+        @helper.should_receive(:hw_virtualization_available?).and_return(true)
+
         guestfs.should_receive(:add_drive).with('a/raw/disk')
         guestfs.should_receive(:set_network).with(1)
 
@@ -269,7 +294,6 @@ module BoxGrinder
       it "should return false if we're NOT on EC2 and AMI id retrieval raised an exception" do
         URI.should_receive(:parse).with('http://169.254.169.254/latest/meta-data/ami-id').and_return('parsed')
         Net::HTTP.should_receive(:get_response).with("parsed").and_raise "Boom"
-        @helper.should_receive(:`).with("egrep '^flags.*(vmx|svm)' /proc/cpuinfo | wc -l").and_return("0")
         @helper.hw_virtualization_available?.should == false
       end
     end

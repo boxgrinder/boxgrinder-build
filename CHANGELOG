@@ -1,5 +1,7 @@
 v0.9.4
+
 * [BGBUILD-263] NoMethodError: undefined method `item' for nil:NilClass while creating EBS appliance
+* [BGBUILD-246] Detect when insufficient system memory is available for standard libguestfs, and reduce allocation.
 
 v0.9.3
 

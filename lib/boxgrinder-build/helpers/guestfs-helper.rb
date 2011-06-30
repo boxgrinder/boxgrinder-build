@@ -132,6 +132,10 @@ module BoxGrinder
       @guestfs.set_verbose(1)
       @guestfs.set_trace(1)
 
+      # https://issues.jboss.org/browse/BGBUILD-246
+      memsize = ENV['LIBGUESTFS_MEMSIZE'].nil? ? 300 : ENV['LIBGUESTFS_MEMSIZE'].to_i
+      @guestfs.set_memsize(memsize)
+
       # https://bugzilla.redhat.com/show_bug.cgi?id=502058
       @guestfs.set_append("noapic")
 
