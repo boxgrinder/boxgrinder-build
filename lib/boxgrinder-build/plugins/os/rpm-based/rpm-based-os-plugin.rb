@@ -151,23 +151,12 @@ module BoxGrinder
 
         guestfs.sh("chkconfig firstboot off") if guestfs.exists('/etc/init.d/firstboot') != 0
 
-        @log.info "Executing post operations after build..."
-
-        unless @appliance_config.post['base'].nil?
-          @appliance_config.post['base'].each do |cmd|
-            guestfs_helper.sh(cmd, :arch => @appliance_config.hardware.arch)
-          end
-          @log.debug "Post commands from appliance definition file executed."
-        else
-          @log.debug "No commands specified, skipping."
-        end
-
-        yield guestfs, guestfs_helper if block_given?
-
-        @log.info "Post operations executed."
-
         # https://issues.jboss.org/browse/BGBUILD-148
         recreate_rpm_database(guestfs, guestfs_helper) if @config.os.name != @appliance_config.os.name or @config.os.version != @appliance_config.os.version
+
+        execute_post(guestfs_helper)
+
+        yield guestfs, guestfs_helper if block_given?
       end
 
       @log.info "Base image for #{@appliance_config.name} appliance was built successfully."
@@ -179,6 +168,18 @@ module BoxGrinder
       rescue InterruptionError => e
         cleanup_after_appliance_creator(e.pid)
         abort
+      end
+    end
+
+    def execute_post(guestfs_helper)
+      @log.info "Executing post operations after build..."
+      unless @appliance_config.post['base'].nil?
+        @appliance_config.post['base'].each do |cmd|
+          guestfs_helper.sh(cmd, :arch => @appliance_config.hardware.arch)
+        end
+        @log.debug "Post commands from appliance definition file executed."
+      else
+        @log.debug "No commands specified, skipping."
       end
     end
 

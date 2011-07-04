@@ -147,6 +147,7 @@ popd
 - Upstream release: 0.9.4
 - [BGBUILD-263] NoMethodError: undefined method `item' for nil:NilClass while creating EBS appliance
 - [BGBUILD-246] Detect when insufficient system memory is available for standard libguestfs, and reduce allocation.
+- [BGBUILD-269] RPM database is recreated after post section execution preventing installing RPM in post section
 
 * Fri Jun 17 2011 Marc Savy <msavy@redhat.com> - 0.9.3-1
 - Upstream release: 0.9.3

@@ -242,14 +242,15 @@ module BoxGrinder
       it "should execute additional steps for Fedora 15" do
         @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '15'}))
         @appliance_config.should_receive(:default_repos).and_return(true)
-        @plugin.should_receive(:add_repos).with({})
+        @plugin.should_receive(:add_repos).ordered.with({})
 
         do_build do |guestfs, guestfs_helper|
-          @plugin.should_receive(:disable_biosdevname).with(guestfs)
-          @plugin.should_receive(:change_runlevel).with(guestfs)
-          @plugin.should_receive(:disable_netfs).with(guestfs)
-          @plugin.should_receive(:link_mtab).with(guestfs)
-          @plugin.should_receive(:recreate_rpm_database).with(guestfs, guestfs_helper)
+          @plugin.should_receive(:disable_biosdevname).ordered.with(guestfs)
+          @plugin.should_receive(:change_runlevel).ordered.with(guestfs)
+          @plugin.should_receive(:disable_netfs).ordered.with(guestfs)
+          @plugin.should_receive(:link_mtab).ordered.with(guestfs)
+          @plugin.should_receive(:recreate_rpm_database).ordered.with(guestfs, guestfs_helper)
+          @plugin.should_receive(:execute_post).ordered.with(guestfs_helper)
         end
 
         @plugin.build_with_appliance_creator('jeos.appl')
