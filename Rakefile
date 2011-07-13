@@ -17,12 +17,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'rubygems'
-
-begin
-  require 'rake/dsl'
-rescue LoadError
-end
-
+require 'rspec/core/rake_task'
 require 'echoe'
 
 Echoe.new("boxgrinder-build") do |p|
@@ -41,28 +36,27 @@ Echoe.new("boxgrinder-build") do |p|
 end
 
 desc "Run all integration tests"
-Spec::Rake::SpecTask.new('integ') do |t|
-  t.libs.unshift "../boxgrinder-core/lib"
+RSpec::Core::RakeTask.new('integ') do |t|
   t.rcov = false
-  t.spec_files = FileList["integ/**/*-spec.rb"]
-  t.spec_opts = ['--colour', '--format', 'specdoc', '-b']
+  t.pattern = "integ/**/*-spec.rb"
+  t.rspec_opts = ['--colour', '--format', 'doc', '-b']
   t.verbose = true
 end
 
 desc "Run all tests"
-Spec::Rake::SpecTask.new('spec') do |t|
-  t.libs.unshift "../boxgrinder-core/lib"
+RSpec::Core::RakeTask.new('spec') do |t|
+  t.ruby_opts = "-I ../boxgrinder-core/lib"
   t.rcov = false
-  t.spec_files = FileList["spec/**/*-spec.rb"]
-  t.spec_opts = ['--colour', '--format', 'specdoc', '-b']
+  t.pattern = "spec/**/*-spec.rb"
+  t.rspec_opts = ['--colour', '--format', 'doc', '-b']
   t.verbose = true
 end
 
 desc "Run all tests and generate code coverage report"
-Spec::Rake::SpecTask.new('spec:coverage') do |t|
-  t.libs.unshift "../boxgrinder-core/lib"
-  t.spec_files = FileList["spec/**/*-spec.rb"]
-  t.spec_opts = ['--colour', '--format', 'html:pkg/rspec_report.html', '-b']
+RSpec::Core::RakeTask.new('spec:coverage') do |t|
+  t.ruby_opts = "-I ../boxgrinder-core/lib"
+  t.pattern = "spec/**/*-spec.rb"
+  t.rspec_opts = ['--colour', '--format', 'html', '--out', 'pkg/rspec_report.html', '-b']
   t.rcov = true
   t.rcov_opts = ['--exclude', 'spec,teamcity/*,/usr/lib/ruby/,.gem/ruby,/boxgrinder-core/,/gems/']
   t.verbose = true

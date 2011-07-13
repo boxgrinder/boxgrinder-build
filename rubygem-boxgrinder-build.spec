@@ -23,11 +23,12 @@ Requires: rubygem(activesupport)
 BuildArch: noarch
 
 BuildRequires: rubygem(rake)
-BuildRequires: rubygem(rspec)
 BuildRequires: rubygem(boxgrinder-core) >= 0.3.0
 BuildRequires: rubygem(boxgrinder-core) < 0.4.0
 BuildRequires: rubygem(echoe)
 BuildRequires: ruby-libguestfs
+# Use rspec-core until rspec are migrated to RSpec 2.x
+BuildRequires: rubygem(rspec-core)
 
 # Fix for rubygem-aws package
 BuildRequires: rubygem(activesupport)
@@ -148,6 +149,7 @@ popd
 - [BGBUILD-263] NoMethodError: undefined method `item' for nil:NilClass while creating EBS appliance
 - [BGBUILD-246] Detect when insufficient system memory is available for standard libguestfs, and reduce allocation.
 - [BGBUILD-269] RPM database is recreated after post section execution preventing installing RPM in post section
+- [BGBUILD-273] Move to RSpec2
 
 * Fri Jun 17 2011 Marc Savy <msavy@redhat.com> - 0.9.3-1
 - Upstream release: 0.9.3

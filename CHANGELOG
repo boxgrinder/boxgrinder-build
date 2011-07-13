@@ -3,6 +3,7 @@ v0.9.4
 * [BGBUILD-263] NoMethodError: undefined method `item' for nil:NilClass while creating EBS appliance
 * [BGBUILD-246] Detect when insufficient system memory is available for standard libguestfs, and reduce allocation.
 * [BGBUILD-269] RPM database is recreated after post section execution preventing installing RPM in post section
+* [BGBUILD-273] Move to RSpec2
 
 v0.9.3
 
