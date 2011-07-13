@@ -17,6 +17,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'rubygems'
+require 'rspec'
 require 'boxgrinder-build/managers/plugin-manager'
 
 module BoxGrinder

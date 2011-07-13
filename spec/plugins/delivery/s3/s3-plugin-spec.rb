@@ -17,6 +17,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'rubygems'
+require 'rspec'
 require 'boxgrinder-build/plugins/delivery/s3/s3-plugin'
 require 'hashery/opencascade'
 require 'boxgrinder-core/models/config'

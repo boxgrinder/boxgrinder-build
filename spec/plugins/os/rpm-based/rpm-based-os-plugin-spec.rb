@@ -17,6 +17,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'rubygems'
+require 'rspec'
 require 'boxgrinder-build/plugins/os/rpm-based/rpm-based-os-plugin'
 require 'hashery/opencascade'
 
