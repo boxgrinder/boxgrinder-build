@@ -18,8 +18,8 @@
 
 require 'rubygems'
 require 'rspec'
-require 'boxgrinder-build/plugins/delivery/elastichosts/elastichosts-plugin'
 require 'hashery/opencascade'
+require 'boxgrinder-build/plugins/delivery/elastichosts/elastichosts-plugin'
 
 module BoxGrinder
   describe ElasticHostsPlugin do
@@ -166,7 +166,7 @@ module BoxGrinder
 
       describe ".upload_chunks" do
         it "should upload chunks in 2 parts" do
-          @plugin.instance_variable_set(:@previous_deliverables, {:disk => 'a/disk'})
+          @plugin.instance_variable_set(:@previous_deliverables, OpenCascade.new({:disk => 'a/disk'}))
 
           f = mock(File)
           f.should_receive(:eof?).ordered.and_return(false)
@@ -191,7 +191,7 @@ module BoxGrinder
 
         it "should upload 1 chunk with custom chunk size" do
           @plugin_config.merge!('chunk' => 128)
-          @plugin.instance_variable_set(:@previous_deliverables, {:disk => 'a/disk'})
+          @plugin.instance_variable_set(:@previous_deliverables, OpenCascade.new({:disk => 'a/disk'}))
 
           f = mock(File)
           f.should_receive(:eof?).ordered.and_return(false)
@@ -209,7 +209,7 @@ module BoxGrinder
 
         it "should not compress the data before uploading the chunks if we use CloudSigma" do
           @plugin_config.merge!('endpoint' => 'api.cloudsigma.com')
-          @plugin.instance_variable_set(:@previous_deliverables, {:disk => 'a/disk'})
+          @plugin.instance_variable_set(:@previous_deliverables, OpenCascade.new({:disk => 'a/disk'}))
 
           f = mock(File)
           f.should_receive(:eof?).ordered.and_return(false)

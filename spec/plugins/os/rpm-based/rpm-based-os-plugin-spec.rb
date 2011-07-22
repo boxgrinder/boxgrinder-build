@@ -298,7 +298,7 @@ module BoxGrinder
     end
 
     describe ".cleanup_after_appliance_creator" do
-      it "should cleanup after appliance creator (surprisngly!)" do
+      it "should cleanup after appliance creator (surprisingly!)" do
         Process.should_receive(:kill).with("TERM", 12345)
         Process.should_receive(:wait).with(12345)
 

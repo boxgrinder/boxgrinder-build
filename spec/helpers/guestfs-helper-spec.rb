@@ -16,9 +16,10 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
+require 'boxgrinder-build/helpers/guestfs-helper'
 require 'rubygems'
 require 'rspec'
-require 'boxgrinder-build/helpers/guestfs-helper'
+require 'hashery/opencascade'
 
 module BoxGrinder
   describe GuestFSHelper do
@@ -30,7 +31,7 @@ module BoxGrinder
       @appliance_config.stub!(:hardware).and_return(:partitions => {})
 
       @config = mock('Config')
-      @config.stub!(:dir).and_return(:tmp => '/tmp')
+      @config.stub!(:dir).and_return(OpenCascade.new(:tmp => '/tmp'))
 
       @helper = GuestFSHelper.new('a/raw/disk', @appliance_config, @config, :log => @log)
     end
@@ -155,7 +156,7 @@ module BoxGrinder
       end
 
       it "should run guestfs with two partitions" do
-        @appliance_config.stub!(:hardware).and_return(:partitions => {'/' => nil, '/home' => nil})
+        @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:partitions => {'/' => nil, '/home' => nil}))
 
         guestfs = mock('Guestfs')
         @helper.instance_variable_set(:@guestfs, guestfs)
@@ -171,7 +172,7 @@ module BoxGrinder
       end
 
       it "should run guestfs with no partitions and don't load selinux" do
-        @appliance_config.stub!(:hardware).and_return(:partitions => {'/' => nil, '/home' => nil})
+        @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:partitions => {'/' => nil, '/home' => nil}))
 
         guestfs = mock('Guestfs')
         @helper.instance_variable_set(:@guestfs, guestfs)
@@ -225,7 +226,7 @@ module BoxGrinder
       it "should mount two partitions" do
         guestfs = mock('Guestfs')
 
-        @appliance_config.stub!(:hardware).and_return(:partitions => {'/' => nil, '/home' => nil})
+        @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:partitions => {'/' => nil, '/home' => nil}))
         guestfs.should_receive(:list_partitions).and_return(['/dev/vda1', '/dev/vda2'])
 
         @helper.should_receive(:mount_partition).with('/dev/vda1', '/', '')
@@ -238,7 +239,7 @@ module BoxGrinder
       it "should mount partitions with extended partitions" do
         guestfs = mock('Guestfs')
 
-        @appliance_config.stub!(:hardware).and_return(:partitions => {'/' => nil, '/home' => nil, '/var/www' => nil, '/var/mock' => nil})
+        @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:partitions => {'/' => nil, '/home' => nil, '/var/www' => nil, '/var/mock' => nil}))
         guestfs.should_receive(:list_partitions).and_return(['/dev/vda1', '/dev/vda2', '/dev/vda3', '/dev/vda4', '/dev/vda5'])
 
         @helper.should_receive(:mount_partition).with('/dev/vda1', '/', '')

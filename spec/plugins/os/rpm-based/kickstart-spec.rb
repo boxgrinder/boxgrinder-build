@@ -33,6 +33,8 @@ module BoxGrinder
     def prepare_kickstart(repos = {})
       @config = mock('Config')
       @appliance_config = mock('ApplianceConfig')
+      @dir = mock('Some directory')
+      @dir.stub!(:tmp).and_return('baloney')
 
       @appliance_config.stub!(:path).and_return(OpenCascade.new({:build => 'build/path'}))
       @appliance_config.stub!(:name).and_return('full')
@@ -40,8 +42,9 @@ module BoxGrinder
       @appliance_config.stub!(:release).and_return(0)
       @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '11', :password => 'boxgrinder'}))
       @appliance_config.stub!(:packages).and_return(["gcc-c++", "wget"])
+      @appliance_config.stub!(:repos).and_return(repos)
 
-      @kickstart = Kickstart.new(@config, @appliance_config, repos, OpenCascade.new(:base => 'a/base/dir'))
+      @kickstart = Kickstart.new(@config, @appliance_config, @dir, OpenCascade.new(:base => 'a/base/dir'))
     end
 
     describe ".build_definition" do

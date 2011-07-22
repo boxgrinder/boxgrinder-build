@@ -33,11 +33,9 @@ BuildRequires: rubygem(rspec-core)
 # Fix for rubygem-aws package
 BuildRequires: rubygem(activesupport)
 
-# EBS and S3
-Requires: rubygem(amazon-ec2)
 # Fixes blankslate error
 Requires: rubygem(builder)
-Requires: rubygem(aws)
+Requires: rubygem(aws-sdk)
 Requires: euca2ools >= 1.3.1-4
 
 BuildRequires: rubygem(amazon-ec2)
@@ -161,7 +159,7 @@ popd
 - [BGBUILD-222] Allow overwrite of uploaded ec2 image
 - [BGBUILD-225] Move PAE configuration parameter to operating system configuration
 - [BGBUILD-224] EBS Plugin Support for CentOS v5.5 and fix for non-integer EBS disk sizes
-- [BGBUILD-231] Cannot register Fedora 15 EC2 AMI with S3 delivery plugin in eu-west-1 availability zone
+- [BGBUILD-231] Cannot register Fedora 15 EC2 AMI with S3 delivery plugin in eu-west-1 availability zone
 - [BGBUILD-193] EBS delivery plugin timing/concurrency issues
 - [BGBUILD-247] ap-northeast-1 end-point is missing in S3 plugin (added Tokyo region)
 - [BGBUILD-251] Add ap-northeast-1 (tokyo) region for EBS plugin

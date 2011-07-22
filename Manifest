@@ -4,7 +4,6 @@ Manifest
 README.md
 Rakefile
 bin/boxgrinder-build
-boxgrinder-build.gemspec
 integ/appliances/_hardware_cpus.appl
 integ/appliances/_hardware_memory.appl
 integ/appliances/_hardware_partitions_home.appl
@@ -28,12 +27,15 @@ integ/spec/modular-spec.rb
 lib/boxgrinder-build.rb
 lib/boxgrinder-build/appliance.rb
 lib/boxgrinder-build/helpers/augeas-helper.rb
+lib/boxgrinder-build/helpers/aws-helper.rb
+lib/boxgrinder-build/helpers/ec2-helper.rb
 lib/boxgrinder-build/helpers/guestfs-helper.rb
 lib/boxgrinder-build/helpers/image-helper.rb
 lib/boxgrinder-build/helpers/linux-helper.rb
 lib/boxgrinder-build/helpers/package-helper.rb
 lib/boxgrinder-build/helpers/plugin-helper.rb
 lib/boxgrinder-build/helpers/qemu.wrapper
+lib/boxgrinder-build/helpers/s3-helper.rb
 lib/boxgrinder-build/managers/plugin-manager.rb
 lib/boxgrinder-build/plugins/base-plugin.rb
 lib/boxgrinder-build/plugins/delivery/ebs/ebs-plugin.rb

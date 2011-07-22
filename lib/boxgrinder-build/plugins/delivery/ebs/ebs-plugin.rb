@@ -18,60 +18,14 @@
 
 require 'rubygems'
 require 'boxgrinder-build/plugins/base-plugin'
-require 'AWS'
+require 'boxgrinder-build/helpers/ec2-helper'
+require 'aws-sdk'
 require 'open-uri'
 require 'timeout'
 require 'pp'
 
 module BoxGrinder
   class EBSPlugin < BasePlugin
-    KERNELS = {
-        'eu-west-1' => {
-            :endpoint => 'ec2.eu-west-1.amazonaws.com',
-            :location => 'EU',
-            :kernel => {
-                'i386' => {:aki => 'aki-4deec439'},
-                'x86_64' => {:aki => 'aki-4feec43b'}
-            }
-        },
-
-        'ap-southeast-1' => {
-            :endpoint => 'ec2.ap-southeast-1.amazonaws.com',
-            :location => 'ap-southeast-1',
-            :kernel => {
-                'i386' => {:aki => 'aki-13d5aa41'},
-                'x86_64' => {:aki => 'aki-11d5aa43'}
-            }
-        },
-
-        'ap-northeast-1' => {
-            :endpoint => 'ec2.ap-northeast-1.amazonaws.com',
-            :location => 'ap-northeast-1',
-            :kernel => {
-                'i386' => {:aki => 'aki-d209a2d3'},
-                'x86_64' => {:aki => 'aki-d409a2d5'}
-            }
-
-        },
-
-        'us-west-1' => {
-            :endpoint => 'ec2.us-west-1.amazonaws.com',
-            :location => 'us-west-1',
-            :kernel => {
-                'i386' => {:aki => 'aki-99a0f1dc'},
-                'x86_64' => {:aki => 'aki-9ba0f1de'}
-            }
-        },
-
-        'us-east-1' => {
-            :endpoint => 'ec2.amazonaws.com',
-            :location => '',
-            :kernel => {
-                'i386' => {:aki => 'aki-407d9529'},
-                'x86_64' => {:aki => 'aki-427d952b'}
-            }
-        }
-    }
 
     ROOT_DEVICE_NAME = '/dev/sda1'
     POLL_FREQ = 1 #second
@@ -79,24 +33,38 @@ module BoxGrinder
     EC2_HOSTNAME_LOOKUP_TIMEOUT = 10
 
     def validate
-      raise PluginValidationError, "You are trying to run this plugin on invalid platform. You can run the EBS delivery plugin only on EC2." unless valid_platform?
+      @ec2_endpoints = EC2Helper::endpoints
 
-      @current_availability_zone = get_ec2_availability_zone; @log.trace @current_availability_zone
+      raise PluginValidationError, "You are trying to run this plugin on an invalid platform. You can run the EBS delivery plugin only on EC2." unless valid_platform?
+
+      @current_availability_zone = EC2Helper::current_availability_zone
+      @current_instance_id = EC2Helper::current_instance_id
+      @current_region = EC2Helper::availability_zone_to_region(@current_availability_zone)
 
       set_default_config_value('availability_zone', @current_availability_zone)
       set_default_config_value('delete_on_termination', true)
       set_default_config_value('overwrite', false)
       set_default_config_value('snapshot', false)
       set_default_config_value('preserve_snapshots', false)
+      set_default_config_value('terminate_instances', false)
       validate_plugin_config(['access_key', 'secret_access_key', 'account_number'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#EBS_Delivery_Plugin')
 
       raise PluginValidationError, "You can only convert to EBS type AMI appliances converted to EC2 format. Use '-p ec2' switch. For more info about EC2 plugin see http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#EC2_Platform_Plugin." unless @previous_plugin_info[:name] == :ec2
       raise PluginValidationError, "You selected #{@plugin_config['availability_zone']} availability zone, but your instance is running in #{@current_availability_zone} zone. Please change availability zone in plugin configuration file to #{@current_availability_zone} (see http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#EBS_Delivery_Plugin) or use another instance in #{@plugin_config['availability_zone']} zone to create your EBS AMI." if @plugin_config['availability_zone'] != @current_availability_zone
+
+      @plugin_config['account_number'].to_s.gsub!(/-/, '')
+
+      AWS.config(:access_key_id => @plugin_config['access_key'],
+        :secret_access_key => @plugin_config['secret_access_key'],
+        :ec2_endpoint => @ec2_endpoints[@current_region][:endpoint],
+        :max_retries => 5,
+        :use_ssl => @plugin_config['use_ssl'])
+
+      @ec2 = AWS::EC2.new
+      @ec2helper = EC2Helper.new(@ec2, :log => @log)
     end
 
     def after_init
-      @region = availability_zone_to_region(@current_availability_zone)
-
       register_supported_os('fedora', ['13', '14', '15'])
       register_supported_os('rhel', ['6'])
       register_supported_os('centos', ['5'])
@@ -105,63 +73,50 @@ module BoxGrinder
     def execute
       ebs_appliance_description = "#{@appliance_config.summary} | Appliance version #{@appliance_config.version}.#{@appliance_config.release} | #{@appliance_config.hardware.arch} architecture"
 
-      @ec2 = AWS::EC2::Base.new(:access_key_id => @plugin_config['access_key'],
-                                :secret_access_key => @plugin_config['secret_access_key'],
-                                :server => KERNELS[@region][:endpoint]
-      )
-
       @log.debug "Checking if appliance is already registered..."
+      ami = @ec2helper.ami_by_name(ebs_appliance_name)
 
-      ami_info = ami_info(ebs_appliance_name)
-
-      if ami_info and @plugin_config['overwrite']
-        @log.info "Overwrite is enabled. Stomping existing assets"
-        stomp_ebs(ami_info)
-      elsif ami_info
-        @log.warn "EBS AMI '#{ebs_appliance_name}' is already registered as '#{ami_info.imageId}' (region: #{@region})."
+      if ami and @plugin_config['overwrite']
+        @log.info "Overwrite is enabled. Stomping existing assets."
+        stomp_ebs(ami)
+      elsif ami
+        @log.warn "EBS AMI '#{ami.name}' is already registered as '#{ami.id}' (region: #{@current_region})."
         return
       end
 
       @log.info "Creating new EBS volume..."
-
       size = 0
-
       @appliance_config.hardware.partitions.each_value { |partition| size += partition['size'] }
 
-      # create_volume, ceiling to avoid fractions as per https://issues.jboss.org/browse/BGBUILD-224
-      volume_id = @ec2.create_volume(:size => size.ceil.to_s, :availability_zone => @plugin_config['availability_zone'])['volumeId']
+      # create_volume, ceiling to avoid non-Integer values as per https://issues.jboss.org/browse/BGBUILD-224
+      volume = @ec2.volumes.create(:size => size.ceil.to_i, :availability_zone => @plugin_config['availability_zone'])
 
-      begin
-
-      @log.debug "Volume #{volume_id} created."
-      @log.debug "Waiting for EBS volume #{volume_id} to be available..."
+      @log.debug "Volume #{volume.id} created."
+      @log.debug "Waiting for EBS volume #{volume.id} to be available..."
 
       # wait for volume to be created
-      wait_for_volume_status('available', volume_id)
+      @ec2helper.wait_for_volume_status(:available, volume)
 
       # get first free device to mount the volume
       suffix = free_device_suffix
-
+      device_name = "/dev/sd#{suffix}"
       @log.trace "Got free device suffix: '#{suffix}'"
+
       @log.trace "Reading current instance id..."
+      # get_current_instance
+      current_instance = @ec2.instances[@current_instance_id]
 
-      # read current instance id
-      instance_id = open('http://169.254.169.254/latest/meta-data/instance-id').string
-
-      @log.trace "Got: #{instance_id}"
+      @log.trace "Got: #{current_instance.id}"
       @log.info "Attaching created volume..."
-
       # attach the volume to current host
-      @ec2.attach_volume(:device => "/dev/sd#{suffix}", :volume_id => volume_id, :instance_id => instance_id)
+      volume.attach_to(current_instance, device_name)
 
       @log.debug "Waiting for EBS volume to be attached..."
-
       # wait for volume to be attached
-      wait_for_volume_status('in-use', volume_id)
+      @ec2helper.wait_for_volume_status(:in_use, volume)
 
       @log.debug "Waiting for the attached EBS volume to be discovered by the OS"
-
-      wait_for_volume_attachment(suffix)  # add rescue block for timeout when no suffix can be found then re-raise
+      wait_for_volume_attachment(suffix)
 
       @log.info "Copying data to EBS volume..."
 
@@ -173,167 +128,82 @@ module BoxGrinder
       end
 
       @log.debug "Detaching EBS volume..."
-
-      @ec2.detach_volume(:device => "/dev/sd#{suffix}", :volume_id => volume_id, :instance_id => instance_id)
+      volume.attachments.map(&:delete)
 
       @log.debug "Waiting for EBS volume to become available..."
-
-      wait_for_volume_status('available', volume_id)
+      @ec2helper.wait_for_volume_status(:available, volume)
 
       @log.info "Creating snapshot from EBS volume..."
+      snapshot = @ec2.snapshots.create(
+          :volume => volume,
+          :description => ebs_appliance_description)
 
-      snapshot_id = @ec2.create_snapshot(
-          :volume_id => volume_id,
-          :description => ebs_appliance_description)['snapshotId']
-
-      @log.debug "Waiting for snapshot #{snapshot_id} to be completed..."
-
-      wait_for_snapshot_status('completed', snapshot_id)
+      @log.debug "Waiting for snapshot #{snapshot.id} to be completed..."
+      @ec2helper.wait_for_snapshot_status(:completed, snapshot)
 
       @log.debug "Deleting temporary EBS volume..."
-
-      @ec2.delete_volume(:volume_id => volume_id)
+      volume.delete
 
       @log.info "Registering image..."
-
-      image_id = @ec2.register_image(
-          :block_device_mapping => [{
-                                        :device_name => '/dev/sda1',
-                                        :ebs_snapshot_id => snapshot_id,
-                                        :ebs_delete_on_termination => @plugin_config['delete_on_termination']
-                                    },
-                                    {
-                                        :device_name => '/dev/sdb',
-                                        :virtual_name => 'ephemeral0'
-                                    },
-                                    {
-                                        :device_name => '/dev/sdc',
-                                        :virtual_name => 'ephemeral1'
-                                    },
-                                    {
-                                        :device_name => '/dev/sdd',
-                                        :virtual_name => 'ephemeral2'
-                                    },
-                                    {
-                                        :device_name => '/dev/sde',
-                                        :virtual_name => 'ephemeral3'
-                                    }],
-          :root_device_name => ROOT_DEVICE_NAME,
-          :architecture => @appliance_config.hardware.base_arch,
-          :kernel_id => KERNELS[@region][:kernel][@appliance_config.hardware.base_arch][:aki],
+      image = @ec2.images.create(
           :name => ebs_appliance_name,
-          :description => ebs_appliance_description)['imageId']
+          :root_device_name => ROOT_DEVICE_NAME,
+          :block_device_mappings => { ROOT_DEVICE_NAME => {
+                                      :snapshot => snapshot,
+                                      :delete_on_termination => @plugin_config['delete_on_termination']
+                                    },
+                                    '/dev/sdb' => 'ephemeral0',
+                                    '/dev/sdc' => 'ephemeral1',
+                                    '/dev/sdd' => 'ephemeral2',
+                                    '/dev/sde' => 'ephemeral3'},
+          :architecture => @appliance_config.hardware.base_arch,
+          :kernel_id => @ec2_endpoints[@current_region][:kernel][@appliance_config.hardware.base_arch.intern][:aki],
+          :description => ebs_appliance_description)
 
-      rescue Timeout::Error
-        @log.error "Timed out. Manual intervention may be necessary to complete the task."
-        raise
-      end
-
-      @log.info "EBS AMI '#{ebs_appliance_name}' registered: #{image_id} (region: #{@region})"
+      @log.info "Waiting for the new EBS AMI to become available"
+      @ec2helper.wait_for_image_state(:available, image)
+      @log.info "EBS AMI '#{image.name}' registered: #{image.id} (region: #{@current_region})"
+    rescue Timeout::Error
+      @log.error "An operation timed out. Manual intervention may be necessary to complete the task."
+      raise
     end
 
-    def get_volume_info(volume_id)
-      begin
-        @ec2.describe_volumes(:volume_id => volume_id).volumeSet.item.each do |volume|
-          return volume if volume.volumeId == volume_id
-        end
-      rescue AWS::Error, AWS::InvalidVolumeIDNotFound => e# only InvalidVolumeIDNotFound should be returned when no volume found, but is not always doing so at present.
-        @log.trace "Error getting volume info: #{e}"
-        return nil
-      end
-      nil
+    def ami_by_name(name)
+      @ec2helper.ami_by_name(name, @plugin_config['account_number'])
     end
 
-    def snapshot_info(snapshot_id)
-     begin
-      @ec2.describe_snapshots(:snapshot_id => snapshot_id).snapshotSet.item.each do |snapshot|
-        return snapshot if snapshot.snapshotId == snapshot_id
+    alias :already_registered? :ami_by_name
+
+    def terminate_instances(instances)
+      instances.map(&:terminate)
+      instances.each do |i|
+        @ec2helper.wait_for_instance_death(i)
       end
-     rescue AWS::InvalidSnapshotIDNotFound
-       return nil
-     end
-      nil
     end
 
-    def block_device_from_ami(ami_info, device_name)
-      ami_info.blockDeviceMapping.item.each do |device|
-        return device if device.deviceName == device_name
-      end
-      nil
-    end
-
-    def get_instances(ami_id)
-      #EC2 Gem has yet to be updated with new filters, once the patches have been pulled then :image_id filter will be picked up
-      instances_info = @ec2.describe_instances(:image_id => ami_id).reservationSet
-      instances=[]
-      instances_info["item"].each do
-        |item| item["instancesSet"]["item"].each do |i|
-          instances.push i if i.imageId == ami_id #TODO remove check after gem update
+    def stomp_ebs(ami)
+      #Find any instances that are running, if they are not stopped then abort.
+      if live = @ec2helper.live_instances(ami)
+        if @plugin_config['terminate_instances']
+          @log.info "Terminating the following instances: #{live.collect{|i| "#{i.id} (#{i.status})"}.join(", ")}."
+          terminate_instances(live)
+        else
+          raise "There are still instances of #{ami.id} running, you should terminate them after " <<
+               "preserving any important data: #{live.collect{|i| "#{i.id} (#{i.status})"}.join(", ")}."
         end
       end
-      return instances.uniq unless instances.empty?
-      nil
-    end
 
-    def stomp_ebs(ami_info)
+      @log.info("Finding the primary snapshot associated with #{ami.id}.")
+      primary_snapshot = @ec2helper.snapshot_by_id(ami.block_device_mappings[ami.root_device_name].snapshot_id)
 
-      device = block_device_from_ami(ami_info, ROOT_DEVICE_NAME)
+      @log.info("De-registering the EBS AMI.")
+      ami.deregister
+      @ec2helper.wait_for_image_death(ami)
 
-      if device #if there is the anticipated device on the image
-        snapshot_info = snapshot_info(device.ebs.snapshotId)
-        volume_id = snapshot_info.volumeId
-        volume_info = get_volume_info(volume_id)
-
-        @log.trace "Volume info for #{volume_id} : #{PP::pp(volume_info,"")}"
-        @log.info "Finding any existing image with the block store attached"
-
-        if instances = get_instances(ami_info.imageId)
-          raise "There are still instances of #{ami_info.imageId} running, you must stop them: #{instances.collect {|i| i.instanceId}.join(",")}"
-        end
-
-        if volume_info #if the physical volume exists
-          unless volume_info.status == 'available'
-            begin
-             @log.info "Forcibly detaching block store #{volume_info.volumeId}"
-             @ec2.detach_volume(:volume_id => volume_info.volumeId, :force => true)
-            rescue AWS::IncorrectState
-             @log.debug "State of the volume has changed, our data must have been stale. This should not be fatal."
-            end
-          end
-
-          @log.debug "Waiting for volume to become detached"
-          wait_for_volume_status('available', volume_info.volumeId)
-
-          begin
-            @log.info "Deleting block store"
-            @ec2.delete_volume(:volume_id => volume_info.volumeId)
-            @log.debug "Waiting for volume deletion to be confirmed"
-            wait_for_volume_status('deleted', volume_info.volumeId)
-          rescue AWS::InvalidVolumeIDNotFound
-            @log.debug "An external entity has probably deleted the volume just before we tried to. This should not be fatal."
-          end
-        end
-
-        begin
-          @log.debug "Deregistering AMI"
-          @ec2.deregister_image(:image_id => ami_info.imageId)
-        rescue AWS::InvalidAMIIDUnavailable, AWS::InvalidAMIIDNotFound
-          @log.debug "An external entity has already deregistered the AMI just before we tried to. This should not be fatal."
-        end
-
-        if !@plugin_config['preserve_snapshots'] and snapshot_info #if the snapshot exists
-         begin
-          @log.debug "Deleting snapshot #{snapshot_info.snapshotId}"
-          @ec2.delete_snapshot(:snapshot_id => snapshot_info.snapshotId)
-         rescue AWS::InvalidSnapshotIDNotFound
-          @log.debug "An external entity has probably deleted the snapshot just before we tried to. This should not be fatal."
-         end
-        end
-      else
-        @log.error "Expected device #{ROOT_DEVICE_NAME} was not found on the image."
-        return false
+      if !@plugin_config['preserve_snapshots'] and primary_snapshot
+        @log.info("Deleting the primary snapshot.")
+        primary_snapshot.delete
       end
-      true
     end
 
     def ebs_appliance_name
@@ -343,7 +213,7 @@ module BoxGrinder
 
       snapshot = 1
 
-      while already_registered?("#{base_path}-SNAPSHOT-#{snapshot}/#{@appliance_config.hardware.arch}")
+      while @ec2helper.already_registered?("#{base_path}-SNAPSHOT-#{snapshot}/#{@appliance_config.hardware.arch}")
         snapshot += 1
       end
       # Reuse the last key (if there was one)
@@ -352,81 +222,19 @@ module BoxGrinder
       "#{base_path}-SNAPSHOT-#{snapshot}/#{@appliance_config.hardware.arch}"
     end
 
-    def ami_info(name)
-      images = @ec2.describe_images(:owner_id => @plugin_config['account_number'].to_s.gsub(/-/,''))
-      return false if images.nil?
-      return false if images.imagesSet.nil?
-      images = images.imagesSet
-
-      for image in images.item do
-        return image if image.name == name
-      end
-      false
-    end
-
-    def already_registered?(name)
-      info = ami_info(name)
-      return info.imageId if info
-      false
-    end
-
     def adjust_fstab(guestfs)
       guestfs.sh("cat /etc/fstab | grep -v '/mnt' | grep -v '/data' | grep -v 'swap' > /etc/fstab.new")
       guestfs.mv("/etc/fstab.new", "/etc/fstab")
     end
 
-    def wait_with_timeout(cycle_seconds, timeout_seconds)
-      Timeout::timeout(timeout_seconds) do
-        while not yield
-          sleep cycle_seconds
-        end
-      end
-    end
-
     def wait_for_volume_attachment(suffix)
-      wait_with_timeout(POLL_FREQ, TIMEOUT){ device_for_suffix(suffix) != nil }
-    end
-
-    def wait_for_snapshot_status(status, snapshot_id)
-      begin
-        progress = -1
-        snapshot = nil
-        wait_with_timeout(POLL_FREQ, TIMEOUT) do
-          snapshot = @ec2.describe_snapshots(:snapshot_id => snapshot_id)['snapshotSet']['item'].first
-          current_progress = snapshot.progress.to_i
-          unless progress == current_progress
-            @log.info "Progress: #{current_progress}%"
-            progress = current_progress
-          end
-          snapshot['status'] == status
-        end
-      rescue Exception
-        snapshot.ownerId='<REDACTED>' #potentially sensitive?
-        @log.debug "Polling of snapshot #{snapshot_id} for status '#{status}' failed: " <<
-        "#{PP::pp(snapshot)}" unless snapshot.nil?
-        raise
-      end
-    end
-
-    def wait_for_volume_status(status, volume_id)
-      begin
-        volume=nil
-        wait_with_timeout(POLL_FREQ, TIMEOUT) do
-         volume = @ec2.describe_volumes(:volume_id => volume_id)['volumeSet']['item'].first
-         volume['status'] == status
-        end
-      rescue Exception
-        @log.debug "Polling of volume #{volume_id} for status '#{status}' failed: " <<
-        "#{PP::pp(volume)}" unless volume.nil?
-        raise
-      end
+      @ec2helper.wait_with_timeout(POLL_FREQ, TIMEOUT){ device_for_suffix(suffix) != nil }
     end
 
     def device_for_suffix(suffix)
       return "/dev/sd#{suffix}" if File.exists?("/dev/sd#{suffix}")
       return "/dev/xvd#{suffix}" if File.exists?("/dev/xvd#{suffix}")
       nil
-      #raise "Device for suffix '#{suffix}' not found!"
     end
 
     def free_device_suffix
@@ -438,28 +246,15 @@ module BoxGrinder
 
     def valid_platform?
       begin
-        region = availability_zone_to_region(get_ec2_availability_zone)
-        return true if KERNELS.has_key? region
-        @log.warn "You may be using an ec2 region that BoxGrinder Build is not aware of: #{region}, BoxGrinder Build knows of: #{KERNELS.join(", ")}"
+        region = EC2Helper::availability_zone_to_region(EC2Helper::current_availability_zone)
+        return true if @ec2_endpoints.has_key? region
+        @log.warn "You may be using an ec2 region that BoxGrinder Build is not aware of: #{region}, BoxGrinder Build knows of: #{@ec2_endpoints.join(", ")}"
       rescue Net::HTTPServerException => e
         @log.warn "An error was returned when attempting to retrieve the ec2 hostname: #{e.to_s}"
       rescue Timeout::Error => t
         @log.warn "A timeout occurred while attempting to retrieve the ec2 hostname: #{t.to_s}"
       end
       false
-    end
-
-    def get_ec2_availability_zone
-      timeout(EC2_HOSTNAME_LOOKUP_TIMEOUT) do
-        req = Net::HTTP::Get.new('/latest/meta-data/placement/availability-zone/')
-        res = Net::HTTP.start('169.254.169.254', 80) {|http| http.request(req)}
-        return res.body if  Net::HTTPSuccess
-        res.error!
-      end
-    end
-
-    def availability_zone_to_region(availability_zone)
-      availability_zone.scan(/((\w+)-(\w+)-(\d+))/).flatten.first
     end
 
   end
