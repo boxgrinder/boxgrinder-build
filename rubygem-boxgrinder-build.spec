@@ -142,12 +142,17 @@ popd
 
 %changelog
 
-* Wed Jun 29 2011 Marc Savy <msavy@redhat.com> - 0.9.4-1
+* Fri Aug 12 2011 Marc Savy <msavy@redhat.com> - 0.9.4-1
 - Upstream release: 0.9.4
 - [BGBUILD-263] NoMethodError: undefined method `item' for nil:NilClass while creating EBS appliance
 - [BGBUILD-246] Detect when insufficient system memory is available for standard libguestfs, and reduce allocation.
 - [BGBUILD-269] RPM database is recreated after post section execution preventing installing RPM in post section
 - [BGBUILD-273] Move to RSpec2
+- [BGBUILD-272] Move from aws and amazon-ec2 to official aws-sdk gem
+- [BGBUILD-238] Stop AWS gem warnings
+- [BGBUILD-265] Resolve concurrency issues in S3 plugin for overwriting
+- [BGBUILD-249] Warning from S3 AMI plugin that BG is attempting to create a bucket that already exists
+- [BGBUILD-242]	Additional EBS overwrite edge cases
 
 * Fri Jun 17 2011 Marc Savy <msavy@redhat.com> - 0.9.3-1
 - Upstream release: 0.9.3
