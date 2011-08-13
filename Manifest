@@ -70,11 +70,13 @@ lib/boxgrinder-build/plugins/platform/vmware/vmware-plugin.rb
 rubygem-boxgrinder-build.spec
 spec/appliance-spec.rb
 spec/helpers/augeas-helper-spec.rb
+spec/helpers/ec2-helper-spec.rb
 spec/helpers/guestfs-helper-spec.rb
 spec/helpers/image-helper-spec.rb
 spec/helpers/linux-helper-spec.rb
 spec/helpers/package-helper-spec.rb
 spec/helpers/plugin-helper-spec.rb
+spec/helpers/s3-helper-spec.rb
 spec/managers/plugin-manager-spec.rb
 spec/plugins/base-plugin-spec.rb
 spec/plugins/delivery/ebs/ebs-plugin-spec.rb

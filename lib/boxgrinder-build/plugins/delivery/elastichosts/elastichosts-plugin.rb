@@ -18,7 +18,7 @@
 
 require 'boxgrinder-build/plugins/base-plugin'
 require 'rubygems'
-require 'restclient'
+require 'rest_client'
 require 'zlib'
 require 'cgi'
 

@@ -17,9 +17,6 @@ Requires: rubygem(boxgrinder-core) >= 0.3.0
 Requires: rubygem(boxgrinder-core) < 0.4.0
 Requires: ruby-libguestfs
 
-# Fix for rubygem-aws package
-Requires: rubygem(activesupport)
-
 BuildArch: noarch
 
 BuildRequires: rubygem(rake)
@@ -30,18 +27,11 @@ BuildRequires: ruby-libguestfs
 # Use rspec-core until rspec are migrated to RSpec 2.x
 BuildRequires: rubygem(rspec-core)
 
-# Fix for rubygem-aws package
-BuildRequires: rubygem(activesupport)
-
-# Fixes blankslate error
-Requires: rubygem(builder)
-Requires: rubygem(aws-sdk)
+# AWS
 Requires: euca2ools >= 1.3.1-4
+Requires: rubygem(aws-sdk) >= 1.0.4
 
-BuildRequires: rubygem(amazon-ec2)
-BuildRequires: rubygem(aws)
-# Fixes blankslate error
-BuildRequires: rubygem(builder)
+BuildRequires: rubygem(aws-sdk) >= 1.0.4
 
 # SFTP
 Requires: rubygem(net-sftp)
@@ -56,10 +46,9 @@ BuildRequires: rubygem(progressbar)
 Requires: appliance-tools
 Requires: yum-utils
 
-# ElasticHosts
-Requires: rubygem(rest-client)
-
+#Elastichosts
 BuildRequires: rubygem(rest-client)
+Requires: rubygem(rest-client)
 
 Provides: rubygem(%{gemname}) = %{version}
 
