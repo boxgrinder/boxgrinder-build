@@ -1,7 +1,7 @@
 source :rubygems
 
 gem 'boxgrinder-core', '~>0.3'
-gem 'echoe', '~>4.6'
+gem 'echoe', '4.3.1'
 gem 'rspec', '~>2.6'
 gem 'aws-sdk', '>=1.0.4'
 gem 'net-sftp', '~>2.0'
