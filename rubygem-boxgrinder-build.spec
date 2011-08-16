@@ -117,7 +117,6 @@ popd
 %doc %{geminstdir}/README.md
 %doc %{geminstdir}/Manifest
 %doc %{geminstdir}/Gemfile
-%doc %{geminstdir}/gemfile.lock
 %attr(755, root, root) %{geminstdir}/lib/boxgrinder-build/helpers/qemu.wrapper
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
