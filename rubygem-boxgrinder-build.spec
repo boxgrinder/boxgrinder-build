@@ -116,7 +116,6 @@ popd
 %doc %{geminstdir}/LICENSE
 %doc %{geminstdir}/README.md
 %doc %{geminstdir}/Manifest
-%doc %{geminstdir}/Gemfile
 %attr(755, root, root) %{geminstdir}/lib/boxgrinder-build/helpers/qemu.wrapper
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
@@ -143,7 +142,6 @@ popd
 - [BGBUILD-265] Resolve concurrency issues in S3 plugin for overwriting
 - [BGBUILD-249] Warning from S3 AMI plugin that BG is attempting to create a bucket that already exists
 - [BGBUILD-242]	Additional EBS overwrite edge cases
-- [BGBUILD-236] Add Bundler Gemfile and gemfile.lock to repository to allow easy ruby dependency installation for developers
 
 * Fri Jun 17 2011 Marc Savy <msavy@redhat.com> - 0.9.3-1
 - Upstream release: 0.9.3

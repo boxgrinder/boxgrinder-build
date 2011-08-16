@@ -9,7 +9,6 @@ v0.9.4
 * [BGBUILD-265] Resolve concurrency issues in S3 plugin for overwriting
 * [BGBUILD-249] Warning from S3 AMI plugin that BG is attempting to create a bucket that already exists
 * [BGBUILD-242]	Additional EBS overwrite edge cases
-* [BGBUILD-236] Add Bundler Gemfile and gemfile.lock to repository to allow easy ruby dependency installation for developers                                                                                                              
 
 v0.9.3
 
