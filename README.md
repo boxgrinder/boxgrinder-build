@@ -129,6 +129,6 @@ Assuming that BoxGrinder had succeeded in building the prior image, the RAW file
 
 -----------------------
 
-    setarch i386 boxgrinder build fedora-14.appl
+    setarch i386 boxgrinder-build fedora-14.appl
 
 Build an i386 appliance (on an x86_64 machine).
