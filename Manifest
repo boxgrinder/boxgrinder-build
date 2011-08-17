@@ -4,6 +4,7 @@ Manifest
 README.md
 Rakefile
 bin/boxgrinder-build
+boxgrinder-build.gemspec
 integ/appliances/_hardware_cpus.appl
 integ/appliances/_hardware_memory.appl
 integ/appliances/_hardware_partitions_home.appl
