@@ -154,6 +154,7 @@ module BoxGrinder
 
       @s3helper.should_receive(:stub_s3obj).and_return(s3obj)
       @s3helper.stub!(:object_exists?).and_return(false)
+      @plugin.should_receive(:asset_bucket).and_return('a')
 
       @plugin.upload_to_bucket(:disk => "adisk")
     end
@@ -174,6 +175,7 @@ module BoxGrinder
 
       @s3helper.should_receive(:stub_s3obj).and_return(s3obj)
       @s3helper.stub!(:object_exists?).and_return(true)
+      @plugin.should_receive(:asset_bucket).and_return('a')
 
       @plugin.upload_to_bucket(:disk => "adisk")
     end
