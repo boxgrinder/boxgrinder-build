@@ -86,13 +86,13 @@ module BoxGrinder
 
           @log.debug "Going to check whether s3 object exists"
 
-          if @s3helper.object_exists?(ami_manifest_key) and @plugin_config['overwrite']
+          if ami_manifest_key.exists? and @plugin_config['overwrite']
             @log.info "Object exists, attempting to deregister an existing image"
             deregister_image(ami_manifest_key) # Remove existing image
             @s3helper.delete_folder(asset_bucket, ami_dir) # Avoid triggering dupe detection
           end
 
-          if !@s3helper.object_exists?(ami_manifest_key) or @plugin_config['snapshot']
+          if ami_manifest_key.exists? or @plugin_config['snapshot']
             @log.info "Doing bundle/snapshot"
             bundle_image(@previous_deliverables)
             fix_sha1_sum
@@ -124,7 +124,7 @@ module BoxGrinder
       size_m = File.size(@deliverables[:package])/1024**2
       s3_obj = @s3helper.stub_s3obj(asset_bucket,remote_path.gsub(/^\//, '').gsub(/\/\//, ''))
       # Does it really exist?
-      obj_exists = @s3helper.object_exists?(s3_obj)
+      obj_exists = s3_obj.exists?
 
       if !obj_exists or @plugin_config['overwrite']
         @log.info "Will overwrite existing file #{remote_path}" if obj_exists and @plugin_config['overwrite']
@@ -203,9 +203,7 @@ module BoxGrinder
 
       @log.info "Determining snapshot name"
       snapshot = 1
-      while @s3helper.object_exists?(
-          @s3helper.stub_s3obj(asset_bucket, "#{base_path}-SNAPSHOT-#{snapshot}/#{@appliance_config.hardware.arch}/")
-      )
+      while @s3helper.stub_s3obj(asset_bucket, "#{base_path}-SNAPSHOT-#{snapshot}/#{@appliance_config.hardware.arch}/").exists?
         snapshot += 1
       end
       # Reuse the last key (if there was one)
