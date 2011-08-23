@@ -28,7 +28,7 @@ Echoe.new("boxgrinder-build") do |p|
   p.email = "info@boxgrinder.org"
   p.runtime_dependencies = [
       "boxgrinder-core ~>0.3.0",
-      'aws-sdk', # EBS and S3
+      'aws-sdk >=1.1.1', # EBS and S3
       'net-sftp', 'net-ssh', 'progressbar', # SFTP
       'rest-client' # ElasticHosts
   ]

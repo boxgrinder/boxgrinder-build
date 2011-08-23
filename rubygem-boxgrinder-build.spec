@@ -5,7 +5,7 @@
 
 Summary: A tool for creating appliances from simple plain text files
 Name: rubygem-%{gemname}
-Version: 0.9.4
+Version: 0.9.5
 Release: 1%{?dist}
 Group: Development/Languages
 License: LGPLv3+
@@ -29,9 +29,9 @@ BuildRequires: rubygem(rspec-core)
 
 # AWS
 Requires: euca2ools >= 1.3.1-4
-Requires: rubygem(aws-sdk) >= 1.0.4
+Requires: rubygem(aws-sdk) >= 1.1.1
 
-BuildRequires: rubygem(aws-sdk) >= 1.0.4
+BuildRequires: rubygem(aws-sdk) >= 1.1.1
 
 # SFTP
 Requires: rubygem(net-sftp)
@@ -130,6 +130,9 @@ popd
 %{gemdir}/doc/%{gemname}-%{version}
 
 %changelog
+* Thu Aug 23 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.5-1
+- Upstream release: 0.9.
+- [BGBUILD-294] Package aws-sdk 1.1.1 and update dependency
 
 * Fri Aug 12 2011 Marc Savy <msavy@redhat.com> - 0.9.4-1
 - Upstream release: 0.9.4
