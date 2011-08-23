@@ -43,7 +43,7 @@ module BoxGrinder
       nil
     end
 
-    #aws-sdk 1.0.3 added .exists?
+    #aws-sdk 1.0.3 added .exists?, 1.1.1 fixes regression
     def object_exists?(s3_object)
       s3_object.exists?
     end

@@ -59,12 +59,19 @@ module BoxGrinder
         :s3_endpoint => @s3_endpoints[@plugin_config['region']][:endpoint],
         :max_retries => 5,
         :use_ssl => @plugin_config['use_ssl'])
-        #:logger => @log)   need to  modify our logger to accept blah.log(:level, 'message')
 
       @ec2 = AWS::EC2.new
       @s3 = AWS::S3.new
       @s3helper = S3Helper.new(@ec2, @s3, :log => @log)
       @ec2helper = EC2Helper.new(@ec2, :log => @log)
+
+      subtype(:ami) do
+        # If there is an existing bucket, determine whether its location_constraint matches the region selected
+        if existing_bucket = asset_bucket(false)
+          raise PluginValidationError, "Existing bucket #{@plugin_config['bucket']} has a location constraint that does not match the region selected. " <<
+          "AMI region and bucket location constraint must match." unless constraint_equal?(@s3_endpoints[@plugin_config['region']][:location], existing_bucket.location_constraint)
+        end
+      end
     end
 
     def execute
@@ -205,6 +212,12 @@ module BoxGrinder
       snapshot -=1 if snapshot > 1 and @plugin_config['overwrite']
 
       "#{base_path}-SNAPSHOT-#{snapshot}/#{@appliance_config.hardware.arch}"
+    end
+
+    #US constraint is often represented as '' or nil
+    def constraint_equal?(a, b)
+      [a, b].collect!{|c| c.nil? ? '': c }
+      a == b
     end
 
   end
