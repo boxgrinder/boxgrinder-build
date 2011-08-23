@@ -50,9 +50,10 @@ module BoxGrinder
       @appliance_config.stub!(:hardware).and_return(OpenCascade.new({:arch => 'x86_64', :base_arch => 'x86_64'}))
 
       @plugin = S3Plugin.new.init(@config, @appliance_config, {:class => BoxGrinder::S3Plugin, :type => :delivery, :name => :s3, :full_name => "Amazon Simple Storage Service (Amazon S3)", :types => [:s3, :cloudfront, :ami]}, :log => LogHelper.new(:level => :trace, :type => :stdout), :type => :s3)
-      @plugin.validate
+      @plugin.stub!(:validate)
 
       #Set convenient dummies
+      AWS.stub!
       AWS.config({:access_key_id => '', :secret_access_key => ''})
       @ec2 = AWS::EC2.new
       @s3 = AWS::S3.new
@@ -85,6 +86,11 @@ module BoxGrinder
 
     describe ".ami_key" do
 
+      before(:each) do
+        @key1 = mock('AWS::S3::S3Object-1')
+        @key2 = mock('AWS::S3::S3Object-2')
+      end
+
       it "should generate valid ami_key" do
         @plugin.ami_key("name", "this/is/a/path").should == "this/is/a/path/name/fedora/14/1.0/x86_64"
       end
@@ -100,11 +106,11 @@ module BoxGrinder
       it "should generate valid ami_key with snapshot number two" do
         @config.plugins['s3'].merge!('snapshot' => true)
 
-        @s3helper.should_receive(:object_exists?).and_return(true)
-        @s3helper.should_receive(:object_exists?).and_return(false)
+        @key1.should_receive(:exists?).and_return(true)
+        @key2.should_receive(:exists?).and_return(false)
 
-        @s3helper.should_receive(:stub_s3obj).with(@asset_bucket, 'name/fedora/14/1.0-SNAPSHOT-1/x86_64/')
-        @s3helper.should_receive(:stub_s3obj).with(@asset_bucket, 'name/fedora/14/1.0-SNAPSHOT-2/x86_64/')
+        @s3helper.should_receive(:stub_s3obj).with(@asset_bucket, 'name/fedora/14/1.0-SNAPSHOT-1/x86_64/').and_return(@key1)
+        @s3helper.should_receive(:stub_s3obj).with(@asset_bucket, 'name/fedora/14/1.0-SNAPSHOT-2/x86_64/').and_return(@key2)
 
         @plugin.should_receive(:asset_bucket).twice.and_return(@asset_bucket)
         @plugin.ami_key("name", "/").should == "name/fedora/14/1.0-SNAPSHOT-2/x86_64"
@@ -113,11 +119,11 @@ module BoxGrinder
       it "should return valid ami_key with snapshot and overwrite enabled" do
         @config.plugins['s3'].merge!('snapshot' => true, 'overwrite' => true)
 
-        @s3helper.should_receive(:object_exists?).and_return(true)
-        @s3helper.should_receive(:object_exists?).and_return(false)
+        @key1.should_receive(:exists?).and_return(true)
+        @key2.should_receive(:exists?).and_return(false)
 
-        @s3helper.should_receive(:stub_s3obj).with(@asset_bucket, 'name/fedora/14/1.0-SNAPSHOT-1/x86_64/')
-        @s3helper.should_receive(:stub_s3obj).with(@asset_bucket, 'name/fedora/14/1.0-SNAPSHOT-2/x86_64/')
+        @s3helper.should_receive(:stub_s3obj).with(@asset_bucket, 'name/fedora/14/1.0-SNAPSHOT-1/x86_64/').and_return(@key1)
+        @s3helper.should_receive(:stub_s3obj).with(@asset_bucket, 'name/fedora/14/1.0-SNAPSHOT-2/x86_64/').and_return(@key2)
 
         @plugin.should_receive(:asset_bucket).twice.and_return(@asset_bucket)
         @plugin.ami_key("name", "/").should == "name/fedora/14/1.0-SNAPSHOT-1/x86_64"
@@ -138,46 +144,35 @@ module BoxGrinder
       @plugin.fix_sha1_sum
     end
 
-    it "should upload to an S3 bucket" do
-      package_helper = mock(PackageHelper)
-      package_helper.should_receive(:package).with(".", "build/path/s3-plugin/tmp/appliance-1.0-fedora-14-x86_64-raw.tgz").and_return("a_built_package.zip")
+    describe ".upload_to_bucket" do
 
-      PackageHelper.should_receive(:new).with(@config, @appliance_config, :log => @log, :exec_helper => @exec_helper).and_return(package_helper)
+      before(:each) do
+        @package_helper = mock(PackageHelper)
+        @s3obj = mock(AWS::S3::S3Object)
 
-      s3 = mock(AWS::S3)
-      @plugin.instance_variable_set(:@s3, s3)
+        PackageHelper.should_receive(:new).with(@config, @appliance_config, :log => @log, :exec_helper => @exec_helper).and_return(@package_helper)
+        @package_helper.should_receive(:package).with(".", "build/path/s3-plugin/tmp/appliance-1.0-fedora-14-x86_64-raw.tgz").and_return("a_built_package.zip")
 
-      File.should_receive(:size).with("build/path/s3-plugin/tmp/appliance-1.0-fedora-14-x86_64-raw.tgz").and_return(23234566)
+        File.should_receive(:size).with("build/path/s3-plugin/tmp/appliance-1.0-fedora-14-x86_64-raw.tgz").and_return(23234566)
+        @s3helper.should_receive(:stub_s3obj).and_return(@s3obj)
+        @plugin.should_receive(:asset_bucket).and_return(@asset_bucket)
+      end
 
-      s3obj = mock(AWS::S3::S3Object)
-      s3obj.should_receive(:write).with(:file => "build/path/s3-plugin/tmp/appliance-1.0-fedora-14-x86_64-raw.tgz", :acl => :private)
+      it "should upload to an S3 bucket" do
+        @s3obj.stub!(:exists?).and_return(false)
 
-      @s3helper.should_receive(:stub_s3obj).and_return(s3obj)
-      @s3helper.stub!(:object_exists?).and_return(false)
-      @plugin.should_receive(:asset_bucket).and_return('a')
+        @s3obj.should_receive(:write).with(:file => "build/path/s3-plugin/tmp/appliance-1.0-fedora-14-x86_64-raw.tgz", :acl => :private)
 
-      @plugin.upload_to_bucket(:disk => "adisk")
-    end
+        @plugin.upload_to_bucket(:disk => "adisk")
+      end
 
-    it "should NOT upload to an S3 bucket when the file already exists" do
-      package_helper = mock(PackageHelper)
-      package_helper.should_receive(:package).with(".", "build/path/s3-plugin/tmp/appliance-1.0-fedora-14-x86_64-raw.tgz").and_return("a_built_package.zip")
+      it "should NOT upload to an S3 bucket when the file already exists" do
+        @s3obj.stub!(:exists?).and_return(true)
 
-      PackageHelper.should_receive(:new).with(@config, @appliance_config, :log => @log, :exec_helper => @exec_helper).and_return(package_helper)
+        @s3obj.should_not_receive(:write)
 
-      s3 = mock(AWS::S3)
-      @plugin.instance_variable_set(:@s3, s3)
-
-      File.should_receive(:size).with("build/path/s3-plugin/tmp/appliance-1.0-fedora-14-x86_64-raw.tgz").and_return(23234566)
-
-      s3obj = mock(AWS::S3::S3Object)
-      s3obj.should_not_receive(:write)
-
-      @s3helper.should_receive(:stub_s3obj).and_return(s3obj)
-      @s3helper.stub!(:object_exists?).and_return(true)
-      @plugin.should_receive(:asset_bucket).and_return('a')
-
-      @plugin.upload_to_bucket(:disk => "adisk")
+        @plugin.upload_to_bucket(:disk => "adisk")
+      end
     end
 
     it "should bundle the image" do
@@ -198,123 +193,146 @@ module BoxGrinder
     end
 
     describe ".execute" do
-
       before(:each) do
         @s3obj = mock(AWS::S3::S3Object)
         @bucket = mock(AWS::S3::Bucket)
         FileUtils.stub!(:mkdir_p)
-      end
-    #
-      it "should create an AMI" do
-        @plugin.instance_variable_set(:@type, :ami)
-        @plugin.instance_variable_set(:@previous_deliverables, {:disk => 'a/disk'})
-
-        @plugin.should_receive(:ami_key).with("appliance", "/").and_return('ami/key')
-
         @plugin.stub!(:asset_bucket).and_return(@bucket)
-        @s3helper.stub!(:stub_s3obj).and_return(@s3obj)
-        @s3helper.should_receive(:object_exists?).twice.with(@s3obj).and_return(false)
-        @plugin.should_receive(:bundle_image).with(:disk => 'a/disk')
-        @plugin.should_receive(:fix_sha1_sum)
-        @plugin.should_receive(:upload_image)
-        @plugin.should_receive(:register_image)
-
-        @plugin.execute
-      end
-    #
-      it "should not upload an AMI because it's already there" do
-        @plugin.instance_variable_set(:@type, :ami)
-
-        @plugin.stub!(:asset_bucket).and_return(@bucket)
-        @s3helper.should_receive(:stub_s3obj).with(@bucket, "ami/key/appliance.ec2.manifest.xml").and_return(@s3obj)
-        @plugin.should_receive(:ami_key).with("appliance", "/").and_return('ami/key')
-        @s3helper.should_receive(:object_exists?).twice.with(@s3obj).and_return(true)
-        @plugin.should_not_receive(:upload_image)
-        @plugin.should_receive(:register_image)
-
-        @plugin.execute
-      end
-    #
-      it "should upload an AMI even if one is already present in order to perform a snapshot" do
-        @config.plugins['s3'].merge!('snapshot' => true)
-
-        @plugin.instance_variable_set(:@type, :ami)
-        @plugin.instance_variable_set(:@previous_deliverables, {:disk => 'a/disk'})
-
-        @plugin.stub!(:asset_bucket).and_return(@bucket)
-        @s3helper.should_receive(:stub_s3obj).with(@bucket, "ami/key/appliance.ec2.manifest.xml").and_return(@s3obj)
-        @plugin.should_receive(:ami_key).with("appliance", "/").and_return('ami/key')
-        @s3helper.should_receive(:object_exists?).twice.with(@s3obj).and_return(false)
-        @plugin.should_receive(:bundle_image).with(:disk => 'a/disk')
-        @plugin.should_receive(:fix_sha1_sum)
-        @plugin.should_receive(:upload_image)
-        @plugin.should_receive(:register_image)
-
-        @plugin.execute
-      end
-    #
-      it "should upload image to s3" do
-        @plugin.instance_variable_set(:@type, :s3)
-        @plugin.instance_variable_set(:@previous_deliverables, :disk => 'a/disk')
-        @plugin.should_receive(:upload_to_bucket).with({:disk => 'a/disk'})
-        @plugin.execute
-      end
-    #
-      it "should upload image to cloudfront" do
-        @plugin.instance_variable_set(:@type, :cloudfront)
-        @plugin.instance_variable_set(:@previous_deliverables, {:disk => 'a/disk'})
-        @plugin.should_receive(:upload_to_bucket).with({:disk => 'a/disk'}, :public_read)
-        @plugin.execute
       end
 
+      context "AMI" do
+        before(:each) do
+          @plugin.instance_variable_set(:@previous_deliverables, {:disk => 'a/disk'})
+          @s3helper.should_receive(:stub_s3obj).with(@bucket, "ami/key/appliance.ec2.manifest.xml").and_return(@s3obj)
+          @plugin.should_receive(:ami_key).with("appliance", "/").and_return('ami/key')
+          @plugin.instance_variable_set(:@type, :ami)
+        end
+
+        it "should create an AMI" do
+
+          @s3obj.should_receive(:exists?).twice.and_return(false)
+          @plugin.should_receive(:bundle_image).with(:disk => 'a/disk')
+          @plugin.should_receive(:fix_sha1_sum)
+          @plugin.should_receive(:upload_image)
+          @plugin.should_receive(:register_image)
+
+          @plugin.execute
+        end
+
+        it "should not upload an AMI because it's already there" do
+
+          @s3obj.should_receive(:exists?).twice.and_return(true)
+          @plugin.should_not_receive(:upload_image)
+          @plugin.should_receive(:register_image)
+
+          @plugin.execute
+        end
+
+        it "should upload an AMI even if one is already present in order to perform a snapshot" do
+          @config.plugins['s3'].merge!('snapshot' => true)
+
+          @s3obj.should_receive(:exists?).twice.and_return(false)
+          @plugin.should_receive(:bundle_image).with(:disk => 'a/disk')
+          @plugin.should_receive(:fix_sha1_sum)
+          @plugin.should_receive(:upload_image)
+          @plugin.should_receive(:register_image)
+
+          @plugin.execute
+        end
+      end
+
+      context "s3" do
+        it "should upload image to s3" do
+          @plugin.instance_variable_set(:@type, :s3)
+          @plugin.instance_variable_set(:@previous_deliverables, :disk => 'a/disk')
+          @plugin.should_receive(:upload_to_bucket).with({:disk => 'a/disk'})
+          @plugin.execute
+        end
+      end
+
+      context "cloudfront" do
+        it "should upload image to cloudfront" do
+          @plugin.instance_variable_set(:@type, :cloudfront)
+          @plugin.instance_variable_set(:@previous_deliverables, {:disk => 'a/disk'})
+          @plugin.should_receive(:upload_to_bucket).with({:disk => 'a/disk'}, :public_read)
+          @plugin.execute
+        end
+      end
     end
-    #
+
     describe ".validate" do
-    #
-      it "should validate only basic params" do
-        @plugin.should_receive(:set_default_config_value).with('overwrite', false)
-        @plugin.should_receive(:set_default_config_value).with('path', '/')
-        @plugin.should_receive(:set_default_config_value).with('region', 'us-east-1')
-
-        @plugin.should_receive(:validate_plugin_config).with(['bucket', 'access_key', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
-
-        @plugin.validate
+      before(:each) do
+        @plugin.unstub!(:validate)
       end
-    #
-      it "should validate basic and additional ami params" do
-        @plugin.instance_variable_set(:@type, :ami)
 
-        @plugin.should_receive(:set_default_config_value).with('overwrite', false)
-        @plugin.should_receive(:set_default_config_value).with('path', '/')
-        @plugin.should_receive(:set_default_config_value).with('region', 'us-east-1')
-        @plugin.should_receive(:set_default_config_value).with('snapshot', false)
+      context "bucket is not already in existence" do
+        before(:each) do
+          @plugin.stub!(:asset_bucket).and_return(nil)
+          @plugin.should_receive(:set_default_config_value).with('overwrite', false)
+          @plugin.should_receive(:set_default_config_value).with('path', '/')
+          @plugin.should_receive(:set_default_config_value).with('region', 'us-east-1')
+        end
 
-        @plugin.should_receive(:validate_plugin_config).with(['bucket', 'access_key', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
-        @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
+        it "should validate only basic params" do
 
-        @plugin.validate
+          @plugin.should_receive(:validate_plugin_config).with(['bucket', 'access_key', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
+
+          @plugin.validate
+        end
+
+        it "should validate basic and additional ami params" do
+          @plugin.instance_variable_set(:@type, :ami)
+
+          @plugin.should_receive(:set_default_config_value).with('snapshot', false)
+
+          @plugin.should_receive(:validate_plugin_config).with(['bucket', 'access_key', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
+          @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
+
+          @plugin.validate
+        end
+
+        it "should raise an error if an invalid region is specified" do
+          @plugin.instance_variable_set(:@type, :ami)
+
+          @config.plugins['s3']['region'] = 'near-spain-1'
+
+          @plugin.should_receive(:set_default_config_value).with('snapshot', false)
+
+          @plugin.should_receive(:validate_plugin_config).with(['bucket', 'access_key', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
+          @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
+
+          lambda { @plugin.validate }.should raise_error(PluginValidationError)
+        end
       end
-    #
-      it "should raise an error if an invalid region is specified" do
-        @plugin.instance_variable_set(:@type, :ami)
 
-        @config.plugins['s3']['region'] = 'bolkonski'
+      context "bucket exists (AMI mode)" do
 
-        @plugin.should_receive(:set_default_config_value).with('overwrite', false)
-        @plugin.should_receive(:set_default_config_value).with('path', '/')
-        @plugin.should_receive(:set_default_config_value).with('region', 'us-east-1')
-        @plugin.should_receive(:set_default_config_value).with('snapshot', false)
+        before(:each) do
+          @plugin.instance_variable_set(:@type, :ami)
+          @plugin.stub!(:set_default_config_value)
 
-        @plugin.should_receive(:validate_plugin_config).with(['bucket', 'access_key', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
-        @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
+          @plugin.should_receive(:validate_plugin_config).with(['bucket', 'access_key', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
+          @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
+        end
 
-        lambda { @plugin.validate }.should raise_error(PluginValidationError)
+        it "should succeed if the bucket location constraint and region match" do
+          @plugin.should_receive(:asset_bucket).and_return(@asset_bucket)
+          @asset_bucket.should_receive(:location_constraint).and_return('')
+
+          @plugin.validate
+        end
+
+        it "should raise an error if bucket location constraint and region do not match" do
+          @plugin.should_receive(:asset_bucket).and_return(@asset_bucket)
+          @asset_bucket.should_receive(:location_constraint).and_return('eu-west-1')
+
+          lambda { @plugin.validate }.should raise_error(PluginValidationError)
+        end
+
       end
-    #
     end
-    #
-    describe ".bucket" do
 
+    describe ".bucket" do
       it "should create the asset bucket by default" do
         @config.plugins['s3'].merge!('region' => 'ap-southeast-1')
 
@@ -332,11 +350,9 @@ module BoxGrinder
 
         @plugin.asset_bucket(false)
       end
-
     end
-    #
-    describe ".upload_image" do
 
+    describe ".upload_image" do
       it "should upload image for default region" do
         @plugin.should_receive(:asset_bucket)
         @exec_helper.should_receive(:execute).with("euca-upload-bundle -U http://s3.amazonaws.com -b bucket/ami/key -m build/path/s3-plugin/ami/appliance.ec2.manifest.xml -a access_key -s secret_access_key", :redacted=>["access_key", "secret_access_key"])
@@ -350,11 +366,9 @@ module BoxGrinder
         @exec_helper.should_receive(:execute).with("euca-upload-bundle -U http://s3-us-west-1.amazonaws.com -b bucket/ami/key -m build/path/s3-plugin/ami/appliance.ec2.manifest.xml -a access_key -s secret_access_key", :redacted=>["access_key", "secret_access_key"])
         @plugin.upload_image("ami/key")
       end
-
     end
-    #
-    describe ".register_image" do
 
+    describe ".register_image" do
       before(:each) do
         @ami = mock(AWS::EC2::Image)
         @ami.stub!(:id).and_return('ami-1234')
@@ -365,7 +379,7 @@ module BoxGrinder
         @ec2.stub!(:images)
         @ec2helper.stub!(:wait_for_image_state)
       end
-    #
+
       context "when the AMI has not been registered" do
         before(:each) do
           @plugin.stub!(:ami_by_manifest_key).and_return(nil)
@@ -378,12 +392,12 @@ module BoxGrinder
           @plugin.register_image(@manifest_key)
         end
       end
-    #
+
       context "when the AMI has been registered" do
         before(:each) do
           @plugin.stub!(:ami_by_manifest_key).and_return(@ami)
         end
-    #
+
         it "should not register the AMI" do
           @plugin.should_receive(:ami_by_manifest_key).with(@manifest_key)
           @ec2.images.should_not_receive(:create)
@@ -391,11 +405,9 @@ module BoxGrinder
           @plugin.register_image(@manifest_key)
         end
       end
-
     end
 
      describe ".deregister_image" do
-
        before(:each) do
          @ami = mock(AWS::EC2::Image)
          @plugin.stub!(:ami_by_manifest_key).and_return(@ami)
@@ -413,7 +425,6 @@ module BoxGrinder
          @ec2helper.should_receive(:wait_for_image_death).with(@ami)
          @plugin.deregister_image(@manifest_key)
        end
-
     end
 
   end

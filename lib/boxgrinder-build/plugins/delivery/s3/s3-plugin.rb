@@ -92,7 +92,7 @@ module BoxGrinder
             @s3helper.delete_folder(asset_bucket, ami_dir) # Avoid triggering dupe detection
           end
 
-          if ami_manifest_key.exists? or @plugin_config['snapshot']
+          if !ami_manifest_key.exists? or @plugin_config['snapshot']
             @log.info "Doing bundle/snapshot"
             bundle_image(@previous_deliverables)
             fix_sha1_sum
@@ -203,7 +203,7 @@ module BoxGrinder
 
       @log.info "Determining snapshot name"
       snapshot = 1
-      while @s3helper.stub_s3obj(asset_bucket, "#{base_path}-SNAPSHOT-#{snapshot}/#{@appliance_config.hardware.arch}/").exists?
+      while @s3helper.stub_s3obj(asset_bucket(), "#{base_path}-SNAPSHOT-#{snapshot}/#{@appliance_config.hardware.arch}/").exists?
         snapshot += 1
       end
       # Reuse the last key (if there was one)

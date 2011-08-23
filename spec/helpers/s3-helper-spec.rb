@@ -98,22 +98,6 @@ module BoxGrinder
       end
     end
 
-    describe ".object_exists?"  do
-
-      it "should return true if the object exists" do
-        @s3obj.stub!(:exists?).and_return(true)
-        @s3obj.should_receive(:exists?).and_return(true)
-        @s3helper.object_exists?(@s3obj).should == true
-      end
-
-      it "should return false if the object does not exist" do
-        @s3obj.stub!(:exists?).and_return(false)
-        @s3obj.should_receive(:exists?).and_return(false)
-        @s3helper.object_exists?(@s3obj).should == false
-      end
-
-    end
-
     describe ".delete_folder" do
 
       it "should delete a folder from a bucket" do

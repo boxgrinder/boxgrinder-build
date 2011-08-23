@@ -133,6 +133,7 @@ popd
 * Thu Aug 23 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.5-1
 - Upstream release: 0.9.
 - [BGBUILD-294] Package aws-sdk 1.1.1 and update dependency
+- [BGBUILD-277] When delivering as AMI, the EC2 region should match S3 bucket's region (location constraint)
 
 * Fri Aug 12 2011 Marc Savy <msavy@redhat.com> - 0.9.4-1
 - Upstream release: 0.9.4
