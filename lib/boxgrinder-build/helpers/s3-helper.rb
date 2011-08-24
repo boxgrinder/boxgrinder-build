@@ -32,7 +32,7 @@ module BoxGrinder
     end
 
     def bucket(options={})
-      defaults = {:bucket => nil, :acl => :private, :location_constraint => 'us-east-1', :create_if_missing => false}.merge!(options)
+      defaults = {:bucket => nil, :acl => :private, :location_constraint => 'us-east-1', :create_if_missing => false}
       options = parse_opts(options, defaults)
 
       s3b = @s3.buckets[options[:bucket]]

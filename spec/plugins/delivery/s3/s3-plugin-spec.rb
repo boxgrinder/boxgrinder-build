@@ -337,7 +337,7 @@ module BoxGrinder
         @config.plugins['s3'].merge!('region' => 'ap-southeast-1')
 
         @s3helper.should_receive(:bucket).with(:bucket => 'bucket', :acl => :private,
-        :create_of_missing => true, :location_constraint => 'ap-southeast-1')
+        :create_if_missing => true, :location_constraint => 'ap-southeast-1')
 
         @plugin.asset_bucket
       end
@@ -346,7 +346,7 @@ module BoxGrinder
         @config.plugins['s3'].merge!('region' => 'ap-southeast-1')
 
         @s3helper.should_receive(:bucket).with(:bucket => 'bucket', :acl => :private,
-        :create_of_missing => false, :location_constraint => 'ap-southeast-1')
+        :create_if_missing => false, :location_constraint => 'ap-southeast-1')
 
         @plugin.asset_bucket(false)
       end

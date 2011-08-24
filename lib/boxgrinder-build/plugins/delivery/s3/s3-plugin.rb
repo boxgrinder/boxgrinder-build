@@ -140,7 +140,7 @@ module BoxGrinder
     def asset_bucket(create_if_missing = true, permissions = :private)
       @s3helper.bucket(:bucket => @plugin_config['bucket'],
         :acl => permissions,
-        :create_of_missing => create_if_missing,
+        :create_if_missing => create_if_missing,
         :location_constraint => @s3_endpoints[@plugin_config['region']][:location]
       )
     end
