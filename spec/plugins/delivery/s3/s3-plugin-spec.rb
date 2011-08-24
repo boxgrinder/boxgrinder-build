@@ -129,20 +129,6 @@ module BoxGrinder
       end
     end
 
-    it "should fix sha1 sum" do
-      ami_manifest = mock('ami_manifest')
-      ami_manifest.should_receive(:read).and_return("!sdfrthty54623r2gertyhe(stdin)= wf34r32tewrgeg")
-
-      File.should_receive(:open).with("build/path/s3-plugin/ami/appliance.ec2.manifest.xml").and_return(ami_manifest)
-
-      f = mock('File')
-      f.should_receive(:write).with('!sdfrthty54623r2gertyhewf34r32tewrgeg')
-
-      File.should_receive(:open).with("build/path/s3-plugin/ami/appliance.ec2.manifest.xml", 'w').and_yield(f)
-
-      @plugin.fix_sha1_sum
-    end
-
     describe ".upload_to_bucket" do
 
       before(:each) do
@@ -208,7 +194,6 @@ module BoxGrinder
 
           @s3obj.should_receive(:exists?).twice.and_return(false)
           @plugin.should_receive(:bundle_image).with(:disk => 'a/disk')
-          @plugin.should_receive(:fix_sha1_sum)
           @plugin.should_receive(:upload_image)
           @plugin.should_receive(:register_image)
 
@@ -229,7 +214,6 @@ module BoxGrinder
 
           @s3obj.should_receive(:exists?).twice.and_return(false)
           @plugin.should_receive(:bundle_image).with(:disk => 'a/disk')
-          @plugin.should_receive(:fix_sha1_sum)
           @plugin.should_receive(:upload_image)
           @plugin.should_receive(:register_image)
 

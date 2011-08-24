@@ -77,7 +77,6 @@ module BoxGrinder
     end
 
     def execute
-
       case @type
         when :s3
           upload_to_bucket(@previous_deliverables)
@@ -98,19 +97,10 @@ module BoxGrinder
           if !ami_manifest_key.exists? or @plugin_config['snapshot']
             @log.info "Doing bundle/snapshot"
             bundle_image(@previous_deliverables)
-            fix_sha1_sum
             upload_image(ami_dir)
           end
           register_image(ami_manifest_key)
       end
-    end
-
-    # https://jira.jboss.org/browse/BGBUILD-34
-    def fix_sha1_sum
-      ami_manifest = File.open(@ami_manifest).read
-      ami_manifest.gsub!('(stdin)= ', '')
-
-      File.open(@ami_manifest, "w") { |f| f.write(ami_manifest) }
     end
 
     def upload_to_bucket(previous_deliverables, permissions = :private)
