@@ -72,9 +72,12 @@ module BoxGrinder
           "AMI region and bucket location constraint must match." unless constraint_equal?(@s3_endpoints[@plugin_config['region']][:location], existing_bucket.location_constraint)
         end
       end
+
+      @bucket = asset_bucket(true)
     end
 
     def execute
+
       case @type
         when :s3
           upload_to_bucket(@previous_deliverables)
@@ -82,14 +85,14 @@ module BoxGrinder
           upload_to_bucket(@previous_deliverables, :public_read)
         when :ami
           ami_dir = ami_key(@appliance_config.name, @plugin_config['path'])
-          ami_manifest_key = @s3helper.stub_s3obj(asset_bucket, "#{ami_dir}/#{@appliance_config.name}.ec2.manifest.xml")
+          ami_manifest_key = @s3helper.stub_s3obj(@bucket, "#{ami_dir}/#{@appliance_config.name}.ec2.manifest.xml")
 
           @log.debug "Going to check whether s3 object exists"
 
           if ami_manifest_key.exists? and @plugin_config['overwrite']
             @log.info "Object exists, attempting to deregister an existing image"
             deregister_image(ami_manifest_key) # Remove existing image
-            @s3helper.delete_folder(asset_bucket, ami_dir) # Avoid triggering dupe detection
+            @s3helper.delete_folder(@bucket, ami_dir) # Avoid triggering dupe detection
           end
 
           if !ami_manifest_key.exists? or @plugin_config['snapshot']
@@ -122,7 +125,7 @@ module BoxGrinder
 
       remote_path = "#{@s3helper.parse_path(@plugin_config['path'])}#{File.basename(@deliverables[:package])}"
       size_m = File.size(@deliverables[:package])/1024**2
-      s3_obj = @s3helper.stub_s3obj(asset_bucket,remote_path.gsub(/^\//, '').gsub(/\/\//, ''))
+      s3_obj = @s3helper.stub_s3obj(@bucket,remote_path.gsub(/^\//, '').gsub(/\/\//, ''))
       # Does it really exist?
       obj_exists = s3_obj.exists?
 
@@ -139,8 +142,8 @@ module BoxGrinder
 
     def asset_bucket(create_if_missing = true, permissions = :private)
       @s3helper.bucket(:bucket => @plugin_config['bucket'],
-        :acl => permissions,
         :create_if_missing => create_if_missing,
+        :acl => permissions,
         :location_constraint => @s3_endpoints[@plugin_config['region']][:location]
       )
     end
@@ -163,7 +166,6 @@ module BoxGrinder
     end
 
     def upload_image(ami_dir)
-      asset_bucket(true,:private) # this will create the bucket if needed
       @log.info "Uploading #{@appliance_config.name} AMI to bucket '#{@plugin_config['bucket']}'..."
 
       @exec_helper.execute("euca-upload-bundle -U #{@plugin_config['url'].nil? ? "http://#{@s3_endpoints[@plugin_config['region']][:endpoint]}" : @plugin_config['url']} -b #{@plugin_config['bucket']}/#{ami_dir} -m #{@ami_manifest} -a #{@plugin_config['access_key']} -s #{@plugin_config['secret_access_key']}", :redacted => [@plugin_config['access_key'], @plugin_config['secret_access_key']])
@@ -203,7 +205,7 @@ module BoxGrinder
 
       @log.info "Determining snapshot name"
       snapshot = 1
-      while @s3helper.stub_s3obj(asset_bucket(), "#{base_path}-SNAPSHOT-#{snapshot}/#{@appliance_config.hardware.arch}/").exists?
+      while @s3helper.stub_s3obj(@bucket, "#{base_path}-SNAPSHOT-#{snapshot}/#{@appliance_config.hardware.arch}/").exists?
         snapshot += 1
       end
       # Reuse the last key (if there was one)
@@ -214,7 +216,7 @@ module BoxGrinder
 
     #US constraint is often represented as '' or nil
     def constraint_equal?(a, b)
-      [a, b].collect!{|c| c.nil? ? '': c }
+      [a, b].collect!{|c| c.nil? ? '': c}
       a == b
     end
 
