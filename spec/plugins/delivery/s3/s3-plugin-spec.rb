@@ -317,7 +317,7 @@ module BoxGrinder
 
         it "should succeed if the bucket location constraint and region match" do
           @plugin.should_receive(:asset_bucket).and_return(@asset_bucket)
-          @asset_bucket.should_receive(:location_constraint).and_return('')
+          @asset_bucket.should_receive(:location_constraint).and_return(nil)
 
           @plugin.validate
         end

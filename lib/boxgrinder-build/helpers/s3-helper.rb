@@ -107,7 +107,7 @@ module BoxGrinder
 
       'us-east-1' => {
         :endpoint => 's3.amazonaws.com',
-        :location => '',
+        :location => nil,
         :kernel => {
           :i386 => {:aki => 'aki-407d9529'},
           :x86_64 => {:aki => 'aki-427d952b'}
