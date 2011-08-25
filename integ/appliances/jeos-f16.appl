@@ -1,0 +1,5 @@
+name: jeos-f16
+os:
+  name: fedora
+  version: 16
+
