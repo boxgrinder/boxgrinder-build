@@ -74,7 +74,7 @@ module BoxGrinder
       ebs_appliance_description = "#{@appliance_config.summary} | Appliance version #{@appliance_config.version}.#{@appliance_config.release} | #{@appliance_config.hardware.arch} architecture"
 
       @log.debug "Checking if appliance is already registered..."
-      ami = @ec2helper.ami_by_name(ebs_appliance_name)
+      ami = ami_by_name(ebs_appliance_name)
 
       if ami and @plugin_config['overwrite']
         @log.info "Overwrite is enabled. Stomping existing assets."
