@@ -137,6 +137,7 @@ popd
 - [BGBUILD-297] Cannot create EBS appliances when using overwrite parameter
 - [BGBUILD-280] Add support for GRUB2
 - [BGBUILD-279] Add support for Fedora 16
+- [BGBUILD-293] Check certificate and key paths are valid before building AMIs
 
 * Fri Aug 12 2011 Marc Savy <msavy@redhat.com> - 0.9.4-1
 - Upstream release: 0.9.4

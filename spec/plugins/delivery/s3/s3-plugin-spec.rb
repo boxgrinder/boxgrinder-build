@@ -269,10 +269,40 @@ module BoxGrinder
           @plugin.should_receive(:validate_plugin_config).with(['bucket', 'access_key', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
           @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
 
+          File.should_receive(:exists?).with('/path/to/cert/file').and_return(true)
+          File.should_receive(:exists?).with('/path/to/key/file').and_return(true)
+
           @plugin.should_receive(:asset_bucket).with(false).and_return(nil)
           @plugin.should_receive(:asset_bucket).with(true).and_return(@bucket)
 
           @plugin.validate
+        end
+
+        it "should raise because key file doesn't exists" do
+          @plugin.instance_variable_set(:@type, :ami)
+
+          @plugin.should_receive(:set_default_config_value).with('snapshot', false)
+
+          @plugin.should_receive(:validate_plugin_config).with(['bucket', 'access_key', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
+          @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
+
+          File.should_receive(:exists?).with('/path/to/cert/file').and_return(true)
+          File.should_receive(:exists?).with('/path/to/key/file').and_return(false)
+
+          lambda { @plugin.validate }.should raise_error(PluginValidationError, "AWS key file doesn't exists, please check the path: '/path/to/key/file'.")
+        end
+
+        it "should raise because key file doesn't exists" do
+          @plugin.instance_variable_set(:@type, :ami)
+
+          @plugin.should_receive(:set_default_config_value).with('snapshot', false)
+
+          @plugin.should_receive(:validate_plugin_config).with(['bucket', 'access_key', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
+          @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
+
+          File.should_receive(:exists?).with('/path/to/cert/file').and_return(false)
+
+          lambda { @plugin.validate }.should raise_error(PluginValidationError, "AWS certificate file doesn't exists, please check the path: '/path/to/cert/file'.")
         end
 
         it "should raise an error if an invalid region is specified" do
@@ -285,7 +315,10 @@ module BoxGrinder
           @plugin.should_receive(:validate_plugin_config).with(['bucket', 'access_key', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
           @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
 
-          lambda { @plugin.validate }.should raise_error(PluginValidationError)
+          File.should_receive(:exists?).with('/path/to/cert/file').and_return(true)
+          File.should_receive(:exists?).with('/path/to/key/file').and_return(true)
+
+          lambda { @plugin.validate }.should raise_error(PluginValidationError, "Invalid region specified: near-spain-1. This plugin is only aware of the following regions: us-west-1, ap-southeast-1, eu-west-1, us-east-1, ap-northeast-1.")
         end
       end
 
@@ -294,6 +327,9 @@ module BoxGrinder
         before(:each) do
           @plugin.instance_variable_set(:@type, :ami)
           @plugin.stub!(:set_default_config_value)
+
+          File.should_receive(:exists?).with('/path/to/cert/file').and_return(true)
+          File.should_receive(:exists?).with('/path/to/key/file').and_return(true)
 
           @plugin.should_receive(:validate_plugin_config).with(['bucket', 'access_key', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
           @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
@@ -310,7 +346,7 @@ module BoxGrinder
           @plugin.should_receive(:asset_bucket).and_return(@bucket)
           @bucket.should_receive(:location_constraint).and_return('eu-west-1')
 
-          lambda { @plugin.validate }.should raise_error(PluginValidationError)
+          lambda { @plugin.validate }.should raise_error(PluginValidationError, "Existing bucket bucket has a location constraint that does not match the region selected. AMI region and bucket location constraint must match.")
         end
 
       end

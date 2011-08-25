@@ -45,10 +45,14 @@ module BoxGrinder
       subtype(:ami) do
         set_default_config_value('snapshot', false)
         validate_plugin_config(['cert_file', 'key_file', 'account_number'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
+
+
+        raise PluginValidationError, "AWS certificate file doesn't exists, please check the path: '#{@plugin_config['cert_file']}'." unless File.exists?(@plugin_config['cert_file'])
+        raise PluginValidationError, "AWS key file doesn't exists, please check the path: '#{@plugin_config['key_file']}'." unless File.exists?(@plugin_config['key_file'])
       end
 
       @s3_endpoints = S3Helper::endpoints
-      raise PluginValidationError, "Invalid region specified: #{@plugin_config['region']}. This plugin is only aware of the following regions: #{@s3_endpoints.keys.join(", ")}" unless @s3_endpoints.has_key?(@plugin_config['region'])
+      raise PluginValidationError, "Invalid region specified: #{@plugin_config['region']}. This plugin is only aware of the following regions: #{@s3_endpoints.keys.join(", ")}." unless @s3_endpoints.has_key?(@plugin_config['region'])
 
       @plugin_config['account_number'] = @plugin_config['account_number'].to_s.gsub(/-/, '')
 

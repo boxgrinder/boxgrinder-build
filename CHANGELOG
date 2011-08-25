@@ -5,6 +5,7 @@ v0.9.5
 * [BGBUILD-297] Cannot create EBS appliances when using overwrite parameter
 * [BGBUILD-280] Add support for GRUB2
 * [BGBUILD-279] Add support for Fedora 16
+* [BGBUILD-293] Check certificate and key paths are valid before building AMIs
 
 v0.9.4
 
