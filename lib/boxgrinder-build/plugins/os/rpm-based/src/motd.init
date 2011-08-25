@@ -6,7 +6,8 @@
 # description: Prepares /etc/motd file
 #
 ### BEGIN INIT INFO
-# Provides: ec2
+# Provides: motd
+# Required-Start: network
 # Default-Start: 2345
 # Default-Stop: 0 1 6
 # Short-Description: Prepares /etc/motd file
@@ -14,7 +15,7 @@
 ### END INIT INFO
 
 HOSTNAME=`/bin/uname -a | awk '{print $2}'`
-IP_ADDRESS=`ip addr list eth0 | grep "inet " | cut -d' ' -f6 | cut -d/ -f1` | head -1
+IP_ADDRESS=`ip addr list eth0 | grep "inet " | cut -d' ' -f6 | cut -d/ -f1 | head -1`
 
 echo -e "\nAppliance:\t#APPLIANCE# #VERSION#\nHostname:\t$HOSTNAME\nIP Address:\t$IP_ADDRESS\n" > /etc/motd
 
