@@ -82,7 +82,7 @@ module BoxGrinder
       supportes_oses['centos'].should == ['5']
       supportes_oses['rhel'].should == ['5', '6']
       supportes_oses['sl'].should == ['5', '6']
-      supportes_oses['fedora'].should == ['13', '14', '15']
+      supportes_oses['fedora'].should == ['13', '14', '15', '16']
     end
 
     describe ".ami_key" do

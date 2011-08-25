@@ -25,7 +25,7 @@ module BoxGrinder
     def after_init
       register_deliverable(:disk => "#{@appliance_config.name}.ec2")
 
-      register_supported_os('fedora', ['13', '14', '15'])
+      register_supported_os('fedora', ['13', '14', '15', '16'])
       register_supported_os('centos', ['5'])
       register_supported_os('sl', ['5', '6'])
       register_supported_os('rhel', ['5', '6'])
@@ -173,6 +173,13 @@ module BoxGrinder
       guestfs.upload(rc_local.path, "/etc/rc.local")
 
       rc_local.close
+
+      # We need to make sure that network is available when executing rc.local
+      if (@appliance_config.os.name == 'fedora' and @appliance_config.os.version >= '16')
+        guestfs.cp("/lib/systemd/system/rc-local.service", "/etc/systemd/system/")
+        guestfs.sh("sed -i '/^ConditionFileIsExecutable/a After=network.target' /etc/systemd/system/rc-local.service")
+      end
+
       @log.debug "'/etc/rc.local' file uploaded."
     end
 

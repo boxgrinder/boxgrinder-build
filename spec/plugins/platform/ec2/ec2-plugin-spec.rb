@@ -122,6 +122,31 @@ module BoxGrinder
       @plugin.upload_rc_local(guestfs)
     end
 
+    it "should upload rc_local for Fedora 16 or newer" do
+      @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '16'}))
+
+      guestfs = mock("guestfs")
+      tempfile = mock("tempfile")
+
+      Tempfile.should_receive(:new).with("rc_local").and_return(tempfile)
+      File.should_receive(:read).with(any_args()).and_return("with other content")
+
+      guestfs.should_receive(:read_file).once.ordered.with("/etc/rc.local").and_return("content ")
+      tempfile.should_receive(:<<).once.ordered.with("content with other content")
+      tempfile.should_receive(:flush).once.ordered
+      tempfile.should_receive(:path).once.ordered.and_return("path")
+      guestfs.should_receive(:upload).once.ordered.with("path", "/etc/rc.local")
+      tempfile.should_receive(:close).once.ordered
+
+      @log.should_receive(:debug).once.with("Uploading '/etc/rc.local' file...")
+      @log.should_receive(:debug).once.with("'/etc/rc.local' file uploaded.")
+
+      guestfs.should_receive(:cp).with("/lib/systemd/system/rc-local.service", "/etc/systemd/system/")
+      guestfs.should_receive(:sh).with("sed -i '/^ConditionFileIsExecutable/a After=network.target' /etc/systemd/system/rc-local.service")
+
+      @plugin.upload_rc_local(guestfs)
+    end
+
     it "should change configuration" do
       guestfs_helper = mock("GuestFSHelper")
 

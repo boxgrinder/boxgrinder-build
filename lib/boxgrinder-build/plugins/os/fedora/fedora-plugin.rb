@@ -78,8 +78,8 @@ module BoxGrinder
       @log.debug "Switching to GRUB2..."
       guestfs_helper.sh("yum -y remove grub")
       # We are using only one disk, so this is save
-      guestfs.sh("grub2-install --force #{guestfs.list_devices.first}")
-      guestfs.sh("grub2-mkconfig -o /boot/grub2/grub.cfg")
+      guestfs.sh("cd / && grub2-install --force #{guestfs.list_devices.first}")
+      guestfs.sh("cd / && grub2-mkconfig -o /boot/grub2/grub.cfg")
       @log.debug "Using GRUB2 from now."
     end
 
