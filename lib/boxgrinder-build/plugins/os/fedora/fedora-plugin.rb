@@ -22,7 +22,7 @@ module BoxGrinder
   class FedoraPlugin < RPMBasedOSPlugin
     def after_init
       super
-      register_supported_os('fedora', ["13", "14", "15", "rawhide"])
+      register_supported_os('fedora', ["13", "14", "15", "16", "rawhide"])
       set_default_config_value('PAE',true)
     end
 
@@ -42,7 +42,16 @@ module BoxGrinder
         end
       end
 
-      build_with_appliance_creator(appliance_definition_file, @repos)
+      build_with_appliance_creator(appliance_definition_file, @repos) do |guestfs, guestfs_helper|
+        if @appliance_config.os.version >= "15"
+          disable_biosdevname(guestfs)
+          change_runlevel(guestfs)
+          disable_netfs(guestfs)
+          link_mtab(guestfs)
+        end
+
+        switch_to_grub2(guestfs, guestfs_helper) if @appliance_config.os.version >= "16"
+      end
     end
 
     def normalize_packages(packages)
@@ -60,7 +69,49 @@ module BoxGrinder
         @plugin_config['PAE'] ? packages << "kernel-PAE" : packages << "kernel"
       end
     end
+
+    # Since Fedora 16 by default GRUB2 is used - we remove Legacy GRUB
+    # and use GRUB2 instead
+    #
+    # https://issues.jboss.org/browse/BGBUILD-280
+    def switch_to_grub2(guestfs, guestfs_helper)
+      @log.debug "Switching to GRUB2..."
+      guestfs_helper.sh("yum -y remove grub")
+      # We are using only one disk, so this is save
+      guestfs.sh("grub2-install --force #{guestfs.list_devices.first}")
+      guestfs.sh("grub2-mkconfig -o /boot/grub2/grub.cfg")
+      @log.debug "Using GRUB2 from now."
+    end
+
+    def disable_biosdevname(guestfs)
+      @log.debug "Disabling biosdevname..."
+      guestfs.write("/etc/default/grub", "GRUB_CMDLINE_LINUX=\"quiet rhgb biosdevname=0\"\n") if guestfs.exists("/boot/grub2/grub.cfg") != 0
+      guestfs.sh('sed -i "s/kernel\(.*\)/kernel\1 biosdevname=0/g" /boot/grub/grub.conf') if guestfs.exists("/boot/grub/grub.cfg") != 0
+      @log.debug "Biosdevname disabled."
+    end
+
+    # https://issues.jboss.org/browse/BGBUILD-204
+    def change_runlevel(guestfs)
+      @log.debug "Changing runlevel to multi-user non-graphical..."
+      guestfs.rm("/etc/systemd/system/default.target")
+      guestfs.ln_sf("/lib/systemd/system/multi-user.target", "/etc/systemd/system/default.target")
+      @log.debug "Runlevel changed."
+    end
+
+    # https://issues.jboss.org/browse/BGBUILD-204
+    def disable_netfs(guestfs)
+      @log.debug "Disabling network filesystem mounting..."
+      guestfs.sh("chkconfig netfs off")
+      @log.debug "Network filesystem mounting disabled."
+    end
+    
+    # https://issues.jboss.org/browse/BGBUILD-209
+    def link_mtab(guestfs)
+      @log.debug "Linking /etc/mtab to /proc/self/mounts..."
+      guestfs.ln_sf("/proc/self/mounts", "/etc/mtab")
+      @log.debug "/etc/mtab linked."
+    end
   end
 end
 
-plugin :class => BoxGrinder::FedoraPlugin, :type => :os, :name => :fedora, :full_name => "Fedora", :versions => ["13", "14", "15", "rawhide"]
+plugin :class => BoxGrinder::FedoraPlugin, :type => :os, :name => :fedora, :full_name => "Fedora", :versions => ["13", "14", "15", "16", "rawhide"]

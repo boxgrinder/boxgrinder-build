@@ -246,10 +246,6 @@ module BoxGrinder
         @plugin.should_receive(:add_repos).ordered.with({})
 
         do_build do |guestfs, guestfs_helper|
-          @plugin.should_receive(:disable_biosdevname).ordered.with(guestfs)
-          @plugin.should_receive(:change_runlevel).ordered.with(guestfs)
-          @plugin.should_receive(:disable_netfs).ordered.with(guestfs)
-          @plugin.should_receive(:link_mtab).ordered.with(guestfs)
           @plugin.should_receive(:recreate_rpm_database).ordered.with(guestfs, guestfs_helper)
           @plugin.should_receive(:execute_post).ordered.with(guestfs_helper)
         end
@@ -344,32 +340,6 @@ module BoxGrinder
 
         @plugin.recreate_rpm_database(guestfs, guestfs_helper)
       end
-    end
-
-    context "BGBUILD-204" do
-      it "should disable bios device name hints" do
-        guestfs = mock("GuestFS")
-        guestfs.should_receive(:sh).with("sed -i \"s/kernel\\(.*\\)/kernel\\1 biosdevname=0/g\" /boot/grub/grub.conf")
-        @plugin.disable_biosdevname(guestfs)
-      end
-
-      it "should change to runlevel 3 by default" do
-        guestfs = mock("GuestFS")
-        guestfs.should_receive(:rm).with("/etc/systemd/system/default.target")
-        guestfs.should_receive(:ln_sf).with("/lib/systemd/system/multi-user.target", "/etc/systemd/system/default.target")
-        @plugin.change_runlevel(guestfs)
-      end
-
-      it "should disable netfs" do
-        guestfs = mock("GuestFS")
-        guestfs.should_receive(:sh).with("chkconfig netfs off")
-        @plugin.disable_netfs(guestfs)
-      end
-    end
-    it "should link /etc/mtab to /proc/self/mounts" do
-      guestfs = mock("GuestFS")
-      guestfs.should_receive(:ln_sf).with("/proc/self/mounts", "/etc/mtab")
-      @plugin.link_mtab(guestfs)
     end
   end
 end

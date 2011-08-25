@@ -135,6 +135,8 @@ popd
 - [BGBUILD-294] Package aws-sdk 1.1.1 and update dependency
 - [BGBUILD-277] When delivering as AMI, the EC2 region should match S3 bucket's region (location constraint)
 - [BGBUILD-297] Cannot create EBS appliances when using overwrite parameter
+- [BGBUILD-280] Add support for GRUB2
+- [BGBUILD-279] Add support for Fedora 16
 
 * Fri Aug 12 2011 Marc Savy <msavy@redhat.com> - 0.9.4-1
 - Upstream release: 0.9.4

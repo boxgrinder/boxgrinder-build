@@ -142,13 +142,6 @@ module BoxGrinder
         set_motd(guestfs)
         install_repos(guestfs)
 
-        if @appliance_config.os.name == 'fedora' and @appliance_config.os.version == '15'
-          disable_biosdevname(guestfs)
-          change_runlevel(guestfs)
-          disable_netfs(guestfs)
-          link_mtab(guestfs)
-        end
-
         guestfs.sh("chkconfig firstboot off") if guestfs.exists('/etc/init.d/firstboot') != 0
 
         # https://issues.jboss.org/browse/BGBUILD-148
@@ -181,35 +174,6 @@ module BoxGrinder
       else
         @log.debug "No commands specified, skipping."
       end
-    end
-
-    # https://issues.jboss.org/browse/BGBUILD-204
-    def disable_biosdevname(guestfs)
-      @log.debug "Disabling biosdevname for Fedora 15..."
-      guestfs.sh('sed -i "s/kernel\(.*\)/kernel\1 biosdevname=0/g" /boot/grub/grub.conf')
-      @log.debug "Biosdevname disabled."
-    end
-
-    # https://issues.jboss.org/browse/BGBUILD-204
-    def change_runlevel(guestfs)
-      @log.debug "Changing runlevel to multi-user non-graphical..."
-      guestfs.rm("/etc/systemd/system/default.target")
-      guestfs.ln_sf("/lib/systemd/system/multi-user.target", "/etc/systemd/system/default.target")
-      @log.debug "Runlevel changed."
-    end
-
-    # https://issues.jboss.org/browse/BGBUILD-204
-    def disable_netfs(guestfs)
-      @log.debug "Disabling network filesystem mounting..."
-      guestfs.sh("chkconfig netfs off")
-      @log.debug "Network filesystem mounting disabled."
-    end
-
-    # https://issues.jboss.org/browse/BGBUILD-209
-    def link_mtab(guestfs)
-      @log.debug "Linking /etc/mtab to /proc/self/mounts for Fedora 15..."
-      guestfs.ln_sf("/proc/self/mounts", "/etc/mtab")
-      @log.debug "/etc/mtab linked."
     end
 
     # https://issues.jboss.org/browse/BGBUILD-148
