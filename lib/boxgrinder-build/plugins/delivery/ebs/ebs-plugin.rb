@@ -172,8 +172,6 @@ module BoxGrinder
       @ec2helper.ami_by_name(name, @plugin_config['account_number'])
     end
 
-    alias :already_registered? :ami_by_name
-
     def terminate_instances(instances)
       instances.map(&:terminate)
       instances.each do |i|
@@ -213,7 +211,7 @@ module BoxGrinder
 
       snapshot = 1
 
-      while @ec2helper.already_registered?("#{base_path}-SNAPSHOT-#{snapshot}/#{@appliance_config.hardware.arch}")
+      while ami_by_name("#{base_path}-SNAPSHOT-#{snapshot}/#{@appliance_config.hardware.arch}")
         snapshot += 1
       end
       # Reuse the last key (if there was one)

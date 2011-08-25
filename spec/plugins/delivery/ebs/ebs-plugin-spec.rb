@@ -89,7 +89,7 @@ module BoxGrinder
       supported_oses['fedora'].should == ['13', '14', '15']
       supported_oses['centos'].should == ['5']
     end
-    #
+
     it "should adjust fstab" do
       prepare_plugin { |plugin| plugin.stub!(:after_init) }
 
@@ -99,7 +99,6 @@ module BoxGrinder
 
       @plugin.adjust_fstab(guestfs)
     end
-    #
 
     describe '.free_device_suffix' do
       it "should get a new free device" do
@@ -110,7 +109,7 @@ module BoxGrinder
 
         @plugin.free_device_suffix.should == "f"
       end
-      #
+      
       it "should get a new free device next in order" do
         prepare_plugin { |plugin| plugin.stub!(:after_init) }
 
@@ -122,7 +121,7 @@ module BoxGrinder
         @plugin.free_device_suffix.should == "g"
       end
     end
-    #
+    
     describe ".valid_platform?" do
       it "should return true if on EC2" do
         prepare_plugin do |plugin|
@@ -133,7 +132,7 @@ module BoxGrinder
         end
         @plugin.valid_platform?.should == true
       end
-    #
+      
       it "should return false if NOT on EC2" do
         prepare_plugin do |plugin|
           plugin.stub!(:after_init)
@@ -142,53 +141,51 @@ module BoxGrinder
         end
         @plugin.valid_platform?.should == false
       end
-    #
     end
-    #
+   
     describe ".ebs_appliance_name" do
       it "should return basic appliance name" do
         prepare_plugin { |plugin| plugin.stub!(:after_init) }
         @plugin.ebs_appliance_name.should == "appliance_name/fedora/14/1.0/x86_64"
       end
-    #
+      
       it "should always return basic appliance name when overwrite is enabled, but snapshot is disabled" do
         prepare_plugin { |plugin| plugin.stub!(:after_init) }
         @plugin_config.merge!('overwrite' => true, 'snapshot' => false)
         @plugin.ebs_appliance_name.should == "appliance_name/fedora/14/1.0/x86_64"
       end
-    #
+      
       it "should still return a valid _initial_ snapshot appliance name, even if overwrite and snapshot are enabled on first ever run" do
         prepare_plugin { |plugin| plugin.stub!(:after_init) }
         @plugin_config.merge!('overwrite' => true, 'snapshot' => true)
 
-        @ec2helper.should_receive(:already_registered?).with("appliance_name/fedora/14/1.0-SNAPSHOT-1/x86_64")
+        @plugin.should_receive(:ami_by_name).with("appliance_name/fedora/14/1.0-SNAPSHOT-1/x86_64")
         @plugin.ebs_appliance_name.should == "appliance_name/fedora/14/1.0-SNAPSHOT-1/x86_64"
       end
-    #
+      
       it "should return 2nd snapshot of appliance" do
         prepare_plugin { |plugin| plugin.stub!(:after_init) }
 
         @plugin_config.merge!('snapshot' => true)
 
-        @ec2helper.should_receive(:already_registered?).with("appliance_name/fedora/14/1.0-SNAPSHOT-1/x86_64").and_return(true)
-        @ec2helper.should_receive(:already_registered?).with("appliance_name/fedora/14/1.0-SNAPSHOT-2/x86_64").and_return(false)
+        @plugin.should_receive(:ami_by_name).with("appliance_name/fedora/14/1.0-SNAPSHOT-1/x86_64").and_return("blah")
+        @plugin.should_receive(:ami_by_name).with("appliance_name/fedora/14/1.0-SNAPSHOT-2/x86_64").and_return(nil)
 
         @plugin.ebs_appliance_name.should == "appliance_name/fedora/14/1.0-SNAPSHOT-2/x86_64"
       end
-    #
+      
       it "should return the last snapshot name again when OVERWRITE is enabled" do
         prepare_plugin { |plugin| plugin.stub!(:after_init) }
 
         @plugin_config.merge!('snapshot' => true, 'overwrite' => true)
 
-        @ec2helper.should_receive(:already_registered?).with("appliance_name/fedora/14/1.0-SNAPSHOT-1/x86_64").and_return(true)
-        @ec2helper.should_receive(:already_registered?).with("appliance_name/fedora/14/1.0-SNAPSHOT-2/x86_64").and_return(false)
+        @plugin.should_receive(:ami_by_name).with("appliance_name/fedora/14/1.0-SNAPSHOT-1/x86_64").and_return("blah")
+        @plugin.should_receive(:ami_by_name).with("appliance_name/fedora/14/1.0-SNAPSHOT-2/x86_64").and_return(nil)
 
         @plugin.ebs_appliance_name.should == "appliance_name/fedora/14/1.0-SNAPSHOT-1/x86_64"
       end
-    #
-    end
-    #
+   end 
+    
     describe ".stomp_ebs" do
       before(:each) do
         prepare_plugin
