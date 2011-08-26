@@ -19,6 +19,7 @@ integ/appliances/_repos_testlocal_ephemeral_noarch.appl
 integ/appliances/_test_base.appl
 integ/appliances/gnome-fedora.appl
 integ/appliances/jeos-centos.appl
+integ/appliances/jeos-f16.appl
 integ/appliances/jeos-fedora.appl
 integ/appliances/modular.appl
 integ/packages/ephemeral-repo-test-0.1-1.noarch.rpm

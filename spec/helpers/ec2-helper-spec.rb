@@ -30,7 +30,7 @@ module BoxGrinder
       AWS.stub!
       AWS.config({:access_key_id => '', :secret_access_key => ''})
       @ec2 = AWS::EC2.new()
-      @ec2helper = EC2Helper.new(@ec2)
+      @ec2helper = EC2Helper.new(@ec2, :log => LogHelper.new(:level => :trace, :type => :stdout))
       @ami = mock(AWS::EC2::Image)
       @instance = mock(AWS::EC2::Instance)
       @snapshot = mock(AWS::EC2::Snapshot)

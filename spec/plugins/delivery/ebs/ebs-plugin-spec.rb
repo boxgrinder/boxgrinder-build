@@ -63,8 +63,8 @@ module BoxGrinder
       AWS.config({:access_key_id => '', :secret_access_key => ''})
       @ec2 = AWS::EC2.new
       @s3 = AWS::S3.new
-      @s3helper = S3Helper.new(@ec2, @s3)
-      @ec2helper = EC2Helper.new(@ec2)
+      @s3helper = S3Helper.new(@ec2, @s3, :log => LogHelper.new(:level => :trace, :type => :stdout))
+      @ec2helper = EC2Helper.new(@ec2, :log => LogHelper.new(:level => :trace, :type => :stdout))
 
       @plugin.instance_variable_set(:@ec2, @ec2)
       @plugin.instance_variable_set(:@s3, @s3)
