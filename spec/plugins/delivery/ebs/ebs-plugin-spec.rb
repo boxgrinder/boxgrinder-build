@@ -60,9 +60,8 @@ module BoxGrinder
       )
 
       #Set convenient dummies
-      AWS.config({:access_key_id => '', :secret_access_key => ''})
-      @ec2 = AWS::EC2.new
-      @s3 = AWS::S3.new
+      @ec2 = mock(AWS::EC2)
+      @s3 = mock(AWS::S3)
       @s3helper = S3Helper.new(@ec2, @s3, :log => LogHelper.new(:level => :trace, :type => :stdout))
       @ec2helper = EC2Helper.new(@ec2, :log => LogHelper.new(:level => :trace, :type => :stdout))
 
