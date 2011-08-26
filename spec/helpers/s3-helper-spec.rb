@@ -25,10 +25,9 @@ module BoxGrinder
   describe S3Helper do
 
     before(:each) do
-      AWS.stub!
-      AWS.config({:access_key_id => '', :secret_access_key => ''})
-      @ec2 = AWS::EC2.new
-      @s3 = AWS::S3.new
+      AWS::stub!
+      @ec2 = mock(AWS::EC2)
+      @s3 = mock(AWS::S3)
       @s3helper = S3Helper.new(@ec2, @s3, :log => LogHelper.new(:level => :trace, :type => :stdout))
       @s3obj = mock(AWS::S3::S3Object)
       @bucket = mock(AWS::S3::Bucket)

@@ -27,9 +27,8 @@ module BoxGrinder
     FAST_TO   = 1
 
     before(:each) do
-      AWS.stub!
-      AWS.config({:access_key_id => '', :secret_access_key => ''})
-      @ec2 = AWS::EC2.new()
+      AWS::stub!
+      @ec2 = mock(AWS::EC2)
       @ec2helper = EC2Helper.new(@ec2, :log => LogHelper.new(:level => :trace, :type => :stdout))
       @ami = mock(AWS::EC2::Image)
       @instance = mock(AWS::EC2::Instance)
