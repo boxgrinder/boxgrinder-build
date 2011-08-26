@@ -269,8 +269,12 @@ module BoxGrinder
           @plugin.should_receive(:validate_plugin_config).with(['bucket', 'access_key', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
           @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
 
-          File.should_receive(:exists?).with('/path/to/cert/file').and_return(true)
-          File.should_receive(:exists?).with('/path/to/key/file').and_return(true)
+          File.stub!(:expand_path)
+          File.stub!(:exists?)
+          File.should_receive(:expand_path).with('/path/to/cert/file').and_return('path1')
+          File.should_receive(:exists?).with('path1').and_return(true)
+          File.should_receive(:expand_path).with('/path/to/key/file').and_return('path2')
+          File.should_receive(:exists?).with('path2').and_return(true)
 
           @plugin.should_receive(:asset_bucket).with(false).and_return(nil)
           @plugin.should_receive(:asset_bucket).with(true).and_return(@bucket)
@@ -286,8 +290,12 @@ module BoxGrinder
           @plugin.should_receive(:validate_plugin_config).with(['bucket', 'access_key', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
           @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
 
-          File.should_receive(:exists?).with('/path/to/cert/file').and_return(true)
-          File.should_receive(:exists?).with('/path/to/key/file').and_return(false)
+          File.stub!(:expand_path)
+          File.stub!(:exists?)
+          File.should_receive(:expand_path).with('/path/to/cert/file').and_return('path1')
+          File.should_receive(:exists?).with('path1').and_return(true)
+          File.should_receive(:expand_path).with('/path/to/key/file').and_return('path2')
+          File.should_receive(:exists?).with('path2').and_return(false)
 
           lambda { @plugin.validate }.should raise_error(PluginValidationError, "AWS key file doesn't exists, please check the path: '/path/to/key/file'.")
         end
@@ -300,7 +308,10 @@ module BoxGrinder
           @plugin.should_receive(:validate_plugin_config).with(['bucket', 'access_key', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
           @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
 
-          File.should_receive(:exists?).with('/path/to/cert/file').and_return(false)
+          File.stub!(:expand_path)
+          File.stub!(:exists?)
+          File.should_receive(:expand_path).with('/path/to/cert/file').and_return('path1')
+          File.should_receive(:exists?).with('path1').and_return(false)
 
           lambda { @plugin.validate }.should raise_error(PluginValidationError, "AWS certificate file doesn't exists, please check the path: '/path/to/cert/file'.")
         end
@@ -315,8 +326,12 @@ module BoxGrinder
           @plugin.should_receive(:validate_plugin_config).with(['bucket', 'access_key', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
           @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
 
-          File.should_receive(:exists?).with('/path/to/cert/file').and_return(true)
-          File.should_receive(:exists?).with('/path/to/key/file').and_return(true)
+          File.stub!(:expand_path)
+          File.stub!(:exists?)
+          File.should_receive(:expand_path).with('/path/to/cert/file').and_return('path1')
+          File.should_receive(:exists?).with('path1').and_return(true)
+          File.should_receive(:expand_path).with('/path/to/key/file').and_return('path2')
+          File.should_receive(:exists?).with('path2').and_return(true)
 
           lambda { @plugin.validate }.should raise_error(PluginValidationError, "Invalid region specified: near-spain-1. This plugin is only aware of the following regions: us-west-1, ap-southeast-1, eu-west-1, us-east-1, ap-northeast-1.")
         end
@@ -328,8 +343,12 @@ module BoxGrinder
           @plugin.instance_variable_set(:@type, :ami)
           @plugin.stub!(:set_default_config_value)
 
-          File.should_receive(:exists?).with('/path/to/cert/file').and_return(true)
-          File.should_receive(:exists?).with('/path/to/key/file').and_return(true)
+          File.stub!(:expand_path)
+          File.stub!(:exists?)
+          File.should_receive(:expand_path).with('/path/to/cert/file').and_return('path1')
+          File.should_receive(:exists?).with('path1').and_return(true)
+          File.should_receive(:expand_path).with('/path/to/key/file').and_return('path2')
+          File.should_receive(:exists?).with('path2').and_return(true)
 
           @plugin.should_receive(:validate_plugin_config).with(['bucket', 'access_key', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
           @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")

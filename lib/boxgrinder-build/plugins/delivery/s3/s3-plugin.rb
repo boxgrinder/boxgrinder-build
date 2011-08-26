@@ -46,9 +46,8 @@ module BoxGrinder
         set_default_config_value('snapshot', false)
         validate_plugin_config(['cert_file', 'key_file', 'account_number'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
 
-
-        raise PluginValidationError, "AWS certificate file doesn't exists, please check the path: '#{@plugin_config['cert_file']}'." unless File.exists?(@plugin_config['cert_file'])
-        raise PluginValidationError, "AWS key file doesn't exists, please check the path: '#{@plugin_config['key_file']}'." unless File.exists?(@plugin_config['key_file'])
+        raise PluginValidationError, "AWS certificate file doesn't exists, please check the path: '#{@plugin_config['cert_file']}'." unless File.exists?(File.expand_path(@plugin_config['cert_file']))
+        raise PluginValidationError, "AWS key file doesn't exists, please check the path: '#{@plugin_config['key_file']}'." unless File.exists?(File.expand_path(@plugin_config['key_file']))
       end
 
       @s3_endpoints = S3Helper::endpoints
