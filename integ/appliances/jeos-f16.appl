@@ -2,4 +2,8 @@ name: jeos-f16
 os:
   name: fedora
   version: 16
+repos:
+  - name: "temp-fedora-updates-testing"
+    mirrorlist: "https://mirrors.fedoraproject.org/metalink?repo=updates-testing-f#OS_VERSION#&arch=#BASE_ARCH#"
+    ephemeral: true
 
