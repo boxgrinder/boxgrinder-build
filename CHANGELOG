@@ -1,3 +1,7 @@
+v0.9.5.2
+
+* More mocking in specs preventing remote calls - now for real
+
 v0.9.5.1
 
 * More mocking in specs preventing remote calls
