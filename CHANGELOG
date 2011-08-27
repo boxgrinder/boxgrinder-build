@@ -1,3 +1,7 @@
+v0.9.5.1
+
+* More mocking in specs preventing remote calls
+
 v0.9.5
 
 * [BGBUILD-294] Package aws-sdk 1.1.1 and update dependency

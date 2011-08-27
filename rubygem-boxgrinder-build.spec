@@ -5,7 +5,7 @@
 
 Summary: A tool for creating appliances from simple plain text files
 Name: rubygem-%{gemname}
-Version: 0.9.5
+Version: 0.9.5.1
 Release: 1%{?dist}
 Group: Development/Languages
 License: LGPLv3+
@@ -130,8 +130,12 @@ popd
 %{gemdir}/doc/%{gemname}-%{version}
 
 %changelog
+* Sat Aug 27 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.5.1-1
+- Upstream release: 0.9.5.1
+- More mocking in specs preventing remote calls
+
 * Thu Aug 23 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.5-1
-- Upstream release: 0.9.
+- Upstream release: 0.9.5
 - [BGBUILD-294] Package aws-sdk 1.1.1 and update dependency
 - [BGBUILD-277] When delivering as AMI, the EC2 region should match S3 bucket's region (location constraint)
 - [BGBUILD-297] Cannot create EBS appliances when using overwrite parameter
