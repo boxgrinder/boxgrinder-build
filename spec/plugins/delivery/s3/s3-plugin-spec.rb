@@ -50,7 +50,7 @@ module BoxGrinder
       @appliance_config.stub!(:hardware).and_return(OpenCascade.new({:arch => 'x86_64', :base_arch => 'x86_64'}))
 
       @plugin = S3Plugin.new
-      @plugin.stub!(:validate)
+      @plugin.stub!(:asset_bucket)
       @plugin.init(@config, @appliance_config, {:class => BoxGrinder::S3Plugin, :type => :delivery, :name => :s3, :full_name => "Amazon Simple Storage Service (Amazon S3)", :types => [:s3, :cloudfront, :ami]}, :log => LogHelper.new(:level => :trace, :type => :stdout), :type => :s3)
 
       #Set convenient dummies
@@ -65,7 +65,6 @@ module BoxGrinder
       @plugin.instance_variable_set(:@ec2helper, @ec2helper)
       @plugin.instance_variable_set(:@s3helper, @s3helper)
       @plugin.instance_variable_set(:@bucket, @bucket)
-
 
       @appliance_config = @plugin.instance_variable_get(:@appliance_config)
       @exec_helper = @plugin.instance_variable_get(:@exec_helper)
@@ -241,7 +240,6 @@ module BoxGrinder
 
     describe ".validate" do
       before(:each) do
-        @plugin.unstub!(:validate)
         @plugin.stub!(:asset_bucket).and_return(nil)
         @plugin.stub!(:asset_bucket).and_return(@bucket)
       end
@@ -371,6 +369,10 @@ module BoxGrinder
     end
 
     describe ".bucket" do
+      before(:each) do
+        @plugin.unstub!(:asset_bucket)
+      end
+
       it "should create the asset bucket by default" do
         @config.plugins['s3'].merge!('region' => 'ap-southeast-1')
 
