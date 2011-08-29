@@ -126,6 +126,15 @@ module BoxGrinder
       @plugin.link_mtab(guestfs)
     end
 
+    it "should replace GRUB legacy with GRUB2" do
+      guestfs = mock("GuestFS")
+      guestfs_helper = mock("GuestFSHelper")
+      guestfs_helper.should_receive(:sh).ordered.with("yum -y remove grub")
+      guestfs.should_receive(:list_devices).and_return(['/dev/vda'])
+      guestfs.should_receive(:sh).ordered.with("cd / && grub2-install --force /dev/vda")
+      guestfs.should_receive(:sh).ordered.with("cd / && grub2-mkconfig -o /boot/grub2/grub.cfg")
+      @plugin.switch_to_grub2(guestfs, guestfs_helper)
+    end
     describe ".execute" do
       it "should make Fedora 15 or higher work" do
         @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '15'}))
