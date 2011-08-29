@@ -133,6 +133,7 @@ popd
 * Sat Aug 27 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.6-1
 - Upstream release: 0.9.6
 - [BGBUILD-298] Fedora 16 or newer has networking issue on platforms different than EC2 because of biosdevname not disabled
+- [BGBUILD-299] Wrong filenames in GRUB discovery
 
 * Sat Aug 27 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.5.3-1
 - Upstream release: 0.9.5.3
