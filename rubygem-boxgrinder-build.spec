@@ -5,7 +5,7 @@
 
 Summary: A tool for creating appliances from simple plain text files
 Name: rubygem-%{gemname}
-Version: 0.9.5.3
+Version: 0.9.6
 Release: 1%{?dist}
 Group: Development/Languages
 License: LGPLv3+
@@ -130,6 +130,10 @@ popd
 %{gemdir}/doc/%{gemname}-%{version}
 
 %changelog
+* Sat Aug 27 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.6-1
+- Upstream release: 0.9.6
+- [BGBUILD-298] Fedora 16 or newer has networking issue on platforms different than EC2 because of biosdevname not disabled
+
 * Sat Aug 27 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.5.3-1
 - Upstream release: 0.9.5.3
 

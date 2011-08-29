@@ -39,6 +39,7 @@ module BoxGrinder
       @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '13'}))
       @appliance_config.stub!(:hardware).and_return(OpenCascade.new({:arch => 'x86_64'}))
       @appliance_config.stub!(:is64bit?).and_return(true)
+      @appliance_config.stub!(:packages).and_return(['mc'])
 
       @plugin = FedoraPlugin.new.init(@config, @appliance_config, {:class => BoxGrinder::FedoraPlugin, :type => :os, :name => :fedora, :full_name => "Fedora", :versions => ["11", "12", "13", "14", "rawhide"]}, :log => LogHelper.new(:level => :trace, :type => :stdout))
 
@@ -123,6 +124,42 @@ module BoxGrinder
       guestfs = mock("GuestFS")
       guestfs.should_receive(:ln_sf).with("/proc/self/mounts", "/etc/mtab")
       @plugin.link_mtab(guestfs)
+    end
+
+    describe ".execute" do
+      it "should make Fedora 15 or higher work" do
+        @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '15'}))
+
+        guestfs = mock("GuestFS")
+        guestfs_helper = mock("GuestFSHelper")
+
+        @plugin.should_receive(:normalize_packages).ordered
+        @plugin.should_receive(:disable_biosdevname).ordered.with(guestfs)
+        @plugin.should_receive(:change_runlevel).ordered.with(guestfs)
+        @plugin.should_receive(:disable_netfs).ordered.with(guestfs)
+        @plugin.should_receive(:link_mtab).ordered.with(guestfs)
+
+        @plugin.should_receive(:build_with_appliance_creator).with("file", an_instance_of(Hash)).and_yield(guestfs, guestfs_helper)
+        @plugin.execute("file")
+      end
+
+      # https://issues.jboss.org/browse/BGBUILD-298
+      it "should for Fedora 16 or higher first install GRUB2 then look after it" do
+        @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '16'}))
+
+        guestfs = mock("GuestFS")
+        guestfs_helper = mock("GuestFSHelper")
+
+        @plugin.should_receive(:normalize_packages).ordered
+        @plugin.should_receive(:switch_to_grub2).ordered.with(guestfs, guestfs_helper)
+        @plugin.should_receive(:disable_biosdevname).ordered.with(guestfs)
+        @plugin.should_receive(:change_runlevel).ordered.with(guestfs)
+        @plugin.should_receive(:disable_netfs).ordered.with(guestfs)
+        @plugin.should_receive(:link_mtab).ordered.with(guestfs)
+
+        @plugin.should_receive(:build_with_appliance_creator).with("file", an_instance_of(Hash)).and_yield(guestfs, guestfs_helper)
+        @plugin.execute("file")
+      end
     end
   end
 end

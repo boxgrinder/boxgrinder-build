@@ -1,3 +1,7 @@
+v0.9.6
+
+* [BGBUILD-298] Fedora 16 or newer has networking issue on platforms different than EC2 because of biosdevname not disabled
+
 v0.9.5.3
 
 * What a shame, fixing the mocks again...

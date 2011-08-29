@@ -43,14 +43,15 @@ module BoxGrinder
       end
 
       build_with_appliance_creator(appliance_definition_file, @repos) do |guestfs, guestfs_helper|
+        # https://issues.jboss.org/browse/BGBUILD-298
+        switch_to_grub2(guestfs, guestfs_helper) if @appliance_config.os.version >= "16"
+
         if @appliance_config.os.version >= "15"
           disable_biosdevname(guestfs)
           change_runlevel(guestfs)
           disable_netfs(guestfs)
           link_mtab(guestfs)
         end
-
-        switch_to_grub2(guestfs, guestfs_helper) if @appliance_config.os.version >= "16"
       end
     end
 
