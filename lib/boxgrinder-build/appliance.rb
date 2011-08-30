@@ -102,7 +102,6 @@ module BoxGrinder
 
     def execute_plugin_chain
       @log.info "Building '#{@appliance_config.name}' appliance for #{@appliance_config.hardware.arch} architecture."
-
       @plugin_chain.each { |p| execute_plugin(p[:plugin], p[:param]) }
     end
 

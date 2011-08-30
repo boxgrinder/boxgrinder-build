@@ -113,6 +113,8 @@ module BoxGrinder
     end
 
     def build_with_appliance_creator(appliance_definition_file, repos = {})
+      @appliance_definition_file = appliance_definition_file
+
       if File.extname(appliance_definition_file).eql?('.ks')
         kickstart_file = appliance_definition_file
       else
@@ -141,6 +143,7 @@ module BoxGrinder
         disable_firewall(guestfs)
         set_motd(guestfs)
         install_repos(guestfs)
+        install_files(guestfs)
 
         guestfs.sh("chkconfig firstboot off") if guestfs.exists('/etc/init.d/firstboot') != 0
 
@@ -305,6 +308,70 @@ module BoxGrinder
         guestfs.write_file("/etc/yum.repos.d/#{repo['name']}.repo", repo_file, 0)
       end
       @log.debug "Repositories installed."
+    end
+
+    # Copies specified files into appliance.
+    #
+    # There are three types of paths:
+    # 1. absolute - starting with slash '/'
+    # 2. remote - starting with http:// or https:// or ftp://
+    # 3. relative - all other.
+    #
+    # [BGBUILD-276] Import files into appliance via appliance definition file (Files section)
+    # https://issues.jboss.org/browse/BGBUILD-276
+    def install_files(guestfs)
+      @log.debug "Installing files specified in appliance definition file..."
+      @appliance_config.files.each do |dir, files|
+        files.each do |f|
+          @log.trace "Uploading #{f} to #{dir}..."
+
+          if f.match(/^(http|ftp|https):\/\//)
+            # Remote url provided
+            @log.trace "Remote url detected."
+
+            # Create the directory if it doesn't exists
+            guestfs.mkdir_p(dir) unless guestfs.exists(dir) != 0
+            # We have a remote file, try to download it using curl!
+            guestfs.sh("cd #{dir} && curl -O -L #{f}")
+          else
+            if f.match(/^\//)
+              # Absolute path provided
+              @log.trace "Absolute path detected."
+
+              Dir.glob("#{f}").each do |file|
+                remote_path = File.basename(file)
+
+                # We use globbing with absolute paths
+                # Warning - tricky!
+                unless (i = f.index('/**/')).nil?
+                  remote_path = file.gsub(f[0, i+1], "")
+                end
+
+                # We're removing the absolute path - we want only the file name
+                upload_file(guestfs, file, "#{dir}/#{remote_path}")
+              end
+            else
+              # Relative (to appliance definiton file!) path provided
+              @log.trace "Relative path detected."
+
+              Dir.glob("#{File.dirname(@appliance_definition_file)}/#{f}").each do |file|
+                upload_file(guestfs, file, "#{dir}/#{file}")
+              end
+            end
+          end
+          @log.trace "File uploaded."
+        end
+
+      end
+      @log.debug "Files installed."
+    end
+
+    def upload_file(guestfs, local_path, remote_path)
+      remote_dir = File.dirname(remote_path)
+
+      # Create the directory if it doesn't exists
+      guestfs.mkdir_p(remote_dir) unless guestfs.exists(remote_dir) != 0
+      guestfs.upload(local_path, remote_path)
     end
 
   end
