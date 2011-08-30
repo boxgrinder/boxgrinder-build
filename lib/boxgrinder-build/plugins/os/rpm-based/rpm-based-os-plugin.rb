@@ -334,16 +334,23 @@ module BoxGrinder
             # We have a remote file, try to download it using curl!
             guestfs.sh("cd #{dir} && curl -O -L #{f}")
           else
+            directory = true  if File.directory?(f)
+            f = "#{f}/**/*" if directory
+
             if f.match(/^\//)
               # Absolute path provided
               @log.trace "Absolute path detected."
 
-              Dir.glob("#{f}").each do |file|
+              Dir.glob(f).each do |file|
                 remote_path = File.basename(file)
 
-                # We use globbing with absolute paths
-                # Warning - tricky!
-                unless (i = f.index('/**/')).nil?
+                i = f.index('/**/')
+
+                # We use globbing with absolute paths, which is tricky, read slow.
+                if i
+                  # If we specified directory to copy we don't want to strip it out.
+                  i = f[0, i].rindex('/') if directory
+                  # Remove the beginning of the absolute path.
                   remote_path = file.gsub(f[0, i+1], "")
                 end
 

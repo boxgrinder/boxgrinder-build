@@ -451,6 +451,31 @@ module BoxGrinder
 
         @plugin.install_files(guestfs)
       end
+
+      it "should copy a given directory" do
+        @appliance_config.stub!(:files).and_return("/opt" => ['abc/one', '/def/two'])
+        @plugin.instance_variable_set(:@appliance_definition_file, "file")
+
+        File.stub!(:directory?)
+        File.should_receive(:directory?).with('abc/one').and_return(true)
+        File.should_receive(:directory?).with('/def/two').and_return(true)
+
+        Dir.stub!(:glob)
+        Dir.should_receive(:glob).with("./abc/one/**/*").and_return(["./abc/one/file1", "./abc/one/dir/file2"])
+        Dir.should_receive(:glob).with("/def/two/**/*").and_return(["/def/two/file1", "/def/two/dir/file2"])
+
+        guestfs = mock("GuestFS")
+        guestfs.should_receive(:exists).with("/opt/./abc/one").and_return(1)
+        guestfs.should_receive(:exists).with("/opt/./abc/one/dir").and_return(1)
+        guestfs.should_receive(:exists).with("/opt/two").and_return(1)
+        guestfs.should_receive(:exists).with("/opt/two/dir").and_return(1)
+        guestfs.should_receive(:upload).with("./abc/one/file1", "/opt/./abc/one/file1")
+        guestfs.should_receive(:upload).with("./abc/one/dir/file2", "/opt/./abc/one/dir/file2")
+        guestfs.should_receive(:upload).with("/def/two/file1", "/opt/two/file1")
+        guestfs.should_receive(:upload).with("/def/two/dir/file2", "/opt/two/dir/file2")
+
+        @plugin.install_files(guestfs)
+      end
     end
   end
 end
