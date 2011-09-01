@@ -71,6 +71,11 @@ module BoxGrinder
         @helper.partition_mount_points(hash).should == ['/', '/home']
       end
 
+      it "should return ['/', '/home', 'swap']" do
+        hash = {'swap' => {"size" => 1}, "/"=>{"size"=>2, "type"=>"ext3"}, "/home"=>{"size"=>2, "type"=>"ext3"}}
+        @helper.partition_mount_points(hash).should == ['/', '/home', 'swap']
+      end
+
       it "should return ['/', '/ubrc', '/tmp-config', '/tmp-eventlog']" do
         hash = {"/tmp-eventlog"=>{"size"=>0.01, "type"=>"ext3"}, "/"=>{"size"=>2, "type"=>"ext3"}, "/ubrc"=>{"size"=>0.02, "type"=>"ext3"}, "/tmp-config"=>{"size"=>0.26}}
         @helper.partition_mount_points(hash).should == ["/", "/ubrc", "/tmp-config", "/tmp-eventlog"]

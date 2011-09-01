@@ -27,19 +27,24 @@ module BoxGrinder
     # Returns valid array of sorted mount points
     #
     # ['/', '/home'] => ['/', '/home']
+    # ['swap', '/', '/home'] => ['/', '/home', 'swap']
     # ['/tmp-eventlog', '/', '/ubrc', '/tmp-config'] => ['/', '/ubrc', '/tmp-config', '/tmp-eventlog']
     #
     def partition_mount_points(partitions)
       partitions.keys.sort do |a, b|
-        if a.count('/') > b.count('/')
-          v = 1
+        a_count = a.count('/')
+        b_count = b.count('/')
+
+        if a_count > b_count
+          v = (b_count == 0 ? -1 : 1)
         else
-          if a.count('/') < b.count('/')
+          if a_count < b_count
             v = -1
           else
             v = a.length <=> b.length
           end
         end
+
         v
       end
     end

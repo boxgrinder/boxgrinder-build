@@ -26,7 +26,7 @@ module BoxGrinder
     before(:each) do
       ENV.delete("LIBGUESTFS_MEMSIZE")
 
-      @log = Logger.new('/dev/null')
+      @log = LogHelper.new(:level => :trace, :type => :stdout)
       @appliance_config = mock('ApplianceConfig')
       @appliance_config.stub!(:hardware).and_return(:partitions => {})
 
@@ -228,6 +228,24 @@ module BoxGrinder
 
         @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:partitions => {'/' => nil, '/home' => nil}))
         guestfs.should_receive(:list_partitions).and_return(['/dev/vda1', '/dev/vda2'])
+        guestfs.should_receive(:vfs_type).with('/dev/vda1').and_return('ext3')
+        guestfs.should_receive(:vfs_type).with('/dev/vda2').and_return('ext3')
+
+        @helper.should_receive(:mount_partition).with('/dev/vda1', '/', '')
+        @helper.should_receive(:mount_partition).with('/dev/vda2', '/home', '')
+
+        @helper.instance_variable_set(:@guestfs, guestfs)
+        @helper.mount_partitions('/dev/vda')
+      end
+
+      it "should mount two partitions from three where one is a swap partition" do
+        guestfs = mock('Guestfs')
+
+        @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:partitions => {'/' => nil, '/home' => nil, 'swap' => nil}))
+        guestfs.should_receive(:list_partitions).and_return(['/dev/vda1', '/dev/vda2', '/dev/vda3'])
+        guestfs.should_receive(:vfs_type).with('/dev/vda1').and_return('ext3')
+        guestfs.should_receive(:vfs_type).with('/dev/vda2').and_return('ext3')
+        guestfs.should_receive(:vfs_type).with('/dev/vda3').and_return('swap')
 
         @helper.should_receive(:mount_partition).with('/dev/vda1', '/', '')
         @helper.should_receive(:mount_partition).with('/dev/vda2', '/home', '')
@@ -241,6 +259,10 @@ module BoxGrinder
 
         @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:partitions => {'/' => nil, '/home' => nil, '/var/www' => nil, '/var/mock' => nil}))
         guestfs.should_receive(:list_partitions).and_return(['/dev/vda1', '/dev/vda2', '/dev/vda3', '/dev/vda4', '/dev/vda5'])
+        guestfs.should_receive(:vfs_type).with('/dev/vda1').and_return('ext3')
+        guestfs.should_receive(:vfs_type).with('/dev/vda2').and_return('ext3')
+        guestfs.should_receive(:vfs_type).with('/dev/vda3').and_return('ext4')
+        guestfs.should_receive(:vfs_type).with('/dev/vda5').and_return('ext4')
 
         @helper.should_receive(:mount_partition).with('/dev/vda1', '/', '')
         @helper.should_receive(:mount_partition).with('/dev/vda2', '/home', '')

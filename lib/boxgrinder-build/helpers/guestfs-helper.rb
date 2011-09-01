@@ -258,13 +258,13 @@ module BoxGrinder
     end
 
     def mountable_partitions(device)
-      partitions = @guestfs.list_partitions.reject { |i| !(i =~ /^#{device}/) }
+      partitions = @guestfs.list_partitions
 
       # we need to remove extended partition
       # extended partition is always #3
       partitions.delete_at(3) if partitions.size > 4
 
-      partitions
+      partitions.reject { |i| !(i =~ /^#{device}/) or @guestfs.vfs_type(i) == 'swap' }
     end
 
     def umount_partition(part)
