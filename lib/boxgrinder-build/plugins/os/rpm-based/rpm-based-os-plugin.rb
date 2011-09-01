@@ -312,74 +312,53 @@ module BoxGrinder
 
     # Copies specified files into appliance.
     #
-    # There are three types of paths:
-    # 1. absolute - starting with slash '/'
-    # 2. remote - starting with http:// or https:// or ftp://
-    # 3. relative - all other.
+    # There are two types of paths:
+    # 1. remote - starting with http:// or https:// or ftp://
+    # 2. local - all other.
     #
-    # [BGBUILD-276] Import files into appliance via appliance definition file (Files section)
+    # Please use relative paths. Relative means relative to the appliance definition file.
+    # Using absolute paths will cause creating whole directory structure in appliance,
+    # which is most probably not exactly what you want.
+    #
     # https://issues.jboss.org/browse/BGBUILD-276
     def install_files(guestfs)
       @log.debug "Installing files specified in appliance definition file..."
-      @appliance_config.files.each do |dir, files|
-        files.each do |f|
-          @log.trace "Uploading #{f} to #{dir}..."
 
+      @appliance_config.files.each do |dir, files|
+
+        @log.debug "Proceding files for '#{dir}' destination directory..."
+
+        local_files = []
+
+        # Create the directory if it doesn't exists
+        guestfs.mkdir_p(dir) unless guestfs.exists(dir) != 0
+
+        files.each do |f|
           if f.match(/^(http|ftp|https):\/\//)
             # Remote url provided
-            @log.trace "Remote url detected."
+            @log.trace "Remote url detected: '#{f}'."
 
-            # Create the directory if it doesn't exists
-            guestfs.mkdir_p(dir) unless guestfs.exists(dir) != 0
             # We have a remote file, try to download it using curl!
             guestfs.sh("cd #{dir} && curl -O -L #{f}")
           else
-            directory = true  if File.directory?(f)
-            f = "#{f}/**/*" if directory
+            @log.trace "Local path detected: '#{f}'."
 
-            if f.match(/^\//)
-              # Absolute path provided
-              @log.trace "Absolute path detected."
-
-              Dir.glob(f).each do |file|
-                remote_path = File.basename(file)
-
-                i = f.index('/**/')
-
-                # We use globbing with absolute paths, which is tricky, read slow.
-                if i
-                  # If we specified directory to copy we don't want to strip it out.
-                  i = f[0, i].rindex('/') if directory
-                  # Remove the beginning of the absolute path.
-                  remote_path = file.gsub(f[0, i+1], "")
-                end
-
-                # We're removing the absolute path - we want only the file name
-                upload_file(guestfs, file, "#{dir}/#{remote_path}")
-              end
-            else
-              # Relative (to appliance definiton file!) path provided
-              @log.trace "Relative path detected."
-
-              Dir.glob("#{File.dirname(@appliance_definition_file)}/#{f}").each do |file|
-                upload_file(guestfs, file, "#{dir}/#{file}")
-              end
-            end
+            local_files << (f.match(/^\//) ? f : "#{File.dirname(@appliance_definition_file)}/#{f}")
           end
-          @log.trace "File uploaded."
         end
+
+        next if local_files.empty?
+
+        @log.trace "Tarring files..."
+        @exec_helper.execute("tar -cvf /tmp/bg_install_files.tar --wildcards #{local_files.join(' ')}")
+        @log.trace "Files tarred."
+
+        @log.trace "Uploading and unpacking..."
+        guestfs.tar_in("/tmp/bg_install_files.tar", dir)
+        @log.trace "Files uploaded."
 
       end
       @log.debug "Files installed."
     end
-
-    def upload_file(guestfs, local_path, remote_path)
-      remote_dir = File.dirname(remote_path)
-
-      # Create the directory if it doesn't exists
-      guestfs.mkdir_p(remote_dir) unless guestfs.exists(remote_dir) != 0
-      guestfs.upload(local_path, remote_path)
-    end
-
   end
 end

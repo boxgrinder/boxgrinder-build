@@ -348,14 +348,11 @@ module BoxGrinder
         @appliance_config.stub!(:files).and_return("/opt" => ['abc', 'def'])
         @plugin.instance_variable_set(:@appliance_definition_file, "file")
 
-        Dir.stub!(:glob)
-        Dir.should_receive(:glob).with("./abc").and_return(["./abc"])
-        Dir.should_receive(:glob).with("./def").and_return(["./def"])
-
         guestfs = mock("GuestFS")
-        guestfs.should_receive(:exists).with("/opt/.").twice.and_return(1)
-        guestfs.should_receive(:upload).with("./abc", "/opt/./abc")
-        guestfs.should_receive(:upload).with("./def", "/opt/./def")
+        guestfs.should_receive(:exists).with("/opt").once.and_return(1)
+        guestfs.should_receive(:tar_in).with("/tmp/bg_install_files.tar", "/opt")
+
+        @exec_helper.should_receive(:execute).with("tar -cvf /tmp/bg_install_files.tar --wildcards ./abc ./def")
 
         @plugin.install_files(guestfs)
       end
@@ -364,14 +361,11 @@ module BoxGrinder
         @appliance_config.stub!(:files).and_return("/opt" => ['/opt/abc', '/opt/def'])
         @plugin.instance_variable_set(:@appliance_definition_file, "file")
 
-        Dir.stub!(:glob)
-        Dir.should_receive(:glob).with("/opt/abc").and_return(["/opt/abc"])
-        Dir.should_receive(:glob).with("/opt/def").and_return(["/opt/def"])
-
         guestfs = mock("GuestFS")
-        guestfs.should_receive(:exists).with("/opt").twice.and_return(1)
-        guestfs.should_receive(:upload).with("/opt/abc", "/opt/abc")
-        guestfs.should_receive(:upload).with("/opt/def", "/opt/def")
+        guestfs.should_receive(:exists).with("/opt").once.and_return(1)
+        guestfs.should_receive(:tar_in).with("/tmp/bg_install_files.tar", "/opt")
+
+        @exec_helper.should_receive(:execute).with("tar -cvf /tmp/bg_install_files.tar --wildcards /opt/abc /opt/def")
 
         @plugin.install_files(guestfs)
       end
@@ -382,7 +376,7 @@ module BoxGrinder
 
         guestfs = mock("GuestFS")
 
-        guestfs.should_receive(:exists).with("/opt").exactly(3).times.and_return(1)
+        guestfs.should_receive(:exists).with("/opt").once.and_return(1)
         guestfs.should_receive(:sh).with("cd /opt && curl -O -L http://somehost/file.zip")
         guestfs.should_receive(:sh).with("cd /opt && curl -O -L https://somehost/something.tar.gz")
         guestfs.should_receive(:sh).with("cd /opt && curl -O -L ftp://somehost/ftp.txt")
@@ -394,85 +388,12 @@ module BoxGrinder
         @appliance_config.stub!(:files).and_return("/opt/aaa" => ['abc'])
         @plugin.instance_variable_set(:@appliance_definition_file, "file")
 
-        Dir.stub!(:glob)
-        Dir.should_receive(:glob).with("./abc").and_return(["./abc"])
-
         guestfs = mock("GuestFS")
-        guestfs.should_receive(:exists).with("/opt/aaa/.").and_return(0)
-        guestfs.should_receive(:mkdir_p).with("/opt/aaa/.")
-        guestfs.should_receive(:upload).with("./abc", "/opt/aaa/./abc")
+        guestfs.should_receive(:exists).with("/opt/aaa").and_return(0)
+        guestfs.should_receive(:mkdir_p).with("/opt/aaa")
+        guestfs.should_receive(:tar_in).with("/tmp/bg_install_files.tar", "/opt/aaa")
 
-        @plugin.install_files(guestfs)
-      end
-
-      it "should install files with relative paths with globbing enabled" do
-        @appliance_config.stub!(:files).and_return("/opt" => ['ab*', 'def/**/*'])
-        @plugin.instance_variable_set(:@appliance_definition_file, "file")
-
-        Dir.stub!(:glob)
-        Dir.should_receive(:glob).with("./ab*").and_return(["./abc", './abc1'])
-        Dir.should_receive(:glob).with("./def/**/*").and_return(["./def/one/file", './def/one/file1', './def/two/file'])
-
-        guestfs = mock("GuestFS")
-        guestfs.should_receive(:exists).with("/opt/.").twice.and_return(1)
-        guestfs.should_receive(:exists).with("/opt/./def/one").and_return(0)
-        guestfs.should_receive(:mkdir_p).with("/opt/./def/one")
-        guestfs.should_receive(:exists).with("/opt/./def/one").and_return(1)
-        guestfs.should_receive(:exists).with("/opt/./def/two").and_return(0)
-        guestfs.should_receive(:mkdir_p).with("/opt/./def/two")
-        guestfs.should_receive(:upload).with("./abc", "/opt/./abc")
-        guestfs.should_receive(:upload).with("./abc1", "/opt/./abc1")
-        guestfs.should_receive(:upload).with("./def/one/file", "/opt/./def/one/file")
-        guestfs.should_receive(:upload).with("./def/one/file1", "/opt/./def/one/file1")
-        guestfs.should_receive(:upload).with("./def/two/file", "/opt/./def/two/file")
-
-        @plugin.install_files(guestfs)
-      end
-
-      it "should install files with absolute paths with globbing" do
-        @appliance_config.stub!(:files).and_return("/opt" => ['/var/abc/**/*', '/lib/**/*'])
-        @plugin.instance_variable_set(:@appliance_definition_file, "file")
-
-        Dir.stub!(:glob)
-        Dir.should_receive(:glob).with("/var/abc/**/*").and_return(["/var/abc/one/1", "/var/abc/one/2", "/var/abc/two/1"])
-        Dir.should_receive(:glob).with("/lib/**/*").and_return(["/lib/def/one/1", "/lib/def/one/2", "/lib/def/1"])
-
-        guestfs = mock("GuestFS")
-        guestfs.should_receive(:exists).with("/opt/one").twice.and_return(1)
-        guestfs.should_receive(:exists).with("/opt/two").and_return(1)
-        guestfs.should_receive(:exists).with("/opt/def/one").twice.and_return(1)
-        guestfs.should_receive(:exists).with("/opt/def").and_return(1)
-        guestfs.should_receive(:upload).with("/var/abc/one/1", "/opt/one/1")
-        guestfs.should_receive(:upload).with("/var/abc/one/2", "/opt/one/2")
-        guestfs.should_receive(:upload).with("/var/abc/two/1", "/opt/two/1")
-        guestfs.should_receive(:upload).with("/lib/def/one/1", "/opt/def/one/1")
-        guestfs.should_receive(:upload).with("/lib/def/one/2", "/opt/def/one/2")
-        guestfs.should_receive(:upload).with("/lib/def/1", "/opt/def/1")
-
-        @plugin.install_files(guestfs)
-      end
-
-      it "should copy a given directory" do
-        @appliance_config.stub!(:files).and_return("/opt" => ['abc/one', '/def/two'])
-        @plugin.instance_variable_set(:@appliance_definition_file, "file")
-
-        File.stub!(:directory?)
-        File.should_receive(:directory?).with('abc/one').and_return(true)
-        File.should_receive(:directory?).with('/def/two').and_return(true)
-
-        Dir.stub!(:glob)
-        Dir.should_receive(:glob).with("./abc/one/**/*").and_return(["./abc/one/file1", "./abc/one/dir/file2"])
-        Dir.should_receive(:glob).with("/def/two/**/*").and_return(["/def/two/file1", "/def/two/dir/file2"])
-
-        guestfs = mock("GuestFS")
-        guestfs.should_receive(:exists).with("/opt/./abc/one").and_return(1)
-        guestfs.should_receive(:exists).with("/opt/./abc/one/dir").and_return(1)
-        guestfs.should_receive(:exists).with("/opt/two").and_return(1)
-        guestfs.should_receive(:exists).with("/opt/two/dir").and_return(1)
-        guestfs.should_receive(:upload).with("./abc/one/file1", "/opt/./abc/one/file1")
-        guestfs.should_receive(:upload).with("./abc/one/dir/file2", "/opt/./abc/one/dir/file2")
-        guestfs.should_receive(:upload).with("/def/two/file1", "/opt/two/file1")
-        guestfs.should_receive(:upload).with("/def/two/dir/file2", "/opt/two/dir/file2")
+        @exec_helper.should_receive(:execute).with("tar -cvf /tmp/bg_install_files.tar --wildcards ./abc")
 
         @plugin.install_files(guestfs)
       end
