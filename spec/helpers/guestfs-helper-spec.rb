@@ -362,6 +362,8 @@ module BoxGrinder
         @helper.instance_variable_set(:@guestfs, guestfs)
 
         guestfs.should_receive(:list_partitions).and_return(['/dev/vda1', '/dev/vda2'])
+        guestfs.should_receive(:vfs_type).with('/dev/vda1').and_return('ext3')
+        guestfs.should_receive(:vfs_type).with('/dev/vda2').and_return('ext3')
 
         @helper.should_receive(:umount_partition).ordered.with('/dev/vda2')
         @helper.should_receive(:umount_partition).ordered.with('/dev/vda1')

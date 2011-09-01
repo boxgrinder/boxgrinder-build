@@ -276,7 +276,7 @@ module BoxGrinder
     # Unmounts partitions in reverse order.
     #
     def umount_partitions(device)
-      partitions = @guestfs.list_partitions.reject { |i| !(i =~ /^#{device}/) }
+      partitions = mountable_partitions(device)
 
       @log.trace "Unmounting partitions..."
       partitions.reverse.each { |part| umount_partition(part) }
