@@ -242,21 +242,19 @@ module BoxGrinder
     end
 
     def use_labels_for_partitions(guestfs)
+      @log.debug "Using labels for partitions..."
       device = guestfs.list_devices.first
 
       # /etc/fstab
-      if fstab = guestfs.read_file('/etc/fstab').gsub!(/^(\/dev\/sda.)/) { |path| "LABEL=#{read_label(guestfs, path.gsub('/dev/sda', device))}" }
+      if fstab = guestfs.read_file('/etc/fstab').gsub!(/^(\/dev\/sda.)/) { |path| "LABEL=#{guestfs.vfs_label(path.gsub('/dev/sda', device))}" }
         guestfs.write_file('/etc/fstab', fstab, 0)
       end
 
       # /boot/grub/grub.conf
-      if grub = guestfs.read_file('/boot/grub/grub.conf').gsub!(/(\/dev\/sda.)/) { |path| "LABEL=#{read_label(guestfs, path.gsub('/dev/sda', device))}" }
+      if grub = guestfs.read_file('/boot/grub/grub.conf').gsub!(/(\/dev\/sda.)/) { |path| "LABEL=#{guestfs.vfs_label(path.gsub('/dev/sda', device))}" }
         guestfs.write_file('/boot/grub/grub.conf', grub, 0)
       end
-    end
-
-    def read_label(guestfs, partition)
-      (guestfs.respond_to?(:vfs_label) ? guestfs.vfs_label(partition) : guestfs.sh("/sbin/e2label #{partition}").chomp.strip).gsub('_', '')
+      @log.debug "Done."
     end
 
     def apply_root_password(guestfs)
