@@ -257,14 +257,16 @@ module BoxGrinder
       partitions.each_index { |i| mount_partition(partitions[i], mount_points[i], mount_prefix) }
     end
 
-    def mountable_partitions(device)
+    def mountable_partitions(device, options = {})
+      options = {:list_swap => false}.merge(options)
+
       partitions = @guestfs.list_partitions
 
       # we need to remove extended partition
       # extended partition is always #3
       partitions.delete_at(3) if partitions.size > 4
 
-      partitions.reject { |i| !(i =~ /^#{device}/) or @guestfs.vfs_type(i) == 'swap' }
+      partitions.reject { |i| !(i =~ /^#{device}/) or (@guestfs.vfs_type(i) == 'swap' and !options[:list_swap]) }
     end
 
     def umount_partition(part)

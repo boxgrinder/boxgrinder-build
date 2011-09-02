@@ -4,6 +4,7 @@ v0.9.6
 * [BGBUILD-299] Wrong filenames in GRUB discovery
 * [BGBUILD-276] Import files into appliance via appliance definition file (Files section)
 * [BGBUILD-300] Add support for swap partitions
+* [BGBUILD-301] Swap feature not working properly
 
 v0.9.5.3
 

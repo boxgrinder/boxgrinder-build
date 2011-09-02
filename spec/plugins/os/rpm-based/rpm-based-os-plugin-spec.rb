@@ -222,6 +222,7 @@ module BoxGrinder
 
         @plugin.should_receive(:change_configuration).with(guestfs_helper)
         @plugin.should_receive(:apply_root_password).with(guestfs)
+        @plugin.should_receive(:set_label_for_swap_partitions).with(guestfs, guestfs_helper)
         @plugin.should_receive(:use_labels_for_partitions).with(guestfs)
         @plugin.should_receive(:disable_firewall).with(guestfs)
         @plugin.should_receive(:set_motd).with(guestfs)
@@ -396,6 +397,36 @@ module BoxGrinder
         @exec_helper.should_receive(:execute).with("tar -cvf /tmp/bg_install_files.tar --wildcards ./abc")
 
         @plugin.install_files(guestfs)
+      end
+    end
+
+    describe ".set_label_for_swap_partitions" do
+      it "should NOT set label for any partition" do
+        guestfs = mock("GuestFS")
+        guestfs_helper = mock("GuestFSHelper")
+
+        guestfs_helper.should_receive(:mountable_partitions).with('/dev/sda', :list_swap => true).and_return(['/dev/sda1', '/dev/sda2'])
+
+        guestfs.should_receive(:list_devices).and_return(['/dev/sda'])
+        guestfs.should_receive(:vfs_type).with('/dev/sda1').and_return('ext3')
+        guestfs.should_receive(:vfs_type).with('/dev/sda2').and_return('ext4')
+        guestfs.should_not_receive(:set_e2label)
+
+        @plugin.set_label_for_swap_partitions(guestfs, guestfs_helper)
+      end
+
+      it "should set label for swap partition" do
+        guestfs = mock("GuestFS")
+        guestfs_helper = mock("GuestFSHelper")
+
+        guestfs_helper.should_receive(:mountable_partitions).with('/dev/sda', :list_swap => true).and_return(['/dev/sda1', '/dev/sda2'])
+
+        guestfs.should_receive(:list_devices).and_return(['/dev/sda'])
+        guestfs.should_receive(:vfs_type).with('/dev/sda1').and_return('ext3')
+        guestfs.should_receive(:vfs_type).with('/dev/sda2').and_return('swap')
+        guestfs.should_receive(:mkswap_L).with('/dev/sda2', 'swap')
+
+        @plugin.set_label_for_swap_partitions(guestfs, guestfs_helper)
       end
     end
   end

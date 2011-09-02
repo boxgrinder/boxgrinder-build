@@ -136,6 +136,7 @@ popd
 - [BGBUILD-299] Wrong filenames in GRUB discovery
 - [BGBUILD-276] Import files into appliance via appliance definition file (Files section)
 - [BGBUILD-300] Add support for swap partitions
+- [BGBUILD-301] Swap feature not working properly
 
 * Sat Aug 27 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.5.3-1
 - Upstream release: 0.9.5.3

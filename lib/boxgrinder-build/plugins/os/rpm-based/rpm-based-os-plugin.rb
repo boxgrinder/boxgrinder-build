@@ -139,6 +139,7 @@ module BoxGrinder
         change_configuration(guestfs_helper)
         # TODO check if this is still required
         apply_root_password(guestfs)
+        set_label_for_swap_partitions(guestfs, guestfs_helper)
         use_labels_for_partitions(guestfs)
         disable_firewall(guestfs)
         set_motd(guestfs)
@@ -239,6 +240,21 @@ module BoxGrinder
       @log.debug "Disabling firewall..."
       guestfs.sh("lokkit -q --disabled")
       @log.debug "Firewall disabled."
+    end
+
+    # https://issues.jboss.org/browse/BGBUILD-301
+    def set_label_for_swap_partitions(guestfs, guestfs_helper)
+      @log.trace "Searching for swap partition to set label..."
+
+      guestfs_helper.mountable_partitions(guestfs.list_devices.first, :list_swap => true).each do |p|
+        if guestfs.vfs_type(p).eql?('swap')
+          @log.debug "Setting 'swap' label for partiiton '#{p}'."
+          guestfs.mkswap_L('swap', p)
+          @log.debug "Label set."
+          # We assume here that nobody will want to have two swap partitions
+          break
+        end
+      end
     end
 
     def use_labels_for_partitions(guestfs)

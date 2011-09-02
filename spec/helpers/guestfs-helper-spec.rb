@@ -422,5 +422,42 @@ module BoxGrinder
         @helper.log_hack
       end
     end
+
+    describe ".mountable_partitions" do
+      it "return list of partitions to mount without swap" do
+        guestfs = mock('Guestfs')
+        @helper.instance_variable_set(:@guestfs, guestfs)
+
+        guestfs.should_receive(:list_partitions).and_return(['/dev/sda1', '/dev/sda2'])
+        guestfs.should_receive(:vfs_type).with('/dev/sda1').and_return('ext3')
+        guestfs.should_receive(:vfs_type).with('/dev/sda2').and_return('swap')
+
+        @helper.mountable_partitions('/dev/sda').should == ['/dev/sda1']
+      end
+
+      it "return list of partitions to mount with swap" do
+        guestfs = mock('Guestfs')
+        @helper.instance_variable_set(:@guestfs, guestfs)
+
+        guestfs.should_receive(:list_partitions).and_return(['/dev/sda1', '/dev/sda2'])
+        guestfs.should_receive(:vfs_type).with('/dev/sda1').and_return('ext3')
+        guestfs.should_receive(:vfs_type).with('/dev/sda2').and_return('swap')
+
+        @helper.mountable_partitions('/dev/sda', :list_swap => true).should == ['/dev/sda1', '/dev/sda2']
+      end
+
+      it "return list of partitions to mount without extended partitions" do
+        guestfs = mock('Guestfs')
+        @helper.instance_variable_set(:@guestfs, guestfs)
+
+        guestfs.should_receive(:list_partitions).and_return(['/dev/sda1', '/dev/sda2', '/dev/sda3', '/dev/sda4', '/dev/sda5'])
+        guestfs.should_receive(:vfs_type).with('/dev/sda1').and_return('ext3')
+        guestfs.should_receive(:vfs_type).with('/dev/sda2').and_return('ext3')
+        guestfs.should_receive(:vfs_type).with('/dev/sda3').and_return('ext3')
+        guestfs.should_receive(:vfs_type).with('/dev/sda5').and_return('ext3')
+
+        @helper.mountable_partitions('/dev/sda').should == ['/dev/sda1', '/dev/sda2', '/dev/sda3', '/dev/sda5']
+      end
+    end
   end
 end
