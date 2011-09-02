@@ -424,7 +424,7 @@ module BoxGrinder
         guestfs.should_receive(:list_devices).and_return(['/dev/sda'])
         guestfs.should_receive(:vfs_type).with('/dev/sda1').and_return('ext3')
         guestfs.should_receive(:vfs_type).with('/dev/sda2').and_return('swap')
-        guestfs.should_receive(:mkswap_L).with('/dev/sda2', 'swap')
+        guestfs.should_receive(:mkswap_L).with('swap', '/dev/sda2')
 
         @plugin.set_label_for_swap_partitions(guestfs, guestfs_helper)
       end

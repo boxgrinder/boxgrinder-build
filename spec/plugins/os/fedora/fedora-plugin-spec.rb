@@ -160,8 +160,8 @@ module BoxGrinder
         guestfs_helper = mock("GuestFSHelper")
 
         @plugin.should_receive(:normalize_packages).ordered
-        @plugin.should_receive(:switch_to_grub2).ordered.with(guestfs, guestfs_helper)
         @plugin.should_receive(:disable_biosdevname).ordered.with(guestfs)
+        @plugin.should_receive(:switch_to_grub2).ordered.with(guestfs, guestfs_helper)
         @plugin.should_receive(:change_runlevel).ordered.with(guestfs)
         @plugin.should_receive(:disable_netfs).ordered.with(guestfs)
         @plugin.should_receive(:link_mtab).ordered.with(guestfs)
