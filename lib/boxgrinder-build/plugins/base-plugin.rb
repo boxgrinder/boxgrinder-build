@@ -37,6 +37,7 @@ module BoxGrinder
 
       @deliverables = OpenCascade.new
       @supported_oses = OpenCascade.new
+      @supported_platforms = []
       @target_deliverables = OpenCascade.new
       @dir = OpenCascade.new
     end
@@ -126,6 +127,17 @@ module BoxGrinder
       @supported_oses[name] = versions
     end
 
+    def register_supported_platform(name)
+      raise "You can register supported platform only after the plugin is initialized, please initialize the plugin using init method." if @initialized.nil?
+      @supported_platforms << name
+    end
+
+    def is_supported_platform?
+      return true if @supported_platforms.empty?
+      return false if @previous_plugin_info[:type] == :platform and !@supported_platforms.include?(@previous_plugin_info[:name])
+      true
+    end
+
     def is_supported_os?
       return true if @supported_oses.empty?
       return false unless !@supported_oses[@appliance_config.os.name].nil? and @supported_oses[@appliance_config.os.name].include?(@appliance_config.os.version)
@@ -168,6 +180,11 @@ module BoxGrinder
     def run(param = nil)
       unless is_supported_os?
         @log.error "#{@plugin_info[:full_name]} plugin supports following operating systems: #{supported_oses}. Your appliance contains #{@appliance_config.os.name} #{@appliance_config.os.version} operating system which is not supported by this plugin, sorry."
+        return
+      end
+
+      unless is_supported_platform?
+        @log.error "#{@plugin_info[:full_name]} plugin supports following platforms: #{@supported_platforms.join(', ')}. You selected #{@previous_plugin_info[:name]} platform which is not supported by this plugin, sorry."
         return
       end
 

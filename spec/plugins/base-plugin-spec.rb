@@ -131,6 +131,20 @@ module BoxGrinder
         @log.should_receive(:error).with('Amazon Simple Storage Service (Amazon S3) plugin supports following operating systems: fedora (versions: 12, 13). Your appliance contains fedora 14 operating system which is not supported by this plugin, sorry.')
         @plugin.run
       end
+
+      it "should fail if platform is not supported" do
+        @plugin.instance_variable_set(:@previous_plugin_info, {:type => :platform, :name => :ec2})
+        @plugin.register_supported_platform('vmware')
+        @log.should_receive(:error).with('Amazon Simple Storage Service (Amazon S3) plugin supports following platforms: vmware. You selected ec2 platform which is not supported by this plugin, sorry.')
+        @plugin.run
+      end
+
+      it "should not fail if previous plugin is not a platform plugin" do
+        @plugin.instance_variable_set(:@previous_plugin_info, {:type => :os, :name => :fedora})
+        @plugin.register_supported_platform('vmware')
+        @log.should_not_receive(:error)
+        @plugin.run
+      end
     end
 
     it "should register a supported os" do
