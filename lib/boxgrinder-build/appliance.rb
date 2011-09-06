@@ -136,11 +136,11 @@ module BoxGrinder
         return
       end
 
-      @log.debug "Executing #{plugin.plugin_info[:type]} plugin for #{@appliance_config.os.name}..."
+      @log.debug "Executing #{plugin.plugin_info[:type]} plugin..."
 
       param.nil? ? plugin.run : plugin.run(param)
 
-      @log.debug "Operating system plugin executed."
+      @log.debug "#{plugin.plugin_info[:type].to_s.capitalize} plugin executed."
     end
   end
 end
