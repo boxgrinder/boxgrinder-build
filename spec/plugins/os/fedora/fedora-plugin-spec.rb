@@ -130,6 +130,7 @@ module BoxGrinder
       guestfs = mock("GuestFS")
       guestfs_helper = mock("GuestFSHelper")
       guestfs_helper.should_receive(:sh).ordered.with("yum -y remove grub")
+      guestfs_helper.should_receive(:sh).ordered.with("yum -y install grub2")
       guestfs.should_receive(:list_devices).and_return(['/dev/vda'])
       guestfs.should_receive(:sh).ordered.with("cd / && grub2-install --force /dev/vda")
       guestfs.should_receive(:sh).ordered.with("cd / && grub2-mkconfig -o /boot/grub2/grub.cfg")

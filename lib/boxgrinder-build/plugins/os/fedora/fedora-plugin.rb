@@ -68,6 +68,8 @@ module BoxGrinder
       else
         @plugin_config['PAE'] ? packages << "kernel-PAE" : packages << "kernel"
       end
+
+      packages << "-grub2" if @appliance_config.os.version >= "16"
     end
 
     # Since Fedora 16 by default GRUB2 is used - we remove Legacy GRUB
@@ -77,6 +79,7 @@ module BoxGrinder
     def switch_to_grub2(guestfs, guestfs_helper)
       @log.debug "Switching to GRUB2..."
       guestfs_helper.sh("yum -y remove grub")
+      guestfs_helper.sh("yum -y install grub2")
       # We are using only one disk, so this is save
       guestfs.sh("cd / && grub2-install --force #{guestfs.list_devices.first}")
       guestfs.sh("cd / && grub2-mkconfig -o /boot/grub2/grub.cfg")

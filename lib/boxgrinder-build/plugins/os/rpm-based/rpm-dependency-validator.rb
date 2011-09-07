@@ -98,7 +98,7 @@ module BoxGrinder
     def generate_package_list
       packages = []
       for package in @appliance_config.packages
-        packages << package unless package.match /^@/
+        packages << package unless package.match /^@/ or package.match /^-/
       end
       packages
     end
