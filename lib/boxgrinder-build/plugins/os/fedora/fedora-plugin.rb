@@ -80,6 +80,8 @@ module BoxGrinder
       @log.debug "Switching to GRUB2..."
       guestfs_helper.sh("yum -y remove grub")
       guestfs_helper.sh("yum -y install grub2")
+      # Disabling biosdevname in GRUB2
+      guestfs.write("/etc/default/grub", "GRUB_CMDLINE_LINUX=\"quiet rhgb biosdevname=0\"\n") if guestfs.exists("/boot/grub2/grub.cfg") != 0
       # We are using only one disk, so this is save
       guestfs.sh("cd / && grub2-install --force #{guestfs.list_devices.first}")
       guestfs.sh("cd / && grub2-mkconfig -o /boot/grub2/grub.cfg")
@@ -88,7 +90,6 @@ module BoxGrinder
 
     def disable_biosdevname(guestfs)
       @log.debug "Disabling biosdevname..."
-      guestfs.write("/etc/default/grub", "GRUB_CMDLINE_LINUX=\"quiet rhgb biosdevname=0\"\n") if guestfs.exists("/boot/grub2/grub.cfg") != 0
       guestfs.sh('sed -i "s/kernel\(.*\)/kernel\1 biosdevname=0/g" /boot/grub/grub.conf') if guestfs.exists("/boot/grub/grub.conf") != 0
       @log.debug "Biosdevname disabled."
     end

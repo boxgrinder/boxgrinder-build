@@ -92,17 +92,8 @@ module BoxGrinder
     context "BGBUILD-204" do
       it "should disable bios device name hints for GRUB legacy" do
         guestfs = mock("GuestFS")
-        guestfs.should_receive(:exists).with("/boot/grub2/grub.cfg").and_return(0)
         guestfs.should_receive(:exists).with("/boot/grub/grub.conf").and_return(1)
         guestfs.should_receive(:sh).with("sed -i \"s/kernel\\(.*\\)/kernel\\1 biosdevname=0/g\" /boot/grub/grub.conf")
-        @plugin.disable_biosdevname(guestfs)
-      end
-
-      it "should disable bios device name hints for GRUB2" do
-        guestfs = mock("GuestFS")
-        guestfs.should_receive(:exists).with("/boot/grub2/grub.cfg").and_return(1)
-        guestfs.should_receive(:exists).with("/boot/grub/grub.conf").and_return(0)
-        guestfs.should_receive(:write).with("/etc/default/grub", "GRUB_CMDLINE_LINUX=\"quiet rhgb biosdevname=0\"\n")
         @plugin.disable_biosdevname(guestfs)
       end
 
@@ -134,6 +125,8 @@ module BoxGrinder
       guestfs.should_receive(:list_devices).and_return(['/dev/vda'])
       guestfs.should_receive(:sh).ordered.with("cd / && grub2-install --force /dev/vda")
       guestfs.should_receive(:sh).ordered.with("cd / && grub2-mkconfig -o /boot/grub2/grub.cfg")
+      guestfs.should_receive(:exists).with("/boot/grub2/grub.cfg").and_return(1)
+      guestfs.should_receive(:write).with("/etc/default/grub", "GRUB_CMDLINE_LINUX=\"quiet rhgb biosdevname=0\"\n")
       @plugin.switch_to_grub2(guestfs, guestfs_helper)
     end
     describe ".execute" do
