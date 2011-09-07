@@ -28,6 +28,7 @@ module BoxGrinder
     #
     # ['/', '/home'] => ['/', '/home']
     # ['swap', '/', '/home'] => ['/', '/home', 'swap']
+    # ['swap', '/', '/home', '/boot'] => ['/', '/boot', '/home', 'swap']
     # ['/tmp-eventlog', '/', '/ubrc', '/tmp-config'] => ['/', '/ubrc', '/tmp-config', '/tmp-eventlog']
     #
     def partition_mount_points(partitions)
@@ -36,14 +37,22 @@ module BoxGrinder
         b_count = b.count('/')
 
         if a_count > b_count
-          v = (b_count == 0 ? -1 : 1)
+          v = 1
         else
           if a_count < b_count
             v = -1
           else
-            v = a.length <=> b.length
+            if a.length == b.length
+              v = a <=> b
+            else
+              v = a.length <=> b.length
+            end
           end
         end
+
+        # This forces having swap partition at the end of the disk
+        v = 1 if a_count == 0
+        v = -1 if b_count == 0
 
         v
       end
