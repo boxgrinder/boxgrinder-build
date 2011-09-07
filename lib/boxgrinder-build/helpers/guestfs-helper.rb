@@ -254,6 +254,9 @@ module BoxGrinder
 
       partitions = mountable_partitions(device)
       mount_points = LinuxHelper.new(:log => @log).partition_mount_points(@appliance_config.hardware.partitions)
+      # https://issues.jboss.org/browse/BGBUILD-307
+      # We don't want to mount swap partitions at all...
+      mount_points.delete("swap")
       partitions.each_index { |i| mount_partition(partitions[i], mount_points[i], mount_prefix) }
     end
 
