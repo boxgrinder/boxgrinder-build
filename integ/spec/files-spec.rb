@@ -46,27 +46,23 @@ module BoxGrinder
       @appliance.plugin_chain.last[:plugin].deliverables.each_value do |file|
         File.exists?(file).should == true
       end
-    end
-
-    context "operating system plugin" do
-      it "should build Fedora JEOS" do
-        @appliance = Appliance.new("#{File.dirname(__FILE__)}/../appliances/jeos-f16.appl", @config, :log => @log).create
-      end
-
-      it "should build Fedora 16 JEOS and create an AMI" do
-        @config.merge!(:platform => :ec2, :delivery => :ami)
-        @appliance = Appliance.new("#{File.dirname(__FILE__)}/../appliances/jeos-f16.appl", @config, :log => @log).create
-      end
-
-      it "should build CentOS JEOS" do
-        @appliance = Appliance.new("#{File.dirname(__FILE__)}/../appliances/jeos-centos5.appl", @config, :log => @log).create
+        
+      GuestFSHelper.new([@appliance.plugin_chain.first[:plugin].deliverables[:disk]], @appliance.appliance_config, @config, :log => @log ).customize do |guestfs, guestfs_helper| 
+        guestfs.exists('/opt/jeos-f16-files.appl').should == 1
+        guestfs.exists('/opt/etc/yum.repos.d/fedora.repo').should == 1
+        guestfs.exists('/opt/etc/sysconfig/network').should == 1
+        guestfs.exists('/opt/abc/apache-couchdb-1.0.3.tar.gz').should == 1
+        guestfs.exists('/opt/abc/README.md').should == 1
+        guestfs.exists('/opt/abc/apache-couchdb-1.1.0.tar.gz').should == 1
       end
     end
 
-    context "platform plugin" do
-      it "should create Fedora JEOS appliance and convert it to VMware personal platform" do
-        @config.merge!(:platform => :vmware, :platform_config => {'type' => 'personal'})
-        @appliance = Appliance.new("#{File.dirname(__FILE__)}/../appliances/jeos-f16.appl", @config, :log => @log).create
+    context "Files section" do
+      it "should build appliance with files section for Fedora 16" do
+        @appliance = Appliance.new("#{File.dirname(__FILE__)}/../appliances/jeos-f16-files.appl", @config, :log => @log).create
+        
+      it "should build appliance with files section for CentOS 5" do
+        @appliance = Appliance.new("#{File.dirname(__FILE__)}/../appliances/jeos-centos5-files.appl", @config, :log => @log).create
       end
     end
   end

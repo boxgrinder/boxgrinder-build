@@ -5,7 +5,7 @@ hardware:
     "/":
       size: 8
 appliances:
-  - jeos-fedora
+  - jeos-f15
 packages:
   - @base
   - @base-x

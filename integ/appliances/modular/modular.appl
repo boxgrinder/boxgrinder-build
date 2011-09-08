@@ -4,7 +4,7 @@ version: 1
 release: 2
 appliances:
   - _test_base
-  - jeos-fedora
+  - jeos-f15
 post:
   base:
     - "/bin/echo 'true' > /fedora-boxgrinder-test"

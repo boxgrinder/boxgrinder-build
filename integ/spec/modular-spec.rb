@@ -56,7 +56,7 @@ module BoxGrinder
     context "modular appliances" do
       it "should build modular appliance based on Fedora and convert it to VirtualBox" do
         @config.merge!(:platform => :virtualbox)
-        @appliance = Appliance.new("#{File.dirname(__FILE__)}/../appliances/modular.appl", @config, :log => @log).create
+        @appliance = Appliance.new("#{File.dirname(__FILE__)}/../appliances/modular/modular.appl", @config, :log => @log).create
 
         GuestFSHelper.new([@appliance.plugin_chain[1][:plugin].deliverables[:disk]], @appliance.appliance_config, @config, :log => @log ).customize do |guestfs, guestfs_helper|
           guestfs.exists('/fedora-boxgrinder-test').should == 1
