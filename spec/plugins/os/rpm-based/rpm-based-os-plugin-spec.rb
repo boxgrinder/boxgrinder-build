@@ -353,7 +353,11 @@ module BoxGrinder
         guestfs.should_receive(:exists).with("/opt").once.and_return(1)
         guestfs.should_receive(:tar_in).with("/tmp/bg_install_files.tar", "/opt")
 
-        @exec_helper.should_receive(:execute).with("tar -cvf /tmp/bg_install_files.tar --wildcards ./abc ./def")
+        File.stub!(:exists?)
+        File.should_receive(:exists?).with('./abc').and_return(true)
+        File.should_receive(:exists?).with('./def').and_return(true)
+
+        @exec_helper.should_receive(:execute).with("cd . && tar -cvf /tmp/bg_install_files.tar --wildcards abc def")
 
         @plugin.install_files(guestfs)
       end
@@ -366,7 +370,11 @@ module BoxGrinder
         guestfs.should_receive(:exists).with("/opt").once.and_return(1)
         guestfs.should_receive(:tar_in).with("/tmp/bg_install_files.tar", "/opt")
 
-        @exec_helper.should_receive(:execute).with("tar -cvf /tmp/bg_install_files.tar --wildcards /opt/abc /opt/def")
+        File.stub!(:exists?)
+        File.should_receive(:exists?).with('/opt/abc').and_return(true)
+        File.should_receive(:exists?).with('/opt/def').and_return(true)
+
+        @exec_helper.should_receive(:execute).with("cd . && tar -cvf /tmp/bg_install_files.tar --wildcards /opt/abc /opt/def")
 
         @plugin.install_files(guestfs)
       end
@@ -394,9 +402,44 @@ module BoxGrinder
         guestfs.should_receive(:mkdir_p).with("/opt/aaa")
         guestfs.should_receive(:tar_in).with("/tmp/bg_install_files.tar", "/opt/aaa")
 
-        @exec_helper.should_receive(:execute).with("tar -cvf /tmp/bg_install_files.tar --wildcards ./abc")
+        File.stub!(:exists?)
+        File.should_receive(:exists?).with('./abc').and_return(true)
+
+        @exec_helper.should_receive(:execute).with("cd . && tar -cvf /tmp/bg_install_files.tar --wildcards abc")
 
         @plugin.install_files(guestfs)
+      end
+
+      it "should upload files when correctly when appliance definition file is not in current directory" do
+        @appliance_config.stub!(:files).and_return("/opt/aaa" => ['abc', '/blah/def'])
+        @plugin.instance_variable_set(:@appliance_definition_file, "some/dir/to/file.appl")
+
+        guestfs = mock("GuestFS")
+        guestfs.should_receive(:exists).with("/opt/aaa").and_return(0)
+        guestfs.should_receive(:mkdir_p).with("/opt/aaa")
+        guestfs.should_receive(:tar_in).with("/tmp/bg_install_files.tar", "/opt/aaa")
+
+        File.stub!(:exists?)
+        File.should_receive(:exists?).with('some/dir/to/abc').and_return(true)
+        File.should_receive(:exists?).with('/blah/def').and_return(true)
+
+        @exec_helper.should_receive(:execute).with("cd some/dir/to && tar -cvf /tmp/bg_install_files.tar --wildcards abc /blah/def")
+
+        @plugin.install_files(guestfs)
+      end
+
+      it "should raise if file doesn't exists" do
+        @appliance_config.stub!(:files).and_return("/opt/aaa" => ['abc', '/blah/def'])
+        @plugin.instance_variable_set(:@appliance_definition_file, "some/dir/to/file.appl")
+
+        guestfs = mock("GuestFS")
+        guestfs.should_receive(:exists).with("/opt/aaa").and_return(0)
+        guestfs.should_receive(:mkdir_p).with("/opt/aaa")
+
+        File.stub!(:exists?)
+        File.should_receive(:exists?).with('some/dir/to/abc').and_return(false)
+
+        lambda { @plugin.install_files(guestfs) }.should raise_error(ValidationError, "File 'abc' specified in files section of appliance definition file doesn't exists.")
       end
     end
 

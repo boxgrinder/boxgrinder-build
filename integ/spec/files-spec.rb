@@ -47,8 +47,10 @@ module BoxGrinder
         File.exists?(file).should == true
       end
         
-      GuestFSHelper.new([@appliance.plugin_chain.first[:plugin].deliverables[:disk]], @appliance.appliance_config, @config, :log => @log ).customize do |guestfs, guestfs_helper| 
-        guestfs.exists('/opt/jeos-f16-files.appl').should == 1
+      GuestFSHelper.new([@appliance.plugin_chain.first[:plugin].deliverables[:disk]], @appliance.appliance_config, @config, :log => @log ).customize do |guestfs, guestfs_helper|
+        # Helper to see what's there
+        guestfs.sh('ls -hall')
+        guestfs.exists('/opt/jeos-centos5.appl').should == 1
         guestfs.exists('/opt/etc/yum.repos.d/fedora.repo').should == 1
         guestfs.exists('/opt/etc/sysconfig/network').should == 1
         guestfs.exists('/opt/abc/apache-couchdb-1.0.3.tar.gz').should == 1

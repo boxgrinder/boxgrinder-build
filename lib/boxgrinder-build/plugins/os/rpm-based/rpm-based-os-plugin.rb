@@ -21,6 +21,7 @@ require 'boxgrinder-build/plugins/base-plugin'
 require 'boxgrinder-build/plugins/os/rpm-based/kickstart'
 require 'boxgrinder-build/plugins/os/rpm-based/rpm-dependency-validator'
 require 'boxgrinder-build/helpers/linux-helper'
+require 'boxgrinder-core/errors'
 
 module BoxGrinder
   class RPMBasedOSPlugin < BasePlugin
@@ -357,14 +358,19 @@ module BoxGrinder
           else
             @log.trace "Local path detected: '#{f}'."
 
-            local_files << (f.match(/^\//) ? f : "#{File.dirname(@appliance_definition_file)}/#{f}")
+            file_path = (f.match(/^\//) ? f : "#{File.dirname(@appliance_definition_file)}/#{f}")
+
+            # TODO validate this earlier
+            raise ValidationError, "File '#{f}' specified in files section of appliance definition file doesn't exists." unless File.exists?(file_path)
+
+            local_files << f
           end
         end
 
         next if local_files.empty?
 
         @log.trace "Tarring files..."
-        @exec_helper.execute("tar -cvf /tmp/bg_install_files.tar --wildcards #{local_files.join(' ')}")
+        @exec_helper.execute("cd #{File.dirname(@appliance_definition_file)} && tar -cvf /tmp/bg_install_files.tar --wildcards #{local_files.join(' ')}")
         @log.trace "Files tarred."
 
         @log.trace "Uploading and unpacking..."

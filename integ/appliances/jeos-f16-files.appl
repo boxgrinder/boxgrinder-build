@@ -4,7 +4,7 @@ os:
   version: 16
 files:
   "/opt":
-    - jeos-f16-files.appl
+    - jeos-centos5.appl
     - /etc/yum.repos.d/fedora.repo
     - /etc/sysconfig
     - modular
