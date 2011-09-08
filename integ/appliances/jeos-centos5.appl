@@ -1,4 +1,4 @@
-name: jeos-centos
+name: jeos-centos5
 os:
   name: centos
   version: 5
