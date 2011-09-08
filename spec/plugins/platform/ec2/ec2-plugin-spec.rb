@@ -109,8 +109,10 @@ module BoxGrinder
       Tempfile.should_receive(:new).with("rc_local").and_return(tempfile)
       File.should_receive(:read).with(any_args()).and_return("with other content")
 
+      guestfs.should_receive(:exists).with('/etc/rc.local').and_return(1)
       guestfs.should_receive(:read_file).once.ordered.with("/etc/rc.local").and_return("content ")
-      tempfile.should_receive(:<<).once.ordered.with("content with other content")
+      tempfile.should_receive(:<<).once.ordered.with("content ")
+      tempfile.should_receive(:<<).once.ordered.with("with other content")
       tempfile.should_receive(:flush).once.ordered
       tempfile.should_receive(:path).once.ordered.and_return("path")
       guestfs.should_receive(:upload).once.ordered.with("path", "/etc/rc.local")
@@ -131,8 +133,9 @@ module BoxGrinder
       Tempfile.should_receive(:new).with("rc_local").and_return(tempfile)
       File.should_receive(:read).with(any_args()).and_return("with other content")
 
-      guestfs.should_receive(:read_file).once.ordered.with("/etc/rc.local").and_return("content ")
-      tempfile.should_receive(:<<).once.ordered.with("content with other content")
+      guestfs.should_receive(:exists).with('/etc/rc.local').and_return(0)
+      guestfs.should_not_receive(:read_file).with("/etc/rc.local")
+      tempfile.should_receive(:<<).once.ordered.with("with other content")
       tempfile.should_receive(:flush).once.ordered
       tempfile.should_receive(:path).once.ordered.and_return("path")
       guestfs.should_receive(:upload).once.ordered.with("path", "/etc/rc.local")
@@ -143,6 +146,7 @@ module BoxGrinder
 
       guestfs.should_receive(:cp).with("/lib/systemd/system/rc-local.service", "/etc/systemd/system/")
       guestfs.should_receive(:sh).with("sed -i '/^ConditionFileIsExecutable/a After=network.target' /etc/systemd/system/rc-local.service")
+      guestfs.should_receive(:sh).with("systemctl enable rc-local.service")
 
       @plugin.upload_rc_local(guestfs)
     end

@@ -167,17 +167,22 @@ module BoxGrinder
     def upload_rc_local(guestfs)
       @log.debug "Uploading '/etc/rc.local' file..."
       rc_local = Tempfile.new('rc_local')
-      rc_local << guestfs.read_file("/etc/rc.local") + File.read("#{File.dirname(__FILE__)}/src/rc_local")
+
+      rc_local << guestfs.read_file("/etc/rc.local") if guestfs.exists("/etc/rc.local") == 1
+      rc_local << File.read("#{File.dirname(__FILE__)}/src/rc_local")
       rc_local.flush
 
       guestfs.upload(rc_local.path, "/etc/rc.local")
 
       rc_local.close
 
+      # Fedora 16 doesn't have /etc/rc.local file and we need to
+      # enable rc.local compatibility with systemd
       # We need to make sure that network is available when executing rc.local
       if (@appliance_config.os.name == 'fedora' and @appliance_config.os.version >= '16')
         guestfs.cp("/lib/systemd/system/rc-local.service", "/etc/systemd/system/")
         guestfs.sh("sed -i '/^ConditionFileIsExecutable/a After=network.target' /etc/systemd/system/rc-local.service")
+        guestfs.sh("systemctl enable rc-local.service")
       end
 
       @log.debug "'/etc/rc.local' file uploaded."
