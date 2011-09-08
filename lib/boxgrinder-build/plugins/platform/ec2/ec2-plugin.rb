@@ -168,7 +168,14 @@ module BoxGrinder
       @log.debug "Uploading '/etc/rc.local' file..."
       rc_local = Tempfile.new('rc_local')
 
-      rc_local << guestfs.read_file("/etc/rc.local") if guestfs.exists("/etc/rc.local") == 1
+      if guestfs.exists("/etc/rc.local") == 1
+        # We're appending
+        rc_local << guestfs.read_file("/etc/rc.local")
+      else
+        # We're creating new file
+        rc_local << "#!/bin/bash\n\n"
+      end
+
       rc_local << File.read("#{File.dirname(__FILE__)}/src/rc_local")
       rc_local.flush
 
@@ -183,6 +190,8 @@ module BoxGrinder
         guestfs.cp("/lib/systemd/system/rc-local.service", "/etc/systemd/system/")
         guestfs.sh("sed -i '/^ConditionFileIsExecutable/a After=network.target' /etc/systemd/system/rc-local.service")
         guestfs.sh("systemctl enable rc-local.service")
+        guestfs.ln_sf("/etc/rc.local", "/etc/rc.d/rc.local")
+        guestfs.chmod(755, "/etc/rc.local")
       end
 
       @log.debug "'/etc/rc.local' file uploaded."

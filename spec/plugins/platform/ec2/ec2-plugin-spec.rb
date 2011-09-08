@@ -135,6 +135,7 @@ module BoxGrinder
 
       guestfs.should_receive(:exists).with('/etc/rc.local').and_return(0)
       guestfs.should_not_receive(:read_file).with("/etc/rc.local")
+      tempfile.should_receive(:<<).once.ordered.with("#!/bin/bash\n\n")
       tempfile.should_receive(:<<).once.ordered.with("with other content")
       tempfile.should_receive(:flush).once.ordered
       tempfile.should_receive(:path).once.ordered.and_return("path")
@@ -147,6 +148,8 @@ module BoxGrinder
       guestfs.should_receive(:cp).with("/lib/systemd/system/rc-local.service", "/etc/systemd/system/")
       guestfs.should_receive(:sh).with("sed -i '/^ConditionFileIsExecutable/a After=network.target' /etc/systemd/system/rc-local.service")
       guestfs.should_receive(:sh).with("systemctl enable rc-local.service")
+      guestfs.should_receive(:ln_sf).with("/etc/rc.local", "/etc/rc.d/rc.local")
+      guestfs.should_receive(:chmod).with(755, "/etc/rc.local")
 
       @plugin.upload_rc_local(guestfs)
     end
