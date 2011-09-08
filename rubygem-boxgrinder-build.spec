@@ -5,7 +5,7 @@
 
 Summary: A tool for creating appliances from simple plain text files
 Name: rubygem-%{gemname}
-Version: 0.10.0
+Version: 0.9.7
 Release: 1%{?dist}
 Group: Development/Languages
 License: LGPLv3+
@@ -130,8 +130,8 @@ popd
 %{gemdir}/doc/%{gemname}-%{version}
 
 %changelog
-* Tue Sep 06 2011 Marek Goldmann <mgoldman@redhat.com> - 0.10.0-1
-- Upstream release: 0.10.0
+* Tue Sep 06 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.7-1
+- Upstream release: 0.9.7
 - [BGBUILD-307] Appliance with swap file fails to build if selected OS is centos
 - [BGBUILD-306] Switch for updates-testing repository for integration tests
 
