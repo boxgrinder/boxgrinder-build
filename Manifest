@@ -6,8 +6,8 @@ Rakefile
 bin/boxgrinder-build
 boxgrinder-build.gemspec
 integ/appliances/gnome-fedora.appl
-integ/appliances/jeos-centos.appl
 integ/appliances/jeos-centos5-files.appl
+integ/appliances/jeos-centos5.appl
 integ/appliances/jeos-f15.appl
 integ/appliances/jeos-f16-files.appl
 integ/appliances/jeos-f16.appl
