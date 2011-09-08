@@ -60,6 +60,7 @@ module BoxGrinder
     context "Files section" do
       it "should build appliance with files section for Fedora 16" do
         @appliance = Appliance.new("#{File.dirname(__FILE__)}/../appliances/jeos-f16-files.appl", @config, :log => @log).create
+      end
         
       it "should build appliance with files section for CentOS 5" do
         @appliance = Appliance.new("#{File.dirname(__FILE__)}/../appliances/jeos-centos5-files.appl", @config, :log => @log).create
