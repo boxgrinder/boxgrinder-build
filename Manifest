@@ -23,7 +23,6 @@ integ/appliances/modular/_packages_utils.appl
 integ/appliances/modular/_repos_boxgrinder_permanent_noarch.appl
 integ/appliances/modular/_repos_testlocal_ephemeral_noarch.appl
 integ/appliances/modular/_test_base.appl
-integ/appliances/modular/jeos-f15.appl
 integ/appliances/modular/modular.appl
 integ/packages/ephemeral-repo-test-0.1-1.noarch.rpm
 integ/packages/local-repo-test.spec

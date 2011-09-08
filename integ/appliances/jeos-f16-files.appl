@@ -1,7 +1,6 @@
 name: jeos-f16-files
-os:
-  name: fedora
-  version: 16
+appliances:
+  - jeos-f16
 files:
   "/opt":
     - jeos-centos5.appl

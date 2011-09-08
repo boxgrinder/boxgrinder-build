@@ -1,6 +1,7 @@
 v0.10.0
 
 * [BGBUILD-307] Appliance with swap file fails to build if selected OS is centos
+* [BGBUILD-306] Switch for updates-testing repository for integration tests
 
 v0.9.6
 
