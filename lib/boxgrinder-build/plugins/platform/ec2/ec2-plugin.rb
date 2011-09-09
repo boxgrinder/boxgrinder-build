@@ -191,7 +191,7 @@ module BoxGrinder
         guestfs.sh("sed -i '/^ConditionFileIsExecutable/a After=network.target' /etc/systemd/system/rc-local.service")
         guestfs.sh("systemctl enable rc-local.service")
         guestfs.ln_sf("/etc/rc.local", "/etc/rc.d/rc.local")
-        guestfs.chmod(755, "/etc/rc.local")
+        guestfs.chmod(0755, "/etc/rc.local")
       end
 
       @log.debug "'/etc/rc.local' file uploaded."
