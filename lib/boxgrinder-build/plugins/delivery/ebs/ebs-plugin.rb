@@ -65,7 +65,7 @@ module BoxGrinder
     end
 
     def after_init
-      register_supported_os('fedora', ['13', '14', '15'])
+      register_supported_os('fedora', ['13', '14', '15', '16'])
       register_supported_os('rhel', ['6'])
       register_supported_os('centos', ['5'])
     end
