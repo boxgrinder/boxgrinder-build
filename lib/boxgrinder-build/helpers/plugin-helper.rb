@@ -26,6 +26,7 @@ require 'boxgrinder-build/plugins/delivery/ebs/ebs-plugin'
 require 'boxgrinder-build/plugins/delivery/local/local-plugin'
 require 'boxgrinder-build/plugins/delivery/elastichosts/elastichosts-plugin'
 require 'boxgrinder-build/plugins/delivery/openstack/openstack-plugin'
+require 'boxgrinder-build/plugins/delivery/libvirt/libvirt-plugin'
 
 require 'boxgrinder-build/plugins/platform/vmware/vmware-plugin'
 require 'boxgrinder-build/plugins/platform/ec2/ec2-plugin'

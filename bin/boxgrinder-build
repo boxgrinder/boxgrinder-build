@@ -39,7 +39,7 @@ ARGV_DUP = ARGV.clone
 
 def validate_hash_option(options, name, value)
   value.each do |entry|
-    if entry =~ /^(\S+):(\S+)$/
+    if entry =~ /^(\S+?):(\S+)$/
 
       k = $1.strip
       v = $2.strip
