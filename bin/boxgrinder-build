@@ -24,11 +24,6 @@ require 'boxgrinder-core/models/config'
 require 'boxgrinder-core/helpers/log-helper'
 require 'boxgrinder-build/appliance'
 
-if Process.uid != 0
-  puts "This program must be executed with root privileges. Try 'sudo #{File.basename($0)}'."
-  abort
-end
-
 options = OpenCascade.new(
     :platform => :none,
     :delivery => :none,
@@ -156,6 +151,12 @@ opts = process_options(options)
 
 begin
   opts.parse!
+
+  if Process.uid != 0
+    puts "This program must be executed with root privileges. Try 'sudo #{File.basename($0)}'."
+    abort
+  end
+
   if ARGV.empty? or ARGV.size > 1
     puts opts
     puts
