@@ -133,14 +133,38 @@ module BoxGrinder
     def execute_plugin(plugin, param = nil)
       if plugin.deliverables_exists?
         @log.info "Deliverables for #{plugin.plugin_info[:name]} #{plugin.plugin_info[:type]} plugin exists, skipping."
-        return
+      else
+        @log.debug "Executing #{plugin.plugin_info[:type]} plugin..."
+
+        param.nil? ? plugin.run : plugin.run(param)
+
+        @log.debug "#{plugin.plugin_info[:type].to_s.capitalize} plugin executed."
+      end
+      if plugin.plugin_info[:type] == :os
+        FileUtils.chown_R(@config.uid, @config.gid, File.join(@config.dir.root, @config.dir.build))
+        @log.debug "Lowering from root to user."
+        change_user(@config.uid, @config.gid)
+      end
+    end
+
+    def change_user(u, g)
+      begin
+        if Process::Sys.respond_to?(:setresgid) && Process::Sys.respond_to?(:setresuid)
+          Process::Sys.setresgid(g, g, g)
+          Process::Sys.setresuid(u, u, u)
+          return
+        end
+      rescue NotImplementedError
       end
 
-      @log.debug "Executing #{plugin.plugin_info[:type]} plugin..."
-
-      param.nil? ? plugin.run : plugin.run(param)
-
-      @log.debug "#{plugin.plugin_info[:type].to_s.capitalize} plugin executed."
+      begin
+        # JRuby doesn't support saved ids, use this instead.
+        Process.gid = g
+        Process.egid = g
+        Process.uid = u
+        Process.euid = u
+      rescue NotImplementedError
+      end
     end
   end
 end

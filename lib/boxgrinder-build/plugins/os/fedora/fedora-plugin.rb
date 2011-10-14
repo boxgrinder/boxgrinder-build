@@ -23,7 +23,7 @@ module BoxGrinder
     def after_init
       super
       register_supported_os('fedora', ["13", "14", "15", "16", "rawhide"])
-      set_default_config_value('PAE',true)
+      set_default_config_value('PAE', true)
     end
 
     def execute(appliance_definition_file)

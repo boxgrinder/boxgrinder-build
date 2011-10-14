@@ -26,7 +26,8 @@ module BoxGrinder
   describe Appliance do
     def prepare_appliance(options = {}, definition_file = "#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.appl")
       @log = LogHelper.new(:level => :trace, :type => :stdout)
-      @config = OpenCascade.new(:platform => :none, :delivery => :none, :force => false).merge(options)
+      @config = OpenCascade.new(:platform => :none, :delivery => :none, :force => false,
+                                :uid => 501, :gid => 501, :dir => {:root => '/', :build => 'build'}).merge(options)
 
       @plugin_manager = mock(PluginManager)
 
@@ -327,6 +328,30 @@ module BoxGrinder
 
         @appliance.execute_plugin(plugin, :s3)
       end
+
+      context "user switching" do
+        before(:each) do
+          FileUtils.stub!(:chown_R)
+          @appliance.stub!(:change_user)
+        end
+
+        it "should switch to user from root after execution of OS plugin" do
+          plugin = mock('OSPlugin', :deliverables_exists? => false, :plugin_info => {:name => :test, :type => :os})
+          FileUtils.should_receive(:chown_R).with(501, 501, '/build')
+          @appliance.should_receive(:change_user).with(501, 501)
+          plugin.should_receive(:run).with(:test)
+
+          @appliance.execute_plugin(plugin, :test)
+        end
+
+        it "should switch to user from root after OS plugin even if deliverables exist" do
+          plugin = mock('OSPlugin', :deliverables_exists? => true, :plugin_info => {:name => :test, :type => :os})
+          FileUtils.should_receive(:chown_R).with(501, 501, '/build')
+          @appliance.should_receive(:change_user).with(501, 501)
+
+          @appliance.execute_plugin(plugin, :test)
+        end
+      end
     end
 
     context "preparations" do
@@ -350,5 +375,30 @@ module BoxGrinder
         @appliance.delivery_selected?.should == false
       end
     end
+
+    context ".change_user" do
+      before(:each) do
+        prepare_appliance
+      end
+      context "Interpreters supporting changes to real, effective and saved ids" do
+        it "should change the real, effective and saved uid & gid" do
+          Process::Sys.should_receive(:respond_to?).twice.and_return(true)
+          Process::Sys.should_receive(:setresuid).with(501, 501, 501)
+          Process::Sys.should_receive(:setresgid).with(502, 502, 502)
+          @appliance.change_user(501, 502)
+        end
+      end
+      context "Interpreters only supporting changes to real and effective ids" do
+        it "should change the real and effective uid & gid" do
+          Process::Sys.should_receive(:respond_to?).once.and_return(false)
+          Process.should_receive(:gid=).with(502)
+          Process.should_receive(:egid=).with(502)
+          Process.should_receive(:uid=).with(501)
+          Process.should_receive(:euid=).with(501)
+          @appliance.change_user(501, 502)
+        end
+      end
+    end
+
   end
 end

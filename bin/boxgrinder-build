@@ -19,6 +19,8 @@
 
 require 'optparse'
 require 'rubygems'
+require 'pathname'
+require 'rbconfig'
 require 'hashery/opencascade'
 require 'boxgrinder-core/models/config'
 require 'boxgrinder-core/helpers/log-helper'
@@ -32,6 +34,8 @@ options = OpenCascade.new(
     :delivery_config => {},
     :additional_plugins => []
 )
+
+ARGV_DUP = ARGV.clone
 
 def validate_hash_option(options, name, value)
   value.each do |entry|
@@ -147,15 +151,22 @@ EOB
   end
 end
 
+def ensure_root
+  unless Process.uid == 0
+    puts("Currently running as non-root user, BoxGrinder will attempt to re-launch under 'sudo -E'")
+    # http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-talk/151376
+    ruby = File.join(Config::CONFIG["bindir"],
+                     Config::CONFIG["RUBY_INSTALL_NAME"] + Config::CONFIG["EXEEXT"])
+    exec("sudo -E #{ruby} -I#{$:.join(':')} #{Pathname.new(__FILE__).realpath} #{ARGV_DUP.join(" ")}")
+  end
+end
+
 opts = process_options(options)
 
 begin
   opts.parse!
 
-  if Process.uid != 0
-    puts "This program must be executed with root privileges. Try 'sudo #{File.basename($0)}'."
-    abort
-  end
+  ensure_root
 
   if ARGV.empty? or ARGV.size > 1
     puts opts

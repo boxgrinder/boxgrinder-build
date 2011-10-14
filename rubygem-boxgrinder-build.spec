@@ -5,7 +5,7 @@
 
 Summary: A tool for creating appliances from simple plain text files
 Name: rubygem-%{gemname}
-Version: 0.9.7
+Version: 0.10.0
 Release: 1%{?dist}
 Group: Development/Languages
 License: LGPLv3+
@@ -130,6 +130,11 @@ popd
 %{gemdir}/doc/%{gemname}-%{version}
 
 %changelog
+* Fri Oct 14 2011 Marc Savy <msavy@redhat.com> - 0.10.0-1
+- Upstream release: 0.10.0
+- [BGBUILD-312] If run as non-root user, re-launch using 'sudo -E'. After appliance-creator is finished,
+  de-escalate permissions back to user level using stored user information. Change ownership of built files to user.
+
 * Tue Sep 06 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.7-1
 - Upstream release: 0.9.7
 - [BGBUILD-307] Appliance with swap file fails to build if selected OS is centos

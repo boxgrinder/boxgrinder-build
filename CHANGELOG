@@ -1,3 +1,8 @@
+v0.10.0
+
+* [BGBUILD-312] If run as non-root user, re-launch using 'sudo -E'. After appliance-creator is finished,
+  de-escalate permissions back to user level using stored user information. Change ownership of built files to user
+
 v0.9.7
 
 * [BGBUILD-307] Appliance with swap file fails to build if selected OS is centos
