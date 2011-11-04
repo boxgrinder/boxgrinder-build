@@ -45,7 +45,7 @@ module BoxGrinder
           # Remove normal kernel
           guestfs.sh("yum -y remove kernel")
           # because we need to install kernel-xen package
-          guestfs.sh("yum -y install kernel-xen")
+          guestfs_helper.sh("yum -y install kernel-xen", :arch => @appliance_config.hardware.arch)
           # and add require modules
           @linux_helper.recreate_kernel_image(guestfs, ['xenblk', 'xennet'])
         end
