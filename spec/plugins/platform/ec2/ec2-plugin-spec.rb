@@ -272,7 +272,7 @@ module BoxGrinder
         guestfs.should_receive(:upload).with("/etc/resolv.conf", "/etc/resolv.conf")
         guestfs.should_receive(:mkdir).with("/data")
         guestfs.should_receive(:sh).with("yum -y remove kernel")
-        guestfs.should_receive(:sh).with("yum -y install kernel-xen")
+        guestfs_helper.should_receive(:sh).with("yum -y install kernel-xen", :arch => 'i686')
 
         @plugin.should_receive(:create_devices).with(guestfs)
         @plugin.should_receive(:upload_fstab).with(guestfs)
