@@ -20,6 +20,9 @@ rootpw --iscrypted <%= appliance_config.os.password.crypt((0...8).map { 65.+(ran
 # appliance-creator doesn't support labels...
 # --label Zlib.crc32(root).to_s(16)
 
+<% if appliance_config.os.name == 'fedora' and appliance_config.os.version >= '16' %>
+part biosboot --fstype=biosboot --size=1
+<% end %>
 <% mount_points.each do |root| %>
 <% partition = appliance_config.hardware.partitions[root]%>
 part <%= root %> --size <%= (partition['size'].to_f * 1024).to_i %> --fstype <%= root.eql?('swap') ? 'swap' : partition['type'] %> <% unless partition['options'].nil? %> --fsoptions '<%= partition['options'] %>' <% end %> <% if partition['passphrase'] %> --encrypted --passphrase='<%= partition['passphrase'] %>' <% end %> --ondisk sda<% end %>
