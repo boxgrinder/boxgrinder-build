@@ -36,7 +36,7 @@ module BoxGrinder
 
     def normalize_packages(packages)
       # https://issues.jboss.org/browse/BGBUILD-89
-      add_packages(packages, ['@core', 'curl'])
+      add_packages(packages, ['@core', 'curl', 'grub'])
 
       case @appliance_config.os.version
         when '5'

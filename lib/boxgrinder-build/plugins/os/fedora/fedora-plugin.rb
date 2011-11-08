@@ -45,8 +45,6 @@ module BoxGrinder
       build_with_appliance_creator(appliance_definition_file, @repos) do |guestfs, guestfs_helper|
         if @appliance_config.os.version >= "15"
           disable_biosdevname(guestfs)
-          # https://issues.jboss.org/browse/BGBUILD-298
-          switch_to_grub2(guestfs, guestfs_helper) if @appliance_config.os.version >= "16"
           change_runlevel(guestfs)
           disable_netfs(guestfs)
           link_mtab(guestfs)
@@ -69,27 +67,19 @@ module BoxGrinder
         @plugin_config['PAE'] ? packages << "kernel-PAE" : packages << "kernel"
       end
 
-      packages << "-grub2" if @appliance_config.os.version >= "16"
-    end
-
-    # Since Fedora 16 by default GRUB2 is used - we remove Legacy GRUB
-    # and use GRUB2 instead
-    #
-    # https://issues.jboss.org/browse/BGBUILD-280
-    def switch_to_grub2(guestfs, guestfs_helper)
-      @log.debug "Switching to GRUB2..."
-      guestfs_helper.sh("yum -y remove grub")
-      guestfs_helper.sh("yum -y install grub2")
-      # Disabling biosdevname in GRUB2
-      guestfs.write("/etc/default/grub", "GRUB_CMDLINE_LINUX=\"quiet rhgb biosdevname=0\"\n") if guestfs.exists("/boot/grub2/grub.cfg") != 0
-      # We are using only one disk, so this is save
-      guestfs.sh("cd / && grub2-install --force #{guestfs.list_devices.first}")
-      guestfs.sh("cd / && grub2-mkconfig -o /boot/grub2/grub.cfg")
-      @log.debug "Using GRUB2 from now."
+      if @appliance_config.os.version >= "16"
+        packages << "grub2"
+      else
+        packages << "grub"
+      end
     end
 
     def disable_biosdevname(guestfs)
       @log.debug "Disabling biosdevname..."
+      if guestfs.exists("/boot/grub2/grub.cfg") != 0
+        guestfs.write("/etc/default/grub", "GRUB_CMDLINE_LINUX=\"quiet rhgb biosdevname=0\"\n")
+        guestfs.sh("cd / && grub2-mkconfig -o /boot/grub2/grub.cfg")
+      end
       guestfs.sh('sed -i "s/kernel\(.*\)/kernel\1 biosdevname=0/g" /boot/grub/grub.conf') if guestfs.exists("/boot/grub/grub.conf") != 0
       @log.debug "Biosdevname disabled."
     end

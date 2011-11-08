@@ -72,28 +72,47 @@ module BoxGrinder
       @appliance_config.should_receive(:is64bit?).and_return(false)
 
       @plugin.normalize_packages(packages)
-      packages.should == ["abc", "def", "@core", "system-config-firewall-base", "dhclient", "kernel"]
+      packages.should == ["abc", "def", "@core", "system-config-firewall-base", "dhclient", "kernel", "grub"]
+    end
+
+    it "should normalize packages for Fedora 16" do
+      @appliance_config.stub!(:os).and_return(OpenCascade.new(:name => 'fedora', :version => '16'))
+
+      packages = ['abc', 'def', 'kernel']
+
+      @plugin.normalize_packages(packages)
+      packages.should == ["abc", "def", "@core", "system-config-firewall-base", "dhclient", "kernel", "grub2"]
     end
 
     it "should normalize packages for 64bit" do
       packages = ['abc', 'def', 'kernel']
 
       @plugin.normalize_packages(packages)
-      packages.should == ["abc", "def", "@core", "system-config-firewall-base", "dhclient", "kernel"]
+      packages.should == ["abc", "def", "@core", "system-config-firewall-base", "dhclient", "kernel", "grub"]
     end
 
     it "should add packages for fedora 13" do
       packages = []
 
       @plugin.normalize_packages(packages)
-      packages.should == ["@core", "system-config-firewall-base", "dhclient", "kernel"]
+      packages.should == ["@core", "system-config-firewall-base", "dhclient", "kernel", "grub"]
     end
 
     context "BGBUILD-204" do
       it "should disable bios device name hints for GRUB legacy" do
         guestfs = mock("GuestFS")
+        guestfs.should_receive(:exists).with("/boot/grub2/grub.cfg").and_return(0)
         guestfs.should_receive(:exists).with("/boot/grub/grub.conf").and_return(1)
         guestfs.should_receive(:sh).with("sed -i \"s/kernel\\(.*\\)/kernel\\1 biosdevname=0/g\" /boot/grub/grub.conf")
+        @plugin.disable_biosdevname(guestfs)
+      end
+
+      it "should disable bios device name hints for GRUB2" do
+        guestfs = mock("GuestFS")
+        guestfs.should_receive(:exists).with("/boot/grub2/grub.cfg").and_return(1)
+        guestfs.should_receive(:exists).with("/boot/grub/grub.conf").and_return(0)
+        guestfs.should_receive(:write).with("/etc/default/grub", "GRUB_CMDLINE_LINUX=\"quiet rhgb biosdevname=0\"\n")
+        guestfs.should_receive(:sh).with("cd / && grub2-mkconfig -o /boot/grub2/grub.cfg")
         @plugin.disable_biosdevname(guestfs)
       end
 
@@ -117,18 +136,6 @@ module BoxGrinder
       @plugin.link_mtab(guestfs)
     end
 
-    it "should replace GRUB legacy with GRUB2" do
-      guestfs = mock("GuestFS")
-      guestfs_helper = mock("GuestFSHelper")
-      guestfs_helper.should_receive(:sh).ordered.with("yum -y remove grub")
-      guestfs_helper.should_receive(:sh).ordered.with("yum -y install grub2")
-      guestfs.should_receive(:list_devices).and_return(['/dev/vda'])
-      guestfs.should_receive(:sh).ordered.with("cd / && grub2-install --force /dev/vda")
-      guestfs.should_receive(:sh).ordered.with("cd / && grub2-mkconfig -o /boot/grub2/grub.cfg")
-      guestfs.should_receive(:exists).with("/boot/grub2/grub.cfg").and_return(1)
-      guestfs.should_receive(:write).with("/etc/default/grub", "GRUB_CMDLINE_LINUX=\"quiet rhgb biosdevname=0\"\n")
-      @plugin.switch_to_grub2(guestfs, guestfs_helper)
-    end
     describe ".execute" do
       it "should make Fedora 15 or higher work" do
         @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '15'}))
@@ -155,7 +162,6 @@ module BoxGrinder
 
         @plugin.should_receive(:normalize_packages).ordered
         @plugin.should_receive(:disable_biosdevname).ordered.with(guestfs)
-        @plugin.should_receive(:switch_to_grub2).ordered.with(guestfs, guestfs_helper)
         @plugin.should_receive(:change_runlevel).ordered.with(guestfs)
         @plugin.should_receive(:disable_netfs).ordered.with(guestfs)
         @plugin.should_receive(:link_mtab).ordered.with(guestfs)
