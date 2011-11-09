@@ -268,8 +268,10 @@ module BoxGrinder
       end
 
       # /boot/grub/grub.conf
-      if grub = guestfs.read_file('/boot/grub/grub.conf').gsub!(/(\/dev\/sda.)/) { |path| "LABEL=#{guestfs.vfs_label(path.gsub('/dev/sda', device))}" }
-        guestfs.write_file('/boot/grub/grub.conf', grub, 0)
+      if guestfs.exists('/boot/grub/grub.conf') != 0
+        if grub = guestfs.read_file('/boot/grub/grub.conf').gsub!(/(\/dev\/sda.)/) { |path| "LABEL=#{guestfs.vfs_label(path.gsub('/dev/sda', device))}" }
+          guestfs.write_file('/boot/grub/grub.conf', grub, 0)
+        end
       end
       @log.debug "Done."
     end

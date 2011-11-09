@@ -269,7 +269,7 @@ module BoxGrinder
       # extended partition is always #3
       partitions.delete_at(3) if partitions.size > 4
 
-      partitions.reject { |i| !(i =~ /^#{device}/) or (@guestfs.vfs_type(i) == 'swap' and !options[:list_swap]) }
+      partitions.reject { |i| !(i =~ /^#{device}/) or (@guestfs.vfs_type(i) == '') or (@guestfs.vfs_type(i) == 'swap' and !options[:list_swap]) }
     end
 
     def umount_partition(part)
