@@ -55,7 +55,7 @@ module BoxGrinder
         guestfs.exists('/opt/etc/sysconfig/network').should == 1
         guestfs.exists('/opt/abc/apache-couchdb-1.0.3.tar.gz').should == 1
         guestfs.exists('/opt/abc/README.md').should == 1
-        guestfs.exists('/opt/abc/apache-couchdb-1.1.0.tar.gz').should == 1
+        guestfs.exists('/opt/abc/squid-3.0.STABLE25.tar.gz').should == 1
       end
     end
 
