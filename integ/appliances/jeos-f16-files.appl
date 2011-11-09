@@ -10,5 +10,5 @@ files:
   "/opt/abc":
     - "http://ftp.tpnet.pl/vol/d1/apache//couchdb/1.0.3/apache-couchdb-1.0.3.tar.gz"
     - "https://raw.github.com/boxgrinder/boxgrinder-build/master/README.md"
-    - "ftp://ftp.fu-berlin.de/unix/www/apache/couchdb/1.1.0/apache-couchdb-1.1.0.tar.gz"
+    - "ftp://ftp.fu-berlin.de/unix/www/squid/archive/3.0/squid-3.0.STABLE25.tar.gz"
 
