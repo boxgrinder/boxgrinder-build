@@ -21,7 +21,7 @@ rootpw --iscrypted <%= appliance_config.os.password.crypt((0...8).map { 65.+(ran
 # --label Zlib.crc32(root).to_s(16)
 
 <% if appliance_config.os.name == 'fedora' and appliance_config.os.version >= '16' %>
-part biosboot --fstype=biosboot --size=1 --ondisk sda
+part biosboot --size 5 --fstype biosboot --ondisk sda
 <% end %>
 <% mount_points.each do |root| %>
 <% partition = appliance_config.hardware.partitions[root]%>
