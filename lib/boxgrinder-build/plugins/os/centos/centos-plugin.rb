@@ -21,26 +21,28 @@ require 'boxgrinder-build/plugins/os/rhel/rhel-plugin'
 module BoxGrinder
   class CentOSPlugin < RHELPlugin
 
-    CENTOS_REPOS = {
-        "5" => {
-            "base" => {
-                "mirrorlist" => "http://mirrorlist.centos.org/?release=#OS_VERSION#&arch=#BASE_ARCH#&repo=os"
-            },
-            "updates" => {
-                "mirrorlist" => "http://mirrorlist.centos.org/?release=#OS_VERSION#&arch=#BASE_ARCH#&repo=updates"
-            }
-        }
-    }
-
     def after_init
       super
-      register_supported_os('centos', ['5'])
+      register_supported_os('centos', ['5', '6'])
     end
 
     def execute(appliance_definition_file)
-      build_rhel(appliance_definition_file, CENTOS_REPOS)
+      repos = {}
+
+     @plugin_info[:versions].each do |version|
+      repos[version] = {
+          "base" => {
+              "mirrorlist" => "http://mirrorlist.centos.org/?release=#OS_VERSION#&arch=#BASE_ARCH#&repo=os"
+          },
+          "updates" => {
+              "mirrorlist" => "http://mirrorlist.centos.org/?release=#OS_VERSION#&arch=#BASE_ARCH#&repo=updates"
+          }
+        }
+      end
+
+      build_rhel(appliance_definition_file, repos)
     end
   end
 end
 
-plugin :class => BoxGrinder::CentOSPlugin, :type => :os, :name => :centos, :full_name  => "CentOS", :versions   => ["5"]
+plugin :class => BoxGrinder::CentOSPlugin, :type => :os, :name => :centos, :full_name  => "CentOS", :versions   => ["5", "6"]
