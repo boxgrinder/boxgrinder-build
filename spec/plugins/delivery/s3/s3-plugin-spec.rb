@@ -77,7 +77,7 @@ module BoxGrinder
 
       supportes_oses.size.should == 4
       Set.new(supportes_oses.keys).should == Set.new(['centos', 'fedora', 'rhel', 'sl'])
-      supportes_oses['centos'].should == ['5']
+      supportes_oses['centos'].should == ['5', '6']
       supportes_oses['rhel'].should == ['5', '6']
       supportes_oses['sl'].should == ['5', '6']
       supportes_oses['fedora'].should == ['13', '14', '15', '16']

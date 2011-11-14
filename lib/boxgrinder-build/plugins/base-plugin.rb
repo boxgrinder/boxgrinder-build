@@ -179,13 +179,11 @@ module BoxGrinder
 
     def run(param = nil)
       unless is_supported_os?
-        @log.error "#{@plugin_info[:full_name]} plugin supports following operating systems: #{supported_oses}. Your appliance contains #{@appliance_config.os.name} #{@appliance_config.os.version} operating system which is not supported by this plugin, sorry."
-        return
+        raise PluginValidationError, "#{@plugin_info[:full_name]} plugin supports following operating systems: #{supported_oses}. Your appliance contains #{@appliance_config.os.name} #{@appliance_config.os.version} operating system which is not supported by this plugin, sorry."
       end
 
       unless is_supported_platform?
-        @log.error "#{@plugin_info[:full_name]} plugin supports following platforms: #{@supported_platforms.join(', ')}. You selected #{@previous_plugin_info[:name]} platform which is not supported by this plugin, sorry."
-        return
+        raise PluginValidationError, "#{@plugin_info[:full_name]} plugin supports following platforms: #{@supported_platforms.join(', ')}. You selected #{@previous_plugin_info[:name]} platform which is not supported by this plugin, sorry."
       end
 
       FileUtils.rm_rf @dir.tmp
