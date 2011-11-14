@@ -71,6 +71,15 @@ module BoxGrinder
         @config.merge!(:platform => :ec2, :delivery => :ami)
         @appliance = Appliance.new("#{File.dirname(__FILE__)}/../appliances/jeos-centos5.appl", @config, :log => @log).create
       end
+
+      it "should build CentOS 6 JEOS" do
+        @appliance = Appliance.new("#{File.dirname(__FILE__)}/../appliances/jeos-centos6.appl", @config, :log => @log).create
+      end
+
+      it "should build CentOS 6 JEOS and create an AMI" do
+        @config.merge!(:platform => :ec2, :delivery => :ami)
+        @appliance = Appliance.new("#{File.dirname(__FILE__)}/../appliances/jeos-centos6.appl", @config, :log => @log).create
+      end
     end
 
     context "platform plugin" do

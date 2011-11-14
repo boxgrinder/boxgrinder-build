@@ -1,0 +1,4 @@
+name: jeos-centos6
+os:
+  name: centos
+  version: 6
