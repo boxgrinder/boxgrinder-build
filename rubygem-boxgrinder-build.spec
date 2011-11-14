@@ -136,6 +136,7 @@ popd
 - [BGBUILD-267] Add CentOS 6 support
 - [BGBUILD-310] BoxGrinder doesn't build appliances when Fedora 16 is the host
 - [BGBUILD-157] Add Alignment options for virtual appliances
+- [BGBUILD-321] For EBS AMIs use the filesystem type specified for root partition
 
 * Tue Sep 06 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.7-1
 - Upstream release: 0.9.7

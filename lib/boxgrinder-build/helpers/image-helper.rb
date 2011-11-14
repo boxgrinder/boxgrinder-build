@@ -82,8 +82,9 @@ module BoxGrinder
       guestfs.mkmountpoint('/out')
       guestfs.mkmountpoint('/out/in')
 
-      # Create filesystem on EC2 disk
-      guestfs.mkfs(@appliance_config.default_filesystem_type, out_device)
+      # Create filesystem on destination device
+      # https://issues.jboss.org/browse/BGBUILD-321
+      guestfs.mkfs(@appliance_config.hardware.partitions['/']['type'], out_device)
       # Set root partition label
       guestfs.set_e2label(out_device, '79d3d2d4') # This is a CRC32 from /
 
