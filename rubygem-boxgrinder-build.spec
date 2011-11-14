@@ -5,7 +5,7 @@
 
 Summary: A tool for creating appliances from simple plain text files
 Name: rubygem-%{gemname}
-Version: 0.10.0
+Version: 0.9.8
 Release: 1%{?dist}
 Group: Development/Languages
 License: LGPLv3+
@@ -130,10 +130,12 @@ popd
 %{gemdir}/doc/%{gemname}-%{version}
 
 %changelog
-* Fri Oct 14 2011 Marc Savy <msavy@redhat.com> - 0.10.0-1
-- Upstream release: 0.10.0
-- [BGBUILD-312] If run as non-root user, re-launch using 'sudo -E'. After appliance-creator is finished,
-  de-escalate permissions back to user level using stored user information. Change ownership of built files to user.
+* Fri Oct 14 2011 Marc Savy <msavy@redhat.com> - 0.9.8-1
+- Upstream release: 0.9.8
+- [BGBUILD-312] Only use root privileges when necessary
+- [BGBUILD-267] Add CentOS 6 support
+- [BGBUILD-310] BoxGrinder doesn't build appliances when Fedora 16 is the host
+- [BGBUILD-157] Add Alignment options for virtual appliances
 
 * Tue Sep 06 2011 Marek Goldmann <mgoldman@redhat.com> - 0.9.7-1
 - Upstream release: 0.9.7

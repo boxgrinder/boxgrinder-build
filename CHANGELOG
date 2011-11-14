@@ -1,7 +1,9 @@
-v0.10.0
+v0.9.8
 
-* [BGBUILD-312] If run as non-root user, re-launch using 'sudo -E'. After appliance-creator is finished,
-  de-escalate permissions back to user level using stored user information. Change ownership of built files to user
+* [BGBUILD-312] Only use root privileges when necessary
+* [BGBUILD-267] Add CentOS 6 support
+* [BGBUILD-310] BoxGrinder doesn't build appliances when Fedora 16 is the host
+* [BGBUILD-157] Add Alignment options for virtual appliances
 
 v0.9.7
 
