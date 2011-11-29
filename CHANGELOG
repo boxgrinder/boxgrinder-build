@@ -1,3 +1,7 @@
+v0.10.0
+
+* [BGBUILD-313] boxgrinder build fails to build ec2 image if ec2-user already exists
+
 v0.9.8
 
 * [BGBUILD-312] Only use root privileges when necessary

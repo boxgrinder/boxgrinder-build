@@ -218,8 +218,19 @@ module BoxGrinder
     it "should add ec2-user account" do
       guestfs = mock("guestfs")
 
+      guestfs.should_receive(:sh).with("getent passwd ec2-user | wc -l").and_return("0")
       guestfs.should_receive(:sh).with("useradd ec2-user")
       guestfs.should_receive(:sh).with("echo -e 'ec2-user\tALL=(ALL)\tNOPASSWD: ALL' >> /etc/sudoers")
+
+      @plugin.add_ec2_user(guestfs)
+    end
+
+    it "should NOT add ec2-user account if it already exists" do
+      guestfs = mock("guestfs")
+
+      guestfs.should_receive(:sh).with("getent passwd ec2-user | wc -l").and_return("1")
+      guestfs.should_not_receive(:sh).with("useradd ec2-user")
+      guestfs.should_not_receive(:sh).with("echo -e 'ec2-user\tALL=(ALL)\tNOPASSWD: ALL' >> /etc/sudoers")
 
       @plugin.add_ec2_user(guestfs)
     end

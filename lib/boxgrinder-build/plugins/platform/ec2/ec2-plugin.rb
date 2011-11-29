@@ -148,11 +148,24 @@ module BoxGrinder
       @log.debug "Nosegneg enabled."
     end
 
+    # Adds ec2-user will full sudo access without password per Fedora security guidelines.
+    # We should not use root access on AMIs as it is not secure and prohibited by AWS.
+    #
     # https://issues.jboss.org/browse/BGBUILD-110
     def add_ec2_user(guestfs)
       @log.debug "Adding ec2-user user..."
+
+      # boxgrinder build fails to build ec2 image if ec2-user already exists
+      #
+      # https://issues.jboss.org/browse/BGBUILD-313
+      unless guestfs.sh("getent passwd ec2-user | wc -l") == "0"
+        @log.debug("ec2-user already exists, skipping.")
+        return
+      end
+
       guestfs.sh("useradd ec2-user")
       guestfs.sh("echo -e 'ec2-user\tALL=(ALL)\tNOPASSWD: ALL' >> /etc/sudoers")
+
       @log.debug "User ec2-user added."
     end
 
