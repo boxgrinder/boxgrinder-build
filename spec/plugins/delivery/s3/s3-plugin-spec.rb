@@ -316,7 +316,7 @@ module BoxGrinder
         it "should raise an error if an invalid region is specified" do
           @plugin.instance_variable_set(:@type, :ami)
 
-          @config.plugins['s3']['region'] = 'near-spain-1'
+          @config.plugins['s3'].merge!('region' => 'near-spain-1')
 
           @plugin.should_receive(:set_default_config_value).with('snapshot', false)
 
@@ -330,7 +330,7 @@ module BoxGrinder
           File.should_receive(:expand_path).with('/path/to/key/file').and_return('path2')
           File.should_receive(:exists?).with('path2').and_return(true)
 
-          lambda { @plugin.validate }.should raise_error(PluginValidationError, "Invalid region specified: near-spain-1. This plugin is only aware of the following regions: us-west-1, ap-southeast-1, eu-west-1, us-east-1, ap-northeast-1.")
+          lambda { @plugin.validate }.should raise_error(PluginValidationError, /Invalid region specified: near-spain-1.*/)
         end
       end
 

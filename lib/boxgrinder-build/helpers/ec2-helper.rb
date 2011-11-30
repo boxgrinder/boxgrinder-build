@@ -169,6 +169,15 @@ module BoxGrinder
             }
           },
 
+          'us-west-2' => {
+            :endpoint => 'ec2.us-west-2.amazonaws.com',
+            :location => 'us-west-2',
+            :kernel => {
+              :i386 => {:aki => 'aki-dce26fec'},
+              :x86_64 => {:aki => 'aki-98e26fa8'}
+            }
+          },
+
           'us-east-1' => {
             :endpoint => 'ec2.amazonaws.com',
             :location => nil,
