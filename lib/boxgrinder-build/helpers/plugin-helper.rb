@@ -29,6 +29,7 @@ require 'boxgrinder-build/plugins/delivery/elastichosts/elastichosts-plugin'
 require 'boxgrinder-build/plugins/platform/vmware/vmware-plugin'
 require 'boxgrinder-build/plugins/platform/ec2/ec2-plugin'
 require 'boxgrinder-build/plugins/platform/virtualbox/virtualbox-plugin'
+require 'boxgrinder-build/plugins/platform/virtualpc/virtualpc-plugin'
 
 require 'boxgrinder-build/plugins/os/centos/centos-plugin'
 require 'boxgrinder-build/plugins/os/rhel/rhel-plugin'
