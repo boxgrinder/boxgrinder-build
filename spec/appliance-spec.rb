@@ -81,7 +81,7 @@ module BoxGrinder
         PluginManager.stub(:instance).and_return(OpenCascade.new(:plugins => {:os => {:centos => {}}}))
         lambda {
           @appliance.validate_definition
-        }.should raise_error(RuntimeError, "Not supported operating system selected: fedora. Make sure you have installed right operating system plugin, see http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#Operating_system_plugins. Supported OSes are: centos")
+        }.should raise_error(RuntimeError, "Unsupported operating system selected: fedora. Make sure you have installed right operating system plugin, see http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#Operating_system_plugins. Supported OSes are: centos")
       end
 
       it "should NOT raise if we use supported OS" do
@@ -215,7 +215,7 @@ module BoxGrinder
 
         lambda {
           @appliance.read_definition
-        }.should raise_error(ValidationError, "Couldn't read appliance definition file: jeos-f13.ks.")
+        }.should raise_error(ValidationError, "Ensure your appliance definition files have a .appl extension: jeos-f13.ks.")
       end
     end
 

@@ -55,7 +55,7 @@ module BoxGrinder
         end
         appliance_configs = [appliance_config]
 
-        raise ValidationError, "Couldn't read appliance definition file: #{File.basename(@appliance_definition)}." if appliance_config.nil?
+        raise ValidationError, "Ensure your appliance definition files have a .appl extension: #{File.basename(@appliance_definition)}." if appliance_config.nil?
       end
 
       appliance_config_helper = ApplianceConfigHelper.new(appliance_configs)
@@ -65,8 +65,8 @@ module BoxGrinder
     def validate_definition
       os_plugin = PluginManager.instance.plugins[:os][@appliance_config.os.name.to_sym]
 
-      raise "Not supported operating system selected: #{@appliance_config.os.name}. Make sure you have installed right operating system plugin, see http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#Operating_system_plugins. Supported OSes are: #{PluginManager.instance.plugins[:os].keys.join(", ")}" if os_plugin.nil?
-      raise "Not supported operating system version selected: #{@appliance_config.os.version}. Supported versions are: #{os_plugin[:versions].join(", ")}" unless @appliance_config.os.version.nil? or os_plugin[:versions].include?(@appliance_config.os.version)
+      raise "Unsupported operating system selected: #{@appliance_config.os.name}. Make sure you have installed right operating system plugin, see http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#Operating_system_plugins. Supported OSes are: #{PluginManager.instance.plugins[:os].keys.join(", ")}" if os_plugin.nil?
+      raise "Unsupported operating system version selected: #{@appliance_config.os.version}. Supported versions are: #{os_plugin[:versions].join(", ")}" unless @appliance_config.os.version.nil? or os_plugin[:versions].include?(@appliance_config.os.version)
     end
 
     # Here we initialize all required plugins and create a plugin chain.

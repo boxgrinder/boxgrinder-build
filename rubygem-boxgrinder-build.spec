@@ -134,6 +134,8 @@ popd
 - Upstream release: 0.10.0
 - [BGBUILD-313] boxgrinder build fails to build ec2 image if ec2-user already exists
 - [BGBUILD-318] Add support for us-west-2 region
+- [BGBUILD-308] Clearer error message when unrecognised file extension is used
+
 
 * Fri Oct 14 2011 Marc Savy <msavy@redhat.com> - 0.9.8-1
 - Upstream release: 0.9.8
