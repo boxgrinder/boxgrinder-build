@@ -174,6 +174,14 @@ module BoxGrinder
       @plugin.bundle_image(:disk => "a/path/to/disk.ec2")
     end
 
+    it "should bundle image with user-selected ramdisk and kernel when set" do
+      @config.plugins['s3'].merge!('ramdisk' => '101010101', 'kernel' => '2020202')
+      File.should_receive(:exists?).with('build/path/s3-plugin/ami').and_return(false)
+      FileUtils.stub!(:mkdir_p)
+      @exec_helper.should_receive(:execute).with(/euca-bundle-image --ec2cert (.*)src\/cert-ec2\.pem -i a\/path\/to\/disk\.ec2 --kernel 2020202 -c \/path\/to\/cert\/file -k \/path\/to\/key\/file -u 000000000000 -r x86_64 -d build\/path\/s3-plugin\/ami --ramdisk 101010101/, :redacted=>["000000000000", "/path/to/key/file", "/path/to/cert/file"])
+      @plugin.bundle_image(:disk => "a/path/to/disk.ec2")
+    end
+
     describe ".execute" do
       before(:each) do
         @s3obj = mock(AWS::S3::S3Object)
@@ -249,6 +257,8 @@ module BoxGrinder
           @plugin.should_receive(:set_default_config_value).with('overwrite', false)
           @plugin.should_receive(:set_default_config_value).with('path', '/')
           @plugin.should_receive(:set_default_config_value).with('region', 'us-east-1')
+          @plugin.should_receive(:set_default_config_value).with('ramdisk', false)
+          @plugin.should_receive(:set_default_config_value).with('kernel', false)
         end
 
         it "should validate only basic params" do

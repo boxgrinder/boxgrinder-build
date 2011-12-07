@@ -41,6 +41,9 @@ module BoxGrinder
       @current_instance_id = EC2Helper::current_instance_id
       @current_region = EC2Helper::availability_zone_to_region(@current_availability_zone)
 
+      set_default_config_value('kernel', false)
+      set_default_config_value('ramdisk', false)
+
       set_default_config_value('availability_zone', @current_availability_zone)
       set_default_config_value('delete_on_termination', true)
       set_default_config_value('overwrite', false)
@@ -145,20 +148,27 @@ module BoxGrinder
       volume.delete
 
       @log.info "Registering image..."
-      image = @ec2.images.create(
-          :name => ebs_appliance_name,
-          :root_device_name => ROOT_DEVICE_NAME,
-          :block_device_mappings => { ROOT_DEVICE_NAME => {
-                                      :snapshot => snapshot,
-                                      :delete_on_termination => @plugin_config['delete_on_termination']
-                                    },
-                                    '/dev/sdb' => 'ephemeral0',
-                                    '/dev/sdc' => 'ephemeral1',
-                                    '/dev/sdd' => 'ephemeral2',
-                                    '/dev/sde' => 'ephemeral3'},
-          :architecture => @appliance_config.hardware.base_arch,
-          :kernel_id => @ec2_endpoints[@current_region][:kernel][@appliance_config.hardware.base_arch.intern][:aki],
-          :description => ebs_appliance_description)
+
+      optmap = {
+        :name => ebs_appliance_name,
+        :root_device_name => ROOT_DEVICE_NAME,
+        :block_device_mappings => { ROOT_DEVICE_NAME => {
+                                    :snapshot => snapshot,
+                                    :delete_on_termination => @plugin_config['delete_on_termination']
+                                  },
+                                  '/dev/sdb' => 'ephemeral0',
+                                  '/dev/sdc' => 'ephemeral1',
+                                  '/dev/sdd' => 'ephemeral2',
+                                  '/dev/sde' => 'ephemeral3'},
+        :architecture => @appliance_config.hardware.base_arch,
+        :kernel_id => @plugin_config['kernel'] || @ec2_endpoints[@current_region][:kernel][@appliance_config.hardware.base_arch.intern][:aki],
+        :description => ebs_appliance_description
+      }
+
+      optmap.merge!(:ramdisk_id => @plugin_config['ramdisk']) if @plugin_config['ramdisk']
+
+
+      image = @ec2.images.create(optmap)
 
       @log.info "Waiting for the new EBS AMI to become available"
       @ec2helper.wait_for_image_state(:available, image)

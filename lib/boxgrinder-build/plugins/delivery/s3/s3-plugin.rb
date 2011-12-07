@@ -38,6 +38,8 @@ module BoxGrinder
 
     def validate
       set_default_config_value('overwrite', false)
+      set_default_config_value('kernel', false)
+      set_default_config_value('ramdisk', false)
       set_default_config_value('path', '/')
       set_default_config_value('region', 'us-east-1')
       validate_plugin_config(['bucket', 'access_key', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
@@ -153,7 +155,18 @@ module BoxGrinder
 
       FileUtils.mkdir_p(@ami_build_dir)
 
-      @exec_helper.execute("euca-bundle-image --ec2cert #{File.dirname(__FILE__)}/src/cert-ec2.pem -i #{deliverables[:disk]} --kernel #{@s3_endpoints[@plugin_config['region']][:kernel][@appliance_config.hardware.base_arch.intern][:aki]} -c #{@plugin_config['cert_file']} -k #{@plugin_config['key_file']} -u #{@plugin_config['account_number']} -r #{@appliance_config.hardware.base_arch} -d #{@ami_build_dir}", :redacted => [@plugin_config['account_number'], @plugin_config['key_file'], @plugin_config['cert_file']])
+      cmd_str = "euca-bundle-image --ec2cert #{File.dirname(__FILE__)}/src/cert-ec2.pem " <<
+        "-i #{deliverables[:disk]} " <<
+        "--kernel #{@plugin_config['kernel'] || @s3_endpoints[@plugin_config['region']][:kernel][@appliance_config.hardware.base_arch.intern][:aki]} " <<
+        "-c #{@plugin_config['cert_file']} "<<
+        "-k #{@plugin_config['key_file']} " <<
+        "-u #{@plugin_config['account_number']} " <<
+        "-r #{@appliance_config.hardware.base_arch} " <<
+        "-d #{@ami_build_dir} "
+
+      cmd_str << "--ramdisk #{@plugin_config['ramdisk']}" if @plugin_config['ramdisk']
+
+      @exec_helper.execute(cmd_str, :redacted => [@plugin_config['account_number'], @plugin_config['key_file'], @plugin_config['cert_file']])
 
       @log.info "Bundling AMI finished."
     end
