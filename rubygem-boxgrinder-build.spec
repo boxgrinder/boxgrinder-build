@@ -139,6 +139,7 @@ popd
 - [BGBUILD-302] Add support for VirtualPC platform
 - [BGBUILD-195] Add support for OpenStack
 - [BGBUILD-304] Standarize plugin callbacks
+- [BGBUILD-325] Remove kickstart support
 
 * Fri Oct 14 2011 Marc Savy <msavy@redhat.com> - 0.9.8-1
 - Upstream release: 0.9.8

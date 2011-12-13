@@ -160,63 +160,6 @@ module BoxGrinder
 
         @appliance.read_definition
       end
-
-      it "should read definition with kickstart appliance definition file" do
-        prepare_appliance({}, "#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.ks")
-
-        appliance_config = ApplianceConfig.new
-
-        appliance_helper = mock(ApplianceDefinitionHelper)
-        appliance_helper.should_receive(:read_definitions).with("#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.ks")
-        appliance_helper.should_receive(:appliance_configs).and_return([])
-
-        clazz = mock('PluginClass')
-
-        plugin_manager = mock(PluginManager)
-        plugin_manager.should_receive(:plugins).and_return({:os => {:fedora => {:class => clazz, :type => :os, :name => :fedora, :full_name => "Fedora", :versions => ["11", "12", "13", "14", "rawhide"]}}})
-
-        plugin = mock('Plugin')
-        plugin.should_receive(:respond_to?).with(:read_file).and_return(true)
-        plugin.should_receive(:read_file).and_return(appliance_config)
-
-        clazz.should_receive(:new).and_return(plugin)
-
-        PluginManager.should_receive(:instance).and_return(plugin_manager)
-
-        ApplianceDefinitionHelper.should_receive(:new).with(:log => @log).and_return(appliance_helper)
-
-        appliance_config_helper = mock(ApplianceConfigHelper)
-
-        appliance_config.should_receive(:clone).and_return(appliance_config)
-        appliance_config.should_receive(:init_arch).and_return(appliance_config)
-        appliance_config.should_receive(:initialize_paths).and_return(appliance_config)
-
-        appliance_config_helper.should_receive(:merge).with(appliance_config).and_return(appliance_config)
-
-        ApplianceConfigHelper.should_receive(:new).with([appliance_config]).and_return(appliance_config_helper)
-
-        @appliance.read_definition
-      end
-
-      it "should read definition with kickstart appliance definition file and fail because there was no plugin able to read .ks" do
-        prepare_appliance({}, "#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.ks")
-
-        appliance_helper = mock(ApplianceDefinitionHelper)
-        appliance_helper.should_receive(:read_definitions).with("#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.ks")
-        appliance_helper.should_receive(:appliance_configs).and_return([])
-
-        plugin_manager = mock(PluginManager)
-        plugin_manager.should_receive(:plugins).and_return({:os => {}})
-
-
-        PluginManager.should_receive(:instance).and_return(plugin_manager)
-
-        ApplianceDefinitionHelper.should_receive(:new).with(:log => @log).and_return(appliance_helper)
-
-        lambda {
-          @appliance.read_definition
-        }.should raise_error(ValidationError, "Ensure your appliance definition files have a .appl extension: jeos-f13.ks.")
-      end
     end
 
     it "should remove old builds" do

@@ -36,59 +36,6 @@ module BoxGrinder
       @linux_helper = LinuxHelper.new(:log => @log)
     end
 
-    def read_file(file)
-      read_kickstart(file) if File.extname(file).eql?('.ks')
-    end
-
-    def read_kickstart(file)
-      appliance_config = ApplianceConfig.new
-      appliance_config.name = File.basename(file, '.ks')
-
-      name = nil
-      version = nil
-
-      kickstart = File.read(file)
-
-      kickstart.each do |line|
-        n = line.scan(/^# bg_os_name: (.*)/).flatten.first
-        v = line.scan(/^# bg_os_version: (.*)/).flatten.first
-
-        name = n unless n.nil?
-        version = v unless v.nil?
-      end
-
-      raise "No operating system name specified, please add comment to you kickstrt file like this: # bg_os_name: fedora" if name.nil?
-      raise "No operating system version specified, please add comment to you kickstrt file like this: # bg_os_version: 14" if version.nil?
-
-      appliance_config.os.name = name
-      appliance_config.os.version = version
-
-      partitions = {}
-
-      kickstart.each do |line|
-        # Parse also the partition scheme
-        if line =~ /^part ([\/\w]+)/
-          root = $1
-          partitions[root] = {}
-
-          # size
-          partitions[root]['size'] = $1.to_f / 1024 if line =~ /--size[=\s]*(\d+)/
-          # fs type
-          partitions[root]['type'] = $1 if line =~ /--fstype[=\s]*(\w+)/
-          # fs options
-          partitions[root]['options'] = $1 if line =~ /--fsoptions[=\s]*([,\w]+)/
-
-          raise "Partition size not specified for #{root} partition in #{file}" if partitions[root]['size'].nil?
-        end
-      end
-
-      raise "No partitions specified in your kickstart file #{file}" if partitions.empty?
-
-      appliance_config.hardware.partitions = partitions
-
-      appliance_config
-    end
-
     # Add default repos (if present) to the list of additional repositories specified in appliance definition.
     def add_repos(repos)
       return if repos.empty?
@@ -114,13 +61,10 @@ module BoxGrinder
     def build_with_appliance_creator(appliance_definition_file, repos = {})
       @appliance_definition_file = appliance_definition_file
 
-      if File.extname(appliance_definition_file).eql?('.ks')
-        kickstart_file = appliance_definition_file
-      else
-        add_repos(repos) if @appliance_config.default_repos
-        kickstart_file = Kickstart.new(@config, @appliance_config, @dir, :log => @log).create
-        RPMDependencyValidator.new(@config, @appliance_config, @dir, :log => @log).resolve_packages
-      end
+      add_repos(repos) if @appliance_config.default_repos
+
+      kickstart_file = Kickstart.new(@config, @appliance_config, @dir, :log => @log).create
+      RPMDependencyValidator.new(@config, @appliance_config, @dir, :log => @log).resolve_packages
 
       @log.info "Building #{@appliance_config.name} appliance..."
 

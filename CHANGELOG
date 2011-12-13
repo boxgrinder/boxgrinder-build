@@ -7,6 +7,7 @@ v0.10.0
 * [BGBUILD-302] Add support for VirtualPC platform
 * [BGBUILD-195] Add support for OpenStack
 * [BGBUILD-304] Standarize plugin callbacks
+* [BGBUILD-325] Remove kickstart support
 
 v0.9.8
 
