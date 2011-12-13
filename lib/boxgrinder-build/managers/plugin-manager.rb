@@ -20,8 +20,8 @@ require 'singleton'
 
 module BoxGrinder
   module Plugins
-    def plugin(args)
-      PluginManager.instance.register_plugin(args)
+    def plugin(info)
+      PluginManager.instance.register_plugin(self, info)
     end
   end
 end
@@ -37,7 +37,9 @@ module BoxGrinder
       @plugins = {:delivery => {}, :os => {}, :platform => {}}
     end
 
-    def register_plugin(info)
+    def register_plugin(clazz, info)
+      info.merge!(:class => clazz)
+
       validate_plugin_info(info)
 
       raise "We already have registered plugin for #{info[:name]}." unless @plugins[info[:name]].nil?

@@ -22,6 +22,8 @@ require 'boxgrinder-build/plugins/base-plugin'
 
 module BoxGrinder
   class LocalPlugin < BasePlugin
+    plugin :type => :delivery, :name => :local, :full_name  => "Local file system"
+
     def after_init
       @package_name = "#{@appliance_config.name}-#{@appliance_config.version}.#{@appliance_config.release}-#{@appliance_config.os.name}-#{@appliance_config.os.version}-#{@appliance_config.hardware.arch}-#{current_platform}.tgz"
     end
@@ -67,4 +69,3 @@ module BoxGrinder
   end
 end
 
-plugin :class => BoxGrinder::LocalPlugin, :type => :delivery, :name => :local, :full_name  => "Local file system"

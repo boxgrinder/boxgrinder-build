@@ -20,6 +20,8 @@ require 'boxgrinder-build/plugins/base-plugin'
 
 module BoxGrinder
   class VirtualPCPlugin < BasePlugin
+    plugin :type => :platform, :name => :virtualpc, :full_name => "VirtualPC"
+
     def after_init
       register_deliverable(:disk => "#{@appliance_config.name}.vhd")
     end
@@ -54,4 +56,3 @@ module BoxGrinder
   end
 end
 
-plugin :class => BoxGrinder::VirtualPCPlugin, :type => :platform, :name => :virtualpc, :full_name => "VirtualPC"

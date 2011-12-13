@@ -20,6 +20,8 @@ require 'boxgrinder-build/plugins/base-plugin'
 
 module BoxGrinder
   class VMwarePlugin < BasePlugin
+    plugin :type => :platform, :name => :vmware, :full_name => "VMware"
+
     def after_init
       register_deliverable(:vmx => "#{@appliance_config.name}.vmx",
                            :readme => "README")
@@ -190,4 +192,3 @@ module BoxGrinder
   end
 end
 
-plugin :class => BoxGrinder::VMwarePlugin, :type => :platform, :name => :vmware, :full_name => "VMware"

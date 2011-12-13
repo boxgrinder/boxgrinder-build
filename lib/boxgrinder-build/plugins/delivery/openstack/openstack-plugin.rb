@@ -23,6 +23,8 @@ require 'json'
 
 module BoxGrinder
   class OpenStackPlugin < BasePlugin
+    plugin :type => :delivery, :name => :openstack, :full_name  => "OpenStack"
+
     def after_init
       set_default_config_value('host', 'localhost')
       set_default_config_value('port', '9292')
@@ -129,4 +131,3 @@ module BoxGrinder
   end
 end
 
-plugin :class => BoxGrinder::OpenStackPlugin, :type => :delivery, :name => :openstack, :full_name  => "OpenStack"

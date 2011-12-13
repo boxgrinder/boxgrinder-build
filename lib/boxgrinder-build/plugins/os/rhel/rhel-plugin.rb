@@ -20,6 +20,8 @@ require 'boxgrinder-build/plugins/os/rpm-based/rpm-based-os-plugin'
 
 module BoxGrinder
   class RHELPlugin < RPMBasedOSPlugin
+    plugin :type => :os, :name => :rhel, :full_name => "Red Hat Enterprise Linux", :versions => ['5', '6']
+
     def after_init
       super
       register_supported_os('rhel', ['5', '6'])
@@ -57,4 +59,3 @@ module BoxGrinder
   end
 end
 
-plugin :class => BoxGrinder::RHELPlugin, :type => :os, :name => :rhel, :full_name => "Red Hat Enterprise Linux", :versions => ['5', '6']

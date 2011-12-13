@@ -20,6 +20,8 @@ require 'boxgrinder-build/plugins/os/rpm-based/rpm-based-os-plugin'
 
 module BoxGrinder
   class FedoraPlugin < RPMBasedOSPlugin
+    plugin :type => :os, :name => :fedora, :full_name => "Fedora", :versions => ["13", "14", "15", "16", "rawhide"]
+
     def after_init
       super
       register_supported_os('fedora', ["13", "14", "15", "16", "rawhide"])
@@ -108,4 +110,3 @@ module BoxGrinder
   end
 end
 
-plugin :class => BoxGrinder::FedoraPlugin, :type => :os, :name => :fedora, :full_name => "Fedora", :versions => ["13", "14", "15", "16", "rawhide"]

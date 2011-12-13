@@ -25,6 +25,7 @@ require 'boxgrinder-build/helpers/ec2-helper'
 
 module BoxGrinder
   class S3Plugin < BasePlugin
+    plugin :type => :delivery, :name => :s3, :full_name => "Amazon Simple Storage Service (Amazon S3)", :types => [:s3, :cloudfront, :ami]
 
     def after_init
       register_supported_os("fedora", ['13', '14', '15', '16'])
@@ -229,4 +230,3 @@ module BoxGrinder
   end
 end
 
-plugin :class => BoxGrinder::S3Plugin, :type => :delivery, :name => :s3, :full_name => "Amazon Simple Storage Service (Amazon S3)", :types => [:s3, :cloudfront, :ami]

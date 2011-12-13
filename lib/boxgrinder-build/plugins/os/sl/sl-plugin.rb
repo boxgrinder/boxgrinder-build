@@ -20,6 +20,7 @@ require 'boxgrinder-build/plugins/os/rhel/rhel-plugin'
 
 module BoxGrinder
   class ScientificLinuxPlugin < RHELPlugin
+    plugin :type => :os, :name => :sl, :full_name  => "Scientific Linux", :versions   => ["5", "6"]
 
     SL_REPOS = {
      "5" => {
@@ -51,6 +52,4 @@ module BoxGrinder
 
   end
 end
-
-plugin :class => BoxGrinder::ScientificLinuxPlugin, :type => :os, :name => :sl, :full_name  => "Scientific Linux", :versions   => ["5", "6"]
 

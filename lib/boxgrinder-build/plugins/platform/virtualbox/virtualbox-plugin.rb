@@ -21,6 +21,8 @@ require 'boxgrinder-build/helpers/linux-helper'
 
 module BoxGrinder
   class VirtualBoxPlugin < BasePlugin
+    plugin :type => :platform, :name => :virtualbox, :full_name => "VirtualBox"
+
     def after_init
       register_deliverable(:disk => "#{@appliance_config.name}.vmdk")
     end
@@ -70,4 +72,3 @@ module BoxGrinder
   end
 end
 
-plugin :class => BoxGrinder::VirtualBoxPlugin, :type => :platform, :name => :virtualbox, :full_name => "VirtualBox"

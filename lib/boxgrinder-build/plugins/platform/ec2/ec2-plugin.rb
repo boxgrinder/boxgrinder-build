@@ -22,6 +22,8 @@ require 'tempfile'
 
 module BoxGrinder
   class EC2Plugin < BasePlugin
+    plugin :type => :platform, :name => :ec2, :full_name => "Amazon Elastic Compute Cloud (Amazon EC2)"
+
     def after_init
       register_deliverable(:disk => "#{@appliance_config.name}.ec2")
 
@@ -222,4 +224,3 @@ module BoxGrinder
   end
 end
 
-plugin :class => BoxGrinder::EC2Plugin, :type => :platform, :name => :ec2, :full_name => "Amazon Elastic Compute Cloud (Amazon EC2)"

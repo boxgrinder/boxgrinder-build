@@ -20,6 +20,7 @@ require 'boxgrinder-build/plugins/os/rhel/rhel-plugin'
 
 module BoxGrinder
   class CentOSPlugin < RHELPlugin
+    plugin :type => :os, :name => :centos, :full_name  => "CentOS", :versions => ["5", "6"]
 
     def after_init
       super
@@ -29,8 +30,8 @@ module BoxGrinder
     def execute(appliance_definition_file)
       repos = {}
 
-     @plugin_info[:versions].each do |version|
-      repos[version] = {
+      @plugin_info[:versions].each do |version|
+        repos[version] = {
           "base" => {
               "mirrorlist" => "http://mirrorlist.centos.org/?release=#OS_VERSION#&arch=#BASE_ARCH#&repo=os"
           },
@@ -45,4 +46,3 @@ module BoxGrinder
   end
 end
 
-plugin :class => BoxGrinder::CentOSPlugin, :type => :os, :name => :centos, :full_name  => "CentOS", :versions   => ["5", "6"]

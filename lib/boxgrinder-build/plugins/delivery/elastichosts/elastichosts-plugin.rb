@@ -24,6 +24,8 @@ require 'cgi'
 
 module BoxGrinder
   class ElasticHostsPlugin < BasePlugin
+    plugin :type => :delivery, :name => :elastichosts, :full_name => "ElasticHosts"
+
     def validate
       set_default_config_value('chunk', 64) # chunk size in MB
       set_default_config_value('start_part', 0) # part number to start uploading
@@ -209,4 +211,3 @@ module BoxGrinder
   end
 end
 
-plugin :class => BoxGrinder::ElasticHostsPlugin, :type => :delivery, :name => :elastichosts, :full_name => "ElasticHosts"

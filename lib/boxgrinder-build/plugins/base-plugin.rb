@@ -29,6 +29,8 @@ require 'logger'
 
 module BoxGrinder
   class BasePlugin
+    include Plugins
+
     attr_reader :plugin_info
     attr_reader :deliverables
 
