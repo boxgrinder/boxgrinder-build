@@ -8,6 +8,7 @@ boxgrinder-build.gemspec
 integ/appliances/gnome-fedora.appl
 integ/appliances/jeos-centos5-files.appl
 integ/appliances/jeos-centos5.appl
+integ/appliances/jeos-centos6.appl
 integ/appliances/jeos-f15.appl
 integ/appliances/jeos-f16-files.appl
 integ/appliances/jeos-f16.appl
@@ -46,6 +47,7 @@ lib/boxgrinder-build/plugins/base-plugin.rb
 lib/boxgrinder-build/plugins/delivery/ebs/ebs-plugin.rb
 lib/boxgrinder-build/plugins/delivery/elastichosts/elastichosts-plugin.rb
 lib/boxgrinder-build/plugins/delivery/local/local-plugin.rb
+lib/boxgrinder-build/plugins/delivery/openstack/openstack-plugin.rb
 lib/boxgrinder-build/plugins/delivery/s3/s3-plugin.rb
 lib/boxgrinder-build/plugins/delivery/s3/src/cert-ec2.pem
 lib/boxgrinder-build/plugins/delivery/sftp/sftp-plugin.rb
@@ -67,6 +69,7 @@ lib/boxgrinder-build/plugins/platform/ec2/src/ifcfg-eth0
 lib/boxgrinder-build/plugins/platform/ec2/src/menu.lst
 lib/boxgrinder-build/plugins/platform/ec2/src/rc_local
 lib/boxgrinder-build/plugins/platform/virtualbox/virtualbox-plugin.rb
+lib/boxgrinder-build/plugins/platform/virtualpc/virtualpc-plugin.rb
 lib/boxgrinder-build/plugins/platform/vmware/src/README-enterprise
 lib/boxgrinder-build/plugins/platform/vmware/src/README-personal
 lib/boxgrinder-build/plugins/platform/vmware/src/base.vmdk
@@ -88,6 +91,7 @@ spec/plugins/delivery/ebs/ebs-plugin-spec.rb
 spec/plugins/delivery/ebs/ebs.yaml
 spec/plugins/delivery/elastichosts/elastichosts-plugin-spec.rb
 spec/plugins/delivery/local/local-plugin-spec.rb
+spec/plugins/delivery/openstack/openstack-plugin-spec.rb
 spec/plugins/delivery/s3/s3-plugin-spec.rb
 spec/plugins/delivery/sftp/sftp-plugin-spec.rb
 spec/plugins/os/centos/centos-plugin-spec.rb
@@ -102,4 +106,5 @@ spec/plugins/os/rpm-based/src/jeos-f13.ks
 spec/plugins/os/sl/sl-plugin-spec.rb
 spec/plugins/platform/ec2/ec2-plugin-spec.rb
 spec/plugins/platform/virtualbox/virtualbox-plugin-spec.rb
+spec/plugins/platform/virtualpc/virtualpc-plugin-spec.rb
 spec/plugins/platform/vmware/vmware-plugin-spec.rb

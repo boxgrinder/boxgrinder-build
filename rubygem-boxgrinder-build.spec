@@ -137,6 +137,7 @@ popd
 - [BGBUILD-308] Clearer error message when unrecognised file extension is used
 - [BGBUILD-322] Allow selection of kernel and ramdisk for ec2 and ebs plugins
 - [BGBUILD-302] Add support for VirtualPC platform
+- [BGBUILD-195] Add support for OpenStack
 
 * Fri Oct 14 2011 Marc Savy <msavy@redhat.com> - 0.9.8-1
 - Upstream release: 0.9.8
