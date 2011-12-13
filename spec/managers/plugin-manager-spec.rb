@@ -28,14 +28,14 @@ module BoxGrinder
     end
 
     it "should register simple plugin" do
-      @manager.register_plugin({:class => PluginManager, :type => :delivery, :name => :abc, :full_name => "Amazon Simple Storage Service (Amazon S3)"})
+      @manager.register_plugin(PluginManager, {:type => :delivery, :name => :abc, :full_name => "Amazon Simple Storage Service (Amazon S3)"})
 
       @manager.plugins[:delivery].size.should == 9
       @manager.plugins[:delivery][:abc][:class].should == PluginManager
     end
 
     it "should register plugin with many types" do
-      @manager.register_plugin({:class => PluginManager, :type => :delivery, :name => :def, :full_name => "Amazon Simple Storage Service (Amazon S3)", :types => [:aaa, :bbb, :ccc]})
+      @manager.register_plugin(PluginManager, {:type => :delivery, :name => :def, :full_name => "Amazon Simple Storage Service (Amazon S3)", :types => [:aaa, :bbb, :ccc]})
 
       @manager.plugins[:delivery].size.should == 12
       @manager.plugins[:delivery][:abc][:class].should == PluginManager
@@ -64,15 +64,6 @@ module BoxGrinder
       lambda {
         @manager.initialize_plugin(:os, :fedora)
       }.should raise_error("Error while initializing 'Fedora' plugin.")
-    end
-
-    it "should register the plugin with 'plugin' method" do
-      plugin_manager = mock(PluginManager)
-      plugin_manager.should_receive(:register_plugin).with(:class => String, :type => :platform, :name => :ec2, :full_name  => "Amazon Elastic Compute Cloud (Amazon EC2)")
-
-      PluginManager.should_receive(:instance).and_return(plugin_manager)
-
-      plugin :class => String, :type => :platform, :name => :ec2, :full_name  => "Amazon Elastic Compute Cloud (Amazon EC2)"
     end
   end
 end
