@@ -73,32 +73,10 @@ module BoxGrinder
       # TODO Needs some thoughts - if we don't have deliverables that we care about - should they be in @deliverables?
       @move_deliverables = true
 
-      # Validate the plugin configuration.
-      # Please make the validate method as simple as possible, because it'll be executed also in unit tests.
-      validate
-
       # The plugin is initialized now. We can do some fancy stuff with it.
       @initialized = true
 
-      # If there is something defined in the plugin that should be executed after plugin initialization - it should go 
-      # to after_init method.
-      after_init
-
       self
-    end
-
-    # This is a stub that should be overriden by the actual plugin implementation.
-    # It can use subtype(:TYPE) calls to validate for a specific type.
-    # KISS!
-    def validate
-    end
-
-    # Callback - executed after initialization.
-    def after_init
-    end
-
-    # Callback - executed after execution.
-    def after_execute
     end
 
     # Validation helper method.

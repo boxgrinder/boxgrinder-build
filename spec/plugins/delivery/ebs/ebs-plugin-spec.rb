@@ -31,10 +31,6 @@ module BoxGrinder
     end
 
     def prepare_plugin
-      @plugin = EBSPlugin.new
-
-      yield @plugin if block_given?
-
       @config = Config.new('plugins' => { 'ebs' => {
         'access_key' => 'access_key',
         'secret_access_key' => 'secret_access_key',
@@ -50,14 +46,10 @@ module BoxGrinder
       @appliance_config.stub!(:hardware).and_return(OpenCascade.new({:arch => 'x86_64', :base_arch => 'x86_64'}))
       @appliance_config.stub!(:path).and_return(OpenCascade.new({:build => '/a/build/path'}))
 
-      @plugin.stub!(:validate)
-
-      @plugin.init(
-          @config,
-          @appliance_config,
-          {:class => BoxGrinder::EBSPlugin, :type => :delivery, :name => :ebs, :full_name => "Elastic Block Storage"},
-          :log => LogHelper.new(:level => :trace, :type => :stdout)
-      )
+      @plugin = RSpecPluginHelper.new(EBSPlugin, :skip => [:validate]).prepare(@config, @appliance_config,
+        :previous_plugin => OpenCascade.new(:type => :os, :deliverables => {:disk => "a_disk.raw", :metadata => 'metadata.xml'}),
+        :plugin_info => {:class => BoxGrinder::EBSPlugin, :type => :delivery, :name => :ebs, :full_name => "Elastic Block Storage"}
+      ) { |plugin| yield plugin if block_given? }
 
       #Set convenient dummies
       @ec2 = mock(AWS::EC2)
@@ -125,7 +117,7 @@ module BoxGrinder
       it "should return true if on EC2" do
         prepare_plugin do |plugin|
           plugin.stub!(:after_init)
-          @plugin.instance_variable_set(:@ec2_endpoints, EC2Helper::endpoints)
+          plugin.instance_variable_set(:@ec2_endpoints, EC2Helper::endpoints)
           EC2Helper::stub!(:current_availability_zone).and_return('eu-west-1a')
           EC2Helper::stub!(:availability_zone_to_region).with('eu-west-1a').and_return('eu-west-1')
         end
@@ -135,7 +127,7 @@ module BoxGrinder
       it "should return false if NOT on EC2" do
         prepare_plugin do |plugin|
           plugin.stub!(:after_init)
-          @plugin.instance_variable_set(:@ec2_endpoints, EC2Helper::endpoints)
+          plugin.instance_variable_set(:@ec2_endpoints, EC2Helper::endpoints)
           EC2Helper::stub!(:current_availability_zone).and_raise(Timeout::Error)
         end
         @plugin.valid_platform?.should == false

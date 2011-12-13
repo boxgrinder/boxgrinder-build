@@ -75,23 +75,51 @@ module BoxGrinder
       @plugin_chain = []
 
       os_plugin, os_plugin_info = PluginManager.instance.initialize_plugin(:os, @appliance_config.os.name.to_sym)
-      os_plugin.init(@config, @appliance_config, os_plugin_info, :log => @log)
-
-      @plugin_chain << {:plugin => os_plugin, :param => @appliance_definition}
+      initialize_plugin(os_plugin, os_plugin_info)
 
       if platform_selected?
         platform_plugin, platform_plugin_info = PluginManager.instance.initialize_plugin(:platform, @config.platform)
-        platform_plugin.init(@config, @appliance_config, platform_plugin_info, :log => @log, :previous_plugin => @plugin_chain.last[:plugin])
-
-        @plugin_chain << {:plugin => platform_plugin}
+        initialize_plugin(platform_plugin, platform_plugin_info)
       end
 
       if delivery_selected?
         delivery_plugin, delivery_plugin_info = PluginManager.instance.initialize_plugin(:delivery, @config.delivery)
-        delivery_plugin.init(@config, @appliance_config, delivery_plugin_info, :log => @log, :previous_plugin => @plugin_chain.last[:plugin], :type => @config.delivery)
-
-        @plugin_chain << {:plugin => delivery_plugin}
+        # Here we need to specify additionaly the type of the plugin, as some delivery plugins
+        # can have multiple types of delivery implemented. See s3-plugin.rb for example.
+        initialize_plugin(delivery_plugin, delivery_plugin_info, :type => @config.delivery)
       end
+    end
+
+    # Initializes the plugin by executing init, after_init, validate and after_validate methods.
+    #
+    # We can be sure only for init method because it is implemented internally in base-plugin.rb,
+    # for all other methods we need to check if they exist.
+    def initialize_plugin(plugin, plugin_info, options = {})
+      options = {
+        :log => @log
+      }.merge(options)
+
+      unless @plugin_chain.empty?
+        options.merge!(:previous_plugin => @plugin_chain.last[:plugin])
+      end
+
+      plugin.init(@config, @appliance_config, plugin_info, options)
+
+      # Execute callbacks if implemented
+      #
+      # Order is very important
+      [:after_init, :validate, :after_validate].each do |callback|
+        plugin.send(callback) if plugin.respond_to?(callback)
+      end
+
+      param = nil
+
+      # For operating system plugins we need to inject appliance definition.
+      if plugin_info[:type] == :os
+        param = @appliance_definition
+      end
+
+      @plugin_chain << {:plugin => plugin, :param => param}
     end
 
     def remove_old_builds
@@ -105,6 +133,24 @@ module BoxGrinder
       @plugin_chain.each { |p| execute_plugin(p[:plugin], p[:param]) }
     end
 
+    # This creates the appliance by executing the plugin chain.
+    #
+    # Definition is read and validated. Afterwards a plugin chain is created
+    # and every plugin in the chain is initialized and validated. The next step
+    # is the execution of the plugin chain, step by step.
+    #
+    # Below you can find the whole process of bootstraping a plugin.
+    #
+    #   Call            Scope
+    #   ------------------------------------------
+    #   initialize      required, internal
+    #   init            required, internal
+    #   after_init      optional, user implemented
+    #   validate        optional, user implemented
+    #   after_validate  optional, user implemented
+    #   execute         required, user implemented
+    #   after_execute   optional, user implemented
+    #
     def create
       @log.debug "Launching new build..."
       @log.trace "Used configuration: #{@config.to_yaml.gsub(/(\S*(key|account|cert|username|host|password)\S*).*:(.*)/, '\1' + ": <REDACTED>")}"
@@ -136,7 +182,11 @@ module BoxGrinder
       else
         @log.debug "Executing #{plugin.plugin_info[:type]} plugin..."
 
+        # Actually run the plugin
         param.nil? ? plugin.run : plugin.run(param)
+
+        # Run after_execute callback, if implemented
+        plugin.after_execute if plugin.respond_to?(:after_execute)
 
         @log.debug "#{plugin.plugin_info[:type].to_s.capitalize} plugin executed."
       end

@@ -6,6 +6,7 @@ v0.10.0
 * [BGBUILD-322] Allow selection of kernel and ramdisk for ec2 and ebs plugins
 * [BGBUILD-302] Add support for VirtualPC platform
 * [BGBUILD-195] Add support for OpenStack
+* [BGBUILD-304] Standarize plugin callbacks
 
 v0.9.8
 

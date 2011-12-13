@@ -22,7 +22,6 @@ module BoxGrinder
   describe OpenStackPlugin do
     before(:each) do
       @config = Config.new #('plugins' => {'openstack' => {'host' => 'a/path'}})
-      @plugin = OpenStackPlugin.new
 
       @appliance_config = mock('ApplianceConfig')
 
@@ -33,14 +32,9 @@ module BoxGrinder
       @appliance_config.stub!(:hardware).and_return(OpenCascade.new({:arch => 'x86_64', :base_arch => 'x86_64'}))
       @appliance_config.stub!(:path).and_return(OpenCascade.new({:build => '/a/build/path'}))
 
-      @plugin.stub!(:validate)
-
-      @plugin.init(
-          @config,
-          @appliance_config,
-          {:class => BoxGrinder::OpenStackPlugin, :type => :delivery, :name => :openstack, :full_name => "OpenStack"},
-          :log => LogHelper.new(:level => :trace, :type => :stdout),
-          :previous_plugin => OpenCascade.new(:type => :os, :deliverables => {:disk => "a_disk.raw", :metadata => 'metadata.xml'})
+      @plugin = RSpecPluginHelper.new(OpenStackPlugin).prepare(@config, @appliance_config,
+        :previous_plugin => OpenCascade.new(:type => :os, :deliverables => {:disk => "a_disk.raw", :metadata => 'metadata.xml'}),
+        :plugin_info => {:class => BoxGrinder::OpenStackPlugin, :type => :delivery, :name => :openstack, :full_name => "OpenStack" }
       )
     end
 

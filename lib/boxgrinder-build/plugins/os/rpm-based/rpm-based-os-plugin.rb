@@ -26,16 +26,14 @@ require 'boxgrinder-core/errors'
 module BoxGrinder
   class RPMBasedOSPlugin < BasePlugin
     def after_init
+      set_default_config_value('format', 'raw')
+
       register_deliverable(
           :disk => "#{@appliance_config.name}-sda.#{@plugin_config['format']}",
           :descriptor => "#{@appliance_config.name}.xml"
       )
 
       @linux_helper = LinuxHelper.new(:log => @log)
-    end
-
-    def validate
-      set_default_config_value('format', 'raw')
     end
 
     def read_file(file)

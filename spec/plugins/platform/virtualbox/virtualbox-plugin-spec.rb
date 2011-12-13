@@ -20,6 +20,7 @@ require 'rubygems'
 require 'rspec'
 require 'boxgrinder-build/plugins/platform/virtualbox/virtualbox-plugin'
 require 'hashery/opencascade'
+require 'spec/rspec-plugin-helper.rb'
 
 module BoxGrinder
   describe VirtualBoxPlugin do
@@ -27,6 +28,7 @@ module BoxGrinder
       @config = mock('Config')
       @config.stub!(:version).and_return('0.1.2')
       @config.stub!(:platform_config).and_return({})
+      @config.stub!(:[]).with(:plugins).and_return({})
 
       @appliance_config = mock('ApplianceConfig')
 
@@ -52,12 +54,10 @@ module BoxGrinder
                           })
       )
 
-      options[:log] = LogHelper.new(:level => :trace, :type => :stdout)
-      options[:previous_plugin] = OpenCascade.new(:deliverables => {:disk => 'a/base/image/path.raw'})
-      @plugin = VirtualBoxPlugin.new
-
-      @plugin.should_receive(:read_plugin_config)
-      @plugin.init(@config, @appliance_config, {:class => BoxGrinder::VirtualBoxPlugin, :type => :platform, :name => :virtualbox, :full_name => "VirtualBox"}, options)
+      @plugin = RSpecPluginHelper.new(VirtualBoxPlugin).prepare(@config, @appliance_config,
+        :previous_plugin => OpenCascade.new(:deliverables => {:disk => 'a/base/image/path.raw'}),
+        :plugin_info => {:class => BoxGrinder::VirtualBoxPlugin, :type => :platform, :name => :virtualbox, :full_name => "VirtualBox"}
+      )
 
       @exec_helper = @plugin.instance_variable_get(:@exec_helper)
       @image_helper = @plugin.instance_variable_get(:@image_helper)

@@ -56,7 +56,10 @@ module BoxGrinder
                           })
       )
 
-      @plugin = EC2Plugin.new.init(@config, @appliance_config, {:class => BoxGrinder::EC2Plugin, :type => :platform, :name => :ec2, :full_name => "Amazon Elastic Compute Cloud (Amazon EC2)"}, :previous_plugin => OpenCascade.new(:deliverables => {:disk => 'a/disk.raw'}), :log => LogHelper.new(:level => :trace, :type => :stdout))
+      @plugin = RSpecPluginHelper.new(EC2Plugin).prepare(@config, @appliance_config,
+        :previous_plugin => OpenCascade.new(:deliverables => {:disk => 'a/disk.raw'}),
+        :plugin_info => {:class => BoxGrinder::EC2Plugin, :type => :platform, :name => :ec2, :full_name => "Amazon Elastic Compute Cloud (Amazon EC2)"}
+      )
 
       @config = @plugin.instance_variable_get(:@config)
       @appliance_config = @plugin.instance_variable_get(:@appliance_config)

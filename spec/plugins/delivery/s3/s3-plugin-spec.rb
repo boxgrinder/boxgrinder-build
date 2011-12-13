@@ -49,9 +49,10 @@ module BoxGrinder
       @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '14'}))
       @appliance_config.stub!(:hardware).and_return(OpenCascade.new({:arch => 'x86_64', :base_arch => 'x86_64'}))
 
-      @plugin = S3Plugin.new
-      @plugin.stub!(:asset_bucket)
-      @plugin.init(@config, @appliance_config, {:class => BoxGrinder::S3Plugin, :type => :delivery, :name => :s3, :full_name => "Amazon Simple Storage Service (Amazon S3)", :types => [:s3, :cloudfront, :ami]}, :log => LogHelper.new(:level => :trace, :type => :stdout), :type => :s3)
+      @plugin = RSpecPluginHelper.new(S3Plugin).prepare(@config, @appliance_config,
+        :previous_plugin => OpenCascade.new(:type => :os, :deliverables => {:disk => "a_disk.raw", :metadata => 'metadata.xml'}),
+        :plugin_info => {:class => BoxGrinder::S3Plugin, :type => :delivery, :name => :s3, :full_name => "Amazon Simple Storage Service (Amazon S3)", :types => [:s3, :cloudfront, :ami]}
+      ) { |plugin| plugin.stub!(:asset_bucket) }
 
       #Set convenient dummies
       @ec2 = mock(AWS::EC2)

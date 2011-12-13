@@ -44,13 +44,12 @@ module BoxGrinder
       @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => :fedora, :version => '13'}))
       @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:cpus => 1, :arch => 'x86_64', :partitions => {'/' => {'size' => 1}, '/home' => {'size' => 2}}, :memory => 512))
 
-      options = {:log => LogHelper.new(:level => :trace, :type => :stdout), :previous_plugin => OpenCascade.new(:plugin_info => {:type => :os})}.merge(options)
+      options = {
+        :previous_plugin => OpenCascade.new(:plugin_info => {:type => :os}, :deliverables => {:disk => 'a/base/image/path.raw'}),
+        :plugin_info => {:class => BoxGrinder::ElasticHostsPlugin, :type => :delivery, :name => :elastichosts, :full_name => "ElasticHosts"}
+      }.merge(options)
 
-      @plugin = ElasticHostsPlugin.new.init(@config, @appliance_config,
-                                            {:class => BoxGrinder::ElasticHostsPlugin, :type => :delivery, :name => :elastichosts, :full_name => "ElasticHosts"},
-                                            options
-
-      )
+      @plugin = RSpecPluginHelper.new(ElasticHostsPlugin).prepare(@config, @appliance_config, options)
 
       @plugin_config = @config.plugins['elastichosts']
       @exec_helper = @plugin.instance_variable_get(:@exec_helper)

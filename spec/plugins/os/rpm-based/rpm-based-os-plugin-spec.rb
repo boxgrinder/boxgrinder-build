@@ -31,6 +31,7 @@ module BoxGrinder
       @config.stub!(:[]).with(:plugins).and_return(plugins)
       @config.stub!(:dir).and_return(OpenCascade.new(:tmp => 'tmpdir', :cache => 'cachedir'))
       @config.stub!(:os).and_return(OpenCascade.new(:name => 'fedora', :version => '14'))
+      @config.stub!(:os_config).and_return({})
 
       @appliance_config.stub!(:name).and_return('full')
       @appliance_config.stub!(:version).and_return(1)
@@ -41,11 +42,7 @@ module BoxGrinder
       @appliance_config.stub!(:path).and_return(OpenCascade.new(:build => 'build/path', :main => 'mainpath'))
       @appliance_config.stub!(:files).and_return({})
 
-      @plugin = RPMBasedOSPlugin.new
-
-      @plugin.stub!(:merge_plugin_config)
-
-      @plugin.init(@config, @appliance_config, {:name => :rpm_based}, :log => LogHelper.new(:level => :trace, :type => :stdout))
+      @plugin = RSpecPluginHelper.new(RPMBasedOSPlugin).prepare(@config, @appliance_config, :plugin_info => {:class => BoxGrinder::RPMBasedOSPlugin, :type => :os, :name => :rpm_based})
 
       @config = @plugin.instance_variable_get(:@config)
       @appliance_config = @plugin.instance_variable_get(:@appliance_config)

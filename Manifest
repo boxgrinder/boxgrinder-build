@@ -108,3 +108,4 @@ spec/plugins/platform/ec2/ec2-plugin-spec.rb
 spec/plugins/platform/virtualbox/virtualbox-plugin-spec.rb
 spec/plugins/platform/virtualpc/virtualpc-plugin-spec.rb
 spec/plugins/platform/vmware/vmware-plugin-spec.rb
+spec/rspec-plugin-helper.rb

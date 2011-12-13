@@ -23,8 +23,8 @@ module BoxGrinder
   describe VirtualPCPlugin do
     def prepare_image(options = {})
       @config = mock('Config')
-      #@config.stub!(:version).and_return('0.1.2')
       @config.stub!(:platform_config).and_return({})
+      @config.stub!(:[]).with(:plugins).and_return({})
 
       @appliance_config = mock('ApplianceConfig')
 
@@ -50,12 +50,10 @@ module BoxGrinder
                           })
       )
 
-      options[:log] = Logger.new('/dev/null')
-      options[:previous_plugin] = OpenCascade.new(:deliverables => {:disk => 'a/base/image/path.raw'})
-      @plugin = VirtualPCPlugin.new
-
-      @plugin.should_receive(:read_plugin_config)
-      @plugin.init(@config, @appliance_config, {:class => BoxGrinder::VirtualPCPlugin, :type => :platform, :name => :virtualpc, :full_name => "VirtualPC"}, options)
+      @plugin = RSpecPluginHelper.new(VirtualPCPlugin).prepare(@config, @appliance_config,
+        :previous_plugin => OpenCascade.new(:deliverables => {:disk => 'a/base/image/path.raw'}),
+        :plugin_info => {:class => BoxGrinder::VirtualPCPlugin, :type => :platform, :name => :virtualpc, :full_name => "VirtualPC"}
+      )
 
       @exec_helper = @plugin.instance_variable_get(:@exec_helper)
       @image_helper = @plugin.instance_variable_get(:@image_helper)
