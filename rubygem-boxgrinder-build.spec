@@ -141,6 +141,7 @@ popd
 - [BGBUILD-304] Standarize plugin callbacks
 - [BGBUILD-325] Remove kickstart support
 - [BGBUILD-323] Invalid kernel version recognition makes recreating initrd impossible
+- [BGBUILD-326] Ensure building from root directory is successful
 
 * Fri Oct 14 2011 Marc Savy <msavy@redhat.com> - 0.9.8-1
 - Upstream release: 0.9.8

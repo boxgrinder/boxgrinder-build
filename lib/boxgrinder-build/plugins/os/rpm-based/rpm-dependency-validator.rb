@@ -72,7 +72,8 @@ module BoxGrinder
         arches = "x86_64"
       end
 
-      repoquery_output = @exec_helper.execute( "repoquery --quiet --disablerepo=* --enablerepo=#{@appliance_config.repos.collect {|r| "#{@magic_hash}#{r['name']}"}.join(",")} -c '#{@yum_config_file}' list available #{package_list.join( ' ' )} --nevra --archlist=#{arches},noarch" )
+      root = (@config.dir.root.end_with?('/') ? '' : @config.dir.root)
+      repoquery_output = @exec_helper.execute( "repoquery --quiet --disablerepo=* --enablerepo=#{@appliance_config.repos.collect {|r| "#{@magic_hash}#{r['name']}"}.join(",")} -c '#{root}/#{@yum_config_file}' list available #{package_list.join( ' ' )} --nevra --archlist=#{arches},noarch" )
 
       invalid_names = []
 
