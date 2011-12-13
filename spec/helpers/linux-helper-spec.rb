@@ -29,6 +29,12 @@ module BoxGrinder
       @log = @helper.instance_variable_get(:@log)
     end
 
+    it "should not fail when no versions are found" do
+      guestfs = mock("guestfs")
+      guestfs.should_receive(:ls).with('/lib/modules').and_return([])
+      @helper.kernel_version(guestfs).should == nil
+    end
+
     it "should return valid kernel version" do
       guestfs = mock("guestfs")
       guestfs.should_receive(:ls).with('/lib/modules').and_return(['2.6.33.6-147.fc13.i686'])
@@ -39,6 +45,24 @@ module BoxGrinder
       guestfs = mock("guestfs")
       guestfs.should_receive(:ls).with('/lib/modules').and_return(['2.6.33.6-147.fc13.i686.PAE', '2.6.33.6-147.fc13.i686'])
       @helper.kernel_version(guestfs).should == '2.6.33.6-147.fc13.i686.PAE'
+    end
+
+    it "should return valid xen kernel version" do
+      guestfs = mock("guestfs")
+      guestfs.should_receive(:ls).with('/lib/modules').and_return(['2.6.33.6-147.fc13.i686.xen', '2.6.40.6-147.fc13.i686'])
+      @helper.kernel_version(guestfs).should == '2.6.33.6-147.fc13.i686.xen'
+    end
+
+    it "should return valid xen kernel version" do
+      guestfs = mock("guestfs")
+      guestfs.should_receive(:ls).with('/lib/modules').and_return(['2.6.45.6-147.fc13.i686', '2.6.40.6-147.fc13.i686'])
+      @helper.kernel_version(guestfs).should == '2.6.45.6-147.fc13.i686'
+    end
+
+    it "should fail when no kernel images could be found" do
+      @helper.should_receive(:kernel_version).and_return(nil)
+
+      lambda { @helper.recreate_kernel_image("guestfs", ['xennet']) }.should raise_error("Cannot find valid kernel installs in the appliance. Make sure you have your kernel installed in '/lib/modules'.")
     end
 
     it "should recreate initramfs kernel image using dracut and add xennet module" do
@@ -89,6 +113,52 @@ module BoxGrinder
       it "should return ['/', '/tmp-config', '/tmp-eventlog', '/var/www']" do
         hash = {"/tmp-eventlog"=>{}, "/"=>{}, "/var/www"=>{}, "/tmp-config"=>{}}
         @helper.partition_mount_points(hash).should == ['/', '/tmp-config', '/tmp-eventlog', '/var/www']
+      end
+    end
+
+    context "RPMVersion" do
+      before(:each) do
+        @version = RPMVersion.new
+      end
+
+      it "should split the version" do
+        @version.split('2.6.18-274.7.1.el5').should == ["2", "6", "18", "274", "7", "1", "el5"]
+      end
+
+      describe ".compare" do
+        it "should compare two versions and return -1" do
+          @version.compare("2.6.18-274.7.1.el5", "2.6.18-8.el5").should == 1
+        end
+
+        it "should compare two versions and return 1" do
+          @version.compare("2.6.18-8.el5", "2.6.18-274.7.1.el5").should == -1
+        end
+
+        it "should compare two versions and return 0" do
+          @version.compare("2.6.18-8.el5", "2.6.18-8.el5").should == 0
+        end
+
+        it "should compare two very similar versions" do
+          @version.compare("2.6.18-8.el5", "2.6.18-8.1.el5").should == -1
+        end
+
+        it "should compare two very similar versions other way around" do
+          @version.compare("2.6.18-8.1.el5", "2.6.18-8.el5").should == 1
+        end
+      end
+
+      describe ".newest" do
+        it "should return first one as newer" do
+          @version.newest(["2.6.18-274.7.1.el5", "2.6.18-8.el5"]).should == "2.6.18-274.7.1.el5"
+        end
+
+        it "should return last one as newer" do
+          @version.newest(["2.6.18-8.el5", "2.6.18-274.7.1.el5"]).should == "2.6.18-274.7.1.el5"
+        end
+
+        it "should return version 3 as newer" do
+          @version.newest(["3.1.0-0.rc1", "2.6.18-274.7.1.el5"]).should == "3.1.0-0.rc1"
+        end
       end
     end
   end
