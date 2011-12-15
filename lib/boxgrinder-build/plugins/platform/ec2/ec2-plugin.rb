@@ -157,10 +157,10 @@ module BoxGrinder
     def add_ec2_user(guestfs)
       @log.debug "Adding ec2-user user..."
 
-      # boxgrinder build fails to build ec2 image if ec2-user already exists
+      # We need to add ec2-user only when it doesn't exists
       #
       # https://issues.jboss.org/browse/BGBUILD-313
-      unless guestfs.sh("getent passwd ec2-user | wc -l") == "0"
+      unless guestfs.fgrep("ec2-user", "/etc/passwd").empty?
         @log.debug("ec2-user already exists, skipping.")
         return
       end
