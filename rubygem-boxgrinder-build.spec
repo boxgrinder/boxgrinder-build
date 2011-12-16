@@ -47,6 +47,10 @@ Requires: ruby-libvirt
 Requires: rubygem(nokogiri)
 Requires: rubygem(builder)
 
+BuildRequires: ruby-libvirt
+BuildRequires: rubygem(nokogiri)
+BuildRequires: rubygem(builder)
+
 # RPM-BASED
 Requires: appliance-tools
 Requires: yum-utils
