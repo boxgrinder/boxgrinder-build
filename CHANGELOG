@@ -10,6 +10,7 @@ v0.10.0
 * [BGBUILD-325] Remove kickstart support
 * [BGBUILD-323] Invalid kernel version recognition makes recreating initrd impossible
 * [BGBUILD-326] Ensure building from root directory is successful
+* [BGBUILD-211] Support for registering appliances with libvirt
 
 v0.9.8
 

@@ -42,6 +42,11 @@ BuildRequires: rubygem(net-sftp)
 BuildRequires: rubygem(net-ssh)
 BuildRequires: rubygem(progressbar)
 
+# libvirt
+Requires: ruby-libvirt
+Requires: rubygem(nokogiri)
+Requires: rubygem(builder)
+
 # RPM-BASED
 Requires: appliance-tools
 Requires: yum-utils
@@ -142,6 +147,7 @@ popd
 - [BGBUILD-325] Remove kickstart support
 - [BGBUILD-323] Invalid kernel version recognition makes recreating initrd impossible
 - [BGBUILD-326] Ensure building from root directory is successful
+- [BGBUILD-211] Support for registering appliances with libvirt
 
 * Fri Oct 14 2011 Marc Savy <msavy@redhat.com> - 0.9.8-1
 - Upstream release: 0.9.8
