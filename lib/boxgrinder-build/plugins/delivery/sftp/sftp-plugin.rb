@@ -26,7 +26,7 @@ require 'boxgrinder-build/helpers/sftp-helper'
 
 module BoxGrinder
   class SFTPPlugin < BasePlugin
-    plugin :type => :delivery, :name => :sftp, :full_name  => "SSH File Transfer Protocol"
+    plugin :type => :delivery, :name => :sftp, :full_name => "SSH File Transfer Protocol"
 
     def validate
       set_default_config_value('overwrite', false)
@@ -66,4 +66,3 @@ module BoxGrinder
 
   end
 end
-

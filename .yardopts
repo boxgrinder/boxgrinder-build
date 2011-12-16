@@ -1,0 +1,2 @@
+--type-name-tag plugin_config:"Plugin Configuration Parameters" 
+--exclude lib/boxgrinder-build/plugins/os/rpm-based/kickstart.rb

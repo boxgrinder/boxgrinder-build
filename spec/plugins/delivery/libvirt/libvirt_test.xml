@@ -1,0 +1,24 @@
+<domain type="grinder">
+  <name>appliance-1-0-fedora-13-x86_64-raw</name>
+  <description>boxgrinder-rocks</description>
+  <memory>262144</memory>
+  <vcpu/>
+  <os>
+    <type arch="x86_64">box</type>
+    <boot dev="hd"/>
+  </os>
+  <devices>
+    <disk type="file" device="disk">
+      <source file="/var/lib/libvirt/images/bble.raw"/>
+      <target dev="hda" bus="bus"/>
+    </disk>
+    <interface type="network">
+      <source network="default"/>
+    </interface>
+    <console type="pty"/>
+    <graphics type="vnc" port="-1"/>
+  </devices>
+  <features>
+    <pae/>
+  </features>
+</domain>
