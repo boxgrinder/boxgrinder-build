@@ -4,7 +4,6 @@ Manifest
 README.md
 Rakefile
 bin/boxgrinder-build
-boxgrinder-build.gemspec
 integ/appliances/gnome-fedora.appl
 integ/appliances/jeos-centos5-files.appl
 integ/appliances/jeos-centos5.appl
@@ -42,10 +41,13 @@ lib/boxgrinder-build/helpers/package-helper.rb
 lib/boxgrinder-build/helpers/plugin-helper.rb
 lib/boxgrinder-build/helpers/qemu.wrapper
 lib/boxgrinder-build/helpers/s3-helper.rb
+lib/boxgrinder-build/helpers/sftp-helper.rb
 lib/boxgrinder-build/managers/plugin-manager.rb
 lib/boxgrinder-build/plugins/base-plugin.rb
 lib/boxgrinder-build/plugins/delivery/ebs/ebs-plugin.rb
 lib/boxgrinder-build/plugins/delivery/elastichosts/elastichosts-plugin.rb
+lib/boxgrinder-build/plugins/delivery/libvirt/libvirt-capabilities.rb
+lib/boxgrinder-build/plugins/delivery/libvirt/libvirt-plugin.rb
 lib/boxgrinder-build/plugins/delivery/local/local-plugin.rb
 lib/boxgrinder-build/plugins/delivery/openstack/openstack-plugin.rb
 lib/boxgrinder-build/plugins/delivery/s3/s3-plugin.rb
@@ -90,6 +92,10 @@ spec/plugins/base-plugin-spec.rb
 spec/plugins/delivery/ebs/ebs-plugin-spec.rb
 spec/plugins/delivery/ebs/ebs.yaml
 spec/plugins/delivery/elastichosts/elastichosts-plugin-spec.rb
+spec/plugins/delivery/libvirt/libvirt-plugin-spec.rb
+spec/plugins/delivery/libvirt/libvirt_modified.xml
+spec/plugins/delivery/libvirt/libvirt_modify.sh
+spec/plugins/delivery/libvirt/libvirt_test.xml
 spec/plugins/delivery/local/local-plugin-spec.rb
 spec/plugins/delivery/openstack/openstack-plugin-spec.rb
 spec/plugins/delivery/s3/s3-plugin-spec.rb
