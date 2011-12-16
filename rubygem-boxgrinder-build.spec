@@ -148,6 +148,7 @@ popd
 - [BGBUILD-323] Invalid kernel version recognition makes recreating initrd impossible
 - [BGBUILD-326] Ensure building from root directory is successful
 - [BGBUILD-211] Support for registering appliances with libvirt
+- [BGBUILD-331] Add support for sa-east-1 EC2 region
 
 * Fri Oct 14 2011 Marc Savy <msavy@redhat.com> - 0.9.8-1
 - Upstream release: 0.9.8
