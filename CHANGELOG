@@ -1,5 +1,7 @@
 v0.11.0
 
+* [BGBUILD-332] Add support for bash completion
+
 v0.10.0
 
 * [BGBUILD-313] boxgrinder build fails to build ec2 image if ec2-user already exists

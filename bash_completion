@@ -1,0 +1,37 @@
+_boxgrinder-build()
+{
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    opts="--help --version --platform --delivery --force --os-config --platform-config --delivery-config --plugins --debug --trace --backtrace"
+
+    if [[ ${cur} == -* ]] ; then
+        COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
+        return 0
+    fi
+
+    case "${prev}" in
+        --os-config|--platform-config|--delivery-config|-l|--plugins)
+            return 0
+            ;;
+        -p|--platform)
+            local platform="ec2 virtualbox virtualpc vmware"
+            COMPREPLY=($(compgen -W "${platform}" -- ${cur}))
+            ;;
+        -d|--delivery)
+            local delivery="ami cloudfront ebs elastichosts libvirt local openstack s3 sftp"
+            COMPREPLY=($(compgen -W "${delivery}" -- ${cur}))
+            ;;
+        *)
+            if [[ ${COMP_CWORD} -eq 1 ]]; then
+                _filedir appl
+            else
+                COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
+            fi
+            ;;
+    esac
+}
+
+complete -F _boxgrinder-build boxgrinder-build
+

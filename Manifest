@@ -3,7 +3,9 @@ LICENSE
 Manifest
 README.md
 Rakefile
+bash_completion
 bin/boxgrinder-build
+boxgrinder-build.gemspec
 integ/appliances/gnome-fedora.appl
 integ/appliances/jeos-centos5-files.appl
 integ/appliances/jeos-centos5.appl

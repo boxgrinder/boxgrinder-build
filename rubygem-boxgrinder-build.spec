@@ -110,6 +110,9 @@ find %{_builddir}%{geminstdir}/bin -type f | xargs chmod a+x
 rm -rf %{_builddir}/%{geminstdir}/integ/packages/*.rpm
 cp -r %{_builddir}%{gemdir}/* %{buildroot}/%{gemdir}
 
+install -d -m 755 %{buildroot}/%{_sysconfdir}/bash_completion.d
+mv %{buildroot}/%{geminstdir}/bash_completion %{buildroot}/%{_sysconfdir}/bash_completion.d/%{name}
+
 %check
 pushd %{_builddir}/%{geminstdir}
 rake spec
@@ -118,6 +121,7 @@ popd
 %files
 %defattr(-, root, root, -)
 %{_bindir}/boxgrinder-build
+%{_sysconfdir}/bash_completion.d/%{name}
 %dir %{geminstdir}
 %{geminstdir}/bin
 %{geminstdir}/lib
@@ -141,6 +145,7 @@ popd
 %changelog
 * Tue Dec 27 2011 Marek Goldmann <mgoldman@redhat.com> - 0.11.0-1
 - Upstream release: 0.11.0
+- [BGBUILD-332] Add support for bash completion
 
 * Tue Nov 29 2011 Marek Goldmann <mgoldman@redhat.com> - 0.10.0-1
 - Upstream release: 0.10.0
