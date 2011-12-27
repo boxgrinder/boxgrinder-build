@@ -5,7 +5,7 @@
 
 Summary: A tool for creating appliances from simple plain text files
 Name: rubygem-%{gemname}
-Version: 0.10.0
+Version: 0.11.0
 Release: 1%{?dist}
 Group: Development/Languages
 License: LGPLv3+
@@ -139,6 +139,9 @@ popd
 %{gemdir}/doc/%{gemname}-%{version}
 
 %changelog
+* Tue Dec 27 2011 Marek Goldmann <mgoldman@redhat.com> - 0.11.0-1
+- Upstream release: 0.11.0
+
 * Tue Nov 29 2011 Marek Goldmann <mgoldman@redhat.com> - 0.10.0-1
 - Upstream release: 0.10.0
 - [BGBUILD-313] boxgrinder build fails to build ec2 image if ec2-user already exists
