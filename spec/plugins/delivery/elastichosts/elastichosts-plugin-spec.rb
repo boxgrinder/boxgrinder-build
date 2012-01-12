@@ -236,7 +236,7 @@ module BoxGrinder
           @plugin.upload_chunk("data", 1)
         end
 
-        it "should upload a chunk of data and be succesful after 1 retry" do
+        it "should upload a chunk of data and be successful after 1 retry" do
           @plugin.should_receive(:api_url).with('/drives/drive-uuid/write/0').and_return('url')
           RestClient.should_receive(:post).with('url', 'data', :content_type=>"application/octet-stream", "Content-Encoding"=>"gzip").and_raise('boom')
           @plugin.should_receive(:sleep).with(5)
@@ -267,7 +267,7 @@ module BoxGrinder
           }.should raise_error(PluginError, "Couldn't upload appliance, boom.")
         end
 
-        it "should not specify add content-encoding header if uplaoding to cloudsigma" do
+        it "should not specify add content-encoding header if uploading to cloudsigma" do
           @plugin_config.merge!('endpoint' => 'api.cloudsigma.com')
 
           @plugin.should_receive(:api_url).with('/drives/drive-uuid/write/0').and_return('url')
@@ -329,7 +329,7 @@ module BoxGrinder
 
           lambda {
             @plugin.create_server
-          }.should raise_error(PluginError, 'An error occured while creating the server, boom. See logs for more info.')
+          }.should raise_error(PluginError, 'An error occurred while creating the server, boom. See logs for more info.')
         end
       end
 

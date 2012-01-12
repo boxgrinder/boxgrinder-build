@@ -158,7 +158,7 @@ module BoxGrinder
           end
         end
 
-        (['/var/cache/yum', '/dev/shm', '/dev/pts', '/proc', '/sys'] + @appliance_config.hardware.partitions.keys.reverse).each do |mount_point|
+        (['/var/cache/yum', '/dev/shm', '/dev/pts', '/proc', '/sys'] + @appliance_config.hardware.partitions.keys.sort.reverse).each do |mount_point|
           @log.trace "Unmounting '#{mount_point}'..."
           @exec_helper.execute "umount -d #{dir}/install_root#{mount_point}"
         end

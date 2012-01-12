@@ -52,7 +52,7 @@ module BoxGrinder
     def hash_to_request(h)
       body = ""
 
-      h.each do |k, v|
+      h.sort.each do |k, v|
         body << "#{k} #{v.to_s}\n"
       end
 
@@ -205,7 +205,7 @@ module BoxGrinder
         @log.info "Server was registered with '#{ret['name']}' name as '#{ret['server']}' UUID. Use web UI or API tools to start your server."
       rescue => e
         @log.error e.info
-        raise PluginError, "An error occured while creating the server, #{e.message}. See logs for more info."
+        raise PluginError, "An error occurred while creating the server, #{e.message}. See logs for more info."
       end
     end
   end

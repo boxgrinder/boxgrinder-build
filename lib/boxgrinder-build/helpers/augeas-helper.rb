@@ -47,7 +47,7 @@ module BoxGrinder
 
       unload = []
 
-      @files.keys.each do |file_name|
+      @files.keys.sort.each do |file_name|
         unload << ". != '#{file_name}'"
       end
 

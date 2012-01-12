@@ -146,6 +146,7 @@ popd
 * Tue Dec 27 2011 Marek Goldmann <mgoldman@redhat.com> - 0.11.0-1
 - Upstream release: 0.11.0
 - [BGBUILD-332] Add support for bash completion
+- [BGBUILD-338] Weed out non-deterministic tests
 
 * Tue Nov 29 2011 Marek Goldmann <mgoldman@redhat.com> - 0.10.0-1
 - Upstream release: 0.10.0
