@@ -251,6 +251,11 @@ module BoxGrinder
 
     def install_repos(guestfs)
       @log.debug "Installing repositories from appliance definition file..."
+
+      # It seems that the directory is not always created by default if default repos are inhibited (e.g. SL6)
+      yum_d = '/etc/yum.repos.d/'
+      guestfs.mkdir_p(yum_d) if guestfs.exists(yum_d) == 0
+
       @appliance_config.repos.each do |repo|
         if repo['ephemeral']
           @log.debug "Repository '#{repo['name']}' is an ephemeral repo. It'll not be installed in the appliance."
@@ -264,7 +269,7 @@ module BoxGrinder
           repo_file << ("#{type}=#{repo[type]}\n") unless repo[type].nil?
         end
 
-        guestfs.write_file("/etc/yum.repos.d/#{repo['name']}.repo", repo_file, 0)
+        guestfs.write_file("#{yum_d}#{repo['name']}.repo", repo_file, 0)
       end
       @log.debug "Repositories installed."
     end

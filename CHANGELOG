@@ -2,7 +2,7 @@ v0.11.0
 
 * [BGBUILD-332] Add support for bash completion
 * [BGBUILD-338] Weed out non-deterministic tests
-
+* [BGBUILD-337] In SL if default repos are disabled, /etc/yum.repos.d folder is not created.
 v0.10.0
 
 * [BGBUILD-313] boxgrinder build fails to build ec2 image if ec2-user already exists

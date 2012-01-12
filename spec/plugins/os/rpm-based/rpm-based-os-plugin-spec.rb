@@ -51,6 +51,19 @@ module BoxGrinder
       @log = @plugin.instance_variable_get(:@log)
     end
 
+    it "should create the /etc/yum.repos.d directory if it does not exist" do
+      @appliance_config.stub!(:repos).and_return([
+        {'name' => 'cirras', 'baseurl' => "http://repo.boxgrinder.org/packages/fedora/11/RPMS/x86_64"}
+      ])
+
+      guestfs = mock("guestfs").as_null_object
+
+      guestfs.stub!(:exists).and_return(0)
+      guestfs.should_receive(:mkdir_p).with("/etc/yum.repos.d/")
+
+      @plugin.install_repos(guestfs)
+    end
+
     it "should install repos" do
       @appliance_config.should_receive(:repos).and_return(
           [
@@ -58,7 +71,8 @@ module BoxGrinder
               {'name' => 'abc', 'baseurl' => 'http://abc', 'mirrorlist' => "http://abc.org/packages/fedora/11/RPMS/x86_64"},
           ])
 
-      guestfs = mock("guestfs")
+      guestfs = mock("guestfs").as_null_object
+
       guestfs.should_receive(:write_file).with("/etc/yum.repos.d/cirras.repo", "[cirras]\nname=cirras\nenabled=1\ngpgcheck=0\nbaseurl=http://repo.boxgrinder.org/packages/fedora/11/RPMS/x86_64\n", 0)
       guestfs.should_receive(:write_file).with("/etc/yum.repos.d/abc.repo", "[abc]\nname=abc\nenabled=1\ngpgcheck=0\nbaseurl=http://abc\nmirrorlist=http://abc.org/packages/fedora/11/RPMS/x86_64\n", 0)
 
@@ -72,7 +86,7 @@ module BoxGrinder
               {'name' => 'cirras', 'baseurl' => "http://repo.boxgrinder.org/packages/fedora/11/RPMS/x86_64", 'ephemeral' => true}
           ])
 
-      guestfs = mock("guestfs")
+      guestfs = mock("guestfs").as_null_object
       guestfs.should_receive(:write_file).with("/etc/yum.repos.d/abc.repo", "[abc]\nname=abc\nenabled=1\ngpgcheck=0\nbaseurl=http://abc\nmirrorlist=http://abc.org/packages/fedora/11/RPMS/x86_64\n", 0)
 
       @plugin.install_repos(guestfs)
