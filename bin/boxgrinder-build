@@ -26,13 +26,17 @@ require 'boxgrinder-core/models/config'
 require 'boxgrinder-core/helpers/log-helper'
 require 'boxgrinder-build/appliance'
 
+require 'boxgrinder-build/util/permissions/fs-observer'
+require 'boxgrinder-build/util/permissions/fs-monitor'
+
 options = OpenCascade.new(
     :platform => :none,
     :delivery => :none,
     :os_config => {},
     :platform_config => {},
     :delivery_config => {},
-    :additional_plugins => []
+    :additional_plugins => [],
+    :change_to_user => false
 )
 
 ARGV_DUP = ARGV.clone
@@ -135,6 +139,7 @@ EOB
       puts opts
       exit
     end
+
     opts.on_tail('--version', 'Print the version.') do
       puts "BoxGrinder Build #{File.read("#{File.dirname(__FILE__)}/../CHANGELOG").match(/^v(.*)/)[1]}"
 
@@ -148,16 +153,20 @@ EOB
 
       exit
     end
+
+    opts.on('--change-to-user', 'Change from root to local user after the OS plugin completes.') do
+      options[:change_to_user] = true
+    end
   end
 end
 
 def ensure_root
   unless Process.uid == 0
-    puts("Currently running as non-root user, BoxGrinder will attempt to re-launch under 'sudo -E'")
+    puts("Currently running as non-root user, BoxGrinder will re-launch under `sudo -E` and change to your local user after the OS plugin.")
     # http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-talk/151376
     ruby = File.join(Config::CONFIG["bindir"],
                      Config::CONFIG["RUBY_INSTALL_NAME"] + Config::CONFIG["EXEEXT"])
-    exec("sudo -E #{ruby} -I#{$:.join(':')} #{Pathname.new(__FILE__).realpath} #{ARGV_DUP.join(" ")}")
+    exec("sudo -E #{ruby} -I#{$:.join(':')} #{Pathname.new(__FILE__).realpath} #{ARGV_DUP.join(" ")} --change-to-user")
   end
 end
 
@@ -183,6 +192,10 @@ begin
   end
 
   config = BoxGrinder::Config.new(options)
+  # Begin monitoring.
+  observer = config.change_to_user ? BoxGrinder::FSObserver.new(config.uid, config.gid) : nil
+  BoxGrinder::FSMonitor.instance.capture(observer)
+
   log = BoxGrinder::LogHelper.new(:level => config.log_level)
 
   begin
@@ -201,4 +214,6 @@ rescue => e
   puts
   puts e.message
   abort
+ensure
+  BoxGrinder::FSMonitor.instance.stop
 end

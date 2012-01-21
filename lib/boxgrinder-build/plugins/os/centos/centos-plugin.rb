@@ -20,7 +20,7 @@ require 'boxgrinder-build/plugins/os/rhel/rhel-plugin'
 
 module BoxGrinder
   class CentOSPlugin < RHELPlugin
-    plugin :type => :os, :name => :centos, :full_name  => "CentOS", :versions => ["5", "6"]
+    plugin :type => :os, :name => :centos, :full_name  => "CentOS", :versions => ["5", "6"], :require_root => true
 
     def after_init
       super

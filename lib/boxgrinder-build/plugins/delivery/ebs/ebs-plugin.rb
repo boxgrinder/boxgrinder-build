@@ -32,7 +32,7 @@ module BoxGrinder
     TIMEOUT = 1000 #seconds
     EC2_HOSTNAME_LOOKUP_TIMEOUT = 10
 
-    plugin :type => :delivery, :name => :ebs, :full_name => "Elastic Block Storage"
+    plugin :type => :delivery, :name => :ebs, :full_name => "Elastic Block Storage", :require_root => true
 
     def validate
       @ec2_endpoints = EC2Helper::endpoints

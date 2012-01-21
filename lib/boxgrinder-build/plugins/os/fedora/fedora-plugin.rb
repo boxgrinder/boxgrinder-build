@@ -20,7 +20,7 @@ require 'boxgrinder-build/plugins/os/rpm-based/rpm-based-os-plugin'
 
 module BoxGrinder
   class FedoraPlugin < RPMBasedOSPlugin
-    plugin :type => :os, :name => :fedora, :full_name => "Fedora", :versions => ["13", "14", "15", "16", "rawhide"]
+    plugin :type => :os, :name => :fedora, :full_name => "Fedora", :versions => ["13", "14", "15", "16", "rawhide"], :require_root => true
 
     def after_init
       super
