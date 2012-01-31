@@ -191,8 +191,8 @@ module BoxGrinder
             :endpoint => 'ec2.sa-east-1.amazonaws.com',
             :location => 'sa-east-1',
             :kernel => {
-              :i386 => {:aki => 'aki-803ce39d'},
-              :x86_64 => {:aki => 'aki-d03ce3cd'}
+              :i386 => {:aki => 'aki-863ce39b'},
+              :x86_64 => {:aki => 'aki-d63ce3cb'}
           }
          }
         }
