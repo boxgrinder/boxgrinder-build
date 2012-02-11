@@ -80,7 +80,7 @@ module BoxGrinder
       for name in package_list
         found = false
 
-        repoquery_output.each do |line|
+        repoquery_output.each_line do |line|
           line = line.strip
 
           package = line.match( /^([\S]+)-\d+:/ )

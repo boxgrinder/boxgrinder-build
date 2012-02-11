@@ -56,7 +56,7 @@ module BoxGrinder
         end
       end
 
-      it "should prepare and run guestfs wid IDE disk" do
+      it "should prepare and run guestfs with IDE disk" do
         guestfs = mock('Guestfs')
         @helper.instance_variable_set(:@guestfs, guestfs)
 

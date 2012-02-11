@@ -20,7 +20,7 @@ require 'rubygems'
 require 'rspec'
 require 'boxgrinder-build/plugins/platform/virtualbox/virtualbox-plugin'
 require 'hashery/opencascade'
-require 'spec/rspec-plugin-helper.rb'
+require 'rspec-plugin-helper'
 
 module BoxGrinder
   describe VirtualBoxPlugin do

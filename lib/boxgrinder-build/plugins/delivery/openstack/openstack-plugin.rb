@@ -68,12 +68,12 @@ module BoxGrinder
 
       if @previous_plugin_info[:type] == :platform
         case @previous_plugin_info[:name]
-          when :ec2:
+          when :ec2
             disk_format = :ami
             container_format = :ami
-          when :vmware:
+          when :vmware
             disk_format = :vmdk
-          when :virtualbox:
+          when :virtualbox
             disk_format = :vmdk
         end
       end

@@ -122,7 +122,7 @@ module BoxGrinder
 
         vmdk_image = @plugin.change_vmdk_values("vmfs")
 
-        vmdk_image.scan(/^createType="(.*)"\s?$/).to_s.should == "vmfs"
+        vmdk_image.match(/^createType="(.*)"\s?$/)[1].should == "vmfs"
 
         disk_attributes = vmdk_image.scan(/^RW (.*) (.*) "(.*).raw" (.*)\s?$/)[0]
 
@@ -131,11 +131,11 @@ module BoxGrinder
         disk_attributes[2].should == "full"
         disk_attributes[3].should == ""
 
-        vmdk_image.scan(/^ddb.geometry.cylinders = "(.*)"\s?$/).to_s.should == "652"
-        vmdk_image.scan(/^ddb.geometry.heads = "(.*)"\s?$/).to_s.should == "255"
-        vmdk_image.scan(/^ddb.geometry.sectors = "(.*)"\s?$/).to_s.should == "63"
+        vmdk_image.match(/^ddb.geometry.cylinders = "(.*)"\s?$/)[1].should == "652"
+        vmdk_image.match(/^ddb.geometry.heads = "(.*)"\s?$/)[1].should == "255"
+        vmdk_image.match(/^ddb.geometry.sectors = "(.*)"\s?$/)[1].should == "63"
 
-        vmdk_image.scan(/^ddb.virtualHWVersion = "(.*)"\s?$/).to_s.should == "7"
+        vmdk_image.match(/^ddb.virtualHWVersion = "(.*)"\s?$/)[1].should == "7"
       end
 
       it "should change vmdk data (flat)" do
@@ -145,7 +145,7 @@ module BoxGrinder
 
         vmdk_image = @plugin.change_vmdk_values("monolithicFlat")
 
-        vmdk_image.scan(/^createType="(.*)"\s?$/).to_s.should == "monolithicFlat"
+        vmdk_image.match(/^createType="(.*)"\s?$/)[1].should == "monolithicFlat"
 
         disk_attributes = vmdk_image.scan(/^RW (.*) (.*) "(.*).raw" (.*)\s?$/)[0]
 
@@ -154,12 +154,12 @@ module BoxGrinder
         disk_attributes[2].should == "full"
         disk_attributes[3].should == "0"
 
-        vmdk_image.scan(/^ddb.geometry.cylinders = "(.*)"\s?$/).to_s.should == "652"
-        vmdk_image.scan(/^ddb.geometry.heads = "(.*)"\s?$/).to_s.should == "255"
-        vmdk_image.scan(/^ddb.geometry.sectors = "(.*)"\s?$/).to_s.should == "63"
+        vmdk_image.match(/^ddb.geometry.cylinders = "(.*)"\s?$/)[1].should == "652"
+        vmdk_image.match(/^ddb.geometry.heads = "(.*)"\s?$/)[1].should == "255"
+        vmdk_image.match(/^ddb.geometry.sectors = "(.*)"\s?$/)[1].should == "63"
 
-        vmdk_image.scan(/^ddb.virtualHWVersion = "(.*)"\s?$/).to_s.should == "7"
-        vmdk_image.scan(/^ddb.thinProvisioned = "(.*)"\s?$/).to_s.should == "0"
+        vmdk_image.match(/^ddb.virtualHWVersion = "(.*)"\s?$/)[1].should == "7"
+        vmdk_image.match(/^ddb.thinProvisioned = "(.*)"\s?$/)[1].should == "0"
       end
 
       it "should change vmdk data (flat) enabling thin disk" do
@@ -169,7 +169,7 @@ module BoxGrinder
 
         vmdk_image = @plugin.change_vmdk_values("monolithicFlat")
 
-        vmdk_image.scan(/^ddb.thinProvisioned = "(.*)"\s?$/).to_s.should == "1"
+        vmdk_image.match(/^ddb.thinProvisioned = "(.*)"\s?$/)[1].should == "1"
       end
     end
 
@@ -177,16 +177,19 @@ module BoxGrinder
       prepare_image({'thin_disk' => false, 'type' => 'enterprise'})
 
       vmx_file = @plugin.change_common_vmx_values
+      
+      vmx_file.match(/^guestOS = "(.*)"\s?$/)[1].should == "linux"
+      vmx_file.match(/^displayName = "(.*)"\s?$/)[1].should == "full"
 
-      vmx_file.scan(/^guestOS = "(.*)"\s?$/).to_s.should == "linux"
-      vmx_file.scan(/^displayName = "(.*)"\s?$/).to_s.should == "full"
-      vmx_file.scan(/^annotation = "(.*)"\s?$/).to_s.scan(/^full | Version: 1\.0 | Built by: BoxGrinder 1\.0\.0/).should_not == nil
-      vmx_file.scan(/^guestinfo.vmware.product.long = "(.*)"\s?$/).to_s.should == "full"
-      vmx_file.scan(/^guestinfo.vmware.product.url = "(.*)"\s?$/).to_s.should == "http://boxgrinder.org"
-      vmx_file.scan(/^numvcpus = "(.*)"\s?$/).to_s.should == "1"
-      vmx_file.scan(/^memsize = "(.*)"\s?$/).to_s.should == "256"
-      vmx_file.scan(/^log.fileName = "(.*)"\s?$/).to_s.should == "full.log"
-      vmx_file.scan(/^scsi0:0.fileName = "(.*)"\s?$/).to_s.should == "full.vmdk"
+      vmx_file.match(/^annotation = "(.*)"\s?$/)[1].
+        match(/^full | Version: 1\.0 | Built by: BoxGrinder 1\.0\.0/).should_not == nil
+      
+      vmx_file.match(/^guestinfo.vmware.product.long = "(.*)"\s?$/)[1].should == "full"
+      vmx_file.match(/^guestinfo.vmware.product.url = "(.*)"\s?$/)[1].should == "http://boxgrinder.org"
+      vmx_file.match(/^numvcpus = "(.*)"\s?$/)[1].should == "1"
+      vmx_file.match(/^memsize = "(.*)"\s?$/)[1].should == "256"
+      vmx_file.match(/^log.fileName = "(.*)"\s?$/)[1].should == "full.log"
+      vmx_file.match(/^scsi0:0.fileName = "(.*)"\s?$/)[1].should == "full.vmdk"
     end
 
     describe ".build_vmware_personal" do

@@ -37,7 +37,7 @@ module BoxGrinder
 
     def create
       template = "#{File.dirname(__FILE__)}/src/appliance.ks.erb"
-      kickstart = ERB.new(File.read(template)).result(build_definition.send(:binding))
+      kickstart = ERB.new(File.read(template)).result(build_definition.get_binding)
       File.open(@kickstart_file, 'w') { |f| f.write(kickstart) }
 
       @kickstart_file
@@ -52,6 +52,10 @@ module BoxGrinder
 
       def definition.method_missing(sym, * args)
         self[sym.to_s]
+      end
+
+      def definition.get_binding
+        binding 
       end
 
       cost = 40

@@ -147,7 +147,7 @@ module BoxGrinder
       @log.debug "Cleaning appliance-creator mount points..."
 
       Dir["#{@dir.tmp}/imgcreate-*"].each do |dir|
-        dev_mapper = @exec_helper.execute "mount | grep #{dir} | awk '{print $1}'"
+        dev_mapper = @exec_helper.execute("mount | grep #{dir} | awk '{print $1}'").split("\n")
 
         mappings = {}
 

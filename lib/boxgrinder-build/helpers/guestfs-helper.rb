@@ -27,7 +27,7 @@ require 'timeout'
 module BoxGrinder
   class GuestFSHelper
     def initialize(disks, appliance_config, config, options = {})
-      @disks = disks
+      @disks = Array(disks)
       @appliance_config = appliance_config
       @config = config
       @log = options[:log] || LogHelper.new

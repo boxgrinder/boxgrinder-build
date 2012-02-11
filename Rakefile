@@ -40,7 +40,7 @@ desc "Run all integration tests"
 RSpec::Core::RakeTask.new('integ') do |t|
   t.rcov = false
   t.pattern = "integ/**/*-spec.rb"
-  t.rspec_opts = ['--colour', '--format', 'doc', '-b']
+  t.rspec_opts = ['-r boxgrinder-core', '--colour', '--format', 'doc', '-b']
   t.verbose = true
 end
 
@@ -49,16 +49,26 @@ RSpec::Core::RakeTask.new('spec') do |t|
   t.ruby_opts = "-I ../boxgrinder-core/lib"
   t.rcov = false
   t.pattern = "spec/**/*-spec.rb"
-  t.rspec_opts = ['--colour', '--format', 'doc', '-b']
+  t.rspec_opts = ['-r boxgrinder-core', '--colour', '--format', 'doc', '-b']
   t.verbose = true
 end
 
-desc "Run all tests and generate code coverage report"
+def coverage18(t)
+  require 'rcov'
+  t.rcov = true
+  t.rcov_opts = ['--exclude', 'spec,teamcity/*,/usr/lib/ruby/,.gem/ruby,/boxgrinder-core/,/gems/']
+end
+
 RSpec::Core::RakeTask.new('spec:coverage') do |t|
   t.ruby_opts = "-I ../boxgrinder-core/lib"
   t.pattern = "spec/**/*-spec.rb"
-  t.rspec_opts = ['--colour', '--format', 'html', '--out', 'pkg/rspec_report.html', '-b']
-  t.rcov = true
-  t.rcov_opts = ['--exclude', 'spec,teamcity/*,/usr/lib/ruby/,.gem/ruby,/boxgrinder-core/,/gems/']
+  t.rspec_opts = ['-r spec_helper', '-r boxgrinder-core', '--colour', 
+    '--format', 'html', '--out', 'pkg/rspec_report.html', '-b']
   t.verbose = true
+
+  if RUBY_VERSION =~ /^1.8/
+    coverage18(t) 
+  else
+    ENV['COVERAGE'] = 'true'
+  end
 end
