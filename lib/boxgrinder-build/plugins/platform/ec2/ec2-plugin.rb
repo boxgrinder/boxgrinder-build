@@ -27,7 +27,7 @@ module BoxGrinder
     def after_init
       register_deliverable(:disk => "#{@appliance_config.name}.ec2")
 
-      register_supported_os('fedora', ['13', '14', '15', '16'])
+      register_supported_os('fedora', ['13', '14', '15', '16', '17'])
       register_supported_os('centos', ['5', '6'])
       register_supported_os('sl', ['5', '6'])
       register_supported_os('rhel', ['5', '6'])
@@ -136,7 +136,9 @@ module BoxGrinder
       menu_lst << menu_lst_data
       menu_lst.flush
 
-      guestfs.upload(menu_lst.path, "/boot/grub/menu.lst")
+      menu_d = '/boot/grub'
+      guestfs.mkdir_p(menu_d) if guestfs.exists(menu_d) == 0
+      guestfs.upload(menu_lst.path, '/boot/grub/menu.lst')
 
       menu_lst.close
       @log.debug "'/boot/grub/menu.lst' file uploaded."

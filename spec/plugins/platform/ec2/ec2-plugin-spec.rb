@@ -172,6 +172,7 @@ module BoxGrinder
       guestfs = mock("guestfs")
 
       guestfs.should_receive(:upload).with('path/menu.lst', "/boot/grub/menu.lst")
+      guestfs.should_receive(:exists).with('/boot/grub')
 
       linux_helper = mock("LinuxHelper")
 

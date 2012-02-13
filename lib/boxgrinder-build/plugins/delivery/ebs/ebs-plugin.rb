@@ -69,12 +69,6 @@ module BoxGrinder
       @ec2helper = EC2Helper.new(@ec2, :log => @log)
     end
 
-    def after_init
-      register_supported_os('fedora', ['13', '14', '15', '16'])
-      register_supported_os('rhel', ['6'])
-      register_supported_os('centos', ['5', '6'])
-    end
-
     def execute
       ebs_appliance_description = "#{@appliance_config.summary} | Appliance version #{@appliance_config.version}.#{@appliance_config.release} | #{@appliance_config.hardware.arch} architecture"
 
