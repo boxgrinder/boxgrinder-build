@@ -28,11 +28,6 @@ module BoxGrinder
     plugin :type => :delivery, :name => :s3, :full_name => "Amazon Simple Storage Service (Amazon S3)", :types => [:s3, :cloudfront, :ami]
 
     def after_init
-      register_supported_os("fedora", ['13', '14', '15', '16'])
-      register_supported_os("centos", ['5', '6'])
-      register_supported_os("rhel", ['5', '6'])
-      register_supported_os("sl", ['5', '6'])
-
       @ami_build_dir = "#{@dir.base}/ami"
       @ami_manifest = "#{@ami_build_dir}/#{@appliance_config.name}.ec2.manifest.xml"
     end

@@ -65,20 +65,6 @@ module BoxGrinder
       @plugin.instance_variable_set(:@plugin_config, @plugin_config)
     end
 
-    it "should register all operating systems with specific versions" do
-      prepare_plugin do |plugin|
-        plugin.instance_variable_set(:@current_availability_zone, 'us-east-1a')
-      end
-
-      supported_oses = @plugin.instance_variable_get(:@supported_oses)
-
-      supported_oses.size.should == 3
-      Set.new(supported_oses.keys).should == Set.new(['fedora', 'rhel', 'centos'])
-      supported_oses['rhel'].should == ['6']
-      supported_oses['fedora'].should == ['13', '14', '15', '16']
-      supported_oses['centos'].should == ['5', '6']
-    end
-
     it "should adjust fstab" do
       prepare_plugin { |plugin| plugin.stub!(:after_init) }
 

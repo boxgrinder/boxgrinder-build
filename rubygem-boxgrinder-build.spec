@@ -5,7 +5,7 @@
 
 Summary: A tool for creating appliances from simple plain text files
 Name: rubygem-%{gemname}
-Version: 0.10.1
+Version: 0.10.2
 Release: 1%{?dist}
 Group: Development/Languages
 License: LGPLv3+
@@ -143,6 +143,10 @@ popd
 %{gemdir}/doc/%{gemname}-%{version}
 
 %changelog
+* Thu May 24 2012 Marc Savy <msavy@redhat.com> - 0.10.2
+- Upstream release: 0.10.2
+- [BGBUILD-347] Add support for Fedora 17. Remove unnecessary OS restrictions
+
 * Wed Feb 29 2012 Marc Savy <msavy@redhat.com> - 0.10.1-1
 - Upstream release: 0.10.1
 - [BGBUILD-332] Add support for bash completion

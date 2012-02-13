@@ -71,17 +71,6 @@ module BoxGrinder
       @dir = @plugin.instance_variable_get(:@dir)
     end
 
-    it "should register all operating systems with specific versions" do
-      supportes_oses = @plugin.instance_variable_get(:@supported_oses)
-
-      supportes_oses.size.should == 4
-      Set.new(supportes_oses.keys).should == Set.new(['centos', 'fedora', 'rhel', 'sl'])
-      supportes_oses['centos'].should == ['5', '6']
-      supportes_oses['rhel'].should == ['5', '6']
-      supportes_oses['sl'].should == ['5', '6']
-      supportes_oses['fedora'].should == ['13', '14', '15', '16']
-    end
-
     describe ".ami_key" do
 
       before(:each) do

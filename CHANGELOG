@@ -1,3 +1,6 @@
+v0.10.2
+* [BGBUILD-347] Add support for Fedora 17. Remove unnecessary OS restrictions
+
 v0.10.1
 
 * [BGBUILD-332] Add support for bash completion
