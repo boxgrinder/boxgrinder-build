@@ -23,7 +23,6 @@ module BoxGrinder
   
     def UserSwitcher.change_user(u, g, &blk)
       prev_u, prev_g = Process.uid, Process.gid
-      libguestfs_cache_workaround
       set_user(u, g) 
       blk.call
       set_user(prev_u, prev_g)
@@ -38,11 +37,6 @@ module BoxGrinder
       # If already set to the given value
       Process.egid, Process.gid = g, g
       Process.euid, Process.uid = u, u
-    end
-
-    # Workaround
-    def UserSwitcher.libguestfs_cache_workaround
-      FileUtils.rm_rf("#{ENV['TMPDIR']||Dir.tmpdir||'/tmp'}/.guestfs-#{Process.euid}")
     end
   end
 end

@@ -46,7 +46,6 @@ module BoxGrinder
         UserSwitcher.change_user(2, 4){}
       end
 
-
       it "should not change user if the uid and gid already match" do 
         Process.stub(:uid).and_return(1)
         Process.stub(:gid).and_return(2)
@@ -57,49 +56,6 @@ module BoxGrinder
         Process.should_not_receive(:egid=)
 
         UserSwitcher.change_user(1, 2){}
-      end
-
-      context "libguestfs cache workaround" do
-        before(:each) do 
-          stub_process_ids(0, 0)
-        end
-
-        after(:each) do
-          ENV['TMPDIR'] = nil
-        end
-
-        context "ENV['TMPDIR']" do
-          it "should execute the workaround" do
-            ENV['TMPDIR'] = '/tmpdir'
-
-            FileUtils.should_receive(:rm_rf).
-              with('/tmpdir/.guestfs-0')
-            
-            UserSwitcher.change_user(0, 0){}
-          end
-        end
-
-        context "Dir.tmpdir" do
-          it "should execute the workaround" do
-            Dir.stub(:tmpdir).and_return('/dirtmpdir')
-
-            FileUtils.should_receive(:rm_rf).
-                with('/dirtmpdir/.guestfs-0')
-            
-            UserSwitcher.change_user(0, 0){}
-          end
-        end
-
-        context "'/tmp'" do
-          it "should execute the workaround" do
-            Dir.stub(:tmpdir).and_return(nil)
-
-            FileUtils.should_receive(:rm_rf).
-              with('/tmp/.guestfs-0')
-            
-            UserSwitcher.change_user(0, 0){}
-          end
-        end
       end
     end
 
