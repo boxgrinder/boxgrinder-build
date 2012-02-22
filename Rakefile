@@ -40,7 +40,7 @@ desc "Run all integration tests"
 RSpec::Core::RakeTask.new('integ') do |t|
   t.rcov = false
   t.pattern = "integ/**/*-spec.rb"
-  t.rspec_opts = ['-r boxgrinder-core', '--colour', '--format', 'doc', '-b']
+  t.rspec_opts = ['-r boxgrinder-core', '-r rubygems', '--colour', '--format', 'doc', '-b']
   t.verbose = true
 end
 
@@ -49,7 +49,7 @@ RSpec::Core::RakeTask.new('spec') do |t|
   t.ruby_opts = "-I ../boxgrinder-core/lib"
   t.rcov = false
   t.pattern = "spec/**/*-spec.rb"
-  t.rspec_opts = ['-r boxgrinder-core', '--colour', '--format', 'doc', '-b']
+  t.rspec_opts = ['-r boxgrinder-core', '-r rubygems', '--colour', '--format', 'doc', '-b']
   t.verbose = true
 end
 
@@ -62,7 +62,7 @@ end
 RSpec::Core::RakeTask.new('spec:coverage') do |t|
   t.ruby_opts = "-I ../boxgrinder-core/lib"
   t.pattern = "spec/**/*-spec.rb"
-  t.rspec_opts = ['-r spec_helper', '-r boxgrinder-core', '--colour', 
+  t.rspec_opts = ['-r spec_helper', '-r boxgrinder-core', '-r rubygems', '--colour', 
     '--format', 'html', '--out', 'pkg/rspec_report.html', '-b']
   t.verbose = true
 

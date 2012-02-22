@@ -17,8 +17,6 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder-build/plugins/delivery/ebs/ebs-plugin'
-require 'rubygems'
-require 'rspec'
 require 'ostruct'
 require 'logger'
 require 'set'

@@ -17,8 +17,6 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder-build/helpers/guestfs-helper'
-require 'rubygems'
-require 'rspec'
 require 'hashery/opencascade'
 
 module BoxGrinder
