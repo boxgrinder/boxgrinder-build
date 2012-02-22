@@ -5,7 +5,6 @@ README.md
 Rakefile
 bash_completion
 bin/boxgrinder-build
-boxgrinder-build.gemspec
 integ/appliances/gnome-fedora.appl
 integ/appliances/jeos-centos5-files.appl
 integ/appliances/jeos-centos5.appl
@@ -79,6 +78,10 @@ lib/boxgrinder-build/plugins/platform/vmware/src/README-personal
 lib/boxgrinder-build/plugins/platform/vmware/src/base.vmdk
 lib/boxgrinder-build/plugins/platform/vmware/src/base.vmx
 lib/boxgrinder-build/plugins/platform/vmware/vmware-plugin.rb
+lib/boxgrinder-build/util/concurrent/get_set.rb
+lib/boxgrinder-build/util/permissions/fs-monitor.rb
+lib/boxgrinder-build/util/permissions/fs-observer.rb
+lib/boxgrinder-build/util/permissions/user-switcher.rb
 rubygem-boxgrinder-build.spec
 spec/appliance-spec.rb
 spec/helpers/augeas-helper-spec.rb
@@ -117,3 +120,8 @@ spec/plugins/platform/virtualbox/virtualbox-plugin-spec.rb
 spec/plugins/platform/virtualpc/virtualpc-plugin-spec.rb
 spec/plugins/platform/vmware/vmware-plugin-spec.rb
 spec/rspec-plugin-helper.rb
+spec/spec_helper.rb
+spec/util/concurrent/get-set-spec.rb
+spec/util/permissions/fs-monitor-spec.rb
+spec/util/permissions/fs-observer-spec.rb
+spec/util/permissions/user-switcher-spec.rb
