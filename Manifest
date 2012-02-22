@@ -119,6 +119,7 @@ spec/plugins/platform/ec2/ec2-plugin-spec.rb
 spec/plugins/platform/virtualbox/virtualbox-plugin-spec.rb
 spec/plugins/platform/virtualpc/virtualpc-plugin-spec.rb
 spec/plugins/platform/vmware/vmware-plugin-spec.rb
+spec/rcov_helper.rb
 spec/rspec-plugin-helper.rb
 spec/spec_helper.rb
 spec/util/concurrent/get-set-spec.rb

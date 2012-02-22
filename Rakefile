@@ -56,7 +56,8 @@ end
 def coverage18(t)
   require 'rcov'
   t.rcov = true
-  t.rcov_opts = ['--exclude', 'spec,teamcity/*,/usr/lib/ruby/,.gem/ruby,/boxgrinder-core/,/gems/']
+  rcov_helper =  File.expand_path(File.join(File.dirname(__FILE__), 'spec/rcov_helper.rb'))
+  t.rcov_opts = ["-Ispec:lib #{rcov_helper}", '--exclude', 'spec,teamcity/*,/usr/lib/ruby/,.gem/ruby,/boxgrinder-build/,/gems/']
 end
 
 RSpec::Core::RakeTask.new('spec:coverage') do |t|
