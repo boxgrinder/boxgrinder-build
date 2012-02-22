@@ -50,12 +50,12 @@ module BoxGrinder
           path_update(subject, '/the/great/escape')
         end
 
-        it "should add the path to the path_set" do
+        it "should add the path to the path_set", :if => RSpec::Expectations::Version::STRING >= "2.7.0" do
           expect{ simple_update }.to change(subject, :path_set).
             from(empty_set).to(mkset('/the/great/escape'))
         end
         
-        it "should add regex for all children of new path to the filter_set" do
+        it "should add regex for all children of new path to the filter_set", :if => RSpec::Expectations::Version::STRING >= "2.7.0" do
           expect_set = init_filterset + mkset(%r[^/the/great/escape/])
  
           expect{ simple_update }.to change(subject, :filter_set).
