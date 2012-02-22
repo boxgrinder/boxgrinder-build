@@ -164,8 +164,8 @@ def ensure_root
   unless Process.uid == 0
     puts("Currently running as non-root user, BoxGrinder will re-launch under `sudo -E` and change to your local user after the OS plugin.")
     # http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-talk/151376
-    ruby = File.join(Config::CONFIG["bindir"],
-                     Config::CONFIG["RUBY_INSTALL_NAME"] + Config::CONFIG["EXEEXT"])
+    ruby = File.join(RbConfig::CONFIG["bindir"],
+                     RbConfig::CONFIG["RUBY_INSTALL_NAME"] + RbConfig::CONFIG["EXEEXT"])
     exec("sudo -E #{ruby} -I#{$:.join(':')} #{Pathname.new(__FILE__).realpath} #{ARGV_DUP.join(" ")} --change-to-user")
   end
 end
