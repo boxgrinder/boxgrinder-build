@@ -1,8 +1,14 @@
-v0.11.0
+v0.10.1
 
 * [BGBUILD-332] Add support for bash completion
 * [BGBUILD-338] Weed out non-deterministic tests
-* [BGBUILD-337] In SL if default repos are disabled, /etc/yum.repos.d folder is not created.
+* [BGBUILD-337] In SL if default repos are disabled, /etc/yum.repos.d folder is not created
+* [BGBUILD-344] New filesystem monitoring improvements (Fixes: Shifting failed. Permission denied issues)
+* [BGBUILD-345] Change sudo/chown magic so it only occurs when running without explicit sudo/su (or --change-to-user)
+* [BGBUILD-346] Confirm Ruby 1.9.3 support
+* [BGBUILD-348] Simplecov coverage testing for Ruby >=1.9
+* [BGBUILD-349] Use RbConfig instead of obsolete and deprecated Config deprecation warning with Ruby 1.9.3
+
 v0.10.0
 
 * [BGBUILD-313] boxgrinder build fails to build ec2 image if ec2-user already exists
