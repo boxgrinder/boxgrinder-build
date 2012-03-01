@@ -5,7 +5,7 @@
 
 Summary: A tool for creating appliances from simple plain text files
 Name: rubygem-%{gemname}
-Version: 0.11.0
+Version: 0.10.1
 Release: 1%{?dist}
 Group: Development/Languages
 License: LGPLv3+
@@ -13,14 +13,14 @@ URL: http://boxgrinder.org/
 Source0: http://rubygems.org/gems/%{gemname}-%{version}.gem
 
 Requires: ruby(abi) = %{rubyabi}
-Requires: rubygem(boxgrinder-core) >= 0.3.0
+Requires: rubygem(boxgrinder-core) >= 0.3.11
 Requires: rubygem(boxgrinder-core) < 0.4.0
 Requires: ruby-libguestfs
 
 BuildArch: noarch
 
 BuildRequires: rubygem(rake)
-BuildRequires: rubygem(boxgrinder-core) >= 0.3.0
+BuildRequires: rubygem(boxgrinder-core) >= 0.3.11
 BuildRequires: rubygem(boxgrinder-core) < 0.4.0
 BuildRequires: rubygem(echoe)
 BuildRequires: ruby-libguestfs
