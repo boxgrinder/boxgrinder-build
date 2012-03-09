@@ -75,7 +75,7 @@ module BoxGrinder
         # If there is an existing bucket, determine whether its location_constraint matches the region selected
         if existing_bucket = asset_bucket(false)
           raise PluginValidationError, "Existing bucket #{@plugin_config['bucket']} has a location constraint that does not match the region selected. " <<
-          "AMI region and bucket location constraint must match." unless constraint_equal?(@s3_endpoints[@plugin_config['region']][:location], existing_bucket.location_constraint)
+            "AMI region and bucket location constraint must match." unless constraint_equal?(@plugin_config['region'], existing_bucket.location_constraint)
         end
       end
 
@@ -175,7 +175,16 @@ module BoxGrinder
     def upload_image(ami_dir)
       @log.info "Uploading #{@appliance_config.name} AMI to bucket '#{@plugin_config['bucket']}'..."
 
-      @exec_helper.execute("euca-upload-bundle -U #{@plugin_config['url'].nil? ? "http://#{@s3_endpoints[@plugin_config['region']][:endpoint]}" : @plugin_config['url']} -b #{@plugin_config['bucket']}/#{ami_dir} -m #{@ami_manifest} -a #{@plugin_config['access_key']} -s #{@plugin_config['secret_access_key']}", :redacted => [@plugin_config['access_key'], @plugin_config['secret_access_key']])
+      endpoint = @plugin_config['url'] || "http://#{@s3_endpoints[@plugin_config['region']][:endpoint]}"
+
+      cmd_str = "euca-upload-bundle " << 
+        "-U #{endpoint} " <<
+        "-b #{@plugin_config['bucket']}/#{ami_dir} " <<
+        "-m #{@ami_manifest} " <<
+        "-a #{@plugin_config['access_key']} " << 
+        "-s #{@plugin_config['secret_access_key']}"
+
+      @exec_helper.execute(cmd_str, :redacted => [@plugin_config['access_key'], @plugin_config['secret_access_key']])
     end
 
     def register_image(ami_manifest_key)
@@ -212,21 +221,18 @@ module BoxGrinder
 
       @log.info "Determining snapshot name"
       snapshot = 1
-      while @s3helper.stub_s3obj(@bucket, "#{base_path}-SNAPSHOT-#{snapshot}/#{@appliance_config.hardware.arch}/").exists?
+      while @s3helper.stub_s3obj(@bucket, "#{base_path}-snapshot-#{snapshot}/#{@appliance_config.hardware.arch}/").exists?
         snapshot += 1
       end
       # Reuse the last key (if there was one)
       snapshot -=1 if snapshot > 1 and @plugin_config['overwrite']
 
-      "#{base_path}-SNAPSHOT-#{snapshot}/#{@appliance_config.hardware.arch}"
+      "#{base_path}-snapshot-#{snapshot}/#{@appliance_config.hardware.arch}"
     end
 
-    #US constraint is often represented as '' or nil
-    def constraint_equal?(a, b)
-      [a, b].collect!{|c| c.nil? ? '': c}
-      a == b
+    # US default constraint is often represented as '' or nil
+    def constraint_equal?(region, constraint) 
+      [region, constraint].collect{ |v| v.nil? || v == '' ? 'us-east-1' : v }.reduce(:==)
     end
-
   end
 end
-

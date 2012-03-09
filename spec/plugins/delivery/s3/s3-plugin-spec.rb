@@ -107,10 +107,10 @@ module BoxGrinder
         @key1.should_receive(:exists?).and_return(true)
         @key2.should_receive(:exists?).and_return(false)
 
-        @s3helper.should_receive(:stub_s3obj).with(@bucket, 'name/fedora/14/1.0-SNAPSHOT-1/x86_64/').and_return(@key1)
-        @s3helper.should_receive(:stub_s3obj).with(@bucket, 'name/fedora/14/1.0-SNAPSHOT-2/x86_64/').and_return(@key2)
+        @s3helper.should_receive(:stub_s3obj).with(@bucket, 'name/fedora/14/1.0-snapshot-1/x86_64/').and_return(@key1)
+        @s3helper.should_receive(:stub_s3obj).with(@bucket, 'name/fedora/14/1.0-snapshot-2/x86_64/').and_return(@key2)
 
-        @plugin.ami_key("name", "/").should == "name/fedora/14/1.0-SNAPSHOT-2/x86_64"
+        @plugin.ami_key("name", "/").should == "name/fedora/14/1.0-snapshot-2/x86_64"
       end
 
       it "should return valid ami_key with snapshot and overwrite enabled" do
@@ -119,10 +119,10 @@ module BoxGrinder
         @key1.should_receive(:exists?).and_return(true)
         @key2.should_receive(:exists?).and_return(false)
 
-        @s3helper.should_receive(:stub_s3obj).with(@bucket, 'name/fedora/14/1.0-SNAPSHOT-1/x86_64/').and_return(@key1)
-        @s3helper.should_receive(:stub_s3obj).with(@bucket, 'name/fedora/14/1.0-SNAPSHOT-2/x86_64/').and_return(@key2)
+        @s3helper.should_receive(:stub_s3obj).with(@bucket, 'name/fedora/14/1.0-snapshot-1/x86_64/').and_return(@key1)
+        @s3helper.should_receive(:stub_s3obj).with(@bucket, 'name/fedora/14/1.0-snapshot-2/x86_64/').and_return(@key2)
 
-        @plugin.ami_key("name", "/").should == "name/fedora/14/1.0-SNAPSHOT-1/x86_64"
+        @plugin.ami_key("name", "/").should == "name/fedora/14/1.0-snapshot-1/x86_64"
       end
     end
 
