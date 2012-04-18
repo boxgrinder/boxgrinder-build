@@ -42,6 +42,11 @@ module BoxGrinder
 
       @image_helper.customize([@previous_deliverables.disk, @deliverables.disk], :automount => false) do |guestfs, guestfs_helper|
         @image_helper.sync_filesystem(guestfs, guestfs_helper)
+        
+        # TODO is this really needed?
+        @log.debug "Uploading '/etc/resolv.conf'..."
+        guestfs.upload("/etc/resolv.conf", "/etc/resolv.conf")
+        @log.debug "'/etc/resolv.conf' uploaded."
 
         if (@appliance_config.os.name == 'rhel' or @appliance_config.os.name == 'centos') and @appliance_config.os.version == '5'
           # Remove normal kernel
@@ -51,11 +56,6 @@ module BoxGrinder
           # and add require modules
           @linux_helper.recreate_kernel_image(guestfs, ['xenblk', 'xennet'])
         end
-
-        # TODO is this really needed?
-        @log.debug "Uploading '/etc/resolv.conf'..."
-        guestfs.upload("/etc/resolv.conf", "/etc/resolv.conf")
-        @log.debug "'/etc/resolv.conf' uploaded."
 
         create_devices(guestfs)
 
