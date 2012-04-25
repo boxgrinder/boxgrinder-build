@@ -247,17 +247,12 @@ module BoxGrinder
 
     describe ".validate" do
       before(:each) do
-        @plugin.stub!(:asset_bucket).and_return(nil)
-        @plugin.stub!(:asset_bucket).and_return(@bucket)
+        @plugin.stub(:asset_bucket).and_return(@bucket)
       end
 
       context "bucket is not already in existence" do
         before(:each) do
-          @plugin.should_receive(:set_default_config_value).with('overwrite', false)
-          @plugin.should_receive(:set_default_config_value).with('path', '/')
-          @plugin.should_receive(:set_default_config_value).with('region', 'us-east-1')
-          @plugin.should_receive(:set_default_config_value).with('ramdisk', false)
-          @plugin.should_receive(:set_default_config_value).with('kernel', false)
+          @plugin.stub(:set_default_config_value).and_return(true)
         end
 
         it "should validate only basic params" do
@@ -270,13 +265,20 @@ module BoxGrinder
         it "should validate basic and additional ami params" do
           @plugin.instance_variable_set(:@type, :ami)
 
+          @plugin.should_receive(:set_default_config_value).with('overwrite', false)
+          @plugin.should_receive(:set_default_config_value).with('path', '/')
+          @plugin.should_receive(:set_default_config_value).with('block_device_mappings', {})
+          @plugin.should_receive(:set_default_config_value).with('region', 'us-east-1')
+          @plugin.should_receive(:set_default_config_value).with('ramdisk', false)
+          @plugin.should_receive(:set_default_config_value).with('kernel', false)
+
           @plugin.should_receive(:set_default_config_value).with('snapshot', false)
 
           @plugin.should_receive(:validate_plugin_config).with(['bucket', 'access_key', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
           @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
 
-          File.stub!(:expand_path)
-          File.stub!(:exists?)
+          File.stub(:expand_path)
+          File.stub(:exists?)
           File.should_receive(:expand_path).with('/path/to/cert/file').and_return('path1')
           File.should_receive(:exists?).with('path1').and_return(true)
           File.should_receive(:expand_path).with('/path/to/key/file').and_return('path2')
@@ -296,8 +298,8 @@ module BoxGrinder
           @plugin.should_receive(:validate_plugin_config).with(['bucket', 'access_key', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
           @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
 
-          File.stub!(:expand_path)
-          File.stub!(:exists?)
+          File.stub(:expand_path)
+          File.stub(:exists?)
           File.should_receive(:expand_path).with('/path/to/cert/file').and_return('path1')
           File.should_receive(:exists?).with('path1').and_return(true)
           File.should_receive(:expand_path).with('/path/to/key/file').and_return('path2')
@@ -314,8 +316,8 @@ module BoxGrinder
           @plugin.should_receive(:validate_plugin_config).with(['bucket', 'access_key', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
           @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
 
-          File.stub!(:expand_path)
-          File.stub!(:exists?)
+          File.stub(:expand_path)
+          File.stub(:exists?)
           File.should_receive(:expand_path).with('/path/to/cert/file').and_return('path1')
           File.should_receive(:exists?).with('path1').and_return(false)
 
@@ -332,8 +334,8 @@ module BoxGrinder
           @plugin.should_receive(:validate_plugin_config).with(['bucket', 'access_key', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
           @plugin.should_receive(:validate_plugin_config).with(["cert_file", "key_file", "account_number"], "http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin")
 
-          File.stub!(:expand_path)
-          File.stub!(:exists?)
+          File.stub(:expand_path)
+          File.stub(:exists?)
           File.should_receive(:expand_path).with('/path/to/cert/file').and_return('path1')
           File.should_receive(:exists?).with('path1').and_return(true)
           File.should_receive(:expand_path).with('/path/to/key/file').and_return('path2')
@@ -347,10 +349,10 @@ module BoxGrinder
 
         before(:each) do
           @plugin.instance_variable_set(:@type, :ami)
-          @plugin.stub!(:set_default_config_value)
+          @plugin.stub(:set_default_config_value)
 
-          File.stub!(:expand_path)
-          File.stub!(:exists?)
+          File.stub(:expand_path)
+          File.stub(:exists?)
           File.should_receive(:expand_path).with('/path/to/cert/file').and_return('path1')
           File.should_receive(:exists?).with('path1').and_return(true)
           File.should_receive(:expand_path).with('/path/to/key/file').and_return('path2')
@@ -379,7 +381,7 @@ module BoxGrinder
 
     describe ".bucket" do
       before(:each) do
-        @plugin.unstub!(:asset_bucket)
+        @plugin.unstub(:asset_bucket)
       end
 
       it "should create the asset bucket by default" do
@@ -418,18 +420,18 @@ module BoxGrinder
     describe ".register_image" do
       before(:each) do
         @ami = mock(AWS::EC2::Image)
-        @ami.stub!(:id).and_return('ami-1234')
+        @ami.stub(:id).and_return('ami-1234')
 
         @manifest_key = mock(AWS::S3::S3Object)
-        @manifest_key.stub!(:key).and_return('ami/manifest/key')
+        @manifest_key.stub(:key).and_return('ami/manifest/key')
 
-        @ec2.stub!(:images)
-        @ec2helper.stub!(:wait_for_image_state)
+        @ec2.stub(:images)
+        @ec2helper.stub(:wait_for_image_state)
       end
 
       context "when the AMI has not been registered" do
         before(:each) do
-          @plugin.stub!(:ami_by_manifest_key).and_return(nil)
+          @plugin.stub(:ami_by_manifest_key).and_return(nil)
         end
 
         it "should register the AMI" do
@@ -442,7 +444,7 @@ module BoxGrinder
 
       context "when the AMI has been registered" do
         before(:each) do
-          @plugin.stub!(:ami_by_manifest_key).and_return(@ami)
+          @plugin.stub(:ami_by_manifest_key).and_return(@ami)
         end
 
         it "should not register the AMI" do
@@ -457,13 +459,13 @@ module BoxGrinder
      describe ".deregister_image" do
        before(:each) do
          @ami = mock(AWS::EC2::Image)
-         @plugin.stub!(:ami_by_manifest_key).and_return(@ami)
+         @plugin.stub(:ami_by_manifest_key).and_return(@ami)
 
          @manifest_key = mock(AWS::S3::S3Object)
-         @ec2helper.stub!(:wait_for_image_death)
+         @ec2helper.stub(:wait_for_image_death)
 
-         @ami.stub!(:id)
-         @ami.stub!(:location)
+         @ami.stub(:id)
+         @ami.stub(:location)
        end
 
        it "should deregister the AMI" do
