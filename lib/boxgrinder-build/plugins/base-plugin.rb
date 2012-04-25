@@ -202,8 +202,12 @@ module BoxGrinder
       @target_deliverables
     end
 
-    def set_default_config_value(key, value)
-      @plugin_config[key] = @plugin_config[key].nil? ? value : @plugin_config[key]
+    def set_default_config_value(key, default_value=nil, &blk)
+      if block_given? && !(@plugin_config[key].nil?)
+        @plugin_config[key] = yield(key, default_value, @plugin_config[key])
+      else
+        @plugin_config[key] ||= default_value
+      end
     end
 
     # This reads the plugin config from file
