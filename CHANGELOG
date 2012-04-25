@@ -1,5 +1,6 @@
 v0.10.2
 * [BGBUILD-347] Add support for Fedora 17. Remove unnecessary OS restrictions
+* [BGBUILD-353] Remove all default attaching (EBS) and mounting (EBS, S3)
 
 v0.10.1
 

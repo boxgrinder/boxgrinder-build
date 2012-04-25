@@ -146,6 +146,7 @@ popd
 * Thu May 24 2012 Marc Savy <msavy@redhat.com> - 0.10.2
 - Upstream release: 0.10.2
 - [BGBUILD-347] Add support for Fedora 17. Remove unnecessary OS restrictions
+- [BGBUILD-353] Remove all default attaching (EBS) and mounting (EBS, S3)
 
 * Wed Feb 29 2012 Marc Savy <msavy@redhat.com> - 0.10.1-1
 - Upstream release: 0.10.1

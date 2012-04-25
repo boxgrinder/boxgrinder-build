@@ -43,39 +43,30 @@ module BoxGrinder
         end
       end
     end
+    
+    def self.block_device_mappings_validator(key, map, value)
+      split_mappings = value.split('&') # /dev/xvdb=ephemeral0&/dev/xvdc=ephemeral1 
 
-    def select_aki(region, pattern)
-      candidates = region.images.with_owner('amazon').
-          filter('manifest-location','*pv-grub*').
-          sort().
-          reverse
-
-      candidates.each do |image|
-        return image.id if image.location =~ pattern
-      end
-    end
-
-    #Currently there is no API call for discovering S3 endpoint addresses
-    #but the base is presently the same as the EC2 endpoints, so this somewhat better
-    #than manually maintaining the data.
-    #S3 = /hd0-.*i386/, EBS = /hd00-.*i386/
-    def endpoints(service_name, aki_pattern)
-      endpoints = {}
-      AWS.memoize do
-        @ec2.regions.each do |region|
-          endpoints.merge!({
-              region.name => {
-                :endpoint => "#{service_name}.#{region.name}.amazonaws.com",
-                :location => region.name, #or alias?
-                :kernel => {
-                  :i386 => select_aki(region, aki_pattern),
-                  :x86_64 => select_aki(region, aki_pattern)
-                }
-              }
-          })
+      split_mappings.each do |s_pair|
+        name, blockdevice = s_pair.split('=') # /dev/xvdb=ephemeral0
+        
+        if name.nil? || blockdevice.nil? 
+          raise PluginValidationError, 
+          "Invalid device mapping: '#{s_pair}' in '#{split_mappings.join(', ')}'"
+        else
+          name.sub!(/xvd/, 'sd')
+        end
+        
+        bd_keys = [:snapshot_id, :volume_size, :delete_on_termination]
+        bd_values = blockdevice.split(':').map { |x| x.empty? ? nil : x }
+        
+        if bd_values.one? # '/dev/sdb' => 'ephemeral0'
+          map.merge!(name => bd_values.first)
+        else # '/dev/sdb' => { :snapshot_id => 'snap-123', ... }
+          map.merge!(name => Hash[bd_keys.zip(bd_values)])
         end
       end
+      map
     end
-
   end
 end

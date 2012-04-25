@@ -19,9 +19,11 @@
 require 'rubygems'
 require 'aws-sdk'
 require 'boxgrinder-build/plugins/base-plugin'
+require 'boxgrinder-build/plugins/delivery/s3/messages'
 require 'boxgrinder-build/helpers/package-helper'
 require 'boxgrinder-build/helpers/s3-helper'
 require 'boxgrinder-build/helpers/ec2-helper'
+require 'boxgrinder-build/helpers/banner-helper'
 
 module BoxGrinder
   class S3Plugin < BasePlugin
@@ -38,6 +40,11 @@ module BoxGrinder
       set_default_config_value('ramdisk', false)
       set_default_config_value('path', '/')
       set_default_config_value('region', 'us-east-1')
+
+      set_default_config_value('block_device_mappings', {}) do |k, m, v|
+        EC2Helper::block_device_mappings_validator(k, m, v)
+      end
+      
       validate_plugin_config(['bucket', 'access_key', 'secret_access_key'], 'http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#S3_Delivery_Plugin')
 
       subtype(:ami) do
@@ -84,6 +91,8 @@ module BoxGrinder
         when :cloudfront
           upload_to_bucket(@previous_deliverables, :public_read)
         when :ami
+          @log.info Banner.message(S3::Messages::EPHEMERAL_MESSAGE)
+    
           ami_dir = ami_key(@appliance_config.name, @plugin_config['path'])
           ami_manifest_key = @s3helper.stub_s3obj(@bucket, "#{ami_dir}/#{@appliance_config.name}.ec2.manifest.xml")
 
@@ -186,7 +195,15 @@ module BoxGrinder
       if ami = ami_by_manifest_key(ami_manifest_key)
         @log.info "Image for #{@appliance_config.name} is already registered under id: #{ami.id} (region: #{@plugin_config['region']})."
       else
-        ami = @ec2.images.create(:image_location =>  "#{@plugin_config['bucket']}/#{ami_manifest_key.key}")
+        optmap = { :image_location =>  "#{@plugin_config['bucket']}/#{ami_manifest_key.key}" }
+        
+        unless @plugin_config['block_device_mappings'].empty?
+          optmap.merge!(:block_device_mappings => @plugin_config['block_device_mappings']) 
+        end
+
+        @log.debug("Options map: #{optmap.inspect}")
+
+        ami = @ec2.images.create(optmap)
         @ec2helper.wait_for_image_state(:available, ami)
         @log.info "Image for #{@appliance_config.name} successfully registered under id: #{ami.id} (region: #{@plugin_config['region']})."
       end
