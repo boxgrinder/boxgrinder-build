@@ -16,7 +16,6 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require 'rubygems'
 require 'boxgrinder-build/plugins/base-plugin'
 require 'boxgrinder-build/helpers/ec2-helper'
 require 'aws-sdk'

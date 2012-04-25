@@ -16,7 +16,6 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
-require 'rubygems'
 require 'hashery/opencascade'
 require 'boxgrinder-core/helpers/log-helper'
 require 'boxgrinder-core/models/appliance-config'
