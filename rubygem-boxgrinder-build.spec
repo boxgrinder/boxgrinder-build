@@ -13,7 +13,7 @@ URL: http://boxgrinder.org/
 Source0: http://rubygems.org/gems/%{gemname}-%{version}.gem
 
 Requires: ruby(abi) = %{rubyabi}
-Requires: rubygem(boxgrinder-core) >= 0.3.11
+Requires: rubygem(boxgrinder-core) >= 0.3.12
 Requires: rubygem(boxgrinder-core) < 0.4.0
 Requires: ruby-libguestfs
 
