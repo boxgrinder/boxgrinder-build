@@ -34,6 +34,7 @@ lib/boxgrinder-build.rb
 lib/boxgrinder-build/appliance.rb
 lib/boxgrinder-build/helpers/augeas-helper.rb
 lib/boxgrinder-build/helpers/aws-helper.rb
+lib/boxgrinder-build/helpers/banner-helper.rb
 lib/boxgrinder-build/helpers/ec2-helper.rb
 lib/boxgrinder-build/helpers/guestfs-helper.rb
 lib/boxgrinder-build/helpers/image-helper.rb
@@ -46,11 +47,13 @@ lib/boxgrinder-build/helpers/sftp-helper.rb
 lib/boxgrinder-build/managers/plugin-manager.rb
 lib/boxgrinder-build/plugins/base-plugin.rb
 lib/boxgrinder-build/plugins/delivery/ebs/ebs-plugin.rb
+lib/boxgrinder-build/plugins/delivery/ebs/messages.rb
 lib/boxgrinder-build/plugins/delivery/elastichosts/elastichosts-plugin.rb
 lib/boxgrinder-build/plugins/delivery/libvirt/libvirt-capabilities.rb
 lib/boxgrinder-build/plugins/delivery/libvirt/libvirt-plugin.rb
 lib/boxgrinder-build/plugins/delivery/local/local-plugin.rb
 lib/boxgrinder-build/plugins/delivery/openstack/openstack-plugin.rb
+lib/boxgrinder-build/plugins/delivery/s3/messages.rb
 lib/boxgrinder-build/plugins/delivery/s3/s3-plugin.rb
 lib/boxgrinder-build/plugins/delivery/s3/src/cert-ec2.pem
 lib/boxgrinder-build/plugins/delivery/sftp/sftp-plugin.rb
