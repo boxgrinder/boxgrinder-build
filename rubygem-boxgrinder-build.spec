@@ -1,16 +1,22 @@
-%global gemdir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
-%global gemname boxgrinder-build
-%global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global rubyabi 1.8
+%global gem_name boxgrinder-build
 
-Summary: A tool for creating appliances from simple plain text files
-Name: rubygem-%{gemname}
-Version: 0.10.2
-Release: 1%{?dist}
-Group: Development/Languages
-License: LGPLv3+
-URL: http://boxgrinder.org/
-Source0: http://rubygems.org/gems/%{gemname}-%{version}.gem
+%{!?gem_dir: %global gem_dir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)}
+%{!?gem_instdir: %global gem_instdir %{gem_dir}/gems/%{gem_name}-%{version}}
+
+%if 0%{?fedora} >= 17
+%global rubyabi 1.9.1
+%else
+%global rubyabi 1.8
+%endif
+
+Summary:     A tool for creating appliances from simple plain text files
+Name:        rubygem-%{gem_name}
+Version:     0.10.2
+Release:     1%{?dist}
+Group:       Development/Languages
+License:     LGPLv3+
+URL:         http://boxgrinder.org/
+Source0:     http://rubygems.org/gems/%{gem_name}-%{version}.gem
 
 Requires: ruby(abi) = %{rubyabi}
 Requires: rubygem(boxgrinder-core) >= 0.3.12
@@ -19,13 +25,18 @@ Requires: ruby-libguestfs
 
 BuildArch: noarch
 
+BuildRequires: rubygems-devel
 BuildRequires: rubygem(rake)
-BuildRequires: rubygem(boxgrinder-core) >= 0.3.11
+BuildRequires: rubygem(boxgrinder-core) >= 0.3.12
 BuildRequires: rubygem(boxgrinder-core) < 0.4.0
 BuildRequires: rubygem(echoe)
 BuildRequires: ruby-libguestfs
-# Use rspec-core until rspec are migrated to RSpec 2.x
+
+%if 0%{?fedora} >= 17
+BuildRequires: rubygem(rspec)
+%else
 BuildRequires: rubygem(rspec-core)
+%endif
 
 # AWS
 Requires: euca2ools >= 1.3.1-4
@@ -52,14 +63,15 @@ BuildRequires: rubygem(nokogiri)
 BuildRequires: rubygem(builder)
 
 # RPM-BASED
-Requires: appliance-tools
+Requires: appliance-tools >= 006.1-1
 Requires: yum-utils
 
-#Elastichosts
-BuildRequires: rubygem(rest-client)
+# ElasticHosts
 Requires: rubygem(rest-client)
 
-Provides: rubygem(%{gemname}) = %{version}
+BuildRequires: rubygem(rest-client)
+
+Provides: rubygem(%{gem_name}) = %{version}
 
 Obsoletes: rubygem(boxgrinder-build-ebs-delivery-plugin) < 0.0.4-2
 Obsoletes: rubygem(boxgrinder-build-s3-delivery-plugin) < 0.0.6-1
@@ -96,51 +108,49 @@ Documentation for %{name}
 %build
 
 %install
-rm -rf %{buildroot}
-rm -rf %{_builddir}%{gemdir}
+rm -rf %{_builddir}%{gem_dir}
 
-mkdir -p %{_builddir}%{gemdir}
+mkdir -p %{_builddir}%{gem_dir}
 mkdir -p %{buildroot}/%{_bindir}
-mkdir -p %{buildroot}/%{gemdir}
+mkdir -p %{buildroot}/%{gem_dir}
 
-/usr/bin/gem install --local --install-dir %{_builddir}%{gemdir} \
+/usr/bin/gem install --local --install-dir %{_builddir}%{gem_dir} \
             --force --rdoc %{SOURCE0}
-mv %{_builddir}%{gemdir}/bin/* %{buildroot}/%{_bindir}
-find %{_builddir}%{geminstdir}/bin -type f | xargs chmod a+x
-rm -rf %{_builddir}/%{geminstdir}/integ/packages/*.rpm
-cp -r %{_builddir}%{gemdir}/* %{buildroot}/%{gemdir}
+mv %{_builddir}%{gem_dir}/bin/* %{buildroot}/%{_bindir}
+find %{_builddir}%{gem_instdir}/bin -type f | xargs chmod a+x
+rm -rf %{_builddir}/%{gem_instdir}/integ/packages/*.rpm
+cp -r %{_builddir}%{gem_dir}/* %{buildroot}/%{gem_dir}
 
 install -d -m 755 %{buildroot}/%{_sysconfdir}/bash_completion.d
-mv %{buildroot}/%{geminstdir}/bash_completion %{buildroot}/%{_sysconfdir}/bash_completion.d/%{name}
+mv %{buildroot}/%{gem_instdir}/bash_completion %{buildroot}/%{_sysconfdir}/bash_completion.d/%{name}
+
+chmod +x %{buildroot}/%{gem_instdir}/lib/boxgrinder-build/helpers/qemu.wrapper
 
 %check
-pushd %{_builddir}/%{geminstdir}
-rake spec
+pushd %{_builddir}/%{gem_instdir}
+rspec -r spec_helper -r boxgrinder-core -I. -P 'spec/**/*-spec.rb'
 popd
 
 %files
-%defattr(-, root, root, -)
 %{_bindir}/boxgrinder-build
 %{_sysconfdir}/bash_completion.d/%{name}
-%dir %{geminstdir}
-%{geminstdir}/bin
-%{geminstdir}/lib
-%doc %{geminstdir}/CHANGELOG
-%doc %{geminstdir}/LICENSE
-%doc %{geminstdir}/README.md
-%doc %{geminstdir}/Manifest
-%attr(755, root, root) %{geminstdir}/lib/boxgrinder-build/helpers/qemu.wrapper
-%{gemdir}/cache/%{gemname}-%{version}.gem
-%{gemdir}/specifications/%{gemname}-%{version}.gemspec
+%dir %{gem_instdir}
+%{gem_instdir}/bin
+%{gem_libdir}
+%doc %{gem_instdir}/CHANGELOG
+%doc %{gem_instdir}/LICENSE
+%doc %{gem_instdir}/README.md
+%doc %{gem_instdir}/Manifest
+%{gem_cache}
+%{gem_spec}
 
 %files doc
-%defattr(-, root, root, -)
-%{geminstdir}/spec
-%{geminstdir}/integ
-%{geminstdir}/Rakefile
-%{geminstdir}/rubygem-%{gemname}.spec
-%{geminstdir}/%{gemname}.gemspec
-%{gemdir}/doc/%{gemname}-%{version}
+%{gem_instdir}/spec
+%{gem_instdir}/integ
+%{gem_instdir}/Rakefile
+%{gem_instdir}/rubygem-%{gem_name}.spec
+%{gem_instdir}/%{gem_name}.gemspec
+%{gem_docdir}
 
 %changelog
 * Thu May 24 2012 Marc Savy <msavy@redhat.com> - 0.10.2
