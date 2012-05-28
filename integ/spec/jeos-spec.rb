@@ -17,10 +17,11 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'rubygems'
+require 'boxgrinder-build'
 require 'boxgrinder-build/appliance'
+require 'boxgrinder-build/helpers/guestfs-helper'
 require 'boxgrinder-core/models/config'
 require 'boxgrinder-core/helpers/log-helper'
-require 'boxgrinder-build/helpers/guestfs-helper'
 require 'fileutils'
 
 module BoxGrinder
