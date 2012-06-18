@@ -75,25 +75,23 @@ module BoxGrinder
       root = (@config.dir.root.end_with?('/') ? '' : @config.dir.root)
       repoquery_output = @exec_helper.execute( "repoquery --quiet --disablerepo=* --enablerepo=#{@appliance_config.repos.collect {|r| "#{@magic_hash}#{r['name']}"}.join(",")} -c '#{root}/#{@yum_config_file}' list available #{package_list.join( ' ' )} --nevra --archlist=#{arches},noarch" )
 
-      invalid_names = []
-
-      for name in package_list
-        found = false
-
-        repoquery_output.each_line do |line|
-          line = line.strip
-
-          package = line.match( /^([\S]+)-\d+:/ )
-          package = package.nil? ? line : package[1]
-
-          if package.size > 0 and name.match( /^#{package.gsub(/[\+]/, '\\+')}/ )
-            found = true
+      package_list.inject([]) do |invalid_names, name|
+        found = repoquery_output.each_line.reduce(false) do |_, line|
+          line.strip!
+          
+          package       = line.match( /^([\S]+)-\d+:/ ) 
+          package       = package ? package[1] : line
+          package_regex = Regexp.new('^' << Regexp.quote(package))
+          
+          if package.size > 0 && name =~ package_regex
+            break package
           end
+          false
         end
-        invalid_names += [ name ] unless found
-      end
 
-      invalid_names
+        found || invalid_names << name
+        invalid_names
+      end
     end
 
     def generate_package_list

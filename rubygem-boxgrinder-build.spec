@@ -11,7 +11,7 @@
 
 Summary:     A tool for creating appliances from simple plain text files
 Name:        rubygem-%{gem_name}
-Version:     0.10.2
+Version:     0.10.3
 Release:     1%{?dist}
 Group:       Development/Languages
 License:     LGPLv3+
@@ -153,6 +153,10 @@ popd
 %{gem_docdir}
 
 %changelog
+* Thu June 18 2012 Marc Savy <msavy@redhat.com> - 0.10.3
+- Upstream release: 0.10.3
+- [BGBUILD-339] Existing rpm package with the name containing '+' considered as an invalid name
+
 * Thu May 24 2012 Marc Savy <msavy@redhat.com> - 0.10.2
 - Upstream release: 0.10.2
 - [BGBUILD-347] Add support for Fedora 17. Remove unnecessary OS restrictions
