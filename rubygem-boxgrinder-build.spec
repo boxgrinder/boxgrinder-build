@@ -153,7 +153,7 @@ popd
 %{gem_docdir}
 
 %changelog
-* Thu June 18 2012 Marc Savy <msavy@redhat.com> - 0.10.3
+* Mon Jun 18 2012 Marc Savy <msavy@redhat.com> - 0.10.3
 - Upstream release: 0.10.3
 - [BGBUILD-339] Existing rpm package with the name containing '+' considered as an invalid name
 
