@@ -205,13 +205,13 @@ module BoxGrinder
       device = guestfs.list_devices.first
 
       # /etc/fstab
-      if fstab = guestfs.read_file('/etc/fstab').gsub!(/^(\/dev\/sda.)/) { |path| "LABEL=#{guestfs.vfs_label(path.gsub('/dev/sda', device))}" }
+      if fstab = guestfs.read_file('/etc/fstab').gsub!(%r(^(/dev/\w+da\d*))) { |path| "LABEL=#{guestfs.vfs_label(path.gsub('/dev/sda', device))}" }
         guestfs.write_file('/etc/fstab', fstab, 0)
       end
 
       # /boot/grub/grub.conf
       if guestfs.exists('/boot/grub/grub.conf') != 0
-        if grub = guestfs.read_file('/boot/grub/grub.conf').gsub!(/(\/dev\/sda.)/) { |path| "LABEL=#{guestfs.vfs_label(path.gsub('/dev/sda', device))}" }
+        if grub = guestfs.read_file('/boot/grub/grub.conf').gsub!(%r((/dev/\w+da\d*))) { |path| "LABEL=#{guestfs.vfs_label(path.gsub('/dev/sda', device))}" }
           guestfs.write_file('/boot/grub/grub.conf', grub, 0)
         end
       end
