@@ -1,6 +1,7 @@
 v0.10.3
 
 * [BGBUILD-339] Existing rpm package with the name containing '+' considered as an invalid name
+* [BGBUILD-359] Enable more than 4 partitions in msdos partition layout
 
 v0.10.2
 

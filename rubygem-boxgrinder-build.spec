@@ -156,6 +156,7 @@ popd
 * Mon Jun 18 2012 Marc Savy <msavy@redhat.com> - 0.10.3
 - Upstream release: 0.10.3
 - [BGBUILD-339] Existing rpm package with the name containing '+' considered as an invalid name
+- [BGBUILD-359] Enable more than 4 partitions in msdos partition layout
 
 * Thu May 24 2012 Marc Savy <msavy@redhat.com> - 0.10.2
 - Upstream release: 0.10.2
