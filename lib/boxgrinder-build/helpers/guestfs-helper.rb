@@ -263,7 +263,11 @@ module BoxGrinder
     def mountable_partitions(device, options = {})
       options = {:list_swap => false}.merge(options)
 
-      partitions = @guestfs.list_partitions
+      dev_parse = lambda { |d| d.match(/\d*$/)[0].to_i }
+      
+      partitions = @guestfs.list_partitions.sort do |x, y|
+        dev_parse.call(x) <=> dev_parse.call(y) 
+      end
 
       # we need to remove extended partition
       # extended partition is always #3
