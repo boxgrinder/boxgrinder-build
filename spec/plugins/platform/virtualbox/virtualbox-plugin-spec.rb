@@ -17,7 +17,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder-build/plugins/platform/virtualbox/virtualbox-plugin'
-require 'hashery/opencascade'
+require 'hashery/open_cascade'
 require 'rspec-plugin-helper'
 
 module BoxGrinder
@@ -30,16 +30,16 @@ module BoxGrinder
 
       @appliance_config = mock('ApplianceConfig')
 
-      @appliance_config.stub!(:path).and_return(OpenCascade.new({:build => 'build/path'}))
+      @appliance_config.stub!(:path).and_return(OpenCascade[{:build => 'build/path'}])
       @appliance_config.stub!(:name).and_return('full')
       @appliance_config.stub!(:summary).and_return('asd')
       @appliance_config.stub!(:version).and_return(1)
       @appliance_config.stub!(:release).and_return(0)
-      @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '14'}))
-      @appliance_config.stub!(:post).and_return(OpenCascade.new({:virtualbox => []}))
+      @appliance_config.stub!(:os).and_return(OpenCascade[{:name => 'fedora', :version => '14'}])
+      @appliance_config.stub!(:post).and_return(OpenCascade[{:virtualbox => []}])
 
       @appliance_config.stub!(:hardware).and_return(
-          OpenCascade.new({
+          OpenCascade[{
                               :partitions =>
                                   {
                                       '/' => {'size' => 2},
@@ -49,11 +49,11 @@ module BoxGrinder
                               :base_arch => 'i386',
                               :cpus => 1,
                               :memory => 256,
-                          })
+                          }]
       )
 
       @plugin = RSpecPluginHelper.new(VirtualBoxPlugin).prepare(@config, @appliance_config,
-        :previous_plugin => OpenCascade.new(:deliverables => {:disk => 'a/base/image/path.raw'}),
+        :previous_plugin => OpenCascade[:deliverables => {:disk => 'a/base/image/path.raw'}],
         :plugin_info => {:class => BoxGrinder::VirtualBoxPlugin, :type => :platform, :name => :virtualbox, :full_name => "VirtualBox"}
       )
 
@@ -83,19 +83,19 @@ module BoxGrinder
     describe ".is_os_old?" do
       it "should return false for fedora 14" do
         prepare_image
-        @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '14'}))
+        @appliance_config.stub!(:os).and_return(OpenCascade[{:name => 'fedora', :version => '14'}])
         @plugin.is_os_old?.should == false
       end
 
       it "should return false for rhel 6" do
         prepare_image
-        @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'rhel', :version => '6'}))
+        @appliance_config.stub!(:os).and_return(OpenCascade[{:name => 'rhel', :version => '6'}])
         @plugin.is_os_old?.should == false
       end
 
       it "should return true for centos 5" do
         prepare_image
-        @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'centos', :version => '5'}))
+        @appliance_config.stub!(:os).and_return(OpenCascade[{:name => 'centos', :version => '5'}])
         @plugin.is_os_old?.should == true
       end
     end
@@ -153,7 +153,7 @@ module BoxGrinder
         prepare_image
 
         @appliance_config.post['virtualbox'] = ["one", "two", "three"]
-        @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'rhel', :version => '5'}))
+        @appliance_config.stub!(:os).and_return(OpenCascade[{:name => 'rhel', :version => '5'}])
 
         @plugin.should_receive(:build_virtualbox)
 

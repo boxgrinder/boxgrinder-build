@@ -71,7 +71,8 @@ module BoxGrinder
       begin
         plugin = plugin_info[:class].new
       rescue
-        raise "Error while initializing '#{plugin_info[:class].to_s}' plugin."
+#        raise "Error while initializing '#{plugin_info[:class].to_s}' plugin."
+        raise
       end
 
       [plugin, plugin_info]

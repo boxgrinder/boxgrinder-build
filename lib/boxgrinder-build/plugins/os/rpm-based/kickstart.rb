@@ -55,7 +55,7 @@ module BoxGrinder
       end
 
       def definition.get_binding
-        binding 
+        binding
       end
 
       cost = 40
@@ -88,7 +88,7 @@ module BoxGrinder
 
         cost += 1
       end
-
+      
       definition
     end
   end

@@ -27,9 +27,9 @@ module BoxGrinder
       @appliance_config = mock('ApplianceConfig')
 
       @appliance_config.stub!(:name).and_return('full')
-      @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '14'}))
+      @appliance_config.stub!(:os).and_return(OpenCascade[{:name => 'fedora', :version => '14'}])
       @appliance_config.stub!(:hardware).and_return(
-          OpenCascade.new({
+          OpenCascade[{
                               :partitions =>
                                   {
                                       '/' => {'size' => 2, 'type' => 'ext4'},
@@ -39,7 +39,7 @@ module BoxGrinder
                               :base_arch => 'i386',
                               :cpus => 1,
                               :memory => 256,
-                          })
+                          }]
       )
 
       @helper = ImageHelper.new(@config, @appliance_config, :log => Logger.new('/dev/null'))
@@ -66,7 +66,7 @@ module BoxGrinder
       end
 
       it "should customize the disk image using GuestFS and selectind ide_disk option for RHEL/CentOS 5" do
-        @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'rhel', :version => '5'}))
+        @appliance_config.stub!(:os).and_return(OpenCascade[{:name => 'rhel', :version => '5'}])
 
         guestfs = mock('GuestFS')
         guestfs.should_receive(:abc)

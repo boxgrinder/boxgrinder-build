@@ -17,7 +17,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder-build/plugins/delivery/s3/s3-plugin'
-require 'hashery/opencascade'
+require 'hashery/open_cascade'
 require 'boxgrinder-core/models/config'
 require 'set'
 
@@ -40,15 +40,15 @@ module BoxGrinder
 
       @appliance_config = mock('ApplianceConfig')
 
-      @appliance_config.stub!(:path).and_return(OpenCascade.new({:build => 'build/path'}))
+      @appliance_config.stub!(:path).and_return(OpenCascade[{:build => 'build/path'}])
       @appliance_config.stub!(:name).and_return('appliance')
       @appliance_config.stub!(:version).and_return(1)
       @appliance_config.stub!(:release).and_return(0)
-      @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '14'}))
-      @appliance_config.stub!(:hardware).and_return(OpenCascade.new({:arch => 'x86_64', :base_arch => 'x86_64'}))
+      @appliance_config.stub!(:os).and_return(OpenCascade[{:name => 'fedora', :version => '14'}])
+      @appliance_config.stub!(:hardware).and_return(OpenCascade[{:arch => 'x86_64', :base_arch => 'x86_64'}])
 
       @plugin = RSpecPluginHelper.new(S3Plugin).prepare(@config, @appliance_config,
-        :previous_plugin => OpenCascade.new(:type => :os, :deliverables => {:disk => "a_disk.raw", :metadata => 'metadata.xml'}),
+        :previous_plugin => OpenCascade[:type => :os, :deliverables => {:disk => "a_disk.raw", :metadata => 'metadata.xml'}],
         :plugin_info => {:class => BoxGrinder::S3Plugin, :type => :delivery, :name => :s3, :full_name => "Amazon Simple Storage Service (Amazon S3)", :types => [:s3, :cloudfront, :ami]}
       ) { |plugin| plugin.stub!(:asset_bucket) }
 
@@ -153,7 +153,7 @@ module BoxGrinder
     end
 
     it "should bundle the image for centos 5 and choose right kernel and ramdisk" do
-      @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'centos', :version => '5'}))
+      @appliance_config.stub!(:os).and_return(OpenCascade[{:name => 'centos', :version => '5'}])
       @plugin.instance_variable_get(:@plugin_config).merge!({'region' => 'us-west-1'})
 
       File.should_receive(:exists?).with('build/path/s3-plugin/ami').and_return(false)

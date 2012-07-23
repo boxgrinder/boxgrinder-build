@@ -17,7 +17,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'rubygems'
-require 'hashery/opencascade'
+require 'hashery/open_cascade'
 require 'boxgrinder-core/helpers/log-helper'
 require 'boxgrinder-core/models/appliance-config'
 require 'boxgrinder-core/models/config'
@@ -50,7 +50,7 @@ module BoxGrinder
       raise ValidationError, "Ensure your appliance definition file has a '.appl' extension: #{File.basename(@appliance_definition)}." if appliance_config.nil?
 
       appliance_config_helper = ApplianceConfigHelper.new(appliance_configs)
-      @appliance_config = appliance_config_helper.merge(appliance_config.clone.init_arch).initialize_paths
+      @appliance_config = appliance_config_helper.merge(appliance_config.init_arch).initialize_paths
     end
 
     def validate_definition

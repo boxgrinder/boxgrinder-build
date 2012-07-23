@@ -28,12 +28,12 @@ module BoxGrinder
       @appliance_config.stub!(:name).and_return('appliance_name')
       @appliance_config.stub!(:version).and_return(1)
       @appliance_config.stub!(:release).and_return(0)
-      @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '14'}))
-      @appliance_config.stub!(:hardware).and_return(OpenCascade.new({:arch => 'x86_64', :base_arch => 'x86_64'}))
-      @appliance_config.stub!(:path).and_return(OpenCascade.new({:build => '/a/build/path'}))
+      @appliance_config.stub!(:os).and_return(OpenCascade[{:name => 'fedora', :version => '14'}])
+      @appliance_config.stub!(:hardware).and_return(OpenCascade[{:arch => 'x86_64', :base_arch => 'x86_64'}])
+      @appliance_config.stub!(:path).and_return(OpenCascade[{:build => '/a/build/path'}])
 
       @plugin = RSpecPluginHelper.new(OpenStackPlugin).prepare(@config, @appliance_config,
-        :previous_plugin => OpenCascade.new(:type => :os, :deliverables => {:disk => "a_disk.raw", :metadata => 'metadata.xml'}),
+        :previous_plugin => OpenCascade[:type => :os, :deliverables => {:disk => "a_disk.raw", :metadata => 'metadata.xml'}],
         :plugin_info => {:class => BoxGrinder::OpenStackPlugin, :type => :delivery, :name => :openstack, :full_name => "OpenStack" }
       )
     end

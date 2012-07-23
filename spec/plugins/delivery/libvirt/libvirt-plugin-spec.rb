@@ -28,15 +28,15 @@ module BoxGrinder
 
       @appliance_config = mock('ApplianceConfig')
 
-      @appliance_config.stub!(:path).and_return(OpenCascade.new({:build => 'build/path'}))
+      @appliance_config.stub!(:path).and_return(OpenCascade[{:build => 'build/path'}])
       @appliance_config.stub!(:name).and_return('appliance')
       @appliance_config.stub!(:summary).and_return('boxgrinder-rocks')
       @appliance_config.stub!(:version).and_return(1)
       @appliance_config.stub!(:release).and_return(0)
-      @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => :fedora, :version => '13'}))
-      @appliance_config.stub!(:hardware).and_return(OpenCascade.new({:arch => 'x86_64', :memory => 256, :cpu => 5}))
+      @appliance_config.stub!(:os).and_return(OpenCascade[{:name => :fedora, :version => '13'}])
+      @appliance_config.stub!(:hardware).and_return(OpenCascade[{:arch => 'x86_64', :memory => 256, :cpu => 5}])
 
-      @previous_plugin_info = OpenCascade.new(:type => :os, :deliverables => {:disk => "/flo/bble.raw", :metadata => 'metadata.xml'})
+      @previous_plugin_info = OpenCascade[:type => :os, :deliverables => {:disk => "/flo/bble.raw", :metadata => 'metadata.xml'}]
       @libvirt_capabilities = mock('libvirt_capabilities').as_null_object
       @log = mock('logger').as_null_object
 

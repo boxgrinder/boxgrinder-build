@@ -17,7 +17,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder-build/plugins/os/rhel/rhel-plugin'
-require 'hashery/opencascade'
+require 'hashery/open_cascade'
 
 module BoxGrinder
   describe RHELPlugin do
@@ -30,11 +30,11 @@ module BoxGrinder
 
       @appliance_config = mock('ApplianceConfig')
 
-      @appliance_config.stub!(:path).and_return(OpenCascade.new({:build => 'build/path'}))
+      @appliance_config.stub!(:path).and_return(OpenCascade[{:build => 'build/path'}])
       @appliance_config.stub!(:name).and_return('full')
       @appliance_config.stub!(:version).and_return(1)
       @appliance_config.stub!(:release).and_return(0)
-      @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'rhel', :version => '6'}))
+      @appliance_config.stub!(:os).and_return(OpenCascade[{:name => 'rhel', :version => '6'}])
 
       @plugin = RHELPlugin.new.init(@config, @appliance_config, {:class => BoxGrinder::RHELPlugin, :type => :os, :name => :rhel, :full_name => "Red Hat Enterprise Linux", :versions => ['5', '6']}, :log => LogHelper.new(:level => :trace, :type => :stdout))
 
@@ -47,7 +47,7 @@ module BoxGrinder
 
     describe ".normalize_packages" do
       it "should add @core to package list" do
-        @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'rhel', :version => '5'}))
+        @appliance_config.stub!(:os).and_return(OpenCascade[{:name => 'rhel', :version => '5'}])
 
         packages = []
 
@@ -65,7 +65,7 @@ module BoxGrinder
       end
 
       it "should not add kernel package if kernel-xen is already choose" do
-        @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'rhel', :version => '5'}))
+        @appliance_config.stub!(:os).and_return(OpenCascade[{:name => 'rhel', :version => '5'}])
 
         packages = ['kernel-xen']
 
@@ -98,7 +98,7 @@ module BoxGrinder
 
     describe ".execute" do
       it "should recreate the kernel and add some modules to RHEL 5 with normal kernel" do
-        @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'rhel', :version => '5'}))
+        @appliance_config.stub!(:os).and_return(OpenCascade[{:name => 'rhel', :version => '5'}])
 
         @appliance_config.stub!(:packages).and_return([])
 
@@ -115,7 +115,7 @@ module BoxGrinder
       end
 
       it "should NOT recreate the kernel and add some modules to RHEL 5 if kernel-xen is choosen" do
-        @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'rhel', :version => '5'}))
+        @appliance_config.stub!(:os).and_return(OpenCascade[{:name => 'rhel', :version => '5'}])
 
         @appliance_config.stub!(:packages).and_return(['kernel-xen'])
 

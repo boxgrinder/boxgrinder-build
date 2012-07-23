@@ -104,6 +104,8 @@ module BoxGrinder
 
     def execute_appliance_creator(kickstart_file)
       begin
+        puts @plugin_config.inspect
+
         @exec_helper.execute "appliance-creator -d -v -t '#{@dir.tmp}' --cache=#{@config.dir.cache}/rpms-cache/#{@appliance_config.path.main} --config '#{kickstart_file}' -o '#{@dir.tmp}' --name '#{@appliance_config.name}' --vmem #{@appliance_config.hardware.memory} --vcpu #{@appliance_config.hardware.cpus} --format #{@plugin_config['format']}"
       rescue InterruptionError => e
         cleanup_after_appliance_creator(e.pid)

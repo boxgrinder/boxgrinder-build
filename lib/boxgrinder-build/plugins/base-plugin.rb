@@ -23,13 +23,14 @@ require 'boxgrinder-core/errors'
 require 'boxgrinder-build/helpers/image-helper'
 require 'boxgrinder-build/managers/plugin-manager'
 require 'ostruct'
-require 'hashery/opencascade'
+require 'hashery/open_cascade'
 require 'fileutils'
 require 'logger'
 
 module BoxGrinder
   class BasePlugin
     include Plugins
+    include Hashery
 
     attr_reader :plugin_info
     attr_reader :deliverables
@@ -206,7 +207,7 @@ module BoxGrinder
       if block_given? && !(@plugin_config[key].nil?)
         @plugin_config[key] = yield(key, default_value, @plugin_config[key])
       else
-        @plugin_config[key] ||= default_value
+        @plugin_config[key].nil? || @plugin_config[key] = default_value
       end
     end
 
@@ -227,7 +228,6 @@ module BoxGrinder
             when :delivery
               @config.delivery_config
           end
-
       @plugin_config.merge!(config)
     end
   end

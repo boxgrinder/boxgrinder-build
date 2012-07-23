@@ -17,7 +17,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder-build/helpers/guestfs-helper'
-require 'hashery/opencascade'
+require 'hashery/open_cascade'
 
 module BoxGrinder
   describe GuestFSHelper do
@@ -29,7 +29,7 @@ module BoxGrinder
       @appliance_config.stub!(:hardware).and_return(:partitions => {})
 
       @config = mock('Config')
-      @config.stub!(:dir).and_return(OpenCascade.new(:tmp => '/tmp'))
+      @config.stub!(:dir).and_return(OpenCascade[:tmp => '/tmp'])
 
       @helper = GuestFSHelper.new('a/raw/disk', @appliance_config, @config, :log => @log)
     end
@@ -154,7 +154,7 @@ module BoxGrinder
       end
 
       it "should run guestfs with two partitions" do
-        @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:partitions => {'/' => nil, '/home' => nil}))
+        @appliance_config.stub!(:hardware).and_return(OpenCascade[:partitions => {'/' => nil, '/home' => nil}])
 
         guestfs = mock('Guestfs')
         @helper.instance_variable_set(:@guestfs, guestfs)
@@ -170,7 +170,7 @@ module BoxGrinder
       end
 
       it "should run guestfs with no partitions and don't load selinux" do
-        @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:partitions => {'/' => nil, '/home' => nil}))
+        @appliance_config.stub!(:hardware).and_return(OpenCascade[:partitions => {'/' => nil, '/home' => nil}])
 
         guestfs = mock('Guestfs')
         @helper.instance_variable_set(:@guestfs, guestfs)
@@ -224,7 +224,7 @@ module BoxGrinder
       it "should mount two partitions" do
         guestfs = mock('Guestfs')
 
-        @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:partitions => {'/' => nil, '/home' => nil}))
+        @appliance_config.stub!(:hardware).and_return(OpenCascade[:partitions => {'/' => nil, '/home' => nil}])
         guestfs.should_receive(:list_partitions).and_return(['/dev/vda1', '/dev/vda2'])
         guestfs.should_receive(:vfs_type).with('/dev/vda1').twice.and_return('ext3')
         guestfs.should_receive(:vfs_type).with('/dev/vda2').twice.and_return('ext3')
@@ -239,7 +239,7 @@ module BoxGrinder
       it "should mount partitions skiping partitions with undefined filesystem type" do
         guestfs = mock('Guestfs')
 
-        @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:partitions => {'/' => nil}))
+        @appliance_config.stub!(:hardware).and_return(OpenCascade[:partitions => {'/' => nil}])
         guestfs.should_receive(:list_partitions).and_return(['/dev/vda1', '/dev/vda2'])
         guestfs.should_receive(:vfs_type).with('/dev/vda1').and_return('')
         guestfs.should_receive(:vfs_type).with('/dev/vda2').twice.and_return('ext3')
@@ -253,7 +253,7 @@ module BoxGrinder
       it "should mount two partitions from three where one is a swap partition" do
         guestfs = mock('Guestfs')
 
-        @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:partitions => {'/' => nil, '/home' => nil, 'swap' => nil}))
+        @appliance_config.stub!(:hardware).and_return(OpenCascade[:partitions => {'/' => nil, '/home' => nil, 'swap' => nil}])
         guestfs.should_receive(:list_partitions).and_return(['/dev/vda1', '/dev/vda2', '/dev/vda3'])
         guestfs.should_receive(:vfs_type).with('/dev/vda1').twice.and_return('ext3')
         guestfs.should_receive(:vfs_type).with('/dev/vda2').twice.and_return('ext3')
@@ -269,7 +269,7 @@ module BoxGrinder
       it "should mount partitions with extended partitions" do
         guestfs = mock('Guestfs')
 
-        @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:partitions => {'/' => nil, '/home' => nil, '/var/www' => nil, '/var/mock' => nil}))
+        @appliance_config.stub!(:hardware).and_return(OpenCascade[:partitions => {'/' => nil, '/home' => nil, '/var/www' => nil, '/var/mock' => nil}])
         guestfs.should_receive(:list_partitions).and_return(['/dev/vda1', '/dev/vda2', '/dev/vda3', '/dev/vda4', '/dev/vda5'])
         guestfs.should_receive(:vfs_type).with('/dev/vda1').twice.and_return('ext3')
         guestfs.should_receive(:vfs_type).with('/dev/vda2').twice.and_return('ext3')
@@ -309,21 +309,21 @@ module BoxGrinder
     describe ".hw_virtualization_available?" do
       it "should return true if HW acceleration is available" do
         URI.should_receive(:parse).with('http://169.254.169.254/latest/meta-data/ami-id').and_return('parsed')
-        Net::HTTP.should_receive(:get_response).with("parsed").and_return(OpenCascade.new(:code => '404'))
+        Net::HTTP.should_receive(:get_response).with("parsed").and_return(OpenCascade[:code => '404'])
         @helper.should_receive(:`).with("egrep '^flags.*(vmx|svm)' /proc/cpuinfo | wc -l").and_return("2")
         @helper.hw_virtualization_available?.should == true
       end
 
       it "should return false if no vmx flag is present" do
         URI.should_receive(:parse).with('http://169.254.169.254/latest/meta-data/ami-id').and_return('parsed')
-        Net::HTTP.should_receive(:get_response).with("parsed").and_return(OpenCascade.new(:code => '404'))
+        Net::HTTP.should_receive(:get_response).with("parsed").and_return(OpenCascade[:code => '404'])
         @helper.should_receive(:`).with("egrep '^flags.*(vmx|svm)' /proc/cpuinfo | wc -l").and_return("0")
         @helper.hw_virtualization_available?.should == false
       end
 
       it "should return false if we're on EC2" do
         URI.should_receive(:parse).with('http://169.254.169.254/latest/meta-data/ami-id').and_return('parsed')
-        Net::HTTP.should_receive(:get_response).with("parsed").and_return(OpenCascade.new(:code => '200'))
+        Net::HTTP.should_receive(:get_response).with("parsed").and_return(OpenCascade[:code => '200'])
         @helper.should_receive(:`).with("egrep '^flags.*(vmx|svm)' /proc/cpuinfo | wc -l").and_return("0")
         @helper.hw_virtualization_available?.should == false
       end

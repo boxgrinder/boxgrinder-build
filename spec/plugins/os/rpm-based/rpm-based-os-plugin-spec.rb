@@ -17,7 +17,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder-build/plugins/os/rpm-based/rpm-based-os-plugin'
-require 'hashery/opencascade'
+require 'hashery/open_cascade'
 
 module BoxGrinder
   describe RPMBasedOSPlugin do
@@ -27,17 +27,17 @@ module BoxGrinder
       plugins = mock('Plugins')
       plugins.stub!(:[]).with('rpm_based').and_return({})
       @config.stub!(:[]).with(:plugins).and_return(plugins)
-      @config.stub!(:dir).and_return(OpenCascade.new(:tmp => 'tmpdir', :cache => 'cachedir'))
-      @config.stub!(:os).and_return(OpenCascade.new(:name => 'fedora', :version => '14'))
+      @config.stub!(:dir).and_return(OpenCascade[:tmp => 'tmpdir', :cache => 'cachedir'])
+      @config.stub!(:os).and_return(OpenCascade[:name => 'fedora', :version => '14'])
       @config.stub!(:os_config).and_return({})
 
       @appliance_config.stub!(:name).and_return('full')
       @appliance_config.stub!(:version).and_return(1)
       @appliance_config.stub!(:release).and_return(0)
       @appliance_config.stub!(:post).and_return({})
-      @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '11'}))
-      @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:cpus => 1, :memory => 512, :partitions => {'/' => nil, '/home' => nil}))
-      @appliance_config.stub!(:path).and_return(OpenCascade.new(:build => 'build/path', :main => 'mainpath'))
+      @appliance_config.stub!(:os).and_return(OpenCascade[{:name => 'fedora', :version => '11'}])
+      @appliance_config.stub!(:hardware).and_return(OpenCascade[:cpus => 1, :memory => 512, :partitions => {'/' => nil, '/home' => nil}])
+      @appliance_config.stub!(:path).and_return(OpenCascade[:build => 'build/path', :main => 'mainpath'])
       @appliance_config.stub!(:files).and_return({})
 
       @plugin = RSpecPluginHelper.new(RPMBasedOSPlugin).prepare(@config, @appliance_config, :plugin_info => {:class => BoxGrinder::RPMBasedOSPlugin, :type => :os, :name => :rpm_based})
@@ -171,7 +171,7 @@ module BoxGrinder
       end
 
       it "should build appliance" do
-        @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '14'}))
+        @appliance_config.stub!(:os).and_return(OpenCascade[{:name => 'fedora', :version => '14'}])
         @appliance_config.should_receive(:default_repos).and_return(true)
         @plugin.should_receive(:add_repos).with({})
         do_build
@@ -179,7 +179,7 @@ module BoxGrinder
       end
 
       it "should execute additional steps for Fedora 15" do
-        @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '15'}))
+        @appliance_config.stub!(:os).and_return(OpenCascade[{:name => 'fedora', :version => '15'}])
         @appliance_config.should_receive(:default_repos).and_return(true)
         @plugin.should_receive(:add_repos).ordered.with({})
 

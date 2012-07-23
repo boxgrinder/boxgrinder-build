@@ -35,8 +35,8 @@ module BoxGrinder
 
       @appliance_config = mock('ApplianceConfig')
 
-      @appliance_config.stub!(:path).and_return(OpenCascade.new({:build => 'build/path'}))
-      @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '13'}))
+      @appliance_config.stub!(:path).and_return(OpenCascade[{:build => 'build/path'}])
+      @appliance_config.stub!(:os).and_return(OpenCascade[{:name => 'fedora', :version => '13'}])
 
       @log = LogHelper.new(:level => :trace, :type => :stdout)
 
@@ -125,7 +125,7 @@ module BoxGrinder
 
       it "should fail if OS is not supported" do
         @plugin.register_supported_os('fedora', ['12', '13'])
-        @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '14'}))
+        @appliance_config.stub!(:os).and_return(OpenCascade[{:name => 'fedora', :version => '14'}])
         lambda { @plugin.run }.should raise_error(PluginValidationError, 'Amazon Simple Storage Service (Amazon S3) plugin supports following operating systems: fedora (versions: 12, 13). Your appliance contains fedora 14 operating system which is not supported by this plugin, sorry.')
       end
 

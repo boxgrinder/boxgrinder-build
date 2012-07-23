@@ -21,7 +21,7 @@ require 'optparse'
 require 'rubygems'
 require 'pathname'
 require 'rbconfig'
-require 'hashery/opencascade'
+require 'hashery/open_cascade'
 require 'boxgrinder-core'
 require 'boxgrinder-core/models/config'
 require 'boxgrinder-core/helpers/log-helper'
@@ -30,7 +30,7 @@ require 'boxgrinder-build/appliance'
 require 'boxgrinder-build/util/permissions/fs-observer'
 require 'boxgrinder-build/util/permissions/fs-monitor'
 
-options = OpenCascade.new(
+options = Hashery::OpenCascade[
     :platform => :none,
     :delivery => :none,
     :os_config => {},
@@ -38,7 +38,7 @@ options = OpenCascade.new(
     :delivery_config => {},
     :additional_plugins => [],
     :change_to_user => false
-)
+]
 
 ARGV_DUP = ARGV.clone
 
@@ -90,7 +90,6 @@ Examples:
     $ #{program} jeos.appl -p ec2 -d ami                                             # Build and register AMI for jeos.appl
     $ #{program} jeos.appl -p vmware -d local                                        # Build VMware image for jeos.appl and deliver it to local directory
 EOB
-
 
     opts.separator ""
     opts.separator "Options:"
@@ -167,6 +166,7 @@ def ensure_root
     # http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-talk/151376
     ruby = File.join(RbConfig::CONFIG["bindir"],
                      RbConfig::CONFIG["RUBY_INSTALL_NAME"] + RbConfig::CONFIG["EXEEXT"])
+
     exec("sudo -E #{ruby} -I#{$:.join(':')} #{Pathname.new(__FILE__).realpath} #{ARGV_DUP.join(" ")} --change-to-user")
   end
 end
@@ -211,10 +211,11 @@ begin
     end
   end
 rescue => e
-  puts opts
-  puts
-  puts e.message
-  abort
+ # puts opts
+ # puts
+ # puts e.message
+ # abort
+  raise
 ensure
   BoxGrinder::FSMonitor.instance.stop
 end

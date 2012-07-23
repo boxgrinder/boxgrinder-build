@@ -17,7 +17,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder-build/plugins/os/centos/centos-plugin'
-require 'hashery/opencascade'
+require 'hashery/open_cascade'
 
 module BoxGrinder
   describe CentOSPlugin do
@@ -30,7 +30,7 @@ module BoxGrinder
 
       @appliance_config = mock('ApplianceConfig')
 
-      @appliance_config.stub!(:path).and_return(OpenCascade.new({:build => 'build/path'}))
+      @appliance_config.stub!(:path).and_return(OpenCascade[{:build => 'build/path'}])
       @appliance_config.stub!(:name).and_return('full')
 
       @plugin = CentOSPlugin.new.init(@config, @appliance_config, {:class => BoxGrinder::CentOSPlugin, :type => :os, :name => :centos, :full_name => "CentOS", :versions => ["5"]}, :log => Logger.new('/dev/null'))

@@ -17,7 +17,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder-build/plugins/os/rpm-based/kickstart'
-require 'hashery/opencascade'
+require 'hashery/open_cascade'
 
 module BoxGrinder
   describe Kickstart do
@@ -34,15 +34,15 @@ module BoxGrinder
       @dir = mock('Some directory')
       @dir.stub!(:tmp).and_return('baloney')
 
-      @appliance_config.stub!(:path).and_return(OpenCascade.new({:build => 'build/path'}))
+      @appliance_config.stub!(:path).and_return(OpenCascade[{:build => 'build/path'}])
       @appliance_config.stub!(:name).and_return('full')
       @appliance_config.stub!(:version).and_return(1)
       @appliance_config.stub!(:release).and_return(0)
-      @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '11', :password => 'boxgrinder'}))
+      @appliance_config.stub!(:os).and_return(OpenCascade[{:name => 'fedora', :version => '11', :password => 'boxgrinder'}])
       @appliance_config.stub!(:packages).and_return(["gcc-c++", "wget"])
       @appliance_config.stub!(:repos).and_return(repos)
 
-      @kickstart = Kickstart.new(@config, @appliance_config, @dir, OpenCascade.new(:base => 'a/base/dir'))
+      @kickstart = Kickstart.new(@config, @appliance_config, @dir, OpenCascade[:base => 'a/base/dir'])
     end
 
     describe ".build_definition" do
@@ -50,7 +50,7 @@ module BoxGrinder
         prepare_kickstart(KICKSTART_FEDORA_REPOS)
 
         @appliance_config.stub!(:hardware).and_return(
-            OpenCascade.new({
+            OpenCascade[{
                                 :partitions =>
                                     {
                                         '/' => {'size' => 2},
@@ -58,7 +58,7 @@ module BoxGrinder
                                     },
                                 :arch => 'i686',
                                 :base_arch => 'i386'
-                            })
+                            }]
         )
 
         @appliance_config.should_receive(:repos).and_return(
