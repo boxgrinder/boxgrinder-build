@@ -1,4 +1,6 @@
 #!/bin/sh
+set -u
+set -e
 
 if [ "`echo "$@" | grep "kvm" | wc -l`" -eq "1" ]; then
   args=( "$@" "-no-kvm" )
@@ -6,10 +8,23 @@ else
   args=( "$@" )
 fi
 
-if [ "`uname -a | grep x86_64 | wc -l`" -eq "1" ]; then
-  bin=/usr/bin/qemu-system-x86_64
-else
-  bin=/usr/bin/qemu
+i386=( qemu-system-i386 qemu ) 
+x64=( qemu-system-x86_64 qemu )
+
+arch=${i386[@]}
+
+if [[ `uname -m` == 'x86_64' ]]; then
+    arch=${x64[@]}
 fi
+
+bin=false
+for qemu in ${arch[@]}; do
+    if [ $(command -v $qemu) ]; then
+        bin=$(command -v $qemu)
+        break
+    fi
+done
+
+[[ $bin != false ]] || { echo "No QEMU found!"; exit 1; }
 
 exec $bin "${args[@]}"
