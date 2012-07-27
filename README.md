@@ -21,7 +21,7 @@ Visit the [BoxGrinder Meta appliance usage article](http://boxgrinder.org/tutori
 At present the project officially supports the following OSes in x86_64 and i386 variants:
 
 * Fedora (13, 14, 15)
-* RHEL (5.x, 6.x) and CentOS (5.x)
+* RHEL (5.x, 6.x) and CentOS (5.x, 6.x)
 
 ### Requirements
 
