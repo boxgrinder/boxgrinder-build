@@ -17,7 +17,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder-build/plugins/os/rpm-based/rpm-dependency-validator'
-require 'hashery/opencascade'
+require 'boxgrinder-core/astruct'
 
 module BoxGrinder
   describe RPMDependencyValidator do

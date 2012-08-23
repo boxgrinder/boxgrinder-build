@@ -17,7 +17,7 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 
 require 'boxgrinder-build/helpers/guestfs-helper'
-require 'hashery/opencascade'
+require 'boxgrinder-core/astruct'
 
 module BoxGrinder
   describe GuestFSHelper do

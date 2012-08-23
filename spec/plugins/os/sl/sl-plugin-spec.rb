@@ -18,7 +18,7 @@
 
 require 'boxgrinder-build/plugins/os/sl/sl-plugin'
 require 'rspec'
-require 'hashery/opencascade'
+require 'boxgrinder-core/astruct'
 
 module BoxGrinder
   describe ScientificLinuxPlugin do

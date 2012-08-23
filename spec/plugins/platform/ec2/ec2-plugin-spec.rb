@@ -18,7 +18,7 @@
 
 require 'boxgrinder-build/plugins/platform/ec2/ec2-plugin'
 require 'boxgrinder-core/helpers/log-helper'
-require 'hashery/opencascade'
+require 'boxgrinder-core/astruct'
 
 module BoxGrinder
   describe EC2Plugin do

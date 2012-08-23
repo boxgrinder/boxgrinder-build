@@ -23,7 +23,7 @@ require 'boxgrinder-core/errors'
 require 'boxgrinder-build/helpers/image-helper'
 require 'boxgrinder-build/managers/plugin-manager'
 require 'ostruct'
-require 'hashery/opencascade'
+require 'boxgrinder-core/astruct'
 require 'fileutils'
 require 'logger'
 
