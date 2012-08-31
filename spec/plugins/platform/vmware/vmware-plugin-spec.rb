@@ -29,16 +29,16 @@ module BoxGrinder
 
       @appliance_config = mock('ApplianceConfig')
 
-      @appliance_config.stub!(:path).and_return(OpenCascade.new({:build => 'build/path'}))
+      @appliance_config.stub!(:path).and_return(AStruct.new({:build => 'build/path'}))
       @appliance_config.stub!(:name).and_return('full')
       @appliance_config.stub!(:summary).and_return('asd')
       @appliance_config.stub!(:version).and_return(1)
       @appliance_config.stub!(:release).and_return(0)
-      @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '11'}))
-      @appliance_config.stub!(:post).and_return(OpenCascade.new({:vmware => []}))
+      @appliance_config.stub!(:os).and_return(AStruct.new({:name => 'fedora', :version => '11'}))
+      @appliance_config.stub!(:post).and_return(AStruct.new({:vmware => []}))
 
       @appliance_config.stub!(:hardware).and_return(
-          OpenCascade.new({
+          AStruct.new({
                               :partitions =>
                                   {
                                       '/' => {'size' => 2},
@@ -52,7 +52,7 @@ module BoxGrinder
       )
 
       @plugin = RSpecPluginHelper.new(VMwarePlugin).prepare(@config, @appliance_config,
-        :previous_plugin => OpenCascade.new(:deliverables => {:disk => 'a/base/image/path.raw'}),
+        :previous_plugin => AStruct.new(:deliverables => {:disk => 'a/base/image/path.raw'}),
         :plugin_info =>  {:class => BoxGrinder::VMwarePlugin, :type => :platform, :name => :vmware, :full_name => "VMware"}
       )
 

@@ -31,17 +31,17 @@ module BoxGrinder
 
       @appliance_config = mock('ApplianceConfig')
 
-      @appliance_config.stub!(:path).and_return(OpenCascade.new({:build => 'build/path'}))
+      @appliance_config.stub!(:path).and_return(AStruct.new({:build => 'build/path'}))
       @appliance_config.stub!(:name).and_return('full')
       @appliance_config.stub!(:version).and_return(1)
       @appliance_config.stub!(:release).and_return(0)
       @appliance_config.stub!(:packages).and_return(["gcc-c++", "wget"])
-      @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '13'}))
+      @appliance_config.stub!(:os).and_return(AStruct.new({:name => 'fedora', :version => '13'}))
       @appliance_config.stub!(:is64bit?).and_return(false)
-      @appliance_config.stub!(:post).and_return(OpenCascade.new)
+      @appliance_config.stub!(:post).and_return(AStruct.new)
 
       @appliance_config.stub!(:hardware).and_return(
-          OpenCascade.new({
+          AStruct.new({
                               :partitions =>
                                   {
                                       '/' => {'size' => 2, 'type' => 'ext4'},
@@ -55,7 +55,7 @@ module BoxGrinder
       )
 
       @plugin = RSpecPluginHelper.new(EC2Plugin).prepare(@config, @appliance_config,
-        :previous_plugin => OpenCascade.new(:deliverables => {:disk => 'a/disk.raw'}),
+        :previous_plugin => AStruct.new(:deliverables => {:disk => 'a/disk.raw'}),
         :plugin_info => {:class => BoxGrinder::EC2Plugin, :type => :platform, :name => :ec2, :full_name => "Amazon Elastic Compute Cloud (Amazon EC2)"}
       )
 
@@ -126,7 +126,7 @@ module BoxGrinder
     end
 
     it "should upload rc_local for Fedora 16 or newer" do
-      @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '16'}))
+      @appliance_config.stub!(:os).and_return(AStruct.new({:name => 'fedora', :version => '16'}))
 
       guestfs = mock("guestfs")
       tempfile = mock("tempfile")
@@ -268,7 +268,7 @@ module BoxGrinder
       end
 
       it "should recreate kernel image while converting to EC2 format for RHEL/CentOS 5" do
-        @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'rhel', :version => '5'}))
+        @appliance_config.stub!(:os).and_return(AStruct.new({:name => 'rhel', :version => '5'}))
         @appliance_config.stub!(:is64bit?).and_return(true)
 
         linux_helper = mock(LinuxHelper)
@@ -320,7 +320,7 @@ module BoxGrinder
 
     describe ".execute_post" do
       it "should execute post commands" do
-        @appliance_config.stub!(:post).and_return(OpenCascade.new({'ec2' => ['ls /']}))
+        @appliance_config.stub!(:post).and_return(AStruct.new({'ec2' => ['ls /']}))
 
         guestfs_helper = mock("guestfsHelper")
         guestfs_helper.should_receive(:sh).with('ls /', :arch => 'i686')
@@ -329,7 +329,7 @@ module BoxGrinder
       end
 
       it "should not execute post commands because there are no commands to execute :)" do
-        @appliance_config.stub!(:post).and_return(OpenCascade.new)
+        @appliance_config.stub!(:post).and_return(AStruct.new)
 
         guestfs_helper = mock("guestfsHelper")
         guestfs_helper.should_not_receive(:sh)

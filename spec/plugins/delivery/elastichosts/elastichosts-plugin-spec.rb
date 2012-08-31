@@ -34,16 +34,16 @@ module BoxGrinder
 
       @appliance_config = mock('ApplianceConfig')
 
-      @appliance_config.stub!(:path).and_return(OpenCascade.new({:build => 'build/path'}))
+      @appliance_config.stub!(:path).and_return(AStruct.new({:build => 'build/path'}))
       @appliance_config.stub!(:name).and_return('appliance')
       @appliance_config.stub!(:version).and_return(1)
       @appliance_config.stub!(:cpus).and_return(1)
       @appliance_config.stub!(:release).and_return(0)
-      @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => :fedora, :version => '13'}))
-      @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:cpus => 1, :arch => 'x86_64', :partitions => {'/' => {'size' => 1}, '/home' => {'size' => 2}}, :memory => 512))
+      @appliance_config.stub!(:os).and_return(AStruct.new({:name => :fedora, :version => '13'}))
+      @appliance_config.stub!(:hardware).and_return(AStruct.new(:cpus => 1, :arch => 'x86_64', :partitions => {'/' => {'size' => 1}, '/home' => {'size' => 2}}, :memory => 512))
 
       options = {
-        :previous_plugin => OpenCascade.new(:plugin_info => {:type => :os}, :deliverables => {:disk => 'a/base/image/path.raw'}),
+        :previous_plugin => AStruct.new(:plugin_info => {:type => :os}, :deliverables => {:disk => 'a/base/image/path.raw'}),
         :plugin_info => {:class => BoxGrinder::ElasticHostsPlugin, :type => :delivery, :name => :elastichosts, :full_name => "ElasticHosts"}
       }.merge(options)
 
@@ -59,7 +59,7 @@ module BoxGrinder
       describe ".validate" do
         it "should fail because we try to upload a non-base appliance" do
           lambda {
-            prepare(:previous_plugin => OpenCascade.new(:plugin_info => {:type => :platform}))
+            prepare(:previous_plugin => AStruct.new(:plugin_info => {:type => :platform}))
           }.should raise_error(PluginValidationError, 'You can use ElasticHosts plugin with base appliances (appliances created with operating system plugins) only, see http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#ElasticHosts_Delivery_Plugin.')
         end
       end
@@ -163,7 +163,7 @@ module BoxGrinder
 
       describe ".upload_chunks" do
         it "should upload chunks in 2 parts" do
-          @plugin.instance_variable_set(:@previous_deliverables, OpenCascade.new({:disk => 'a/disk'}))
+          @plugin.instance_variable_set(:@previous_deliverables, AStruct.new({:disk => 'a/disk'}))
 
           f = mock(File)
           f.should_receive(:eof?).ordered.and_return(false)
@@ -188,7 +188,7 @@ module BoxGrinder
 
         it "should upload 1 chunk with custom chunk size" do
           @plugin_config.merge!('chunk' => 128)
-          @plugin.instance_variable_set(:@previous_deliverables, OpenCascade.new({:disk => 'a/disk'}))
+          @plugin.instance_variable_set(:@previous_deliverables, AStruct.new({:disk => 'a/disk'}))
 
           f = mock(File)
           f.should_receive(:eof?).ordered.and_return(false)
@@ -206,7 +206,7 @@ module BoxGrinder
 
         it "should not compress the data before uploading the chunks if we use CloudSigma" do
           @plugin_config.merge!('endpoint' => 'api.cloudsigma.com')
-          @plugin.instance_variable_set(:@previous_deliverables, OpenCascade.new({:disk => 'a/disk'}))
+          @plugin.instance_variable_set(:@previous_deliverables, AStruct.new({:disk => 'a/disk'}))
 
           f = mock(File)
           f.should_receive(:eof?).ordered.and_return(false)
@@ -304,7 +304,7 @@ module BoxGrinder
         it "should create the server with 512 MB of ram for instances to be uploaded to cloudsigma" do
           @plugin_config.merge!('endpoint' => 'api.cloudsigma.com')
 
-          @appliance_config.stub!(:hardware).and_return(OpenCascade.new(:cpus => 1, :arch => 'x86_64', :partitions => {'/' => {'size' => 1}, '/home' => {'size' => 2}}, :memory => 256))
+          @appliance_config.stub!(:hardware).and_return(AStruct.new(:cpus => 1, :arch => 'x86_64', :partitions => {'/' => {'size' => 1}, '/home' => {'size' => 2}}, :memory => 256))
 
           RestClient.should_receive(:post).with("http://12345:secret_access_key@api.cloudsigma.com/servers/create",
                                                 "json").and_return("server abc-1234567890-abc\nname appliance-1.0\n")

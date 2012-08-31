@@ -26,7 +26,7 @@ module BoxGrinder
       @config = Config.new
       @appliance_config = mock(ApplianceConfig,
         :name => 'name',
-        :path => OpenCascade.new({:build => 'build/path'})
+        :path => AStruct.new({:build => 'build/path'})
       )
 
       @plugin = ScientificLinuxPlugin.new.init(@config, @appliance_config, {:class => BoxGrinder::ScientificLinuxPlugin, :type => :os, :name => :sl, :full_name  => "Scientific Linux", :versions   => ["5", "6"]}, :log => LogHelper.new(:level => :trace, :type => :stdout))

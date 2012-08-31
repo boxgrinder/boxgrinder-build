@@ -27,16 +27,16 @@ module BoxGrinder
 
       @appliance_config = mock('ApplianceConfig')
 
-      @appliance_config.stub!(:path).and_return(OpenCascade.new({:build => 'build/path'}))
+      @appliance_config.stub!(:path).and_return(AStruct.new({:build => 'build/path'}))
       @appliance_config.stub!(:name).and_return('full')
       @appliance_config.stub!(:summary).and_return('asd')
       @appliance_config.stub!(:version).and_return(1)
       @appliance_config.stub!(:release).and_return(0)
-      @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '16'}))
-      @appliance_config.stub!(:post).and_return(OpenCascade.new({:virtualpc => []}))
+      @appliance_config.stub!(:os).and_return(AStruct.new({:name => 'fedora', :version => '16'}))
+      @appliance_config.stub!(:post).and_return(AStruct.new({:virtualpc => []}))
 
       @appliance_config.stub!(:hardware).and_return(
-          OpenCascade.new({
+          AStruct.new({
                               :partitions =>
                                   {
                                       '/' => {'size' => 2},
@@ -50,7 +50,7 @@ module BoxGrinder
       )
 
       @plugin = RSpecPluginHelper.new(VirtualPCPlugin).prepare(@config, @appliance_config,
-        :previous_plugin => OpenCascade.new(:deliverables => {:disk => 'a/base/image/path.raw'}),
+        :previous_plugin => AStruct.new(:deliverables => {:disk => 'a/base/image/path.raw'}),
         :plugin_info => {:class => BoxGrinder::VirtualPCPlugin, :type => :platform, :name => :virtualpc, :full_name => "VirtualPC"}
       )
 

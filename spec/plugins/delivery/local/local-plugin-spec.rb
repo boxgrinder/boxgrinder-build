@@ -27,15 +27,15 @@ module BoxGrinder
 
       @appliance_config = mock('ApplianceConfig')
 
-      @appliance_config.stub!(:path).and_return(OpenCascade.new({:build => 'build/path'}))
+      @appliance_config.stub!(:path).and_return(AStruct.new({:build => 'build/path'}))
       @appliance_config.stub!(:name).and_return('appliance')
       @appliance_config.stub!(:version).and_return(1)
       @appliance_config.stub!(:release).and_return(0)
-      @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => :fedora, :version => '13'}))
-      @appliance_config.stub!(:hardware).and_return(OpenCascade.new({:arch => 'x86_64'}))
+      @appliance_config.stub!(:os).and_return(AStruct.new({:name => :fedora, :version => '13'}))
+      @appliance_config.stub!(:hardware).and_return(AStruct.new({:arch => 'x86_64'}))
 
       @plugin = RSpecPluginHelper.new(LocalPlugin).prepare(@config, @appliance_config,
-        :previous_plugin => OpenCascade.new(:type => :os, :deliverables => {:disk => "a_disk.raw", :metadata => 'metadata.xml'}),
+        :previous_plugin => AStruct.new(:type => :os, :deliverables => {:disk => "a_disk.raw", :metadata => 'metadata.xml'}),
         :plugin_info => {:class => BoxGrinder::LocalPlugin, :type => :delivery, :name => :local, :full_name => "Local file system"}
       )
 

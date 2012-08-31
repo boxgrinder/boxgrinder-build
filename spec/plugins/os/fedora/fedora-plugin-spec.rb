@@ -30,12 +30,12 @@ module BoxGrinder
 
       @appliance_config = mock('ApplianceConfig')
 
-      @appliance_config.stub!(:path).and_return(OpenCascade.new({:build => 'build/path'}))
+      @appliance_config.stub!(:path).and_return(AStruct.new({:build => 'build/path'}))
       @appliance_config.stub!(:name).and_return('full')
       @appliance_config.stub!(:version).and_return(1)
       @appliance_config.stub!(:release).and_return(0)
-      @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '13'}))
-      @appliance_config.stub!(:hardware).and_return(OpenCascade.new({:arch => 'x86_64'}))
+      @appliance_config.stub!(:os).and_return(AStruct.new({:name => 'fedora', :version => '13'}))
+      @appliance_config.stub!(:hardware).and_return(AStruct.new({:arch => 'x86_64'}))
       @appliance_config.stub!(:is64bit?).and_return(true)
       @appliance_config.stub!(:packages).and_return(['mc'])
 
@@ -62,7 +62,7 @@ module BoxGrinder
     end
 
     it "should normalize packages for 32bit for pae enabled system" do
-      @appliance_config.stub!(:os).and_return(OpenCascade.new(:name => 'fedora', :version => '13'))
+      @appliance_config.stub!(:os).and_return(AStruct.new(:name => 'fedora', :version => '13'))
       @plugin_config.merge!('PAE' => false)
 
       packages = ['abc', 'def', 'kernel']
@@ -74,7 +74,7 @@ module BoxGrinder
     end
 
     it "should normalize packages for Fedora 16" do
-      @appliance_config.stub!(:os).and_return(OpenCascade.new(:name => 'fedora', :version => '16'))
+      @appliance_config.stub!(:os).and_return(AStruct.new(:name => 'fedora', :version => '16'))
 
       packages = ['abc', 'def', 'kernel']
 
@@ -136,7 +136,7 @@ module BoxGrinder
 
     describe ".execute" do
       it "should make Fedora 15 or higher work" do
-        @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '15'}))
+        @appliance_config.stub!(:os).and_return(AStruct.new({:name => 'fedora', :version => '15'}))
 
         guestfs = mock("GuestFS")
         guestfs_helper = mock("GuestFSHelper")
@@ -153,7 +153,7 @@ module BoxGrinder
 
       # https://issues.jboss.org/browse/BGBUILD-298
       it "should for Fedora 16 or higher first install GRUB2 then look after it" do
-        @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '16'}))
+        @appliance_config.stub!(:os).and_return(AStruct.new({:name => 'fedora', :version => '16'}))
 
         guestfs = mock("GuestFS")
         guestfs_helper = mock("GuestFSHelper")

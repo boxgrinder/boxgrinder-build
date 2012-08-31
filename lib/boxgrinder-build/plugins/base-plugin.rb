@@ -37,11 +37,11 @@ module BoxGrinder
     def initialize
       @plugin_config = {}
 
-      @deliverables = OpenCascade.new
-      @supported_oses = OpenCascade.new
+      @deliverables = AStruct.new
+      @supported_oses = AStruct.new
       @supported_platforms = []
-      @target_deliverables = OpenCascade.new
-      @dir = OpenCascade.new
+      @target_deliverables = AStruct.new
+      @dir = AStruct.new
     end
 
     def init(config, appliance_config, info, options = {})
@@ -64,7 +64,7 @@ module BoxGrinder
         @previous_deliverables = @previous_plugin.deliverables
         @previous_plugin_info = @previous_plugin.plugin_info
       else
-        @previous_deliverables = OpenCascade.new
+        @previous_deliverables = AStruct.new
       end
 
       # TODO get rid of that - we don't have plugin configuration files - everything is now in one place.
@@ -103,7 +103,7 @@ module BoxGrinder
     def register_supported_os(name, versions)
       raise "You can register supported operating system only after the plugin is initialized, please initialize the plugin using init method." if @initialized.nil?
 
-      @supported_oses[name] = OpenCascade.new if @supported_oses[name].nil?
+      @supported_oses[name] = AStruct.new if @supported_oses[name].nil?
       @supported_oses[name] = versions
     end
 

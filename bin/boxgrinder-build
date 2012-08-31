@@ -30,7 +30,7 @@ require 'boxgrinder-build/appliance'
 require 'boxgrinder-build/util/permissions/fs-observer'
 require 'boxgrinder-build/util/permissions/fs-monitor'
 
-options = OpenCascade.new(
+options = BoxGrinder::AStruct.new(
     :platform => :none,
     :delivery => :none,
     :os_config => {},

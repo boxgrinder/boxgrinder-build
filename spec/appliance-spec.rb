@@ -24,7 +24,7 @@ module BoxGrinder
   describe Appliance do
     def prepare_appliance(options = {}, definition_file = "#{File.dirname(__FILE__)}/rspec/src/appliances/jeos-f13.appl")
       @log = LogHelper.new(:level => :trace, :type => :stdout)
-      @config = OpenCascade.new(:platform => :none, :delivery => :none, :force => false, 
+      @config = AStruct.new(:platform => :none, :delivery => :none, :force => false, 
         :change_to_user => false, :uid => 501, :gid => 501, 
         :dir => {:root => '/', :build => 'build'}).merge(options)
 
@@ -39,15 +39,15 @@ module BoxGrinder
     def prepare_appliance_config
       @appliance_config = mock('ApplianceConfig')
 
-      @appliance_config.stub!(:path).and_return(OpenCascade.new({:build => 'build/path'}))
+      @appliance_config.stub!(:path).and_return(AStruct.new({:build => 'build/path'}))
       @appliance_config.stub!(:name).and_return('full')
       @appliance_config.stub!(:summary).and_return('asd')
       @appliance_config.stub!(:version).and_return(1)
       @appliance_config.stub!(:release).and_return(0)
-      @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '11'}))
+      @appliance_config.stub!(:os).and_return(AStruct.new({:name => 'fedora', :version => '11'}))
 
       @appliance_config.stub!(:hardware).and_return(
-          OpenCascade.new({
+          AStruct.new({
                               :partitions =>
                                   {
                                       '/' => {'size' => 2},
@@ -64,7 +64,7 @@ module BoxGrinder
     end
 
     it "should create @config object without log" do
-      config = Appliance.new("file", OpenCascade.new(:platform => :ec2), :log => "ALOG").instance_variable_get(:@config)
+      config = Appliance.new("file", AStruct.new(:platform => :ec2), :log => "ALOG").instance_variable_get(:@config)
 
       config.size.should == 1
       config[:log].should == nil
@@ -77,14 +77,14 @@ module BoxGrinder
       end
 
       it "should raise if we use unsupported OS" do
-        PluginManager.stub(:instance).and_return(OpenCascade.new(:plugins => {:os => {:centos => {}}}))
+        PluginManager.stub(:instance).and_return(AStruct.new(:plugins => {:os => {:centos => {}}}))
         lambda {
           @appliance.validate_definition
         }.should raise_error(RuntimeError, "Unsupported operating system selected: fedora. Make sure you have installed right operating system plugin, see http://boxgrinder.org/tutorials/boxgrinder-build-plugins/#Operating_system_plugins. Supported OSes are: centos")
       end
 
       it "should NOT raise if we use supported OS" do
-        PluginManager.stub(:instance).and_return(OpenCascade.new(:plugins => {:os => {:fedora => {:versions => ['11']}}}))
+        PluginManager.stub(:instance).and_return(AStruct.new(:plugins => {:os => {:fedora => {:versions => ['11']}}}))
         @appliance.validate_definition
       end
     end
@@ -236,7 +236,7 @@ module BoxGrinder
       let(:platform_plugin_info_mock){ mock('platform_plugin_info_mock', :[] => 'plat').as_null_object }
       let(:delivery_plugin_info_mock){ mock('delivery_plugin_info_mock', :[] => 'deliver').as_null_object }
 
-      let(:platform_plugin){ mock("PlatformPlugin", :deliverables => OpenCascade.new(:disk => 'a/disk.vmdk')) }
+      let(:platform_plugin){ mock("PlatformPlugin", :deliverables => AStruct.new(:disk => 'a/disk.vmdk')) }
       let(:delivery_plugin){ mock("DeliveryPlugin", :deliverables => {}) }
 
       it "should prepare the plugin chain to create an appliance and convert it to VMware format" do

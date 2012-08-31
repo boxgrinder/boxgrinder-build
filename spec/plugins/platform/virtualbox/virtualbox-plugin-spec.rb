@@ -30,16 +30,16 @@ module BoxGrinder
 
       @appliance_config = mock('ApplianceConfig')
 
-      @appliance_config.stub!(:path).and_return(OpenCascade.new({:build => 'build/path'}))
+      @appliance_config.stub!(:path).and_return(AStruct.new({:build => 'build/path'}))
       @appliance_config.stub!(:name).and_return('full')
       @appliance_config.stub!(:summary).and_return('asd')
       @appliance_config.stub!(:version).and_return(1)
       @appliance_config.stub!(:release).and_return(0)
-      @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '14'}))
-      @appliance_config.stub!(:post).and_return(OpenCascade.new({:virtualbox => []}))
+      @appliance_config.stub!(:os).and_return(AStruct.new({:name => 'fedora', :version => '14'}))
+      @appliance_config.stub!(:post).and_return(AStruct.new({:virtualbox => []}))
 
       @appliance_config.stub!(:hardware).and_return(
-          OpenCascade.new({
+          AStruct.new({
                               :partitions =>
                                   {
                                       '/' => {'size' => 2},
@@ -53,7 +53,7 @@ module BoxGrinder
       )
 
       @plugin = RSpecPluginHelper.new(VirtualBoxPlugin).prepare(@config, @appliance_config,
-        :previous_plugin => OpenCascade.new(:deliverables => {:disk => 'a/base/image/path.raw'}),
+        :previous_plugin => AStruct.new(:deliverables => {:disk => 'a/base/image/path.raw'}),
         :plugin_info => {:class => BoxGrinder::VirtualBoxPlugin, :type => :platform, :name => :virtualbox, :full_name => "VirtualBox"}
       )
 
@@ -83,19 +83,19 @@ module BoxGrinder
     describe ".is_os_old?" do
       it "should return false for fedora 14" do
         prepare_image
-        @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'fedora', :version => '14'}))
+        @appliance_config.stub!(:os).and_return(AStruct.new({:name => 'fedora', :version => '14'}))
         @plugin.is_os_old?.should == false
       end
 
       it "should return false for rhel 6" do
         prepare_image
-        @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'rhel', :version => '6'}))
+        @appliance_config.stub!(:os).and_return(AStruct.new({:name => 'rhel', :version => '6'}))
         @plugin.is_os_old?.should == false
       end
 
       it "should return true for centos 5" do
         prepare_image
-        @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'centos', :version => '5'}))
+        @appliance_config.stub!(:os).and_return(AStruct.new({:name => 'centos', :version => '5'}))
         @plugin.is_os_old?.should == true
       end
     end
@@ -153,7 +153,7 @@ module BoxGrinder
         prepare_image
 
         @appliance_config.post['virtualbox'] = ["one", "two", "three"]
-        @appliance_config.stub!(:os).and_return(OpenCascade.new({:name => 'rhel', :version => '5'}))
+        @appliance_config.stub!(:os).and_return(AStruct.new({:name => 'rhel', :version => '5'}))
 
         @plugin.should_receive(:build_virtualbox)
 
