@@ -1,3 +1,7 @@
+v0.10.4
+
+* [BGBUILD-373] Remove hashery dependency
+
 v0.10.3
 
 * [BGBUILD-339] Existing rpm package with the name containing '+' considered as an invalid name

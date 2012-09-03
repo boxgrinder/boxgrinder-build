@@ -11,7 +11,7 @@
 
 Summary:     A tool for creating appliances from simple plain text files
 Name:        rubygem-%{gem_name}
-Version:     0.10.3
+Version:     0.10.4
 Release:     1%{?dist}
 Group:       Development/Languages
 License:     LGPLv3+
@@ -19,7 +19,7 @@ URL:         http://boxgrinder.org/
 Source0:     http://rubygems.org/gems/%{gem_name}-%{version}.gem
 
 Requires: ruby(abi) = %{rubyabi}
-Requires: rubygem(boxgrinder-core) >= 0.3.12
+Requires: rubygem(boxgrinder-core) >= 0.3.14
 Requires: rubygem(boxgrinder-core) < 0.4.0
 Requires: ruby-libguestfs
 
@@ -153,6 +153,10 @@ popd
 %{gem_docdir}
 
 %changelog
+* Tue Sep 4 2012 Marc Savy <msavy@redhat.com> - 0.10.4
+- Upstream release: 0.10.4
+- [BGBUILD-373] Remove hashery dependency
+
 * Mon Jun 18 2012 Marc Savy <msavy@redhat.com> - 0.10.3
 - Upstream release: 0.10.3
 - [BGBUILD-339] Existing rpm package with the name containing '+' considered as an invalid name
