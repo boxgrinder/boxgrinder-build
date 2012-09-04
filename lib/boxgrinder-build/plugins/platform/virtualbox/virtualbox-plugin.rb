@@ -32,7 +32,7 @@ module BoxGrinder
 
       build_virtualbox
 
-      if is_os_old? or !@appliance_config.post['virtualbox'].nil?
+      if is_os_old? or !@appliance_config.post['virtualbox'].empty?
         @image_helper.customize([@deliverables.disk]) do |guestfs, guestfs_helper|
           recreate_kernel(guestfs) if is_os_old?
           customize(guestfs_helper) unless @appliance_config.post['virtualbox'].nil?
