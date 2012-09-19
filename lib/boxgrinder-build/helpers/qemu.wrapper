@@ -13,7 +13,7 @@ x64=( qemu-system-x86_64 qemu )
 
 arch=${i386[@]}
 
-if [[ `uname -m` == 'x86_64' ]]; then
+if [ "`uname -a | grep x86_64 | wc -l`" -eq "1" ]; then
     arch=${x64[@]}
 fi
 
