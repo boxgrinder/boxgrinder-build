@@ -49,10 +49,10 @@ module BoxGrinder
         @log.debug "'/etc/resolv.conf' uploaded."
 
         if (@appliance_config.os.name == 'rhel' or @appliance_config.os.name == 'centos') and @appliance_config.os.version == '5'
-          # Remove normal kernel
-          guestfs.sh("yum -y remove kernel")
-          # because we need to install kernel-xen package
+          # Install kernel-xen package
           guestfs_helper.sh("yum -y install kernel-xen", :arch => @appliance_config.hardware.arch)
+          # Then remove normal kernel.  We don't need it anymore.
+          guestfs.sh("yum -y remove kernel")
           # and add require modules
           @linux_helper.recreate_kernel_image(guestfs, ['xenblk', 'xennet'])
         end
