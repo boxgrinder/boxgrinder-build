@@ -87,6 +87,15 @@ module BoxGrinder
         }
       },
 
+      'ap-southeast-2' => {
+        :endpoint => 's3-ap-southeast-2.amazonaws.com',
+        :location => 'ap-southeast-2',
+        :kernel => {
+          :i386 => {:aki => 'aki-3f990e05'},
+          :x86_64 => {:aki => 'aki-3d990e07'}
+        }
+      },
+
       'ap-northeast-1' => {
         :endpoint => 's3-ap-northeast-1.amazonaws.com',
         :location => 'ap-northeast-1',
