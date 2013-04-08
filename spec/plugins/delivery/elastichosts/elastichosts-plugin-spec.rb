@@ -209,15 +209,18 @@ module BoxGrinder
           @plugin.instance_variable_set(:@previous_deliverables, AStruct.new({:disk => 'a/disk'}))
 
           f = mock(File)
+
+          File.should_receive(:open).with('a/disk', 'rb').and_yield(f)
+
           f.should_receive(:eof?).ordered.and_return(false)
           f.should_receive(:seek).ordered.with(0, File::SEEK_SET)
           f.should_receive(:read).ordered.with(67108864).and_return("data")
-          f.should_receive(:eof?).ordered.and_return(true)
 
           @plugin.should_not_receive(:compress)
           @plugin.should_receive(:upload_chunk).ordered.with("data", 0)
 
-          File.should_receive(:open).with('a/disk', 'rb').and_yield(f)
+          f.should_receive(:eof?).ordered.and_return(true)
+
           @plugin.upload_chunks
         end
       end
