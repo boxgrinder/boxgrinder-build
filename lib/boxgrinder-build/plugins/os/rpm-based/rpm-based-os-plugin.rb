@@ -213,6 +213,7 @@ module BoxGrinder
       if guestfs.exists('/boot/grub/grub.conf') != 0
         if grub = guestfs.read_file('/boot/grub/grub.conf').gsub!(%r((/dev/\w+da\d*))) { |path| "LABEL=#{guestfs.vfs_label(path.gsub('/dev/sda', device))}" }
           guestfs.write_file('/boot/grub/grub.conf', grub, 0)
+          link_grubconf(guestfs)
         end
       end
       @log.debug "Done."
@@ -328,6 +329,12 @@ module BoxGrinder
 
       end
       @log.debug "Files installed."
+    end
+
+    def link_grubconf(guestfs)
+      @log.debug "Linking /boot/grub/grub.conf to /etc/grub.conf..."
+      guestfs.ln_sf("/boot/grub/grub.conf", "/etc/grub.conf")
+      @log.debug "/etc/grub.conf linked."
     end
   end
 end
