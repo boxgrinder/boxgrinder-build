@@ -141,6 +141,12 @@ module BoxGrinder
 
         @plugin.execute('file')
       end
+
+      it "should link /boot/grub/grub.conf to /etc/grub.conf" do
+        guestfs = mock("GuestFS")
+        guestfs.should_receive(:ln_sf).with("/boot/grub/grub.conf", "/etc/grub.conf")
+        @plugin.link_grubconf(guestfs)
+      end
     end
   end
 end
