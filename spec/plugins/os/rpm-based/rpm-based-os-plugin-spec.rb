@@ -96,7 +96,6 @@ module BoxGrinder
 
         guestfs.should_receive(:list_devices).and_return(['/dev/hda'])
         guestfs.should_receive(:exists).with('/boot/grub/grub.conf').and_return(1)
-        guestfs.should_receive(:ln_sf).with("/boot/grub/grub.conf", "/etc/grub.conf")
 
         guestfs.should_receive(:read_file).with('/etc/fstab').and_return("/dev/sda1 / something\nLABEL=/boot /boot something\n")
         guestfs.should_receive(:vfs_label).with('/dev/hda1').and_return('/')
