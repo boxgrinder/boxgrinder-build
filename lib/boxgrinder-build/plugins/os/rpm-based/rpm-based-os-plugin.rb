@@ -331,10 +331,5 @@ module BoxGrinder
       @log.debug "Files installed."
     end
 
-    def link_grubconf(guestfs)
-      @log.debug "Linking /boot/grub/grub.conf to /etc/grub.conf..."
-      guestfs.ln_sf("/boot/grub/grub.conf", "/etc/grub.conf")
-      @log.debug "/etc/grub.conf linked."
-    end
   end
 end

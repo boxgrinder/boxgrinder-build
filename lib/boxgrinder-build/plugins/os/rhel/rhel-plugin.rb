@@ -33,6 +33,8 @@ module BoxGrinder
       build_with_appliance_creator(appliance_definition_file, repos) do |guestfs, guestfs_helper|
         # required for VMware and KVM
         @linux_helper.recreate_kernel_image(guestfs, ['mptspi', 'virtio_pci', 'virtio_blk']) if @appliance_config.os.version == '5' and !@appliance_config.packages.include?('kernel-xen')
+
+        link_grubconf(guestfs)
       end
     end
 
@@ -55,6 +57,12 @@ module BoxGrinder
 
     def execute(appliance_definition_file)
       build_rhel(appliance_definition_file)
+    end
+
+    def link_grubconf(guestfs)
+      @log.debug "Linking /boot/grub/grub.conf to /etc/grub.conf..."
+      guestfs.ln_sf("/boot/grub/grub.conf", "/etc/grub.conf")
+      @log.debug "/etc/grub.conf linked."
     end
   end
 end

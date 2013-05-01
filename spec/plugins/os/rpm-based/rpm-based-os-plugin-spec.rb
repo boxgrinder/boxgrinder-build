@@ -409,11 +409,5 @@ module BoxGrinder
         @plugin.set_label_for_swap_partitions(guestfs, guestfs_helper)
       end
     end
-
-    it "should link /boot/grub/grub.conf to /etc/grub.conf" do
-      guestfs = mock("GuestFS")
-      guestfs.should_receive(:ln_sf).with("/boot/grub/grub.conf", "/etc/grub.conf")
-      @plugin.link_grubconf(guestfs)
-    end
   end
 end
