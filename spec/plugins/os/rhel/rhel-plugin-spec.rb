@@ -147,6 +147,22 @@ module BoxGrinder
         guestfs.should_receive(:ln_sf).with("/boot/grub/grub.conf", "/etc/grub.conf")
         @plugin.link_grubconf(guestfs)
       end
+
+      it "should write the kernel sysconfig file with an appropriate default kernel" do
+        guestfs = mock("GuestFS")
+
+        guestfs.should_receive(:write_file).with("/etc/sysconfig/kernel", "DEFAULTKERNEL=kernel\nUPDATEDEFAULT=yes\n", 0)
+        @plugin.write_kernel_sysconfig(guestfs, [])
+
+        guestfs.should_receive(:write_file).with("/etc/sysconfig/kernel", "DEFAULTKERNEL=kernel-xen\nUPDATEDEFAULT=yes\n", 0)
+        @plugin.write_kernel_sysconfig(guestfs, ['kernel-xen'])
+
+        guestfs.should_receive(:write_file).with("/etc/sysconfig/kernel", "DEFAULTKERNEL=kernel-ml\nUPDATEDEFAULT=yes\n", 0)
+        @plugin.write_kernel_sysconfig(guestfs, ['kernel-ml'])
+
+        guestfs.should_receive(:write_file).with("/etc/sysconfig/kernel", "DEFAULTKERNEL=kernel-pae\nUPDATEDEFAULT=yes\n", 0)
+        @plugin.write_kernel_sysconfig(guestfs, ['kernel-pae'])
+      end
     end
   end
 end
