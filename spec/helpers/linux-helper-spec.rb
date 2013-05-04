@@ -87,6 +87,18 @@ module BoxGrinder
       @helper.recreate_kernel_image(guestfs, ['xenblk', 'xennet'])
     end
 
+    it "should query the rpm database in the guestfs to find provider packages" do
+      guestfs = mock("guestfs")
+      guestfs.should_receive(:sh).with('rpm -q --whatprovides some_package').and_return("some_package-1\nsome_package-2\n")
+      @helper.packages_providing(guestfs, 'some_package').should == ['some_package-1', 'some_package-2']
+    end
+
+    it "should query the rpm database in the guestfs to find the true name of a package" do
+      guestfs = mock("guestfs")
+      guestfs.should_receive(:sh).with("rpm -q --qf='%{name}' some_package-1").and_return('some_package')
+      @helper.package_name(guestfs, 'some_package-1').should == 'some_package'
+    end
+
     describe ".partition_mount_points" do
       it "should return ['/', '/home']" do
         hash = {"/"=>{"size"=>2, "type"=>"ext3"}, "/home"=>{"size"=>2, "type"=>"ext3"}}

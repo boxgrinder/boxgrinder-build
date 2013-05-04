@@ -35,7 +35,7 @@ module BoxGrinder
         @linux_helper.recreate_kernel_image(guestfs, ['mptspi', 'virtio_pci', 'virtio_blk']) if @appliance_config.os.version == '5' and !@appliance_config.packages.include?('kernel-xen')
 
         link_grubconf(guestfs)
-        write_kernel_sysconfig(guestfs, @appliance_config.packages)
+        write_kernel_sysconfig(guestfs)
       end
     end
 
@@ -66,18 +66,14 @@ module BoxGrinder
       @log.debug "/etc/grub.conf linked."
     end
 
-    def write_kernel_sysconfig(guestfs, packages)
+    def write_kernel_sysconfig(guestfs)
       @log.debug "Writing kernel sysconfig file..."
-      kernel = 'kernel'
-      packages.each do |package|
-        kernel = 'kernel-xen' if package.start_with?('kernel-xen')
-        kernel = 'kernel-pae' if package.start_with?('kernel-pae')
-        kernel = 'kernel-ml' if package.start_with?('kernel-ml')
-        break if kernel != 'kernel'
-      end
-      @log.debug "Default kernel name is '#{kernel}'"
-      kernel_sysconfig = "DEFAULTKERNEL=#{kernel}\n"
-      kernel_sysconfig += "UPDATEDEFAULT=yes\n"
+      kernel_packages = @linux_helper.packages_providing(guestfs, 'kernel')
+      newest_kernel = RPMVersion.new.newest(kernel_packages)
+      kernel_name = @linux_helper.package_name(guestfs, newest_kernel)
+      @log.debug "Default kernel name is '#{kernel_name}'"
+
+      kernel_sysconfig = "DEFAULTKERNEL=#{kernel_name}\nUPDATEDEFAULT=yes\n"
       guestfs.write_file('/etc/sysconfig/kernel', kernel_sysconfig, 0)
       @log.debug("Finished writing kernel sysconfig file.")
     end

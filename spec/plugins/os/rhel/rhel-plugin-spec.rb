@@ -111,6 +111,9 @@ module BoxGrinder
 
         @linux_helper.should_receive(:recreate_kernel_image).with(guestfs, ['mptspi', 'virtio_pci', 'virtio_blk'])
 
+        @plugin.should_receive(:link_grubconf)
+        @plugin.should_receive(:write_kernel_sysconfig)
+
         @plugin.execute('file')
       end
 
@@ -127,6 +130,9 @@ module BoxGrinder
         @plugin.should_receive(:build_with_appliance_creator).ordered.and_yield(guestfs, guestfs_helper)
 
         @linux_helper.should_not_receive(:recreate_kernel_image)
+
+        @plugin.should_receive(:link_grubconf)
+        @plugin.should_receive(:write_kernel_sysconfig)
 
         @plugin.execute('file')
       end
@@ -150,18 +156,10 @@ module BoxGrinder
 
       it "should write the kernel sysconfig file with an appropriate default kernel" do
         guestfs = mock("GuestFS")
-
+        @linux_helper.should_receive(:packages_providing).with(guestfs, 'kernel').and_return(['kernel-2.6.18-274.7.1.el5', 'kernel-2.6.18-8.el5'])
+        @linux_helper.should_receive(:package_name).with(guestfs, 'kernel-2.6.18-274.7.1.el5').and_return('kernel')
         guestfs.should_receive(:write_file).with("/etc/sysconfig/kernel", "DEFAULTKERNEL=kernel\nUPDATEDEFAULT=yes\n", 0)
-        @plugin.write_kernel_sysconfig(guestfs, [])
-
-        guestfs.should_receive(:write_file).with("/etc/sysconfig/kernel", "DEFAULTKERNEL=kernel-xen\nUPDATEDEFAULT=yes\n", 0)
-        @plugin.write_kernel_sysconfig(guestfs, ['kernel-xen'])
-
-        guestfs.should_receive(:write_file).with("/etc/sysconfig/kernel", "DEFAULTKERNEL=kernel-ml\nUPDATEDEFAULT=yes\n", 0)
-        @plugin.write_kernel_sysconfig(guestfs, ['kernel-ml'])
-
-        guestfs.should_receive(:write_file).with("/etc/sysconfig/kernel", "DEFAULTKERNEL=kernel-pae\nUPDATEDEFAULT=yes\n", 0)
-        @plugin.write_kernel_sysconfig(guestfs, ['kernel-pae'])
+        @plugin.write_kernel_sysconfig(guestfs)
       end
     end
   end

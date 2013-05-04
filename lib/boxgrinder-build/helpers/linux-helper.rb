@@ -136,5 +136,13 @@ module BoxGrinder
       guestfs.sh("#{command} /boot/#{kernel_image_name}-#{kernel_version}.img #{kernel_version}")
       @log.debug "Kernel image recreated."
     end
+
+    def packages_providing(guestfs, capability)
+      guestfs.sh("rpm -q --whatprovides #{capability}").split("\n")
+    end
+
+    def package_name(guestfs, package)
+      guestfs.sh("rpm -q --qf='%{name}' #{package}")
+    end
   end
 end
