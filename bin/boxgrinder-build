@@ -209,6 +209,7 @@ begin
       log.fatal "#{e.class}: #{e.message}. See the log file for detailed information."
       log.debug msg
     end
+    abort
   end
 rescue => e
   puts opts
