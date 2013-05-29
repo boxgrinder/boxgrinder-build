@@ -55,7 +55,7 @@ def validate_hash_option(options, name, value)
         v = true
       elsif v =~ /^(n|N|no|No|NO|false|False|FALSE|off|Off|OFF)$/
         v = false
-      elsif v =~ /^([-+]?([0-9][0-9_]*)?\.[0-9.]*([eE][-+][0-9]+)?)$/
+      elsif v =~ /^([-+]?([0-9][0-9_]*)?(\.[0-9]+)?([eE][-+][0-9]+)?)$/
         v = v.to_f
       end
 
