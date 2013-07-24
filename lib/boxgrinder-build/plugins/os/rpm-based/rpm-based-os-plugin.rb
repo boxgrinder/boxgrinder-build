@@ -92,7 +92,12 @@ module BoxGrinder
         guestfs.sh("chkconfig firstboot off") if guestfs.exists('/etc/init.d/firstboot') != 0
 
         # https://issues.jboss.org/browse/BGBUILD-148
-        recreate_rpm_database(guestfs, guestfs_helper) if @config.os.name != @appliance_config.os.name or @config.os.version != @appliance_config.os.version
+        guest_rpmversion = guestfs.sh("rpm --version").split.last
+        host_rpmversion = @exec_helper.execute("rpm --version").split.last
+        if guest_rpmversion != host_rpmversion
+          @log.debug "Guest RPM version (#{guest_rpmversion}) is different than the host (#{host_rpmversion})"
+          recreate_rpm_database(guestfs, guestfs_helper)
+        end
 
         execute_post(guestfs_helper)
 
