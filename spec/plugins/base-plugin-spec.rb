@@ -188,7 +188,7 @@ module BoxGrinder
       @plugin.instance_variable_get(:@plugin_config)['key'].should == 'avalue'
     end
 
-    it "should not be overwritten by default value assignment"
+    it "should not be overwritten by default value assignment" do
       @plugin.instance_variable_set(:@plugin_config, {'key' => false})
       @plugin.set_default_config_value('key', true)
 
