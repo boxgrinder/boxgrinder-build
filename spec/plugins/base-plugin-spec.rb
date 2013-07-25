@@ -188,6 +188,13 @@ module BoxGrinder
       @plugin.instance_variable_get(:@plugin_config)['key'].should == 'avalue'
     end
 
+    it "should not be overwritten by default value assignment"
+      @plugin.instance_variable_set(:@plugin_config, {'key' => false})
+      @plugin.set_default_config_value('key', true)
+
+      @plugin.instance_variable_get(:@plugin_config)['key'].should == false
+    end
+
     describe ".read_plugin_config" do
       it "should read plugin config" do
         plugins = mock('Plugins')

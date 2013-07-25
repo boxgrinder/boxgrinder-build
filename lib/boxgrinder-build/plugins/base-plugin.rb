@@ -206,7 +206,7 @@ module BoxGrinder
       if block_given? && !(@plugin_config[key].nil?)
         @plugin_config[key] = yield(key, default_value, @plugin_config[key])
       else
-        @plugin_config[key] ||= default_value
+        @plugin_config[key] = default_value if @plugin_config[key].nil?
       end
     end
 
